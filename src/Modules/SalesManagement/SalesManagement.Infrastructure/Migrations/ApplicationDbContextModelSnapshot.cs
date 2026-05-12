@@ -5143,6 +5143,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("SalesOrderNo");
 
+                    b.Property<int?>("SalesOrderSplitId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOrderSplitId");
+
                     b.Property<int?>("SalesOrderTypeId")
                         .HasColumnType("int")
                         .HasColumnName("SalesOrderTypeId");
@@ -5158,6 +5162,12 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("SalesSegmentId")
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
+
+                    b.Property<bool>("SplitFlag")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("SplitFlag");
 
                     b.Property<int?>("StatusId")
                         .HasColumnType("int")

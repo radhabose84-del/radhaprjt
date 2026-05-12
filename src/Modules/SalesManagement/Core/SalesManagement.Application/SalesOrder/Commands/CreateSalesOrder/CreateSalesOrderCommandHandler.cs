@@ -67,9 +67,14 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
         {
             var details = request.SalesOrderDetails;
 
+            // Split-order shortcut: when SalesOrderSplitId > 0 AND SplitFlag = true,
+            // attachments are inherited from the original order — skip file-existence
+            // pre-checks and post-save renaming, insert payload directly.
+            var isSplitOrder = details?.SalesOrderSplitId is > 0 && details.SplitFlag;
+
             // Pre-check: verify VisitNotesAttachment exists on disk
             string? visitNotesUploadPath = null;
-            if (!string.IsNullOrWhiteSpace(details?.VisitNotesAttachment))
+            if (!isSplitOrder && !string.IsNullOrWhiteSpace(details?.VisitNotesAttachment))
             {
                 visitNotesUploadPath = await BuildDocumentUploadPathAsync(MiscEnumEntity.SalesOrderVisitPath);
                 var filePath = Path.Combine(visitNotesUploadPath, details.VisitNotesAttachment);
@@ -87,7 +92,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
 
             // Pre-check: verify AgentPOAttachment exists on disk
             string? agentPOUploadPath = null;
-            if (!string.IsNullOrWhiteSpace(details?.AgentPOAttachment))
+            if (!isSplitOrder && !string.IsNullOrWhiteSpace(details?.AgentPOAttachment))
             {
                 agentPOUploadPath = await BuildDocumentUploadPathAsync(MiscEnumEntity.AgentPoDocument);
                 var filePath = Path.Combine(agentPOUploadPath, details.AgentPOAttachment);
@@ -105,7 +110,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
 
             // Pre-check: verify MdApprovalDocument exists on disk (folder = "MdApproval", matching the upload handler)
             string? mdApprovalUploadPath = null;
-            if (!string.IsNullOrWhiteSpace(details?.MdApprovalDocument))
+            if (!isSplitOrder && !string.IsNullOrWhiteSpace(details?.MdApprovalDocument))
             {
                 mdApprovalUploadPath = await BuildDocumentUploadPathAsync("MdApproval");
                 var filePath = Path.Combine(mdApprovalUploadPath, details.MdApprovalDocument);
@@ -135,6 +140,29 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             entity.OrderUnitId = _ipAddressService.GetUnitId();
 
             var newId = await _commandRepository.CreateAsync(entity, details.SalesOrderTypeId.Value);
+
+            // Foreclose parent order when this is a split-create scenario.
+            if (isSplitOrder)
+            {
+                var parentId = details.SalesOrderSplitId!.Value;
+                var foreclosed = await _commandRepository.ForecloseAsync(parentId, cancellationToken);
+                if (foreclosed)
+                {
+                    var foreCloseAudit = new AuditLogsDomainEvent(
+                        actionDetail: "ForeClose",
+                        actionCode: "SALESORDER_FORECLOSE",
+                        actionName: parentId.ToString(),
+                        details: $"Sales Order Id {parentId} foreclosed via split-create of new Sales Order '{salesOrderNo}' (Id {newId}).",
+                        module: "SalesOrder");
+                    await _mediator.Publish(foreCloseAudit, cancellationToken);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Foreclose skipped: parent Sales Order Id {ParentId} not found or already deleted (split child Id={NewId}).",
+                        parentId, newId);
+                }
+            }
 
             // Post-save: rename VisitNotesAttachment to {companyName}-{unitName}-{salesOrderId}.ext
             if (!string.IsNullOrWhiteSpace(details.VisitNotesAttachment) && visitNotesUploadPath != null)
@@ -261,7 +289,9 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                         param8                = "",
                         param9                = "",
                         param10               = "",
-                        OverrideTargetUserIds = overrideUserIds
+                        OverrideTargetUserIds = overrideUserIds,
+                        ModuleTransactionId   = newId,
+                        ModuleTypeName        = MiscEnumEntity.TransactionTypeSalesOrder
                     };
 
                     await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);

@@ -35,6 +35,18 @@ namespace Contracts.Events.Notifications
         /// </summary>
         public List<int>? OverrideTargetUserIds { get; set; }
 
+        /// <summary>
+        /// The ID of the originating module transaction (e.g., SalesQuotation Id, PurchaseOrder Id).
+        /// Stored in NotificationEventLog for traceability.
+        /// </summary>
+        public int ModuleTransactionId { get; set; }
+
+        /// <summary>
+        /// The type name of the originating module transaction (e.g., "Sales Quotation", "Sales Order").
+        /// Stored in NotificationEventLog for traceability.
+        /// </summary>
+        public string? ModuleTypeName { get; set; }
+
         public List<NotificationAttachment> Attachments { get; set; } = new();
                 
         public sealed class NotificationAttachment

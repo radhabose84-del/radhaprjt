@@ -21,5 +21,10 @@ namespace SalesManagement.Application.Common.Interfaces.IDeliveryChallan
         Task<(List<DeliveryChallanHeaderDto>, int)> GetPendingAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<DeliveryChallanHeaderDto?> GetPendingByIdAsync(int id);
         Task<List<GetDCGatePassPendingDto>> GetDCGatePassPendingAsync(string? vehicleNo);
+        Task<DeliveryChallanPrintDto?> GetPrintDetailsAsync(int id);
+
+        // Returns a print-ready EWB document view (DC → EWB → addresses → company)
+        // for the standalone (no-IRN) e-Waybill linked to this DC. Null if no EWB exists yet.
+        Task<StandaloneEwbDocumentDto?> GetStandaloneEwbDocumentAsync(int dcId, CancellationToken ct);
     }
 }

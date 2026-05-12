@@ -231,7 +231,9 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
                         param7 = contactName,
                         param8 = "",
                         param9 = "",
-                        param10 = rowsJson
+                        param10 = rowsJson,
+                        ModuleTransactionId = 0,
+                        ModuleTypeName = "RFQ"
                     };
 
                     await _outboxEventPublisher.ScheduleAsync(@event, correlationId, ct);

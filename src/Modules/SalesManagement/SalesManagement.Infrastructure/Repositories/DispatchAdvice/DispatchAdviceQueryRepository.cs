@@ -627,14 +627,17 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
         public async Task<IReadOnlyList<DispatchAdviceLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
+            var unitId = _ipAddressService.GetUnitId();
+
             const string sql = @"
                 SELECT dah.Id, dah.DispatchNo, dah.DispatchDate, dah.InvFlg
                 FROM Sales.DispatchAdviceHeader dah
                 WHERE dah.IsActive = 1 AND dah.IsDeleted = 0
+                AND dah.UnitId = @UnitId
                 AND dah.DispatchNo LIKE @Term
                 ORDER BY dah.DispatchNo ASC";
 
-            var result = await _dbConnection.QueryAsync<DispatchAdviceLookupDto>(sql, new { Term = $"%{term}%" });
+            var result = await _dbConnection.QueryAsync<DispatchAdviceLookupDto>(sql, new { UnitId = unitId, Term = $"%{term}%" });
             return result.ToList();
         }
 

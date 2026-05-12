@@ -77,10 +77,10 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             INNER JOIN FixedAsset.AssetCategories AC on AC.Id=AM.AssetCategoryId
             INNER JOIN FixedAsset.AssetSubCategories A on A.Id=AM.AssetSubCategoryId
             INNER JOIN FixedAsset.UOM U on U.Id=AM.UOMId
-            INNER JOIN FixedAsset.MiscMaster MM on MM.Id =AM.WorkingStatus
+            LEFT JOIN FixedAsset.MiscMaster MM on MM.Id =AM.WorkingStatus
             LEFT JOIN FixedAsset.MiscMaster M on M.Id =AM.AssetType
             LEFT JOIN FixedAsset.AssetMaster AM1 on AM1.Id =AM.AssetParentId
-            WHERE AM.CompanyId = @CompanyId AND AM.UnitId = @UnitId AND  (AM.AssetName LIKE @SearchPattern OR AM.AssetCode LIKE @SearchPattern) 
+            WHERE AM.CompanyId = @CompanyId AND AM.UnitId = @UnitId AND  (AM.AssetName LIKE @SearchPattern OR AM.AssetCode LIKE @SearchPattern)
             AND  AM.IsDeleted=0 and AM.IsActive=1 ORDER BY AM.ID DESC";            
             //var result = await _dbConnection.QueryAsync<AssetMasterGeneralDTO>(query, new { SearchPattern = $"%{searchPattern}%" });
              var result = await _dbConnection.QueryAsync<AssetMasterGeneralDTO>(
@@ -112,7 +112,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             INNER JOIN FixedAsset.AssetCategories AC ON AC.Id = AM.AssetCategoryId
             INNER JOIN FixedAsset.AssetSubCategories A ON A.Id = AM.AssetSubCategoryId
             INNER JOIN FixedAsset.UOM U ON U.Id = AM.UOMId
-            INNER JOIN FixedAsset.MiscMaster MM ON MM.Id = AM.WorkingStatus
+            LEFT JOIN FixedAsset.MiscMaster MM ON MM.Id = AM.WorkingStatus
             LEFT JOIN FixedAsset.MiscMaster M ON M.Id = AM.AssetType
             LEFT JOIN FixedAsset.AssetMaster AM1 ON AM1.Id = AM.AssetParentId
             WHERE AM.CompanyId = @CompanyId AND AM.UnitId = @UnitId AND   AM.Id = @assetId AND AM.IsDeleted = 0";

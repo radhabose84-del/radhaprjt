@@ -140,6 +140,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.StatusId,
                     st.Description AS StatusName,
                     h.RevisionNumber,
+                    h.SalesOrderSplitId,
+                    h.SplitFlag,
+                    parent.SalesOrderNo AS SplitSalesOrderNo,
                     h.CancelledDate, h.CancelledByName, h.CancelledIP,
                     h.ForeClosedDate, h.ForeClosedByName, h.ForeClosedIP,
                     h.IsActive, h.IsDeleted,
@@ -156,6 +159,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                         SELECT 1 FROM Sales.ProformaInvoice pi
                         WHERE pi.SalesOrderId = h.Id AND pi.IsDeleted = 0
                     ) THEN 'Y' ELSE 'N' END AS PIFlag,
+                    CASE
+                        WHEN LOWER(st.Code) = LOWER('Approved')
+                         AND h.OrderDate >= DATEFROMPARTS(YEAR(DATEADD(MONTH, -1, GETDATE())), MONTH(DATEADD(MONTH, -1, GETDATE())), 1)
+                         AND h.OrderDate <= EOMONTH(DATEADD(MONTH, -1, GETDATE()))
+                         AND ISNULL(pending.TotalPendingQty, 0) > 0
+                        THEN 'Y'
+                        ELSE 'N'
+                    END AS SplitOrderFlag,
                     ISNULL(pending.TotalPendingQty, 0) AS TotalPendingQty,
                     amd_latest.StatusId AS AmendmentStatusId,
                     amd_mm.Description AS AmendmentStatusName
@@ -168,6 +179,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderHeader parent ON h.SalesOrderSplitId = parent.Id AND parent.IsDeleted = 0
                 LEFT JOIN (
                     SELECT d.SalesOrderHeaderId,
                            SUM(d.QtyInBags) - ISNULL((
@@ -328,6 +340,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     h.StatusId,
                     st.Description AS StatusName,
                     h.RevisionNumber,
+                    h.SalesOrderSplitId,
+                    h.SplitFlag,
+                    parent.SalesOrderNo AS SplitSalesOrderNo,
                     h.CancelledDate, h.CancelledByName, h.CancelledIP,
                     h.ForeClosedDate, h.ForeClosedByName, h.ForeClosedIP,
                     h.IsActive, h.IsDeleted,
@@ -343,6 +358,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Sales.SalesOrderHeader parent ON h.SalesOrderSplitId = parent.Id AND parent.IsDeleted = 0
                 LEFT JOIN (
                     SELECT ah.SalesOrderHeaderId, ah.StatusId
                     FROM Sales.SalesOrderAmendmentHeader ah
@@ -378,7 +394,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     d.ExpectedDeliveryDate, d.AgentCommissionPercentage,
                     d.DispatchedQty,
                     ISNULL(da.ReservedQty, 0) AS ReservedQty,
-                    (d.QtyInBags - d.DispatchedQty) AS PendingQty,
+                    (d.QtyInBags - ISNULL(da.ReservedQty, 0)) AS PendingQty,
                     d.LineItemStatusId,
                     mm.Description AS LineItemStatusName
                 FROM Sales.SalesOrderDetail d

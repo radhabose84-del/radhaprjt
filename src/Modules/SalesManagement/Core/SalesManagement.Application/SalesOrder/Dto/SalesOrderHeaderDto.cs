@@ -107,6 +107,10 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Proforma Invoice Flag — 'Y' if at least one proforma invoice exists, 'N' otherwise
         public string? PIFlag { get; set; }
 
+        // Split Order Flag — 'Y' when this order is Approved, OrderDate falls in the previous
+        // calendar month (relative to server date), and TotalPendingQty > 0; otherwise 'N'.
+        public string? SplitOrderFlag { get; set; }
+
         // Total Pending Qty (OrderQty - DispatchedQty, excluding deleted lines)
         public decimal TotalPendingQty { get; set; }
 
@@ -116,6 +120,11 @@ namespace SalesManagement.Application.SalesOrder.Dto
 
         // Revision tracking
         public int RevisionNumber { get; set; }
+
+        // Split Order tracking
+        public int? SalesOrderSplitId { get; set; }
+        public bool SplitFlag { get; set; }
+        public string? SplitSalesOrderNo { get; set; }
 
         // Cancelled fields
         public DateTimeOffset? CancelledDate { get; set; }

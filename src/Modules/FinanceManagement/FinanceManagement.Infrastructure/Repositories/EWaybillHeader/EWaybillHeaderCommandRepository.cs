@@ -70,5 +70,44 @@ namespace FinanceManagement.Infrastructure.Repositories.EWaybillHeader
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task<bool> UpdateAfterNicSuccessAsync(int id, string ewbNumber,
+            DateTimeOffset? generatedDate, DateTimeOffset? validUpto, CancellationToken ct = default)
+        {
+            var existing = await _dbContext.EWaybillHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.EWBNumber = ewbNumber;
+            existing.EwbStatus = "Generated";
+            existing.GeneratedDate = generatedDate;
+            existing.ValidUpto = validUpto;
+            existing.ErrorCode = null;
+            existing.ErrorMessage = null;
+
+            _dbContext.EWaybillHeader.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> UpdateAfterNicFailureAsync(int id, string? errorCode, string? errorMessage,
+            CancellationToken ct = default)
+        {
+            var existing = await _dbContext.EWaybillHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            // EwbStatus stays "Pending" — operator can fix data and retry.
+            existing.ErrorCode = errorCode;
+            existing.ErrorMessage = errorMessage;
+
+            _dbContext.EWaybillHeader.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
     }
 }

@@ -177,6 +177,8 @@ namespace BackgroundService.Application.Consumers
                 param9 = msg.param9,
                 param10 = msg.TableRowsJson ?? msg.param10,
                 RetryCount = 0,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName,
                 Attachments = attachments
             };
 
@@ -206,7 +208,9 @@ namespace BackgroundService.Application.Consumers
                 param8 = msg.param8,
                 param9 = msg.param9,
                 param10 = msg.param10,
-                RetryCount = 0
+                RetryCount = 0,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName
             };
 
             await _publishEndpoint.Publish(smsCommand, cancellationToken);
@@ -235,7 +239,9 @@ namespace BackgroundService.Application.Consumers
                 param8 = msg.param8,
                 param9 = msg.param9,
                 param10 = msg.param10,
-                RetryCount = 0
+                RetryCount = 0,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName
             };
 
             await _publishEndpoint.Publish(whatsAppCommand, cancellationToken);
@@ -265,7 +271,9 @@ namespace BackgroundService.Application.Consumers
                 param9 = msg.param9,
                 param10 = msg.param10,
                 RetryCount = 0,
-                OverrideTargetUserIds = msg.OverrideTargetUserIds
+                OverrideTargetUserIds = msg.OverrideTargetUserIds,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName
             };
 
             await _publishEndpoint.Publish(inAppCommand, cancellationToken);

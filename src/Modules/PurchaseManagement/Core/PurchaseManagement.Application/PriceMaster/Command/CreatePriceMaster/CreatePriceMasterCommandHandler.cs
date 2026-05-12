@@ -139,7 +139,9 @@ namespace PurchaseManagement.Application.PriceMaster.Commands.Create
                     param1 = header.Id.ToString(),
                     param2 = itemName,
                     param3 = new DateTimeOffset(header.ValidFrom.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)),
-                    param4 =vendorName
+                    param4 =vendorName,
+                    ModuleTransactionId = header.Id,
+                    ModuleTypeName = MiscEnumEntity.PriceMaster
                 };
                 await _outboxEventPublisher.ScheduleAsync(wfEvent, correlationId, ct);
                 await _outboxEventPublisher.ScheduleAsync(notification, correlationId, ct);

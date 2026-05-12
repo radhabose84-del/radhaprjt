@@ -324,6 +324,14 @@ namespace BackgroundService.Infrastructure.Migrations
                     b.Property<string>("ModifiedIP")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ModuleTransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("ModuleTypeName")
+                        .HasColumnType("varchar(100)");
+
                     b.Property<int?>("NotificationLevelRuleId")
                         .HasColumnType("int")
                         .HasColumnName("NotificationLevelRuleId");

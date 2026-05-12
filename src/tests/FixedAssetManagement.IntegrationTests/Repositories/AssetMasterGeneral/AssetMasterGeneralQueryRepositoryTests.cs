@@ -82,6 +82,78 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetMasterGeneral
             return asset.Id;
         }
 
+        /// <summary>
+        /// Seeds a fully-formed asset (with UOM) and leaves WorkingStatus NULL so
+        /// the row exercises the LEFT JOIN on FixedAsset.MiscMaster (WorkingStatus).
+        /// </summary>
+        private async Task<int> SeedAssetWithNullWorkingStatusAsync(string codePrefix)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var group = new FAM.Domain.Entities.AssetGroup
+            {
+                Code = codePrefix + "_G", GroupName = "G", GroupPercentage = 10m,
+                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.AssetGroup.Add(group);
+            await ctx.SaveChangesAsync();
+
+            var cat = new FAM.Domain.Entities.AssetCategories
+            {
+                Code = codePrefix + "_C", CategoryName = "C", AssetGroupId = group.Id,
+                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.AssetCategories.Add(cat);
+            await ctx.SaveChangesAsync();
+
+            var sub = new FAM.Domain.Entities.AssetSubCategories
+            {
+                Code = codePrefix + "_SC", SubCategoryName = "SC", AssetCategoriesId = cat.Id,
+                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.AssetSubCategories.Add(sub);
+            await ctx.SaveChangesAsync();
+
+            var miscType = new FAM.Domain.Entities.MiscTypeMaster
+            {
+                MiscTypeCode = codePrefix + "_MT", Description = "UOM Type",
+                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.MiscTypeMaster.Add(miscType);
+            await ctx.SaveChangesAsync();
+
+            var misc = new FAM.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = miscType.Id, Code = codePrefix + "_M", Description = "Each",
+                SortOrder = 1, IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.MiscMaster.Add(misc);
+            await ctx.SaveChangesAsync();
+
+            var uom = new FAM.Domain.Entities.UOM
+            {
+                Code = codePrefix + "_U", UOMName = "Each", UOMTypeId = misc.Id, SortOrder = 1,
+                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.UOMs.Add(uom);
+            await ctx.SaveChangesAsync();
+
+            var asset = new AssetMasterGenerals
+            {
+                CompanyId = 1, UnitId = 1,
+                AssetCode = codePrefix + "_AM", AssetName = "NullWS " + codePrefix,
+                AssetGroupId = group.Id,
+                AssetCategoryId = cat.Id,
+                AssetSubCategoryId = sub.Id,
+                UOMId = uom.Id,
+                WorkingStatus = null,
+                Quantity = 1,
+                IsActive = BaseEntity.Status.Active, IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.AssetMasterGenerals.Add(asset);
+            await ctx.SaveChangesAsync();
+            return asset.Id;
+        }
+
         private async Task ClearTablesAsync() =>
             await _fixture.ClearAllTablesAsync();
 
@@ -150,6 +222,32 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetMasterGeneral
 
             Func<Task> act = async () => await CreateQueryRepo().GetByParentIdAsync(9999);
             await act.Should().ThrowAsync<KeyNotFoundException>();
+        }
+
+        [Fact]
+        public async Task GetByAssetNameAsync_Should_Return_Asset_When_WorkingStatus_Is_Null()
+        {
+            await ClearTablesAsync();
+            var assetId = await SeedAssetWithNullWorkingStatusAsync("NW1");
+
+            var result = await CreateQueryRepo().GetByAssetNameAsync("NullWS");
+
+            result.Should().NotBeNull();
+            result.Should().ContainSingle(a => a.Id == assetId);
+            result.Single(a => a.Id == assetId).WorkingStatusDesc.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_Asset_When_WorkingStatus_Is_Null()
+        {
+            await ClearTablesAsync();
+            var assetId = await SeedAssetWithNullWorkingStatusAsync("NW2");
+
+            var result = await CreateQueryRepo().GetByIdAsync(assetId);
+
+            result.Should().NotBeNull();
+            result.Id.Should().Be(assetId);
+            result.WorkingStatusDesc.Should().BeNull();
         }
     }
 }

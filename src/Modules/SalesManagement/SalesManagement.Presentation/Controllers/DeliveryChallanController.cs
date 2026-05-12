@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Commands.DeleteDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Commands.GenerateEWaybillForDC;
+using SalesManagement.Application.DeliveryChallan.Queries.GetStandaloneEwbDocument;
 using SalesManagement.Application.DeliveryChallan.Queries.GetAllDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanAutoComplete;
@@ -11,6 +12,7 @@ using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanForR
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Queries.GetPendingDeliveryChallanById;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
+using SalesManagement.Application.DeliveryChallan.Queries.GetDeliveryChallanPrintDetails;
 using SalesManagement.Application.DeliveryChallan.Queries.GetStoOpenQty;
 
 namespace SalesManagement.Presentation.Controllers
@@ -70,6 +72,18 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetPendingDeliveryChallanByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetPendingDeliveryChallanByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        [HttpGet("{id}/print")]
+        public async Task<IActionResult> GetDeliveryChallanPrintDetailsAsync(int id)
+        {
+            var result = await Mediator.Send(new GetDeliveryChallanPrintDetailsQuery(id));
 
             return Ok(new
             {
@@ -180,6 +194,24 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GenerateEWaybillAsync(int id)
         {
             var result = await Mediator.Send(new GenerateEWaybillForDCCommand(id));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Returns the print-ready EWB document view (consignor/consignee/items/totals/transporter)
+        /// for the latest standalone e-Waybill linked to this DC. Used to render the "Print EWB" page.
+        /// </summary>
+        [HttpGet("{id}/ewaybill-document")]
+        public async Task<IActionResult> GetEwbDocumentAsync(int id)
+        {
+            var result = await Mediator.Send(new GetStandaloneEwbDocumentQuery(id));
 
             return Ok(new
             {

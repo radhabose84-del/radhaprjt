@@ -14,6 +14,7 @@ using SalesManagement.Application.Common.Interfaces.IDeliveryChallan;
 using SalesManagement.Application.DeliveryChallan.Dto;
 using SalesManagement.Application.DeliveryChallan.Queries.GetDCGatePassPending;
 using SalesManagement.Domain.Common;
+using Contracts.Dtos.Lookups.Party;
 
 namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
 {
@@ -29,6 +30,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
         private readonly IUserLookup _userLookup;
         private readonly IEWaybillLookup _eWaybillLookup;
         private readonly IIPAddressService _ipAddressService;
+        private readonly ICompanyDetailLookup _companyDetailLookup;
+        private readonly IUnitDetailLookup _unitDetailLookup;
+        private readonly IPartyDetailLookup _partyDetailLookup;
+        private readonly IStateLookup _stateLookup;
+        private readonly ICityLookup _cityLookup;
 
         public DeliveryChallanQueryRepository(
             IDbConnection dbConnection,
@@ -40,7 +46,12 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             IUOMLookup uomLookup,
             IUserLookup userLookup,
             IEWaybillLookup eWaybillLookup,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            ICompanyDetailLookup companyDetailLookup,
+            IUnitDetailLookup unitDetailLookup,
+            IPartyDetailLookup partyDetailLookup,
+            IStateLookup stateLookup,
+            ICityLookup cityLookup)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
@@ -52,6 +63,11 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             _userLookup = userLookup;
             _eWaybillLookup = eWaybillLookup;
             _ipAddressService = ipAddressService;
+            _companyDetailLookup = companyDetailLookup;
+            _unitDetailLookup = unitDetailLookup;
+            _partyDetailLookup = partyDetailLookup;
+            _stateLookup = stateLookup;
+            _cityLookup = cityLookup;
         }
 
         public async Task<(List<DeliveryChallanHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
@@ -855,6 +871,487 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             }
 
             return headers;
+        }
+
+        public async Task<DeliveryChallanPrintDto?> GetPrintDetailsAsync(int id)
+        {
+            // 1. Fetch DC header with same-module JOINs
+            const string headerSql = @"
+                SELECT
+                    h.Id,
+                    h.DeliveryNumber,
+                    h.DeliveryDate,
+                    h.StoHeaderId,
+                    sh.StoNumber,
+                    h.FromPlantId,
+                    h.FromStorageLocationId,
+                    h.ToPlantId,
+                    h.ToStorageLocationId,
+                    h.TransporterId,
+                    h.VehicleNumber,
+                    h.TransportDistance,
+                    h.DeliveryValue,
+                    h.ConsignmentValue,
+                    ms.Description AS StatusName,
+                    dt.Description AS DcTypeName,
+                    mt.MovementCode,
+                    mt.MovementDescription,
+                    h.Remarks,
+                    h.CreatedDate
+                FROM Sales.DeliveryChallanHeader h
+                LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE h.Id = @Id AND h.IsDeleted = 0";
+
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<DCPrintHeaderRawDto>(headerSql, new { Id = id });
+            if (header == null)
+                return null;
+
+            // 2. Fetch DC line items
+            const string detailSql = @"
+                SELECT
+                    d.Id,
+                    d.ItemId,
+                    d.LotId,
+                    d.StartPackNo,
+                    d.EndPackNo,
+                    d.DispatchQuantity,
+                    d.UOMId,
+                    d.BagCount,
+                    d.BaleCount,
+                    d.NetWeight,
+                    d.GrossWeight,
+                    d.ExMillRate,
+                    d.LineMovementValue
+                FROM Sales.DeliveryChallanDetail d
+                WHERE d.DeliveryChallanHeaderId = @HeaderId
+                ORDER BY d.Id";
+
+            var details = (await _dbConnection.QueryAsync<DCPrintDetailRawDto>(detailSql, new { HeaderId = id })).ToList();
+
+            // 3. Cross-module lookups — company and plants
+            var company = await _companyDetailLookup.GetByUnitIdAsync(header.FromPlantId);
+            var fromUnit = await _unitDetailLookup.GetByIdAsync(header.FromPlantId);
+            var toUnit = await _unitDetailLookup.GetByIdAsync(header.ToPlantId);
+
+            // 4. Transporter details via party detail lookup
+            Contracts.Dtos.Lookups.Party.PartyDetailLookupDto? transporter = null;
+            if (header.TransporterId > 0)
+                transporter = await _partyDetailLookup.GetByIdAsync(header.TransporterId);
+
+            // 5. E-Waybill via lookup
+            var eway = !string.IsNullOrWhiteSpace(header.DeliveryNumber)
+                ? await _eWaybillLookup.GetByDCAsync(header.DeliveryNumber, header.FromPlantId)
+                : null;
+
+            // 6. Collect all city/state IDs for batch resolution
+            var stateIds = new HashSet<int>();
+            var cityIds = new HashSet<int>();
+
+            if (company != null) { if (company.StateId > 0) stateIds.Add(company.StateId); if (company.CityId > 0) cityIds.Add(company.CityId); }
+            if (fromUnit != null) { if (fromUnit.StateId > 0) stateIds.Add(fromUnit.StateId); if (fromUnit.CityId > 0) cityIds.Add(fromUnit.CityId); }
+            if (toUnit != null) { if (toUnit.StateId > 0) stateIds.Add(toUnit.StateId); if (toUnit.CityId > 0) cityIds.Add(toUnit.CityId); }
+
+            var states = await _stateLookup.GetByIdsAsync(stateIds);
+            var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
+
+            var cities = await _cityLookup.GetByIdsAsync(cityIds);
+            var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
+
+            // 7. Item, Lot, UOM lookups for line items
+            var itemIds = details.Select(d => d.ItemId).Distinct();
+            var items = await _itemLookup.GetByIdsAsync(itemIds);
+            var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+
+            var lotIds = details.Where(d => d.LotId > 0).Select(d => d.LotId).Distinct();
+            var lots = await _lotLookup.GetByIdsAsync(lotIds);
+            var lotDict = lots.ToDictionary(l => l.Id, l => l.LotCode);
+
+            var uomIds = details.Select(d => d.UOMId).Distinct();
+            var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+            var uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+
+            // --- Assemble DTO ---
+
+            // Company section (sending unit's company)
+            var companyAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine1)) companyAddrParts.Add(company.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine2)) companyAddrParts.Add(company.AddressLine2);
+
+            var companyCity = company?.CityId > 0 && cityDict.TryGetValue(company.CityId, out var cc) ? cc : null;
+            var companyState = company?.StateId > 0 && stateDict.TryGetValue(company.StateId, out var cs) ? cs : null;
+
+            var companyDto = new DCPrintCompanyDto
+            {
+                Name = company != null
+                    ? $"{company.LegalName ?? company.CompanyName} {fromUnit?.UnitName}".Trim()
+                    : fromUnit?.UnitName,
+                Address = string.Join(", ", companyAddrParts),
+                City = companyCity != null
+                    ? $"{companyCity}{(!string.IsNullOrWhiteSpace(company?.PinCode) ? " - " + company.PinCode : "")}"
+                    : null,
+                State = companyState,
+                Gstin = company?.GstNumber,
+                Pan = company?.PanNumber,
+                Email = company?.Email,
+                Web = company?.Website,
+                Phone = company?.Phone
+            };
+
+            // Registered office (company HQ)
+            var regAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine1)) regAddrParts.Add(company.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(company?.AddressLine2)) regAddrParts.Add(company.AddressLine2);
+
+            DCPrintRegisteredOfficeDto? registeredOffice = company != null
+                ? new DCPrintRegisteredOfficeDto
+                {
+                    Name = company.LegalName ?? company.CompanyName,
+                    Address = string.Join(", ", regAddrParts),
+                    City = companyCity != null
+                        ? $"{companyCity}{(companyState != null ? " " + companyState : "")}{(!string.IsNullOrWhiteSpace(company.PinCode) ? " - " + company.PinCode : "")}"
+                        : null,
+                    Phone = company.Phone
+                }
+                : null;
+
+            // DC header section
+            var headerDto = new DCPrintHeaderDto
+            {
+                DeliveryNumber = header.DeliveryNumber,
+                DeliveryDate = header.DeliveryDate.ToString("dd/MM/yyyy"),
+                StoNumber = header.StoNumber,
+                DcType = header.DcTypeName,
+                MovementCode = header.MovementCode,
+                MovementDescription = header.MovementDescription,
+                Status = header.StatusName,
+                DateTimeOfSupply = header.CreatedDate?.ToString("dd/MM/yyyy hh:mm tt")
+            };
+
+            // E-Waybill section
+            DCPrintEWaybillDto? ewaybillDto = eway != null
+                ? new DCPrintEWaybillDto
+                {
+                    EWBNumber = eway.EWBNumber,
+                    EwbStatus = eway.EwbStatus,
+                    GeneratedDate = eway.GeneratedDate?.ToString("dd/MM/yyyy HH:mm")
+                }
+                : null;
+
+            // From plant
+            var fromAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(fromUnit?.AddressLine1)) fromAddrParts.Add(fromUnit.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(fromUnit?.AddressLine2)) fromAddrParts.Add(fromUnit.AddressLine2);
+
+            var fromCity = fromUnit?.CityId > 0 && cityDict.TryGetValue(fromUnit.CityId, out var fc) ? fc : null;
+            var fromState = fromUnit?.StateId > 0 && stateDict.TryGetValue(fromUnit.StateId, out var fs) ? fs : null;
+
+            var fromDto = new DCPrintPlantDto
+            {
+                UnitName = fromUnit?.UnitName,
+                Address = string.Join(", ", fromAddrParts),
+                City = fromCity != null
+                    ? $"{fromCity}{(fromUnit?.PinCode > 0 ? " - " + fromUnit.PinCode : "")}"
+                    : null,
+                State = fromState,
+                Phone = fromUnit?.Phone
+            };
+
+            // To plant
+            var toAddrParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(toUnit?.AddressLine1)) toAddrParts.Add(toUnit.AddressLine1);
+            if (!string.IsNullOrWhiteSpace(toUnit?.AddressLine2)) toAddrParts.Add(toUnit.AddressLine2);
+
+            var toCity = toUnit?.CityId > 0 && cityDict.TryGetValue(toUnit.CityId, out var tc) ? tc : null;
+            var toState = toUnit?.StateId > 0 && stateDict.TryGetValue(toUnit.StateId, out var ts) ? ts : null;
+
+            var toDto = new DCPrintPlantDto
+            {
+                UnitName = toUnit?.UnitName,
+                Address = string.Join(", ", toAddrParts),
+                City = toCity != null
+                    ? $"{toCity}{(toUnit?.PinCode > 0 ? " - " + toUnit.PinCode : "")}"
+                    : null,
+                State = toState,
+                Phone = toUnit?.Phone
+            };
+
+            // Transport
+            var transportDto = new DCPrintTransportDto
+            {
+                TransporterName = transporter?.PartyName,
+                TransporterCode = transporter?.PartyCode,
+                TransporterGstin = transporter?.GSTNumber,
+                VehicleNo = header.VehicleNumber,
+                TransportDistance = header.TransportDistance
+            };
+
+            // Line items
+            var printItems = details.Select((d, index) =>
+            {
+                var itemInfo = itemDict.TryGetValue(d.ItemId, out var ii) ? ii : default;
+                var lotNo = d.LotId > 0 && lotDict.TryGetValue(d.LotId, out var lc) ? lc : null;
+                var uomName = uomDict.TryGetValue(d.UOMId, out var un) ? un : null;
+                var packSNo = d.StartPackNo == d.EndPackNo
+                    ? d.StartPackNo.ToString()
+                    : $"{d.StartPackNo}-{d.EndPackNo}";
+
+                return new DCPrintItemDto
+                {
+                    SNo = index + 1,
+                    ItemCode = itemInfo.ItemCode,
+                    ItemName = itemInfo.ItemName,
+                    LotNo = lotNo,
+                    PackSerialNo = packSNo,
+                    BagCount = d.BagCount,
+                    BaleCount = d.BaleCount,
+                    DispatchQuantity = d.DispatchQuantity,
+                    UOMName = uomName,
+                    NetWeight = d.NetWeight,
+                    GrossWeight = d.GrossWeight,
+                    ExMillRate = d.ExMillRate,
+                    LineMovementValue = d.LineMovementValue
+                };
+            }).ToList();
+
+            // Totals
+            var totalsDto = new DCPrintTotalsDto
+            {
+                TotalBags = details.Sum(d => d.BagCount ?? 0),
+                TotalBales = details.Sum(d => d.BaleCount ?? 0),
+                TotalQuantity = details.Sum(d => d.DispatchQuantity),
+                TotalNetWeight = details.Sum(d => d.NetWeight),
+                TotalGrossWeight = details.Sum(d => d.GrossWeight ?? 0),
+                DeliveryValue = header.DeliveryValue,
+                ConsignmentValue = header.ConsignmentValue,
+                DeliveryValueWords = ConvertAmountToWords(header.DeliveryValue),
+                Remarks = header.Remarks
+            };
+
+            return new DeliveryChallanPrintDto
+            {
+                Company = companyDto,
+                RegisteredOffice = registeredOffice,
+                Header = headerDto,
+                EWaybill = ewaybillDto,
+                From = fromDto,
+                To = toDto,
+                Transport = transportDto,
+                Items = printItems,
+                Totals = totalsDto
+            };
+        }
+
+        private static string ConvertAmountToWords(decimal amount)
+        {
+            var wholeAmount = (long)Math.Floor(Math.Abs(amount));
+            if (wholeAmount == 0)
+                return "Rs. Zero only";
+
+            var result = ConvertNumberToWords(wholeAmount);
+            return $"Rs. {result} only";
+        }
+
+        private static string ConvertNumberToWords(long number)
+        {
+            if (number == 0) return "zero";
+
+            var parts = new List<string>();
+
+            if (number >= 10000000)
+            {
+                parts.Add(ConvertNumberToWords(number / 10000000) + " crore");
+                number %= 10000000;
+            }
+            if (number >= 100000)
+            {
+                parts.Add(ConvertNumberToWords(number / 100000) + " lakh");
+                number %= 100000;
+            }
+            if (number >= 1000)
+            {
+                parts.Add(ConvertNumberToWords(number / 1000) + " thousand");
+                number %= 1000;
+            }
+            if (number >= 100)
+            {
+                parts.Add(ConvertNumberToWords(number / 100) + " hundred");
+                number %= 100;
+            }
+            if (number > 0)
+            {
+                if (parts.Count > 0) parts.Add("and");
+
+                string[] ones = { "", "one", "two", "three", "four", "five", "six", "seven",
+                    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+                    "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
+                string[] tens = { "", "", "twenty", "thirty", "forty", "fifty",
+                    "sixty", "seventy", "eighty", "ninety" };
+
+                if (number < 20)
+                {
+                    parts.Add(ones[number]);
+                }
+                else
+                {
+                    var tenPart = tens[number / 10];
+                    var onePart = ones[number % 10];
+                    parts.Add(string.IsNullOrEmpty(onePart) ? tenPart : $"{tenPart}-{onePart}");
+                }
+            }
+
+            var text = string.Join(" ", parts);
+            return char.ToUpper(text[0]) + text[1..];
+        }
+
+        // Build a print-ready EWB document view by joining DC + EWB header + EWB lines +
+        // unit/company/address master data. Single round-trip via QueryMultiple to keep
+        // page load fast for the UI's "Print EWB" button.
+        public async Task<StandaloneEwbDocumentDto?> GetStandaloneEwbDocumentAsync(int dcId, CancellationToken ct)
+        {
+            const string sql = @"
+                -- 1) Header — joins DC + latest non-deleted EWB + From-plant + To-plant + companies
+                SELECT TOP 1
+                    -- Document classification
+                    dc.DeliveryNumber                                         AS DocumentNumber,
+                    dc.DeliveryDate                                           AS DocumentDate,
+                    eh.SupplyType                                             AS SupplyType,
+                    eh.SubSupplyType                                          AS SubSupplyType,
+                    eh.TransactionType                                        AS TransactionType,
+                    eh.DocumentType                                           AS DocumentType,
+
+                    -- EWB
+                    eh.EWBNumber                                              AS EwbNumber,
+                    eh.GeneratedDate                                          AS EwbGeneratedDate,
+                    eh.ValidUpto                                              AS EwbValidUpto,
+                    eh.EwbStatus                                              AS EwbStatus,
+
+                    -- Company (from FROM plant's company); CIN not stored, kept null
+                    fromCo.LegalName                                          AS CompanyName,
+                    fromCo.GstNumber                                          AS CompanyGstNumber,
+                    fromCo.PanNumber                                          AS CompanyPAN,
+                    CAST(NULL AS varchar)                                     AS CompanyCIN,
+                    fromCoContact.Email                                       AS CompanyEmail,
+                    fromCo.Website                                            AS CompanyWebsite,
+                    COALESCE(fromCoContact.Phone, fromCoAddr.Phone)           AS CompanyPhone,
+                    -- Build the registered-office address by concatenating CompanyAddress fields
+                    NULLIF(LTRIM(RTRIM(CONCAT_WS(', ',
+                        fromCoAddr.AddressLine1,
+                        fromCoAddr.AddressLine2,
+                        fromCoCity.CityName,
+                        fromCoState.StateName,
+                        CAST(NULLIF(fromCoAddr.PinCode, 0) AS varchar(10))
+                    ))), '')                                                  AS RegisteredOfficeAddress,
+
+                    -- Consignor (From plant)
+                    fromU.UnitName                                            AS ConsignorName,
+                    eh.FromGSTIN                                              AS ConsignorGstin,
+                    fromAddr.AddressLine1                                     AS ConsignorAddressLine1,
+                    fromAddr.AddressLine2                                     AS ConsignorAddressLine2,
+                    fromCity.CityName                                         AS ConsignorCity,
+                    fromState.StateName                                       AS ConsignorState,
+                    TRY_CAST(LEFT(eh.FromGSTIN, 2) AS INT)                    AS ConsignorStateCode,
+                    fromAddr.PinCode                                          AS ConsignorPincode,
+                    fromAddr.ContactNumber                                    AS ConsignorPhone,
+
+                    -- Consignee (To plant)
+                    toU.UnitName                                              AS ConsigneeName,
+                    eh.ToGSTIN                                                AS ConsigneeGstin,
+                    toAddr.AddressLine1                                       AS ConsigneeAddressLine1,
+                    toAddr.AddressLine2                                       AS ConsigneeAddressLine2,
+                    toCity.CityName                                           AS ConsigneeCity,
+                    toState.StateName                                         AS ConsigneeState,
+                    TRY_CAST(LEFT(eh.ToGSTIN, 2) AS INT)                      AS ConsigneeStateCode,
+                    toAddr.PinCode                                            AS ConsigneePincode,
+                    toAddr.ContactNumber                                      AS ConsigneePhone,
+
+                    -- Transporter
+                    eh.TransporterName                                        AS TransporterName,
+                    eh.TransporterGSTIN                                       AS TransporterGstin,
+                    eh.VehicleNo                                              AS VehicleNumber,
+                    eh.VehicleType                                            AS VehicleType,
+                    eh.TransportMode                                          AS TransportMode,
+                    eh.Distance                                               AS TransportDistance,
+                    eh.TransDocNo                                             AS TransDocNo,
+                    eh.TransDocDate                                           AS TransDocDate,
+
+                    -- Totals
+                    eh.TotalValue                                             AS TotalTaxableValue,
+                    eh.CGST                                                   AS CGST,
+                    eh.SGST                                                   AS SGST,
+                    eh.IGST                                                   AS IGST,
+                    eh.Cess                                                   AS Cess,
+                    eh.InvoiceValue                                           AS InvoiceTotal,
+
+                    -- Audit
+                    dc.CreatedByName                                          AS CreatedByName,
+                    dc.CreatedDate                                            AS CreatedDate
+                FROM   Sales.DeliveryChallanHeader dc
+                LEFT   JOIN Finance.EWaybillHeader eh
+                       ON eh.InvoiceNo = dc.DeliveryNumber AND eh.UnitId = dc.FromPlantId AND eh.IsDeleted = 0
+                LEFT   JOIN AppData.Unit            fromU         ON fromU.Id        = dc.FromPlantId
+                LEFT   JOIN AppData.Company         fromCo        ON fromCo.Id       = fromU.CompanyId
+                LEFT   JOIN AppData.UnitAddress     fromAddr      ON fromAddr.UnitId = fromU.Id
+                LEFT   JOIN AppData.City            fromCity      ON fromCity.Id     = fromAddr.CityId
+                LEFT   JOIN AppData.[State]         fromState     ON fromState.Id    = fromCity.StateId
+                LEFT   JOIN AppData.CompanyAddress  fromCoAddr    ON fromCoAddr.CompanyId = fromCo.Id
+                LEFT   JOIN AppData.City            fromCoCity    ON fromCoCity.Id   = fromCoAddr.CityId
+                LEFT   JOIN AppData.[State]         fromCoState   ON fromCoState.Id  = fromCoAddr.StateId
+                LEFT   JOIN AppData.CompanyContact  fromCoContact ON fromCoContact.CompanyId = fromCo.Id
+                LEFT   JOIN AppData.Unit          toU       ON toU.Id        = dc.ToPlantId
+                LEFT   JOIN AppData.UnitAddress   toAddr    ON toAddr.UnitId = toU.Id
+                LEFT   JOIN AppData.City          toCity    ON toCity.Id     = toAddr.CityId
+                LEFT   JOIN AppData.[State]       toState   ON toState.Id    = toCity.StateId
+                WHERE  dc.Id = @DcId AND dc.IsDeleted = 0
+                ORDER BY eh.Id DESC;
+
+                -- 2) Lines — joins EWB Detail + DC Detail (for lot + pack range)
+                SELECT  ed.ItemSno          AS Sno,
+                        ed.ItemName,
+                        ed.HsnNo            AS HsnCode,
+                        lm.LotCode          AS LotNumber,
+                        dcd.BagCount        AS BagCount,
+                        CONCAT(dcd.StartPackNo, '-', dcd.EndPackNo) AS PackRange,
+                        ed.Qty              AS Quantity,
+                        ed.UOM              AS Uom,
+                        dcd.ExMillRate      AS Rate,
+                        dcd.NetWeight       AS NetWeight,
+                        dcd.GrossWeight     AS GrossWeight,
+                        ed.TaxableValue     AS TaxableValue,
+                        ed.CGST             AS CgstAmount,
+                        ed.SGST             AS SgstAmount,
+                        ed.IGST             AS IgstAmount
+                FROM    Finance.EWaybillHeader eh
+                INNER   JOIN Finance.EWaybillDetail ed ON ed.EWaybillHeaderId = eh.Id AND ed.IsDeleted = 0
+                INNER   JOIN Sales.DeliveryChallanHeader dc
+                        ON dc.DeliveryNumber = eh.InvoiceNo AND dc.FromPlantId = eh.UnitId AND dc.IsDeleted = 0
+                LEFT    JOIN Sales.DeliveryChallanDetail dcd
+                        ON dcd.DeliveryChallanHeaderId = dc.Id
+                        AND dcd.ItemId = ed.ItemId
+                LEFT    JOIN Production.LotMaster lm ON lm.Id = dcd.LotId AND lm.IsDeleted = 0
+                WHERE   dc.Id = @DcId AND eh.IsDeleted = 0
+                  AND   eh.Id = (SELECT TOP 1 Id FROM Finance.EWaybillHeader
+                                 WHERE InvoiceNo = dc.DeliveryNumber
+                                   AND UnitId = dc.FromPlantId
+                                   AND IsDeleted = 0
+                                 ORDER BY Id DESC)
+                ORDER BY ed.ItemSno;
+            ";
+
+            using var multi = await _dbConnection.QueryMultipleAsync(
+                new CommandDefinition(sql, new { DcId = dcId }, cancellationToken: ct));
+
+            var header = await multi.ReadFirstOrDefaultAsync<StandaloneEwbDocumentDto>();
+            if (header == null) return null;
+
+            var lines = (await multi.ReadAsync<StandaloneEwbDocumentItemDto>()).ToList();
+            header.Items = lines;
+            header.TotalQuantity = lines.Sum(l => l.Quantity);
+            header.InvoiceTotalInWords = ConvertAmountToWords(header.InvoiceTotal) + " only";
+
+            return header;
         }
     }
 }

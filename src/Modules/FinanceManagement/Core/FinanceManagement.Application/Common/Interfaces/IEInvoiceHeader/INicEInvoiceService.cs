@@ -24,6 +24,14 @@ namespace FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader
             string? vehicleNo, string? vehicleType, CancellationToken ct = default);
 
         /// <summary>
+        /// Generates a standalone e-Waybill (no IRN required) by calling the NIC EWB API
+        /// directly. Used for Delivery Challan, Bill of Supply, and other non-invoice
+        /// movements. POSTs to /ewaybillapi/v1.03/ewayapi with action=GENEWAYBILL.
+        /// </summary>
+        Task<NicEwbResultDto> GenerateStandaloneEwbAsync(StandaloneEwbPayloadDto payload,
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Cancels an IRN within 24 hours of generation.
         /// CnlRsn: "1"=Duplicate, "2"=Data entry mistake, "3"=Order cancelled, "4"=Others
         /// </summary>
