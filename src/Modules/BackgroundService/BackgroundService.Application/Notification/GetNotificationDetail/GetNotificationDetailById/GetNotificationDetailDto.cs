@@ -18,5 +18,7 @@ namespace BackgroundService.Application.Notification.GetNotificationDetail.GetNo
         public string? CreatedIP { get; set; }
         public string? SendTo { get; set; }
         public string? Value { get; set; }
+        public int ModuleTransactionId { get; set; }
+        public string? ModuleTypeName { get; set; }
     }
 }
