@@ -580,5 +580,132 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
             lines[0].Quantity.Should().NotBe(bagWeightColumn,
                 "Quantity output must NOT come from id.BagWeight in this query");
         }
+
+        // ---------------------------------------------------------------------------
+        // IsComplaintFinalizedAsync — used by UpdateComplaintCommandValidator to
+        // block edits on QC Accepted / Closed complaints. SQL uses
+        // UPPER(LTRIM(RTRIM(Description))) IN ('QC ACCEPTED', 'CLOSED').
+        // ---------------------------------------------------------------------------
+
+        /// <summary>
+        /// Seeds a complaint whose StatusId points to a MiscMaster row with the supplied
+        /// Description (e.g., "QC Accepted", "Closed", "Pending"). Returns the new complaint Id.
+        /// </summary>
+        private async Task<int> SeedComplaintWithStatusDescriptionAsync(string description, string complaintNumber)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var mtId = await EnsureMiscTypeAsync(ctx);
+
+            // Insert a MiscMaster row with the specific Description we want to match
+            var misc = new SalesManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId  = mtId,
+                Code        = "FINALIZE_" + Guid.NewGuid().ToString("N").Substring(0, 8),
+                Description = description,
+                IsActive    = Status.Active,
+                IsDeleted   = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(misc);
+            await ctx.SaveChangesAsync();
+
+            var complaint = new SalesManagement.Domain.Entities.ComplaintHeader
+            {
+                ComplaintNumber = complaintNumber,
+                ComplaintDate   = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                CustomerId      = 100,
+                StatusId        = misc.Id,
+                IsActive        = Status.Active,
+                IsDeleted       = IsDelete.NotDeleted
+            };
+            await ctx.ComplaintHeader.AddAsync(complaint);
+            await ctx.SaveChangesAsync();
+            return complaint.Id;
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_QCAcceptedStatus_ReturnsTrue()
+        {
+            await ClearAsync();
+            var id = await SeedComplaintWithStatusDescriptionAsync("QC Accepted", "CQQ_FIN_QC");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("complaint with status 'QC Accepted' must be flagged as finalized");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_ClosedStatus_ReturnsTrue()
+        {
+            await ClearAsync();
+            var id = await SeedComplaintWithStatusDescriptionAsync("Closed", "CQQ_FIN_CL");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("complaint with status 'Closed' must be flagged as finalized");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_CaseInsensitive_Description_ReturnsTrue()
+        {
+            await ClearAsync();
+            // SQL upper-cases before comparison — lowercase Description should still match
+            var id = await SeedComplaintWithStatusDescriptionAsync("qc accepted", "CQQ_FIN_LC");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("the comparison is UPPER-cased, so case differences must not break the rule");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_WhitespaceAroundDescription_ReturnsTrue()
+        {
+            await ClearAsync();
+            // SQL trims leading/trailing whitespace before comparison
+            var id = await SeedComplaintWithStatusDescriptionAsync("  Closed  ", "CQQ_FIN_TRIM");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeTrue("the comparison trims whitespace, so padded values must still match");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_OpenStatus_ReturnsFalse()
+        {
+            await ClearAsync();
+            var id = await SeedComplaintWithStatusDescriptionAsync("Pending", "CQQ_OPEN");
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeFalse("complaint with status 'Pending' is mutable — edits must NOT be blocked");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_SoftDeletedComplaint_ReturnsFalse()
+        {
+            await ClearAsync();
+            // Seed a complaint then soft-delete it; the rule must only fire on live rows
+            var id = await SeedComplaintWithStatusDescriptionAsync("QC Accepted", "CQQ_DEL_FIN");
+
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var ch = await ctx.ComplaintHeader.FirstAsync(c => c.Id == id);
+                ch.IsDeleted = IsDelete.Deleted;
+                await ctx.SaveChangesAsync();
+            }
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(id);
+
+            result.Should().BeFalse("soft-deleted complaint should be unreachable; rule must not match it");
+        }
+
+        [Fact]
+        public async Task IsComplaintFinalizedAsync_NonExistentId_ReturnsFalse()
+        {
+            await ClearAsync();
+
+            var result = await CreateRepo().IsComplaintFinalizedAsync(int.MaxValue);
+
+            result.Should().BeFalse("an Id that doesn't exist cannot be finalized");
+        }
     }
 }
