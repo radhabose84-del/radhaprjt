@@ -1,27 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 using BackgroundService.Application.Interfaces;
-using Hangfire;
+using MediatR;
+using UserManagement.Application.UserLogin.Commands.UnlockUser;
 
 namespace BackgroundService.Infrastructure.Services
 {
-    [Queue("user_unlock_queue")]
     public class UserUnlockService : IUserUnlockService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IMediator _mediator;
 
-        public UserUnlockService(IHttpClientFactory httpClientFactory)
+        public UserUnlockService(IMediator mediator)
         {
-            _httpClientFactory = httpClientFactory;
+            _mediator = mediator;
         }
 
-        public async Task UnlockUser(string userName)
-        {
-            var client = _httpClientFactory.CreateClient("UserManagementClient");
-            await client.PostAsJsonAsync("api/auth/unlock", new { Username = userName });
-        }
+        public Task UnlockUser(string userName) =>
+            _mediator.Send(new UnlockUserCommand { userName = userName });
     }
 }

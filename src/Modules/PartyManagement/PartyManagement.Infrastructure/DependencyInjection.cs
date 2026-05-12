@@ -18,6 +18,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
+using Shared.Infrastructure.Resilience;
 using PartyManagement.Infrastructure.Data;
 using PartyManagement.Infrastructure.Repositories;
 using PartyManagement.Infrastructure.Repositories.BankAccount;
@@ -144,7 +145,8 @@ namespace PartyManagement.Infrastructure
             services.AddTransient<IFileUploadService, FileUploadRepository>();
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
-			services.AddHttpClient<IGSTAuthService, GSTAuthService>(); 
+			services.AddHttpClient<IGSTAuthService, GSTAuthService>()
+				.AddBsoftHttpResilience(ResilienceProfileNames.Critical); 
 
             // AutoMapper profiles
             services.AddAutoMapper(

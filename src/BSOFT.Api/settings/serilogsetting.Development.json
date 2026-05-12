@@ -12,7 +12,7 @@
         {
           "Name": "MongoDB",
           "Args": {
-            "databaseUrl": "mongodb://192.168.1.126:27017/Bannari",
+            "databaseUrl": "mongodb://192.168.1.126:27017/BannariERP",
             "collectionName": "ApplicationLogs",
             "restrictedToMinimumLevel": "Warning"
           }

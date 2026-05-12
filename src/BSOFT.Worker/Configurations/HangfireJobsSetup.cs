@@ -42,7 +42,7 @@ public static class HangfireJobsSetup
 
         try
         {
-            // CRITICAL: Hangfire jobs live in the Hangfire DB, NOT DefaultConnection (BannariERP).
+            // CRITICAL: Hangfire jobs live in the Hangfire DB, NOT DefaultConnection (DB).
             var connectionString = (config.GetConnectionString("HangfireConnection") ?? string.Empty)
                 .Replace("{SERVER}", Environment.GetEnvironmentVariable("DATABASE_SERVER") ?? "")
                 .Replace("{USER_ID}", Environment.GetEnvironmentVariable("DATABASE_USERID") ?? "")

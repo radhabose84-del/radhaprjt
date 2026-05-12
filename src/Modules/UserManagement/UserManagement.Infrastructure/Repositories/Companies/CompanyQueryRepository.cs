@@ -199,7 +199,7 @@ namespace UserManagement.Infrastructure.Repositories.Companies
         }
         public async Task<bool> FKColumnExistValidation(int companyId)
         {
-            var sql = "SELECT COUNT(1) FROM BannariERP.AppData.Company WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1";
+            var sql = "SELECT COUNT(1) FROM AppData.Company WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = companyId });
             return count > 0;
         }
@@ -211,7 +211,7 @@ namespace UserManagement.Infrastructure.Repositories.Companies
                 SELECT 
                 C.Id, 
                 C.CompanyName
-            FROM BannariERP.AppData.Company C
+            FROM AppData.Company C
             where IsDeleted = 0 and CompanyName like @SearchPattern  AND C.EntityId=@EntityId";
 
 
@@ -229,7 +229,7 @@ namespace UserManagement.Infrastructure.Repositories.Companies
 
         const string sql = @"
         SELECT COUNT(1)
-        FROM BannariERP.AppSecurity.UserCompany
+        FROM AppSecurity.UserCompany
         WHERE CompanyId = @CompanyId
         AND IsActive = 1;";
 

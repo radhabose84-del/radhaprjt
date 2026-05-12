@@ -89,5 +89,17 @@ namespace FixedAssetManagement.UnitTests.Validators.AssetMasterGeneral
 
             result.Errors.Should().NotBeEmpty();
         }
+
+        // WorkingStatus is optional on Create (per BA) — so it must remain optional on Update.
+        [Fact]
+        public async Task Validate_NullWorkingStatus_PassesValidation()
+        {
+            var command = ValidCommand();
+            command.AssetMaster!.WorkingStatus = null;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.AssetMaster!.WorkingStatus);
+        }
     }
 }

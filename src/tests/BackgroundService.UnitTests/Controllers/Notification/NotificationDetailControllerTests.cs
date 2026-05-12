@@ -1,3 +1,4 @@
+using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using BackgroundService.Presentation.Controllers.Notification;
@@ -17,7 +18,14 @@ namespace BackgroundService.UnitTests.Controllers.Notification
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetNotificationDetailByUserId>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<GetNotificationDetailDto> { new GetNotificationDetailDto() });
+                .ReturnsAsync(new ApiResponseDTO<List<GetNotificationDetailDto>>
+                {
+                    IsSuccess = true,
+                    Data = new List<GetNotificationDetailDto> { new GetNotificationDetailDto() },
+                    TotalCount = 1,
+                    PageNumber = 1,
+                    PageSize = 10
+                });
 
             var result = await CreateSut().GetNotificationDetailByIdAsync("user1");
 
@@ -29,7 +37,14 @@ namespace BackgroundService.UnitTests.Controllers.Notification
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetNotificationDetailByUserId>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<GetNotificationDetailDto>());
+                .ReturnsAsync(new ApiResponseDTO<List<GetNotificationDetailDto>>
+                {
+                    IsSuccess = true,
+                    Data = new List<GetNotificationDetailDto>(),
+                    TotalCount = 0,
+                    PageNumber = 1,
+                    PageSize = 10
+                });
 
             var result = await CreateSut().GetNotificationDetailByIdAsync("user1");
 
@@ -41,7 +56,14 @@ namespace BackgroundService.UnitTests.Controllers.Notification
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<GetNotificationDetailByUserId>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<GetNotificationDetailDto>());
+                .ReturnsAsync(new ApiResponseDTO<List<GetNotificationDetailDto>>
+                {
+                    IsSuccess = true,
+                    Data = new List<GetNotificationDetailDto>(),
+                    TotalCount = 0,
+                    PageNumber = 1,
+                    PageSize = 10
+                });
 
             await CreateSut().GetNotificationDetailByIdAsync("user1");
 
