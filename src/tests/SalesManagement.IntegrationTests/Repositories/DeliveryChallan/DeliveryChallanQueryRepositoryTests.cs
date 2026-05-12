@@ -75,11 +75,19 @@ namespace SalesManagement.IntegrationTests.Repositories.DeliveryChallan
             ip.Setup(x => x.GetUserId()).Returns(1);
             ip.Setup(x => x.GetUnitId()).Returns(1);
 
+            var companyDetail = new Mock<ICompanyDetailLookup>(MockBehavior.Loose);
+            var unitDetail = new Mock<IUnitDetailLookup>(MockBehavior.Loose);
+            var partyDetail = new Mock<IPartyDetailLookup>(MockBehavior.Loose);
+            var state = new Mock<IStateLookup>(MockBehavior.Loose);
+            var city = new Mock<ICityLookup>(MockBehavior.Loose);
+
             return new DeliveryChallanQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 unit.Object, warehouse.Object, party.Object,
                 item.Object, lot.Object, uom.Object, user.Object,
-                eWaybill.Object, ip.Object);
+                eWaybill.Object, ip.Object,
+                companyDetail.Object, unitDetail.Object, partyDetail.Object,
+                state.Object, city.Object);
         }
 
         // ----- Seeding helpers -----
