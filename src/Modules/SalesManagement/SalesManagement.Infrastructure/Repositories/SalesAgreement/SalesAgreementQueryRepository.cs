@@ -82,6 +82,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                         WHEN h.ValidTo < CAST(GETDATE() AS DATE) THEN 'Expired'
                         ELSE 'Active'
                     END                          AS Status,
+                    CASE
+                        WHEN h.IsActive = 1
+                         AND h.ValidTo >= CAST(GETDATE() AS DATE)
+                         AND (sm.Code = 'Approved' OR sm.Description = 'Approved')
+                         AND (ISNULL(d.TotalQty, 0) - ISNULL(d.TotalReleasedQty, 0)) > 0
+                        THEN 'Y' ELSE 'N'
+                    END                          AS CancelFlag,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName

@@ -34,6 +34,10 @@ namespace SalesManagement.Application.SalesAgreement.Dto
         //   IsActive=0                       → "Inactive"
         public string? Status { get; set; }
 
+        // "Y" when the agreement is eligible for cancel/release (Active + Approved + BalanceQty > 0),
+        // "N" otherwise (Expired, Inactive, non-Approved status, or no balance left).
+        public string? CancelFlag { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }
