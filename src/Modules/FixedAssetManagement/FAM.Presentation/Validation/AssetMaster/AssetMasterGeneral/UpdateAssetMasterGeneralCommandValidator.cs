@@ -81,9 +81,7 @@ namespace FAM.Presentation.Validation.AssetMaster.AssetMasterGeneral
                         RuleFor(x => x.AssetMaster!.UOMId)
                             .NotEmpty()
                             .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.UOMId)} {rule.Error}");
-                        RuleFor(x => x.AssetMaster!.WorkingStatus)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(UpdateAssetMasterGeneralCommand.AssetMaster.WorkingStatus)} {rule.Error}");
+                        // WorkingStatus is optional on Create (no rule there), so it must remain optional on Update too.
                         //Location
                       RuleFor(x => x.AssetMaster!.AssetLocation!.UnitId)
                             .NotEmpty()
