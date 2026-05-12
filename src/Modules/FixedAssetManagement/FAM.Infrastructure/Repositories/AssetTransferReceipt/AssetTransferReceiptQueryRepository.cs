@@ -15,7 +15,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
     public class AssetTransferReceiptQueryRepository : IAssetTransferReceiptQueryRepository
     {
         private readonly IDbConnection _dbConnection;
-        private readonly IIPAddressService _ipAddressService;  
+        private readonly IIPAddressService _ipAddressService;
 
         public AssetTransferReceiptQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService)
         {
@@ -23,10 +23,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
             _ipAddressService = ipAddressService;
         }
 
-         public async Task<(List<AssetReceiptDetailsDto>, int)> GetAllAssetReceiptDetails(int PageNumber, int PageSize, string? Receiptno, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
+        public async Task<(List<AssetReceiptDetailsDto>, int)> GetAllAssetReceiptDetails(int PageNumber, int PageSize, string? Receiptno, DateTimeOffset? FromDate, DateTimeOffset? ToDate)
         {
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
-             var query = $$"""
+            var query = $$"""
                 DECLARE @TotalCount INT;
                 SELECT @TotalCount = COUNT(*)
                 FROM FixedAsset.AssetTransferReceiptHdr A
@@ -88,10 +88,10 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
 
             return (assetTransferreceiptList, totalCount);
         }
-         public async Task<List<AssetReceiptDetailsByIdDto>> GetByAssetReceiptId(int AssetReceiptId)
+        public async Task<List<AssetReceiptDetailsByIdDto>> GetByAssetReceiptId(int AssetReceiptId)
         {
-            
-             const string query = @"
+
+            const string query = @"
             SELECT 
             b.AssetReceiptId,
             a.AssetTransferId,
@@ -188,8 +188,8 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
             return (assetTransferIssueList, totalCount);
         }
 
-    //     public async Task<AssetTransferJsonDto> GetAssetTransferByIdAsync(int assetTransferId)
-    //     {
+        //     public async Task<AssetTransferJsonDto> GetAssetTransferByIdAsync(int assetTransferId)
+        //     {
         // const string query = @"
         //     SELECT Id as AssetTransferId , DocDate, TransferType, FromUnitId, ToUnitId, FromDepartmentId, ToDepartmentId, 
         //            FromCustodianId, ToCustodianId, Status, FromCustodianName, ToCustodianName
@@ -229,19 +229,19 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
         // }
 
         // return header;
-    // }
+        // }
 
         public async Task<AssetTransferDto?> GetByAssetTransferId(int assetTransferId)
         {
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
-             const string query = @"
+            const string query = @"
                 SELECT ToUnitId, ToDepartmentId, ToCustodianId
                 FROM FixedAsset.AssetTransferIssueHdr
                 WHERE Id = @AssetTransferId AND ToUnitId = @UnitId";
 
-                var parameters = new { AssetTransferId = assetTransferId, UnitId };
+            var parameters = new { AssetTransferId = assetTransferId, UnitId };
 
-                var assetTransfer = await _dbConnection.QueryFirstOrDefaultAsync<AssetTransferDto>(query, parameters);
+            var assetTransfer = await _dbConnection.QueryFirstOrDefaultAsync<AssetTransferDto>(query, parameters);
 
             return assetTransfer;
         }
@@ -249,7 +249,7 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
         public async Task<AssetTrasnferReceiptHdrPendingDto?> GetAssetTransferByIdAsync(int assetTransferId)
         {
             var UnitId = _ipAddressService.GetUnitId() ?? 0;
-             const string query = @"
+            const string query = @"
                     SELECT
                     Distinct(A.Id) AS AssetTransferId,
                     A.DocDate,
@@ -294,60 +294,33 @@ namespace FAM.Infrastructure.Repositories.AssetTransferReceipt
                 FOR JSON PATH, INCLUDE_NULL_VALUES;
                 ";
 
-        using var multiQuery = await _dbConnection.QueryMultipleAsync(query, new { assetTransferId, UnitId });
+            using var multiQuery = await _dbConnection.QueryMultipleAsync(query, new { assetTransferId, UnitId });
 
-        string? headerJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
-        string? detailsJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+            string? headerJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
+            string? detailsJson = await multiQuery.ReadFirstOrDefaultAsync<string>();
 
-        if (string.IsNullOrWhiteSpace(headerJson))
-        {
-            return null;
+            if (string.IsNullOrWhiteSpace(headerJson))
+            {
+                return null;
+            }
+
+            var header = JsonSerializer.Deserialize<List<AssetTrasnferReceiptHdrPendingDto>>(headerJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            })?.FirstOrDefault();
+
+            var details = JsonSerializer.Deserialize<List<AssetTransferReceiptDtlPendingDto>>(detailsJson ?? "[]", new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (header != null)
+            {
+                header.AssetTransferPendingDtl = details ?? new List<AssetTransferReceiptDtlPendingDto>();
+            }
+
+            return header;
         }
 
-        var header = JsonSerializer.Deserialize<List<AssetTrasnferReceiptHdrPendingDto>>(headerJson, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        })?.FirstOrDefault();
-
-        var details = JsonSerializer.Deserialize<List<AssetTransferReceiptDtlPendingDto>>(detailsJson ?? "[]", new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
-
-        if (header != null)
-        {
-            header.AssetTransferPendingDtl = details ?? new List<AssetTransferReceiptDtlPendingDto>();
-        }
-
-        return header;
-        }
-
-
-        // public async Task<List<AssetTransferReceiptDtlPendingDto>> GetAllPendingAssetTransferDtlAsync(int assetTransferId)
-        // {
-        //      const string query = @"
-                // SELECT 
-                // A.Id AS AssetTransferId,
-                // B.AssetId,
-                // M.AssetCode,
-                // M.AssetName
-                // FROM FixedAsset.AssetTransferIssueHdr A
-                // INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
-                // INNER JOIN FixedAsset.AssetMaster M ON B.AssetId = M.Id
-                // INNER JOIN FixedAsset.MiscMaster C ON A.TransferType = C.Id
-                // INNER JOIN [BannariERP].AppData.Unit D ON A.FromUnitId = D.Id
-                // INNER JOIN [BannariERP].AppData.Unit E ON A.ToUnitId = E.Id
-                // INNER JOIN [BannariERP].AppData.Department F ON A.FromDepartmentId = F.Id
-                // INNER JOIN [BannariERP].AppData.Department G ON A.ToDepartmentId = G.Id
-                // LEFT JOIN FixedAsset.AssetTransferReceiptHdr RH ON A.Id = RH.AssetTransferId
-                // LEFT JOIN FixedAsset.AssetTransferReceiptDtl RD ON RH.Id = RD.AssetReceiptId AND B.AssetId = RD.AssetId
-                // WHERE A.Status = 'Approved' 
-                // AND (RD.AckStatus = 0 OR RD.AckStatus IS NULL)
-        		// AND A.Id=@assetTransferId";
-
-        //     var assetreceiptpendingdtl = await _dbConnection.QueryAsync<AssetTransferReceiptDtlPendingDto>(query, new { assetTransferId });
-
-        //     return assetreceiptpendingdtl.ToList();
-        // }
     }
 }

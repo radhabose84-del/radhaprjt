@@ -45,14 +45,15 @@ namespace FinanceManagement.UnitTests.Validators.EInvoiceHeader
         }
 
         [Fact]
-        public async Task Validate_ZeroDistance_FailsValidation()
+        public async Task Validate_ZeroDistance_PassesValidation()
         {
+            // Distance = 0 is valid — NIC auto-calculates from pincodes
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             var command = new GenerateEwbCommand { EInvoiceHeaderId = 1, Distance = 0 };
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.Distance);
+            result.ShouldNotHaveValidationErrorFor(x => x.Distance);
         }
 
         [Fact]

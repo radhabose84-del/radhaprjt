@@ -2,10 +2,12 @@ using System.Reflection;
 using System.Text.Json;
 using Dapper;
 using Hangfire;
+using Hangfire.States;
 using MassTransit;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Shared.Infrastructure.Resilience;
 
 namespace BackgroundService.Infrastructure.Jobs;
 
@@ -22,6 +24,7 @@ public class SqlOutboxProcessorJob
     private readonly IConfiguration _configuration;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ILogger<SqlOutboxProcessorJob> _logger;
+    private readonly IResiliencePipelineProvider _resilience;
 
     /// <summary>All SQL outbox tables to poll, keyed by (schema, table).</summary>
     private static readonly (string Schema, string Table)[] OutboxTables =
@@ -46,11 +49,13 @@ public class SqlOutboxProcessorJob
     public SqlOutboxProcessorJob(
         IConfiguration configuration,
         IPublishEndpoint publishEndpoint,
-        ILogger<SqlOutboxProcessorJob> logger)
+        ILogger<SqlOutboxProcessorJob> logger,
+        IResiliencePipelineProvider resilience)
     {
         _configuration  = configuration;
         _publishEndpoint = publishEndpoint;
         _logger          = logger;
+        _resilience      = resilience;
     }
 
     /// <summary>
@@ -58,6 +63,7 @@ public class SqlOutboxProcessorJob
     /// Opens a single SQL connection and processes all registered outbox tables.
     /// </summary>
     [Queue("sql-outbox-queue")]
+    [AutomaticRetry(Attempts = 3, OnAttemptsExceeded = AttemptsExceededAction.Fail)]
     public async Task ProcessAsync(CancellationToken cancellationToken)
     {
         var connectionString = (_configuration.GetConnectionString("DefaultConnection") ?? string.Empty)
@@ -191,7 +197,7 @@ public class SqlOutboxProcessorJob
         }
     }
 
-    private static async Task MarkPublishedAsync(
+    private async Task MarkPublishedAsync(
         SqlConnection connection, string schema, string table, long id)
     {
         var sql = $"""
@@ -199,10 +205,12 @@ public class SqlOutboxProcessorJob
             SET Status = 1, PublishedAt = @Now, LastError = NULL
             WHERE Id = @Id
             """;
-        await connection.ExecuteAsync(sql, new { Now = DateTimeOffset.UtcNow, Id = id });
+        await _resilience.ExecuteSqlAsync(
+            ResilienceProfileNames.Standard,
+            _ => connection.ExecuteAsync(sql, new { Now = DateTimeOffset.UtcNow, Id = id }));
     }
 
-    private static async Task MarkFailedAsync(
+    private async Task MarkFailedAsync(
         SqlConnection connection,
         string schema,
         string table,
@@ -224,14 +232,16 @@ public class SqlOutboxProcessorJob
             WHERE Id = @Id
             """;
 
-        await connection.ExecuteAsync(sql, new
-        {
-            RetryCount  = newRetryCount,
-            Error       = truncatedError,
-            NextRetryAt = nextRetryAt,
-            Status      = newStatus,
-            Id          = message.Id,
-        });
+        await _resilience.ExecuteSqlAsync(
+            ResilienceProfileNames.Standard,
+            _ => connection.ExecuteAsync(sql, new
+            {
+                RetryCount  = newRetryCount,
+                Error       = truncatedError,
+                NextRetryAt = nextRetryAt,
+                Status      = newStatus,
+                Id          = message.Id,
+            }));
     }
 
     private async Task CleanupOldMessagesAsync(
@@ -243,7 +253,9 @@ public class SqlOutboxProcessorJob
             WHERE Status = 1 AND PublishedAt < @Cutoff
             """;
 
-        var deleted = await connection.ExecuteAsync(sql, new { Cutoff = cutoff });
+        var deleted = await _resilience.ExecuteSqlAsync(
+            ResilienceProfileNames.Standard,
+            _ => connection.ExecuteAsync(sql, new { Cutoff = cutoff }));
         if (deleted > 0)
             _logger.LogInformation(
                 "SqlOutboxProcessorJob: Deleted {Count} old messages from [{Schema}].[{Table}]",

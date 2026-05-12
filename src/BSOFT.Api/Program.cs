@@ -7,6 +7,7 @@ using BSOFT.Api.Middleware;
 using Shared.Validation.Common;
 using Shared.Infrastructure.Caching;
 using Shared.Infrastructure;
+using Shared.Infrastructure.Resilience;
 using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Infrastructure.Jobs;
@@ -37,6 +38,7 @@ builder.Configuration
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSharedInfrastructureServices();
+builder.Services.AddBsoftResilience(builder.Configuration);
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 
