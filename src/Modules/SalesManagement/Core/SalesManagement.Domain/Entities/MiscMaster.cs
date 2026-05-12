@@ -100,5 +100,8 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (SalesEnquiryHeader — EnquiryTypeId FK)
         public ICollection<SalesEnquiryHeader>? SalesEnquiryHeadersAsEnquiryType { get; set; }
 
+        // Reverse navigation (SalesAgreementHeader — StatusId FK)
+        public ICollection<SalesAgreementHeader>? SalesAgreementHeadersAsStatus { get; set; }
+
     }
 }
