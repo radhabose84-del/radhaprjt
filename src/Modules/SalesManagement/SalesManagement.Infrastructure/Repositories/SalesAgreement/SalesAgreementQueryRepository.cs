@@ -14,17 +14,20 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
         private readonly ICustomerLookup _customerLookup;
         private readonly IPaymentTermLookup _paymentTermLookup;
         private readonly IItemLookup _itemLookup;
+        private readonly IUOMLookup _uomLookup;
 
         public SalesAgreementQueryRepository(
             IDbConnection dbConnection,
             ICustomerLookup customerLookup,
             IPaymentTermLookup paymentTermLookup,
-            IItemLookup itemLookup)
+            IItemLookup itemLookup,
+            IUOMLookup uomLookup)
         {
             _dbConnection = dbConnection;
             _customerLookup = customerLookup;
             _paymentTermLookup = paymentTermLookup;
             _itemLookup = itemLookup;
+            _uomLookup = uomLookup;
         }
 
         // ── Same-module SQL: headers + JOINed StatusName / SalesGroupName ─────
@@ -123,7 +126,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                 return null;
 
             const string detailSql = @"
-                SELECT Id, SalesAgreementHeaderId, ItemId, VariantId, AgreedRate, TotalQty, ReleasedQty
+                SELECT Id, SalesAgreementHeaderId, ItemId, VariantId, UomId, AgreedRate, TotalQty, ReleasedQty
                 FROM Sales.SalesAgreementDetail
                 WHERE SalesAgreementHeaderId = @HeaderId";
 
@@ -138,12 +141,27 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
 
         public async Task<IReadOnlyList<SalesAgreementLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
         {
+            // Eligibility for autocomplete (must satisfy ALL):
+            //   • IsActive = 1                              (Inactive  → excluded)
+            //   • ValidTo  >= today                         (Expired   → excluded)
+            //   • Status   = 'Approved'                     (Pending / Rejected / Cancelled / ForeClosed → excluded)
+            //   • BalanceQty (sum totalQty − sum releasedQty) > 0   (no remaining quantity → excluded)
             const string sql = @"
                 SELECT TOP 50 h.Id, h.AgreementNo, h.CustomerId
                 FROM Sales.SalesAgreementHeader h
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
-                WHERE h.IsActive = 1 AND h.IsDeleted = 0
+                OUTER APPLY (
+                    SELECT
+                        SUM(TotalQty)    AS TotalQty,
+                        SUM(ReleasedQty) AS TotalReleasedQty
+                    FROM Sales.SalesAgreementDetail
+                    WHERE SalesAgreementHeaderId = h.Id
+                ) d
+                WHERE h.IsActive = 1
+                  AND h.IsDeleted = 0
+                  AND h.ValidTo >= CAST(GETDATE() AS DATE)
                   AND (sm.Code = 'Approved' OR sm.Description = 'Approved')
+                  AND (ISNULL(d.TotalQty, 0) - ISNULL(d.TotalReleasedQty, 0)) > 0
                   AND (h.AgreementNo LIKE @Term OR CAST(h.Id AS VARCHAR) LIKE @Term)
                 ORDER BY h.Id DESC";
 
@@ -253,11 +271,21 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             var variantIds = details.Where(d => d.VariantId.HasValue).Select(d => d.VariantId!.Value);
             var itemIds = details.Select(d => d.ItemId).Concat(variantIds).Distinct().ToList();
 
-            if (itemIds.Count == 0)
-                return;
+            var itemDict = new Dictionary<int, (string ItemCode, string ItemName)>();
+            if (itemIds.Count > 0)
+            {
+                var items = await _itemLookup.GetByIdsAsync(itemIds);
+                itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+            }
 
-            var items = await _itemLookup.GetByIdsAsync(itemIds);
-            var itemDict = items.ToDictionary(i => i.Id, i => (i.ItemCode, i.ItemName));
+            // UOM lookup (cross-module) for the optional UomId column
+            var uomIds = details.Where(d => d.UomId.HasValue).Select(d => d.UomId!.Value).Distinct().ToList();
+            var uomDict = new Dictionary<int, string>();
+            if (uomIds.Count > 0)
+            {
+                var uoms = await _uomLookup.GetByIdsAsync(uomIds);
+                uomDict = uoms.ToDictionary(u => u.Id, u => u.UOMName);
+            }
 
             foreach (var d in details)
             {
@@ -270,6 +298,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                 if (d.VariantId.HasValue && itemDict.TryGetValue(d.VariantId.Value, out var variantInfo))
                 {
                     d.VariantName = variantInfo.ItemName;
+                }
+
+                if (d.UomId.HasValue && uomDict.TryGetValue(d.UomId.Value, out var uomName))
+                {
+                    d.UomName = uomName;
                 }
             }
         }

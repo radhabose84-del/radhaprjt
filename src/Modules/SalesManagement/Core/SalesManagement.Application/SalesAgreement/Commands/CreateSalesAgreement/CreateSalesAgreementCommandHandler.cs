@@ -43,7 +43,7 @@ namespace SalesManagement.Application.SalesAgreement.Commands.CreateSalesAgreeme
             // Resolve "Pending" status at runtime (Sales.MiscMaster where MiscTypeId=36/ApprovalStatus).
             var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                 MiscEnumEntity.SalesAgreementApprovalStatus,
-                MiscEnumEntity.SalesAgreementStatusPending);
+                MiscEnumEntity.SalesAgreementStatusApproved);
 
             if (pendingStatus == null)
                 throw new ExceptionRules("Pending status is not configured in MiscMaster (MiscTypeCode='ApprovalStatus', Code='Pending').");

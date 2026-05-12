@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.SalesAgreement.Commands.CreateSalesAgreement;
 using SalesManagement.Application.SalesAgreement.Commands.DeleteSalesAgreement;
-using SalesManagement.Application.SalesAgreement.Commands.UpdateSalesAgreement;
 using SalesManagement.Application.SalesAgreement.Queries.GetAllSalesAgreement;
 using SalesManagement.Application.SalesAgreement.Queries.GetSalesAgreementAutoComplete;
 using SalesManagement.Application.SalesAgreement.Queries.GetSalesAgreementById;
@@ -64,20 +63,6 @@ namespace SalesManagement.Presentation.Controllers
 
         [HttpPost]
         public async Task<IActionResult> CreateSalesAgreement([FromBody] CreateSalesAgreementCommand command)
-        {
-            var result = await Mediator.Send(command);
-
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                isSuccess = result.IsSuccess,
-                message = result.Message,
-                data = result.Data
-            });
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> UpdateSalesAgreement([FromBody] UpdateSalesAgreementCommand command)
         {
             var result = await Mediator.Send(command);
 

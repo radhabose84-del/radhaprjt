@@ -210,7 +210,8 @@ namespace SalesManagement.Domain.Common
         // Sales Agreement
         public const string TransactionTypeSalesAgreement = "Sales Agreement";
         public const string SalesAgreementApprovalStatus = "ApprovalStatus";
-        public const string SalesAgreementStatusPending = "Pending";
+        public const string SalesAgreementStatusApproved = "Approved";
+        public const string SalesAgreementStatusCancelled = "Cancelled";
 
     }
 }
