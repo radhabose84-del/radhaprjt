@@ -15,5 +15,6 @@ namespace SalesManagement.Application.SalesAgreement.Dto
         public decimal AgreedRate { get; set; }
         public decimal TotalQty { get; set; }
         public decimal ReleasedQty { get; set; }
+        public decimal BalanceQty => TotalQty - ReleasedQty;
     }
 }
