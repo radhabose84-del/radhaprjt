@@ -20,7 +20,7 @@ namespace BackgroundService.Infrastructure.Services.Notification
         : base(ipAddressService)
         {
             _smsSettings = smsSettings;
-            _httpClient = httpClientFactory.CreateClient();
+            _httpClient = httpClientFactory.CreateClient("SmsClient");
             _logger = logger;         
         }
 

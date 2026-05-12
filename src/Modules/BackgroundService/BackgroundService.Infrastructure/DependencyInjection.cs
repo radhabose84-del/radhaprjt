@@ -370,7 +370,10 @@ namespace BackgroundService.Infrastructure
 
             services.AddAutoMapper(typeof(NotificationHierarchyAndEventRuleProfile));
 
-            services.AddHttpClient();
+            services.AddHttpClient("SmsClient")
+                .AddBsoftHttpResilience(ResilienceProfileNames.Standard);
+            services.AddHttpClient("WhatsAppClient")
+                .AddBsoftHttpResilience(ResilienceProfileNames.Standard);
             services.AddScoped<IEmailService, RealEmailService>();
             services.AddScoped<ISmsService, RealSmsService>();
             services.AddScoped<IUserUnlockService, UserUnlockService>();
