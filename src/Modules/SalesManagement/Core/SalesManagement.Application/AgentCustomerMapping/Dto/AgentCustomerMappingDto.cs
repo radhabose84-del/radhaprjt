@@ -11,6 +11,14 @@ namespace SalesManagement.Application.AgentCustomerMapping.Dto
         public string? SubAgentName { get; set; }
         public int SalesGroupId { get; set; }
         public string? SalesGroupName { get; set; }
+
+        // Resolved chain: AgentId → Sales.OfficerAgent.MarketingOfficerId → AppSecurity.Users.EmpId.
+        // Populated by GetByFilterAsync.
+        public string? MarketingOfficerUserName { get; set; }
+
+        // Resolved chain: MO User's ReportToId → AppSecurity.Users.UserId (via IUserLookup).
+        // Populated by GetByFilterAsync.
+        public string? ReportToUserName { get; set; }
         public DateTime EffectiveFrom { get; set; }
         public DateTime? EffectiveTo { get; set; }
         public bool IsDefaultAgent { get; set; }

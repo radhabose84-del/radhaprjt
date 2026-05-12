@@ -1,3 +1,5 @@
+using Contracts.Dtos.Lookups.Sales;
+
 namespace Contracts.Interfaces.Lookups.Sales;
 
 public interface IOfficerAgentUserLookup
@@ -16,4 +18,11 @@ public interface IOfficerAgentUserLookup
     /// parsed from the JWT 'nameid' claim of the user who just approved.
     /// </summary>
     Task<int?> GetMarketingOfficerReportToUserIdAsync(int userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Bulk variant: resolves the full Marketing Officer chain (MO UserId + ReportToId) for many Agents.
+    /// Returns one row per AgentId that has an active OfficerAgent + active matching User.
+    /// </summary>
+    Task<IReadOnlyList<MoChainRow>> GetMarketingOfficerChainByAgentIdsAsync(
+        IEnumerable<int> agentIds, CancellationToken cancellationToken = default);
 }
