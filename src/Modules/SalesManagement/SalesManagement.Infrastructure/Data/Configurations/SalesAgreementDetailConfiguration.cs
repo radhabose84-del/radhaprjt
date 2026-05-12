@@ -36,6 +36,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.UomId)
+                .HasColumnName("UomId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.AgreedRate)
                 .HasColumnName("AgreedRate")
                 .HasColumnType("decimal(18,4)")
@@ -56,6 +61,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesAgreementHeaderId);
             builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.VariantId);
+            builder.HasIndex(t => t.UomId);
 
             // Composite unique: one row per (Header, Item, Variant). SQL Server treats NULL as a single value,
             // so a no-variant item can still have only one row per agreement.

@@ -14,6 +14,10 @@ namespace SalesManagement.Domain.Entities
         // Optional — null when the item has no variants.
         public int? VariantId { get; set; }
 
+        // Cross-module FK → InventoryManagement.UOM (resolved via IUOMLookup). No DB FK constraint.
+        // Optional — null when the item's default UOM is used.
+        public int? UomId { get; set; }
+
         public decimal AgreedRate { get; set; }
         public decimal TotalQty { get; set; }
 

@@ -12,6 +12,9 @@ namespace SalesManagement.Application.SalesAgreement.Dto
         public int? VariantId { get; set; }
         public string? VariantName { get; set; }
 
+        public int? UomId { get; set; }
+        public string? UomName { get; set; }
+
         public decimal AgreedRate { get; set; }
         public decimal TotalQty { get; set; }
         public decimal ReleasedQty { get; set; }
