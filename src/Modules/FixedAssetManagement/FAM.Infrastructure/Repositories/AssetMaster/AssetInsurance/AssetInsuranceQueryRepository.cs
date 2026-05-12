@@ -72,9 +72,13 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetInsurance
                 return count > 0;
         }
           public async Task<bool> ActiveInsuranceValidation(int AssetId, int? id = null)
-        {   
+        {
 
-              var query = "SELECT COUNT(1) FROM FixedAsset.AssetInsurance   WHERE AssetId = @AssetId AND IsDeleted = 0 AND IsActive = 1 ";
+              var query = @"SELECT COUNT(1) FROM FixedAsset.AssetInsurance
+                            WHERE AssetId = @AssetId
+                              AND IsDeleted = 0
+                              AND IsActive = 1
+                              AND EndDate >= CAST(GETDATE() AS DATE)";
                 var parameters = new DynamicParameters(new { AssetId = AssetId });
 
              if (id is not null)
