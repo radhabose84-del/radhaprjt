@@ -113,9 +113,9 @@ namespace FAM.Presentation.Controllers
             });
         }
             
-        [HttpGet("by-name")]  
-        public async Task<IActionResult> GetSpecificationMaster([FromQuery] int assetGroupId,string name)
-        {          
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetSpecificationMaster([FromQuery] int assetGroupId, [FromQuery] string? name = null)
+        {
             var result = await Mediator.Send(new GetSpecificationMasterAutoCompleteQuery {AssetGroupId=assetGroupId,SearchPattern = name}); // Pass `searchPattern` to the constructor
           
             return Ok(new

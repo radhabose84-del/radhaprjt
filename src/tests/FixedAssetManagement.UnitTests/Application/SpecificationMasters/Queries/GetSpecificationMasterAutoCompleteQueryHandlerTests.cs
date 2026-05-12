@@ -3,7 +3,6 @@ using FAM.Application.Common.Interfaces.ISpecificationMaster;
 using FAM.Application.SpecificationMaster.Queries.GetSpecificationMaster;
 using FAM.Application.SpecificationMaster.Queries.GetSpecificationMasterAutoComplete;
 using FAM.Domain.Events;
-using FluentValidation;
 using FixedAssetManagement.UnitTests.TestData;
 using MediatR;
 
@@ -77,35 +76,67 @@ namespace FixedAssetManagement.UnitTests.Application.SpecificationMasters.Querie
         }
 
         [Fact]
-        public async Task Handle_EmptyResult_ThrowsValidationException()
+        public async Task Handle_EmptyResult_ReturnsEmptyList()
         {
             _mockQueryRepo
                 .Setup(r => r.GetBySpecificationNameAsync(It.IsAny<int?>(), It.IsAny<string>()))
                 .ReturnsAsync(new List<FAM.Domain.Entities.SpecificationMasters>());
+            _mockMapper
+                .Setup(m => m.Map<List<SpecificationMasterAutoCompleteDTO>>(It.IsAny<List<FAM.Domain.Entities.SpecificationMasters>>()))
+                .Returns(new List<SpecificationMasterAutoCompleteDTO>());
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-            var sut = CreateSut();
-            Func<Task> act = async () => await sut.Handle(
+            var result = await CreateSut().Handle(
                 new GetSpecificationMasterAutoCompleteQuery { AssetGroupId = 1, SearchPattern = "none" },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*No SpecificationMaster found*");
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
         }
 
         [Fact]
-        public async Task Handle_NullResult_ThrowsValidationException()
+        public async Task Handle_NullResult_ReturnsEmptyList()
         {
             _mockQueryRepo
                 .Setup(r => r.GetBySpecificationNameAsync(It.IsAny<int?>(), It.IsAny<string>()))
                 .ReturnsAsync((List<FAM.Domain.Entities.SpecificationMasters>)null!);
+            _mockMapper
+                .Setup(m => m.Map<List<SpecificationMasterAutoCompleteDTO>>(It.IsAny<List<FAM.Domain.Entities.SpecificationMasters>>()))
+                .Returns(new List<SpecificationMasterAutoCompleteDTO>());
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-            var sut = CreateSut();
-            Func<Task> act = async () => await sut.Handle(
+            var result = await CreateSut().Handle(
                 new GetSpecificationMasterAutoCompleteQuery { AssetGroupId = 1, SearchPattern = "none" },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*No SpecificationMaster found*");
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Handle_NullSearchPattern_PassesEmptyStringToRepository()
+        {
+            string? capturedPattern = null;
+            _mockQueryRepo
+                .Setup(r => r.GetBySpecificationNameAsync(It.IsAny<int?>(), It.IsAny<string>()))
+                .Callback<int?, string>((_, p) => capturedPattern = p)
+                .ReturnsAsync(new List<FAM.Domain.Entities.SpecificationMasters>());
+            _mockMapper
+                .Setup(m => m.Map<List<SpecificationMasterAutoCompleteDTO>>(It.IsAny<List<FAM.Domain.Entities.SpecificationMasters>>()))
+                .Returns(new List<SpecificationMasterAutoCompleteDTO>());
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await CreateSut().Handle(
+                new GetSpecificationMasterAutoCompleteQuery { AssetGroupId = 1, SearchPattern = null },
+                CancellationToken.None);
+
+            capturedPattern.Should().Be(string.Empty);
         }
     }
 }
