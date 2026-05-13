@@ -264,7 +264,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 return new ApiResponseDTO<int>
                 {
                     IsSuccess = true,
-                    Message = "Sales Order created successfully.",
+                    Message = "Rate Agreement Sales Order created successfully.",
                     Data = newId
                 };
             }
@@ -372,7 +372,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Sales Order created successfully.",
+                Message = "Direct Sales Order created successfully.",
                 Data = newId
             };
         }
