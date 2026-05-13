@@ -24,6 +24,9 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Same-module FK → Sales.SalesEnquiryHeader (nullable)
         public int? SalesEnquiryHeaderId { get; set; }
 
+        // Same-module FK → Sales.SalesAgreementHeader (nullable — only set when "Against Agreement" is selected)
+        public int? SalesAgreementHeaderId { get; set; }
+
         // Reference numbers (nullable)
         public string? CustomerPoRefno { get; set; }
         public string? ComplaintRefno { get; set; }

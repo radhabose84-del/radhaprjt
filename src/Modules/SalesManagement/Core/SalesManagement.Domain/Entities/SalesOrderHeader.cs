@@ -26,6 +26,9 @@ namespace SalesManagement.Domain.Entities
         // Same-module FK → Sales.SalesEnquiryHeader (nullable)
         public int? SalesEnquiryHeaderId { get; set; }
 
+        // Same-module FK → Sales.SalesAgreementHeader (nullable — only populated when the order is raised against an agreement)
+        public int? SalesAgreementHeaderId { get; set; }
+
         // Reference numbers (nullable free-text)
         public string? CustomerPoRefno { get; set; }
         public string? ComplaintRefno { get; set; }
@@ -108,6 +111,7 @@ namespace SalesManagement.Domain.Entities
         public AgentCommissionSlab? AgentCommissionSlab { get; set; }
         public SalesOrderTypeMaster? SalesOrderTypeMaster { get; set; }
         public SalesEnquiryHeader? SalesEnquiryHeader { get; set; }
+        public SalesAgreementHeader? SalesAgreementHeader { get; set; }
 
         // Child collection
         public ICollection<SalesOrderDetail>? SalesOrderDetails { get; set; }

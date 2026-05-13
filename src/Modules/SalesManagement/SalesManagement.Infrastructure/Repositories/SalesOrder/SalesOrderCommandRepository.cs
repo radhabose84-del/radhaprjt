@@ -295,6 +295,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted);
         }
 
+        public async Task<SalesManagement.Domain.Entities.SalesOrderTypeMaster?> GetSalesOrderTypeMasterByIdAsync(int id)
+        {
+            return await _applicationDbContext.SalesOrderTypeMaster
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted);
+        }
+
         public async Task<bool> FinalizeOrderStatusAsync(SalesOrderHeader entity, int modifiedBy, string? modifiedByName, string? modifiedIP)
         {
             // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
