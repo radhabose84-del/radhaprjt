@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using UserManagement.Application.UserSignature.Command.CreateUserSignature;
 using UserManagement.Application.UserSignature.Command.DeleteUserSignature;
 using UserManagement.Application.UserSignature.Command.UpdateUserSignature;
@@ -7,40 +8,37 @@ namespace UserManagement.UnitTests.TestData
 {
     public static class UserSignatureBuilders
     {
-        public static byte[] SmallPngBytes() =>
-            new byte[]
+        public static IFormFile BuildFormFile(
+            string fileName = "signature.png",
+            string contentType = "image/png",
+            int sizeBytes = 128)
+        {
+            var bytes = new byte[sizeBytes];
+            var stream = new MemoryStream(bytes);
+            return new FormFile(stream, 0, bytes.Length, "file", fileName)
             {
-                0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-                0x00, 0x00, 0x00, 0x0D
+                Headers = new HeaderDictionary(),
+                ContentType = contentType
             };
+        }
 
         public static CreateUserSignatureCommand ValidCreateCommand(
             int userId = 1,
-            string fileName = "signature.png",
-            string contentType = "image/png",
-            byte[]? bytes = null) =>
+            IFormFile? file = null) =>
             new()
             {
                 UserId = userId,
-                FileName = fileName,
-                ContentType = contentType,
-                SignatureImage = bytes ?? SmallPngBytes(),
-                FileSizeBytes = (bytes ?? SmallPngBytes()).Length
+                File = file ?? BuildFormFile()
             };
 
         public static UpdateUserSignatureCommand ValidUpdateCommand(
             int id = 1,
-            string fileName = "updated_signature.png",
-            string contentType = "image/png",
-            Status isActive = Status.Active,
-            byte[]? bytes = null) =>
+            IFormFile? file = null,
+            Status isActive = Status.Active) =>
             new()
             {
                 Id = id,
-                FileName = fileName,
-                ContentType = contentType,
-                SignatureImage = bytes ?? SmallPngBytes(),
-                FileSizeBytes = (bytes ?? SmallPngBytes()).Length,
+                File = file ?? BuildFormFile(),
                 IsActive = isActive
             };
 
@@ -52,10 +50,11 @@ namespace UserManagement.UnitTests.TestData
             {
                 Id = id,
                 UserId = userId,
-                SignatureImage = SmallPngBytes(),
-                FileName = "signature.png",
-                ContentType = "image/png",
-                FileSizeBytes = SmallPngBytes().Length,
+                FileName = $"vishal-{userId}.png",
+                OriginalFileName = "signature.png",
+                FilePath = $"Resources\\UserManagement\\UserSignatures\\vishal-{userId}.png",
+                FileType = "image/png",
+                FileSize = 128,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -65,10 +64,11 @@ namespace UserManagement.UnitTests.TestData
             {
                 Id = id,
                 UserId = userId,
-                SignatureImage = SmallPngBytes(),
-                FileName = "signature.png",
-                ContentType = "image/png",
-                FileSizeBytes = SmallPngBytes().Length,
+                FileName = $"vishal-{userId}.png",
+                OriginalFileName = "signature.png",
+                FilePath = $"Resources\\UserManagement\\UserSignatures\\vishal-{userId}.png",
+                FileType = "image/png",
+                FileSize = 128,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted,
                 User = new UserManagement.Domain.Entities.User

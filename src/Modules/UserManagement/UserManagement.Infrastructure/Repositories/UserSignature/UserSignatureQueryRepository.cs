@@ -15,20 +15,10 @@ namespace UserManagement.Infrastructure.Repositories.UserSignature
 
         public async Task<(List<UserManagement.Domain.Entities.UserSignature>, int)> GetAllUserSignatureAsync(int pageNumber, int pageSize, string? searchTerm)
         {
-            // Omits SignatureImage column for performance — list view doesn't render the BLOB
             var query = $$"""
-                DECLARE @TotalCount INT;
-
-                SELECT @TotalCount = COUNT(*)
-                FROM AppData.UserSignature us
-                INNER JOIN AppSecurity.Users u ON us.UserId = u.UserId
-                WHERE us.IsDeleted = 0
-                {{(string.IsNullOrEmpty(searchTerm) ? "" : "AND (u.FirstName LIKE @Search OR u.LastName LIKE @Search OR u.EmailId LIKE @Search OR us.FileName LIKE @Search)")}};
-
                 SELECT
                     us.Id, us.UserId,
-                    CAST(NULL AS varbinary(MAX)) AS SignatureImage,
-                    us.FileName, us.ContentType, us.FileSizeBytes,
+                    us.FileName, us.OriginalFileName, us.FilePath, us.FileType, us.FileSize,
                     us.IsActive, us.IsDeleted,
                     us.CreatedBy, us.CreatedAt, us.CreatedByName, us.CreatedIP,
                     us.ModifiedBy, us.ModifiedAt, us.ModifiedByName, us.ModifiedIP,
@@ -36,11 +26,9 @@ namespace UserManagement.Infrastructure.Repositories.UserSignature
                 FROM AppData.UserSignature us
                 INNER JOIN AppSecurity.Users u ON us.UserId = u.UserId
                 WHERE us.IsDeleted = 0
-                {{(string.IsNullOrEmpty(searchTerm) ? "" : "AND (u.FirstName LIKE @Search OR u.LastName LIKE @Search OR u.EmailId LIKE @Search OR us.FileName LIKE @Search)")}}
+                {{(string.IsNullOrEmpty(searchTerm) ? "" : "AND (u.FirstName LIKE @Search OR u.LastName LIKE @Search OR u.EmailId LIKE @Search OR us.FileName LIKE @Search OR us.OriginalFileName LIKE @Search)")}}
                 ORDER BY us.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
-
-                SELECT @TotalCount AS TotalCount;
                 """;
 
             var parameters = new
@@ -63,14 +51,12 @@ namespace UserManagement.Infrastructure.Repositories.UserSignature
 
             var list = rows.ToList();
 
-            // QueryAsync with multi-mapping returns only the first result set.
-            // Run the total-count query separately to keep the multi-mapper simple.
             var totalCount = await _dbConnection.ExecuteScalarAsync<int>($$"""
                 SELECT COUNT(*)
                 FROM AppData.UserSignature us
                 INNER JOIN AppSecurity.Users u ON us.UserId = u.UserId
                 WHERE us.IsDeleted = 0
-                {{(string.IsNullOrEmpty(searchTerm) ? "" : "AND (u.FirstName LIKE @Search OR u.LastName LIKE @Search OR u.EmailId LIKE @Search OR us.FileName LIKE @Search)")}};
+                {{(string.IsNullOrEmpty(searchTerm) ? "" : "AND (u.FirstName LIKE @Search OR u.LastName LIKE @Search OR u.EmailId LIKE @Search OR us.FileName LIKE @Search OR us.OriginalFileName LIKE @Search)")}};
                 """, new { Search = $"%{searchTerm}%" });
 
             return (list, totalCount);
@@ -81,8 +67,7 @@ namespace UserManagement.Infrastructure.Repositories.UserSignature
             const string sql = @"
                 SELECT
                     us.Id, us.UserId,
-                    us.SignatureImage,
-                    us.FileName, us.ContentType, us.FileSizeBytes,
+                    us.FileName, us.OriginalFileName, us.FilePath, us.FileType, us.FileSize,
                     us.IsActive, us.IsDeleted,
                     us.CreatedBy, us.CreatedAt, us.CreatedByName, us.CreatedIP,
                     us.ModifiedBy, us.ModifiedAt, us.ModifiedByName, us.ModifiedIP,
@@ -110,8 +95,7 @@ namespace UserManagement.Infrastructure.Repositories.UserSignature
             const string sql = @"
                 SELECT
                     us.Id, us.UserId,
-                    us.SignatureImage,
-                    us.FileName, us.ContentType, us.FileSizeBytes,
+                    us.FileName, us.OriginalFileName, us.FilePath, us.FileType, us.FileSize,
                     us.IsActive, us.IsDeleted,
                     us.CreatedBy, us.CreatedAt, us.CreatedByName, us.CreatedIP,
                     us.ModifiedBy, us.ModifiedAt, us.ModifiedByName, us.ModifiedIP,

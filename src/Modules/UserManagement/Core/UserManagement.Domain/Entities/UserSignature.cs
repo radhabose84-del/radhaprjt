@@ -6,10 +6,11 @@ namespace UserManagement.Domain.Entities
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public byte[]? SignatureImage { get; set; }
-        public string? FileName { get; set; }
-        public string? ContentType { get; set; }
-        public int FileSizeBytes { get; set; }
+        public string? FileName { get; set; }           // generated, e.g. vishal-2414.png
+        public string? OriginalFileName { get; set; }   // as uploaded by user, e.g. output-onlinepngtools.png
+        public string? FilePath { get; set; }           // Resources\UserManagement\UserSignatures\vishal-2414.png
+        public string? FileType { get; set; }           // image/png
+        public long FileSize { get; set; }              // bytes
 
         public User User { get; set; } = null!;
     }

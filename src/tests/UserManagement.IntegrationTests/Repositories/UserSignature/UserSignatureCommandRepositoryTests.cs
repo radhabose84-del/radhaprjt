@@ -89,14 +89,15 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
             return user.UserId;
         }
 
-        private static UserManagement.Domain.Entities.UserSignature BuildEntity(int userId) =>
+        private static UserManagement.Domain.Entities.UserSignature BuildEntity(int userId, string fileName = "vishal-1.png") =>
             new()
             {
                 UserId = userId,
-                SignatureImage = new byte[] { 0x89, 0x50, 0x4E, 0x47 },
-                FileName = "sig.png",
-                ContentType = "image/png",
-                FileSizeBytes = 4,
+                FileName = fileName,
+                OriginalFileName = "signature.png",
+                FilePath = $"Resources\\UserManagement\\UserSignatures\\{fileName}",
+                FileType = "image/png",
+                FileSize = 128,
                 IsActive = Enums.Status.Active,
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
@@ -124,17 +125,14 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
             var userId = await SeedUserAsync(ctx);
 
             var repo = CreateRepository(ctx);
-            var newId = await repo.CreateAsync(BuildEntity(userId));
+            var newId = await repo.CreateAsync(BuildEntity(userId, "vishal-2.png"));
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.UserSignature.FirstOrDefaultAsync(x => x.Id == newId);
 
             saved.Should().NotBeNull();
             saved!.UserId.Should().Be(userId);
-            saved.FileName.Should().Be("sig.png");
-            saved.ContentType.Should().Be("image/png");
-            saved.FileSizeBytes.Should().Be(4);
-            saved.SignatureImage.Should().BeEquivalentTo(new byte[] { 0x89, 0x50, 0x4E, 0x47 });
+            saved.FileName.Should().Be("vishal-2.png");
             saved.IsActive.Should().Be(Enums.Status.Active);
             saved.IsDeleted.Should().Be(Enums.IsDelete.NotDeleted);
         }
@@ -161,7 +159,40 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
         // --- UPDATE ---
 
         [Fact]
-        public async Task UpdateAsync_Should_Persist_Changes()
+        public async Task UpdateAsync_Should_Persist_FileName_Change()
+        {
+            await using var ctx = CreateDbContext();
+            await _fixture.ClearAllTablesAsync();
+            var userId = await SeedUserAsync(ctx);
+
+            var repo = CreateRepository(ctx);
+            var newId = await repo.CreateAsync(BuildEntity(userId, "old-name.png"));
+            ctx.ChangeTracker.Clear();
+
+            var updateModel = new UserManagement.Domain.Entities.UserSignature
+            {
+                FileName = "new-name.jpg",
+                OriginalFileName = "newsig.jpg",
+                FilePath = "Resources\\UserManagement\\UserSignatures\\new-name.jpg",
+                FileType = "image/jpeg",
+                FileSize = 256,
+                IsActive = Enums.Status.Active
+            };
+
+            var result = await repo.UpdateAsync(newId, updateModel);
+            result.Should().BeTrue();
+
+            ctx.ChangeTracker.Clear();
+            var updated = await ctx.UserSignature.FirstOrDefaultAsync(x => x.Id == newId);
+
+            updated!.FileName.Should().Be("new-name.jpg");
+            updated.OriginalFileName.Should().Be("newsig.jpg");
+            updated.FileType.Should().Be("image/jpeg");
+            updated.FileSize.Should().Be(256);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Not_Overwrite_UserId()
         {
             await using var ctx = CreateDbContext();
             await _fixture.ClearAllTablesAsync();
@@ -173,53 +204,19 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
 
             var updateModel = new UserManagement.Domain.Entities.UserSignature
             {
-                UserId = userId, // should be ignored by UpdateAsync (immutable)
-                SignatureImage = new byte[] { 0xAA, 0xBB },
-                FileName = "updated.jpg",
-                ContentType = "image/jpeg",
-                FileSizeBytes = 2,
-                IsActive = Enums.Status.Active
-            };
-
-            var result = await repo.UpdateAsync(newId, updateModel);
-
-            result.Should().BeTrue();
-
-            ctx.ChangeTracker.Clear();
-            var updated = await ctx.UserSignature.FirstOrDefaultAsync(x => x.Id == newId);
-
-            updated.Should().NotBeNull();
-            updated!.FileName.Should().Be("updated.jpg");
-            updated.ContentType.Should().Be("image/jpeg");
-            updated.SignatureImage.Should().BeEquivalentTo(new byte[] { 0xAA, 0xBB });
-        }
-
-        [Fact]
-        public async Task UpdateAsync_Should_Not_Overwrite_UserId()
-        {
-            await using var ctx = CreateDbContext();
-            await _fixture.ClearAllTablesAsync();
-            var userId1 = await SeedUserAsync(ctx, emailSuffix: "user1");
-
-            var repo = CreateRepository(ctx);
-            var newId = await repo.CreateAsync(BuildEntity(userId1));
-            ctx.ChangeTracker.Clear();
-
-            // Attempt to change UserId via Update — must be ignored
-            var updateModel = new UserManagement.Domain.Entities.UserSignature
-            {
-                UserId = 99999, // bogus
-                SignatureImage = new byte[] { 0x01 },
+                UserId = 99999, // bogus — must be ignored
                 FileName = "x.png",
-                ContentType = "image/png",
-                FileSizeBytes = 1,
+                OriginalFileName = "x.png",
+                FilePath = "Resources\\UserManagement\\UserSignatures\\x.png",
+                FileType = "image/png",
+                FileSize = 64,
                 IsActive = Enums.Status.Active
             };
             await repo.UpdateAsync(newId, updateModel);
 
             ctx.ChangeTracker.Clear();
             var updated = await ctx.UserSignature.FirstOrDefaultAsync(x => x.Id == newId);
-            updated!.UserId.Should().Be(userId1); // unchanged
+            updated!.UserId.Should().Be(userId); // unchanged
         }
 
         [Fact]

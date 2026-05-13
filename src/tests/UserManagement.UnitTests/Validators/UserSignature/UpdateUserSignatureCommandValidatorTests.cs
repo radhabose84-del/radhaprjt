@@ -1,11 +1,6 @@
-using Contracts.Interfaces;
 using FluentValidation.TestHelper;
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUserSignature;
 using UserManagement.Application.UserSignature.Command.UpdateUserSignature;
-using UserManagement.Infrastructure.Data;
-using UserManagement.Presentation.Validation.Common;
 using UserManagement.Presentation.Validation.UserSignature;
 using UserManagement.UnitTests.TestData;
 
@@ -15,26 +10,12 @@ namespace UserManagement.UnitTests.Validators.UserSignature
     {
         private readonly Mock<IUserSignatureQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
 
-        private static MaxLengthProvider CreateMaxLengthProvider()
-        {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: $"UserSignatureUpdDb_{Guid.NewGuid()}")
-                .Options;
-            var mockIp = new Mock<IIPAddressService>(MockBehavior.Loose);
-            var mockTz = new Mock<ITimeZoneService>(MockBehavior.Loose);
-            var ctx = new ApplicationDbContext(options, mockIp.Object, mockTz.Object);
-            return new MaxLengthProvider(ctx);
-        }
-
         private UpdateUserSignatureCommandValidator CreateValidator() =>
-            new(CreateMaxLengthProvider(), _mockQueryRepo.Object);
+            new(_mockQueryRepo.Object);
 
         private void SetupRecordExists(int id = 1)
         {
-            // NotFoundAsync returns true if NOT found — so for a found record, return false
-            _mockQueryRepo
-                .Setup(r => r.NotFoundAsync(id))
-                .ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
         }
 
         [Fact]
@@ -70,15 +51,15 @@ namespace UserManagement.UnitTests.Validators.UserSignature
         }
 
         [Fact]
-        public async Task Validate_FileExceeds500KB_FailsValidation()
+        public async Task Validate_NoFileSupplied_PassesValidation()
         {
-            var largeBytes = new byte[500 * 1024 + 1];
-            var command = UserSignatureBuilders.ValidUpdateCommand(bytes: largeBytes);
+            // File optional on Update — IsActive-only toggle should be allowed
+            var command = new UpdateUserSignatureCommand { Id = 1, File = null, IsActive = UserManagement.Domain.Enums.Common.Enums.Status.Inactive };
             SetupRecordExists(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.SignatureImage);
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Theory]
@@ -86,25 +67,25 @@ namespace UserManagement.UnitTests.Validators.UserSignature
         [InlineData("application/pdf")]
         public async Task Validate_DisallowedMimeType_FailsValidation(string mimeType)
         {
-            var command = UserSignatureBuilders.ValidUpdateCommand(contentType: mimeType);
+            var file = UserSignatureBuilders.BuildFormFile(contentType: mimeType);
+            var command = new UpdateUserSignatureCommand { Id = 1, File = file, IsActive = UserManagement.Domain.Enums.Common.Enums.Status.Active };
             SetupRecordExists(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.ContentType);
+            result.ShouldHaveValidationErrorFor("File.ContentType");
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task Validate_EmptyFileName_FailsValidation(string? fileName)
+        [Fact]
+        public async Task Validate_FileExceeds5Mb_FailsValidation()
         {
-            var command = UserSignatureBuilders.ValidUpdateCommand(fileName: fileName!);
+            var file = UserSignatureBuilders.BuildFormFile(sizeBytes: 5 * 1024 * 1024 + 1);
+            var command = new UpdateUserSignatureCommand { Id = 1, File = file, IsActive = UserManagement.Domain.Enums.Common.Enums.Status.Active };
             SetupRecordExists(command.Id);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.FileName);
+            result.ShouldHaveValidationErrorFor("File.Length");
         }
     }
 }

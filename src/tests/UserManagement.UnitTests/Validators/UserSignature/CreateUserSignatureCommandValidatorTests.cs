@@ -1,11 +1,6 @@
-using Contracts.Interfaces;
 using FluentValidation.TestHelper;
-using Microsoft.EntityFrameworkCore;
-using UserManagement.Application.Common.Interfaces;
 using UserManagement.Application.Common.Interfaces.IUserSignature;
 using UserManagement.Application.UserSignature.Command.CreateUserSignature;
-using UserManagement.Infrastructure.Data;
-using UserManagement.Presentation.Validation.Common;
 using UserManagement.Presentation.Validation.UserSignature;
 using UserManagement.UnitTests.TestData;
 
@@ -15,28 +10,13 @@ namespace UserManagement.UnitTests.Validators.UserSignature
     {
         private readonly Mock<IUserSignatureQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
 
-        private static MaxLengthProvider CreateMaxLengthProvider()
-        {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: $"UserSignatureDb_{Guid.NewGuid()}")
-                .Options;
-            var mockIp = new Mock<IIPAddressService>(MockBehavior.Loose);
-            var mockTz = new Mock<ITimeZoneService>(MockBehavior.Loose);
-            var ctx = new ApplicationDbContext(options, mockIp.Object, mockTz.Object);
-            return new MaxLengthProvider(ctx);
-        }
-
         private CreateUserSignatureCommandValidator CreateValidator() =>
-            new(CreateMaxLengthProvider(), _mockQueryRepo.Object);
+            new(_mockQueryRepo.Object);
 
         private void SetupHappyPath(int userId = 1)
         {
-            _mockQueryRepo
-                .Setup(r => r.UserExistsAsync(userId))
-                .ReturnsAsync(true);
-            _mockQueryRepo
-                .Setup(r => r.UserHasSignatureAsync(userId))
-                .ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.UserExistsAsync(userId)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.UserHasSignatureAsync(userId)).ReturnsAsync(false);
         }
 
         [Fact]
@@ -84,30 +64,15 @@ namespace UserManagement.UnitTests.Validators.UserSignature
             result.ShouldHaveValidationErrorFor(x => x.UserId);
         }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task Validate_EmptyFileName_FailsValidation(string? fileName)
+        [Fact]
+        public async Task Validate_NullFile_FailsValidation()
         {
-            var command = UserSignatureBuilders.ValidCreateCommand(fileName: fileName!);
+            var command = new CreateUserSignatureCommand { UserId = 1, File = null };
             SetupHappyPath();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.FileName);
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task Validate_EmptyContentType_FailsValidation(string? contentType)
-        {
-            var command = UserSignatureBuilders.ValidCreateCommand(contentType: contentType!);
-            SetupHappyPath();
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ContentType);
+            result.ShouldHaveValidationErrorFor(x => x.File);
         }
 
         [Theory]
@@ -116,48 +81,55 @@ namespace UserManagement.UnitTests.Validators.UserSignature
         [InlineData("image/bmp")]
         public async Task Validate_DisallowedMimeType_FailsValidation(string mimeType)
         {
-            var command = UserSignatureBuilders.ValidCreateCommand(contentType: mimeType);
+            var file = UserSignatureBuilders.BuildFormFile(contentType: mimeType);
+            var command = new CreateUserSignatureCommand { UserId = 1, File = file };
             SetupHappyPath();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.ContentType);
+            result.ShouldHaveValidationErrorFor("File.ContentType");
         }
 
         [Theory]
         [InlineData("image/jpeg")]
         [InlineData("image/png")]
+        [InlineData("image/jpg")]
         public async Task Validate_AllowedMimeType_PassesContentTypeRule(string mimeType)
         {
-            var command = UserSignatureBuilders.ValidCreateCommand(contentType: mimeType);
+            var file = UserSignatureBuilders.BuildFormFile(fileName: $"sig{(mimeType == "image/png" ? ".png" : ".jpg")}", contentType: mimeType);
+            var command = new CreateUserSignatureCommand { UserId = 1, File = file };
             SetupHappyPath();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldNotHaveValidationErrorFor(x => x.ContentType);
+            result.ShouldNotHaveValidationErrorFor("File.ContentType");
+        }
+
+        [Theory]
+        [InlineData("sig.gif")]
+        [InlineData("sig.bmp")]
+        [InlineData("sig.pdf")]
+        public async Task Validate_DisallowedExtension_FailsValidation(string fileName)
+        {
+            var file = UserSignatureBuilders.BuildFormFile(fileName: fileName, contentType: "image/png");
+            var command = new CreateUserSignatureCommand { UserId = 1, File = file };
+            SetupHappyPath();
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor("File.FileName");
         }
 
         [Fact]
-        public async Task Validate_FileExceeds500KB_FailsValidation()
+        public async Task Validate_FileExceeds5Mb_FailsValidation()
         {
-            var largeBytes = new byte[500 * 1024 + 1]; // 500 KB + 1 byte
-            var command = UserSignatureBuilders.ValidCreateCommand(bytes: largeBytes);
+            var file = UserSignatureBuilders.BuildFormFile(sizeBytes: 5 * 1024 * 1024 + 1);
+            var command = new CreateUserSignatureCommand { UserId = 1, File = file };
             SetupHappyPath();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.SignatureImage);
-        }
-
-        [Fact]
-        public async Task Validate_EmptySignatureImage_FailsValidation()
-        {
-            var command = UserSignatureBuilders.ValidCreateCommand(bytes: Array.Empty<byte>());
-            SetupHappyPath();
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.SignatureImage);
+            result.ShouldHaveValidationErrorFor("File.Length");
         }
     }
 }

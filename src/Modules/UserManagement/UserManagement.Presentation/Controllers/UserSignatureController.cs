@@ -15,8 +15,6 @@ namespace UserManagement.Presentation.Controllers
     [Route("api/[controller]")]
     public class UserSignatureController : ApiControllerBase
     {
-        private const long MaxUploadBytes = 500 * 1024; // 500 KB
-
         public UserSignatureController(ISender mediator) : base(mediator)
         {
         }
@@ -81,34 +79,10 @@ namespace UserManagement.Presentation.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateAsync([FromForm] CreateUserSignatureRequest request)
         {
-            if (request.File == null || request.File.Length == 0)
-            {
-                return BadRequest(new
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Signature file is required."
-                });
-            }
-
-            if (request.File.Length > MaxUploadBytes)
-            {
-                return BadRequest(new
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Signature file size cannot exceed 500 KB."
-                });
-            }
-
-            using var ms = new MemoryStream();
-            await request.File.CopyToAsync(ms);
-
             var command = new CreateUserSignatureCommand
             {
                 UserId = request.UserId,
-                SignatureImage = ms.ToArray(),
-                FileName = request.File.FileName,
-                ContentType = request.File.ContentType,
-                FileSizeBytes = (int)request.File.Length
+                File = request.File
             };
 
             var newId = await Mediator.Send(command);
@@ -125,34 +99,10 @@ namespace UserManagement.Presentation.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateAsync(int id, [FromForm] UpdateUserSignatureRequest request)
         {
-            if (request.File == null || request.File.Length == 0)
-            {
-                return BadRequest(new
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Signature file is required."
-                });
-            }
-
-            if (request.File.Length > MaxUploadBytes)
-            {
-                return BadRequest(new
-                {
-                    StatusCode = StatusCodes.Status400BadRequest,
-                    Message = "Signature file size cannot exceed 500 KB."
-                });
-            }
-
-            using var ms = new MemoryStream();
-            await request.File.CopyToAsync(ms);
-
             var command = new UpdateUserSignatureCommand
             {
                 Id = id,
-                SignatureImage = ms.ToArray(),
-                FileName = request.File.FileName,
-                ContentType = request.File.ContentType,
-                FileSizeBytes = (int)request.File.Length,
+                File = request.File,
                 IsActive = request.IsActive == 1 ? Status.Active : Status.Inactive
             };
 

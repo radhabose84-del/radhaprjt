@@ -35,24 +35,29 @@ namespace UserManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(u => u.SignatureImage)
-                .HasColumnName("SignatureImage")
-                .HasColumnType("varbinary(max)")
-                .IsRequired();
-
             builder.Property(u => u.FileName)
                 .HasColumnName("FileName")
                 .HasColumnType("varchar(200)")
                 .IsRequired();
 
-            builder.Property(u => u.ContentType)
-                .HasColumnName("ContentType")
+            builder.Property(u => u.OriginalFileName)
+                .HasColumnName("OriginalFileName")
+                .HasColumnType("varchar(200)")
+                .IsRequired();
+
+            builder.Property(u => u.FilePath)
+                .HasColumnName("FilePath")
+                .HasColumnType("varchar(500)")
+                .IsRequired();
+
+            builder.Property(u => u.FileType)
+                .HasColumnName("FileType")
                 .HasColumnType("varchar(50)")
                 .IsRequired();
 
-            builder.Property(u => u.FileSizeBytes)
-                .HasColumnName("FileSizeBytes")
-                .HasColumnType("int")
+            builder.Property(u => u.FileSize)
+                .HasColumnName("FileSize")
+                .HasColumnType("bigint")
                 .IsRequired();
 
             builder.Property(u => u.IsActive)
@@ -87,7 +92,7 @@ namespace UserManagement.Infrastructure.Data.Configurations
                 .HasFilter("[IsDeleted] = 0")
                 .HasDatabaseName("UX_UserSignature_UserId");
 
-            // Same-module FK with DB constraint (CLAUDE.md §"Same-Module FKs")
+            // Same-module FK with DB constraint
             builder.HasOne(u => u.User)
                 .WithMany()
                 .HasForeignKey(u => u.UserId)

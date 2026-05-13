@@ -379,6 +379,7 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IUserSignatureCommandRepository, UserSignatureCommandRepository>();
             services.AddScoped<IUserSignatureQueryRepository, UserSignatureQueryRepository>();
+            services.AddScoped<IUserSignatureFileStorage, UserSignatureFileStorage>();
 
             // --------------------------
             // Services

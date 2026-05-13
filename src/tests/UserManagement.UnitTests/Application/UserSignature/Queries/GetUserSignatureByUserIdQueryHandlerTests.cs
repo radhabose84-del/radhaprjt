@@ -11,14 +11,15 @@ namespace UserManagement.UnitTests.Application.UserSignature.Queries
     public sealed class GetUserSignatureByUserIdQueryHandlerTests
     {
         private readonly Mock<IUserSignatureQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IUserSignatureFileStorage> _mockFileStorage = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private GetUserSignatureByUserIdQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+            new(_mockQueryRepo.Object, _mockFileStorage.Object, _mockMapper.Object, _mockMediator.Object);
 
         [Fact]
-        public async Task Handle_SignatureExists_ReturnsDto()
+        public async Task Handle_SignatureExists_ReturnsDtoWithBase64()
         {
             var entity = UserSignatureBuilders.ValidEntityWithUser(1, 10);
             _mockQueryRepo
@@ -27,7 +28,11 @@ namespace UserManagement.UnitTests.Application.UserSignature.Queries
 
             _mockMapper
                 .Setup(m => m.Map<UserSignatureByIdDto>(entity))
-                .Returns(new UserSignatureByIdDto { Id = 1, UserId = 10 });
+                .Returns(new UserSignatureByIdDto { Id = 1, UserId = 10, FileName = entity.FileName });
+
+            _mockFileStorage
+                .Setup(s => s.ReadAsBase64Async(entity.FilePath, It.IsAny<CancellationToken>()))
+                .ReturnsAsync("ZmFrZS1iYXNlNjQ=");
 
             var result = await CreateSut().Handle(
                 new GetUserSignatureByUserIdQuery { UserId = 10 },
@@ -35,6 +40,7 @@ namespace UserManagement.UnitTests.Application.UserSignature.Queries
 
             result.Should().NotBeNull();
             result.UserId.Should().Be(10);
+            result.ImageBase64.Should().Be("ZmFrZS1iYXNlNjQ=");
         }
 
         [Fact]

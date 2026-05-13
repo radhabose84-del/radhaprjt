@@ -10,6 +10,7 @@ using UserManagement.Application.UserSignature.Queries.GetUserSignatureByUserId;
 using Contracts.Common;
 using UserManagement.Presentation.Controllers;
 using UserManagement.Presentation.Requests.UserSignature;
+using UserManagement.UnitTests.TestData;
 
 namespace UserManagement.UnitTests.Controllers
 {
@@ -19,20 +20,6 @@ namespace UserManagement.UnitTests.Controllers
 
         private UserSignatureController CreateSut() =>
             new(_mockMediator.Object);
-
-        private static IFormFile BuildFormFile(
-            string fileName = "signature.png",
-            string contentType = "image/png",
-            int sizeBytes = 100)
-        {
-            var bytes = new byte[sizeBytes];
-            var stream = new MemoryStream(bytes);
-            return new FormFile(stream, 0, bytes.Length, "file", fileName)
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = contentType
-            };
-        }
 
         [Fact]
         public async Task GetAllUserSignatureAsync_WithData_ReturnsOkResult()
@@ -95,14 +82,14 @@ namespace UserManagement.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task CreateAsync_ValidFile_ReturnsOkResult()
+        public async Task CreateAsync_ReturnsOkResult()
         {
-            var file = BuildFormFile();
+            var request = new CreateUserSignatureRequest { UserId = 1, File = UserSignatureBuilders.BuildFormFile() };
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<CreateUserSignatureCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(7);
 
-            var result = await CreateSut().CreateAsync(new CreateUserSignatureRequest { UserId = 1, File = file });
+            var result = await CreateSut().CreateAsync(request);
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -110,12 +97,12 @@ namespace UserManagement.UnitTests.Controllers
         [Fact]
         public async Task CreateAsync_CallsMediatorSendOnce()
         {
-            var file = BuildFormFile();
+            var request = new CreateUserSignatureRequest { UserId = 1, File = UserSignatureBuilders.BuildFormFile() };
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<CreateUserSignatureCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
-            await CreateSut().CreateAsync(new CreateUserSignatureRequest { UserId = 1, File = file });
+            await CreateSut().CreateAsync(request);
 
             _mockMediator.Verify(
                 m => m.Send(It.IsAny<CreateUserSignatureCommand>(), It.IsAny<CancellationToken>()),
@@ -123,36 +110,16 @@ namespace UserManagement.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task CreateAsync_FileTooLarge_ReturnsBadRequest()
+        public async Task UpdateAsync_ReturnsOkResult()
         {
-            var file = BuildFormFile(sizeBytes: 500 * 1024 + 1);
-
-            var result = await CreateSut().CreateAsync(new CreateUserSignatureRequest { UserId = 1, File = file });
-
-            result.Should().BeOfType<BadRequestObjectResult>();
-        }
-
-        [Fact]
-        public async Task UpdateAsync_ValidFile_ReturnsOkResult()
-        {
-            var file = BuildFormFile();
+            var request = new UpdateUserSignatureRequest { File = UserSignatureBuilders.BuildFormFile(), IsActive = 1 };
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<UpdateUserSignatureCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
-            var result = await CreateSut().UpdateAsync(id: 1, request: new UpdateUserSignatureRequest { File = file, IsActive = 1 });
+            var result = await CreateSut().UpdateAsync(id: 1, request: request);
 
             result.Should().BeOfType<OkObjectResult>();
-        }
-
-        [Fact]
-        public async Task UpdateAsync_FileTooLarge_ReturnsBadRequest()
-        {
-            var file = BuildFormFile(sizeBytes: 500 * 1024 + 1);
-
-            var result = await CreateSut().UpdateAsync(id: 1, request: new UpdateUserSignatureRequest { File = file, IsActive = 1 });
-
-            result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]

@@ -31,10 +31,11 @@ namespace UserManagement.Infrastructure.Repositories.UserSignature
             }
 
             // UserId is immutable — never copied from request
-            existing.SignatureImage = userSignature.SignatureImage;
             existing.FileName = userSignature.FileName;
-            existing.ContentType = userSignature.ContentType;
-            existing.FileSizeBytes = userSignature.FileSizeBytes;
+            existing.OriginalFileName = userSignature.OriginalFileName;
+            existing.FilePath = userSignature.FilePath;
+            existing.FileType = userSignature.FileType;
+            existing.FileSize = userSignature.FileSize;
             existing.IsActive = userSignature.IsActive;
 
             _applicationDbContext.UserSignature.Update(existing);

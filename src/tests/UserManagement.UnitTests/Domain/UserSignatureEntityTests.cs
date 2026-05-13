@@ -29,38 +29,41 @@ namespace UserManagement.UnitTests.Domain
         [Fact]
         public void UserSignature_Properties_ShouldBeAssignable()
         {
-            var bytes = new byte[] { 0x01, 0x02, 0x03 };
             var entity = new UserSignature
             {
                 Id = 5,
                 UserId = 10,
-                SignatureImage = bytes,
-                FileName = "sig.png",
-                ContentType = "image/png",
-                FileSizeBytes = bytes.Length
+                FileName = "vishal-10.png",
+                OriginalFileName = "output-onlinepngtools.png",
+                FilePath = "Resources\\UserManagement\\UserSignatures\\vishal-10.png",
+                FileType = "image/png",
+                FileSize = 51498
             };
 
             entity.Id.Should().Be(5);
             entity.UserId.Should().Be(10);
-            entity.SignatureImage.Should().BeEquivalentTo(bytes);
-            entity.FileName.Should().Be("sig.png");
-            entity.ContentType.Should().Be("image/png");
-            entity.FileSizeBytes.Should().Be(3);
+            entity.FileName.Should().Be("vishal-10.png");
+            entity.OriginalFileName.Should().Be("output-onlinepngtools.png");
+            entity.FilePath.Should().Be("Resources\\UserManagement\\UserSignatures\\vishal-10.png");
+            entity.FileType.Should().Be("image/png");
+            entity.FileSize.Should().Be(51498);
         }
 
         [Fact]
-        public void UserSignature_NullableProperties_ShouldAcceptNull()
+        public void UserSignature_NullableStringProperties_ShouldAcceptNull()
         {
             var entity = new UserSignature
             {
-                SignatureImage = null,
                 FileName = null,
-                ContentType = null
+                OriginalFileName = null,
+                FilePath = null,
+                FileType = null
             };
 
-            entity.SignatureImage.Should().BeNull();
             entity.FileName.Should().BeNull();
-            entity.ContentType.Should().BeNull();
+            entity.OriginalFileName.Should().BeNull();
+            entity.FilePath.Should().BeNull();
+            entity.FileType.Should().BeNull();
         }
 
         [Fact]

@@ -96,17 +96,18 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
         private static async Task<int> SeedSignatureAsync(
             ApplicationDbContext ctx,
             int userId,
-            string fileName = "sig.png",
+            string fileName = "vishal-1.png",
             Enums.Status isActive = Enums.Status.Active)
         {
             var cmdRepo = new UserSignatureCommandRepository(ctx);
             var entity = new UserManagement.Domain.Entities.UserSignature
             {
                 UserId = userId,
-                SignatureImage = new byte[] { 0x89, 0x50, 0x4E, 0x47 },
                 FileName = fileName,
-                ContentType = "image/png",
-                FileSizeBytes = 4,
+                OriginalFileName = "signature.png",
+                FilePath = $"Resources\\UserManagement\\UserSignatures\\{fileName}",
+                FileType = "image/png",
+                FileSize = 128,
                 IsActive = isActive,
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
@@ -149,20 +150,6 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
         }
 
         [Fact]
-        public async Task GetAllUserSignatureAsync_Should_Omit_SignatureImage_BlobColumn()
-        {
-            await using var ctx = CreateDbContext();
-            await _fixture.ClearAllTablesAsync();
-            var userId = await SeedUserAsync(ctx);
-            await SeedSignatureAsync(ctx, userId);
-
-            var (items, _) = await CreateQueryRepo().GetAllUserSignatureAsync(1, 100, null);
-
-            // GetAll explicitly NULLs out the BLOB column for performance
-            items[0].SignatureImage.Should().BeNull();
-        }
-
-        [Fact]
         public async Task GetAllUserSignatureAsync_Should_Exclude_SoftDeleted_Records()
         {
             await using var ctx = CreateDbContext();
@@ -170,7 +157,6 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
             var userId = await SeedUserAsync(ctx);
             var sigId = await SeedSignatureAsync(ctx, userId);
 
-            // Soft-delete it
             await using var ctx2 = CreateDbContext();
             var cmdRepo = new UserSignatureCommandRepository(ctx2);
             await cmdRepo.DeleteAsync(sigId, new UserManagement.Domain.Entities.UserSignature
@@ -191,8 +177,8 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
             await _fixture.ClearAllTablesAsync();
             var userId1 = await SeedUserAsync(ctx, firstName: "Alpha", lastName: "Aaaa");
             var userId2 = await SeedUserAsync(ctx, firstName: "Beta", lastName: "Bbbb");
-            await SeedSignatureAsync(ctx, userId1, fileName: "alpha-sig.png");
-            await SeedSignatureAsync(ctx, userId2, fileName: "beta-sig.png");
+            await SeedSignatureAsync(ctx, userId1, fileName: "alpha-1.png");
+            await SeedSignatureAsync(ctx, userId2, fileName: "beta-2.png");
 
             var (items, total) = await CreateQueryRepo().GetAllUserSignatureAsync(1, 100, "Alpha");
 
@@ -204,19 +190,18 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
         // --- GET BY ID ---
 
         [Fact]
-        public async Task GetUserSignatureByIdAsync_Should_Return_Dto_With_Blob()
+        public async Task GetUserSignatureByIdAsync_Should_Return_Dto()
         {
             await using var ctx = CreateDbContext();
             await _fixture.ClearAllTablesAsync();
             var userId = await SeedUserAsync(ctx);
-            var sigId = await SeedSignatureAsync(ctx, userId);
+            var sigId = await SeedSignatureAsync(ctx, userId, "vishal-3.png");
 
             var result = await CreateQueryRepo().GetUserSignatureByIdAsync(sigId);
 
             result.Should().NotBeNull();
             result!.Id.Should().Be(sigId);
-            result.SignatureImage.Should().NotBeNull();
-            result.SignatureImage!.Length.Should().Be(4);
+            result.FileName.Should().Be("vishal-3.png");
         }
 
         [Fact]
@@ -250,7 +235,6 @@ namespace UserManagement.IntegrationTests.Repositories.UserSignature
 
             result.Should().NotBeNull();
             result!.UserId.Should().Be(userId);
-            result.SignatureImage.Should().NotBeNull();
         }
 
         [Fact]

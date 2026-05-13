@@ -1,31 +1,33 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Shared.Validation.Common;
 using UserManagement.Application.Common.Interfaces.IUserSignature;
 using UserManagement.Application.UserSignature.Command.UpdateUserSignature;
-using UserManagement.Presentation.Validation.Common;
 
 namespace UserManagement.Presentation.Validation.UserSignature
 {
     public class UpdateUserSignatureCommandValidator : AbstractValidator<UpdateUserSignatureCommand>
     {
-        private const int MaxFileSizeBytes = 500 * 1024; // 500 KB
+        private const long MaxFileSizeBytes = 5L * 1024 * 1024; // 5 MB
         private static readonly HashSet<string> AllowedMimeTypes = new(StringComparer.OrdinalIgnoreCase)
         {
             "image/jpeg",
-            "image/png"
+            "image/png",
+            "image/jpg"
+        };
+        private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg",
+            ".jpeg",
+            ".png"
         };
 
         private readonly List<ValidationRule> _validationRules;
         private readonly IUserSignatureQueryRepository _userSignatureQueryRepository;
 
-        public UpdateUserSignatureCommandValidator(
-            MaxLengthProvider maxLengthProvider,
-            IUserSignatureQueryRepository userSignatureQueryRepository)
+        public UpdateUserSignatureCommandValidator(IUserSignatureQueryRepository userSignatureQueryRepository)
         {
             _userSignatureQueryRepository = userSignatureQueryRepository;
-
-            var fileNameMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserSignature>("FileName") ?? 200;
-            var contentTypeMaxLength = maxLengthProvider.GetMaxLength<UserManagement.Domain.Entities.UserSignature>("ContentType") ?? 50;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
@@ -41,40 +43,24 @@ namespace UserManagement.Presentation.Validation.UserSignature
                         RuleFor(x => x.Id)
                             .GreaterThan(0)
                             .WithMessage($"{nameof(UpdateUserSignatureCommand.Id)} {rule.Error}");
-
-                        RuleFor(x => x.FileName)
-                            .NotNull().WithMessage($"{nameof(UpdateUserSignatureCommand.FileName)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(UpdateUserSignatureCommand.FileName)} {rule.Error}");
-
-                        RuleFor(x => x.ContentType)
-                            .NotNull().WithMessage($"{nameof(UpdateUserSignatureCommand.ContentType)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(UpdateUserSignatureCommand.ContentType)} {rule.Error}");
-
-                        RuleFor(x => x.SignatureImage)
-                            .Must(b => b != null && b.Length > 0)
-                            .WithMessage($"{nameof(UpdateUserSignatureCommand.SignatureImage)} {rule.Error}");
-                        break;
-
-                    case "MaxLength":
-                        RuleFor(x => x.FileName)
-                            .MaximumLength(fileNameMaxLength)
-                            .WithMessage($"{nameof(UpdateUserSignatureCommand.FileName)} {rule.Error} {fileNameMaxLength} characters.");
-
-                        RuleFor(x => x.ContentType)
-                            .MaximumLength(contentTypeMaxLength)
-                            .WithMessage($"{nameof(UpdateUserSignatureCommand.ContentType)} {rule.Error} {contentTypeMaxLength} characters.");
                         break;
 
                     case "FileValidation":
-                        RuleFor(x => x.ContentType)
+                        // File is optional on Update — only validate when supplied
+                        RuleFor(x => x.File!.ContentType)
                             .Must(ct => ct != null && AllowedMimeTypes.Contains(ct))
-                            .WithMessage("Only JPEG and PNG signatures are allowed.")
-                            .When(x => !string.IsNullOrEmpty(x.ContentType));
+                            .WithMessage("Only JPEG, JPG and PNG signatures are allowed.")
+                            .When(x => x.File != null && x.File.Length > 0);
 
-                        RuleFor(x => x.SignatureImage)
-                            .Must(b => b == null || b.Length <= MaxFileSizeBytes)
-                            .WithMessage("Signature file size cannot exceed 500 KB.")
-                            .When(x => x.SignatureImage != null && x.SignatureImage.Length > 0);
+                        RuleFor(x => x.File!.FileName)
+                            .Must(fn => fn != null && AllowedExtensions.Contains(Path.GetExtension(fn)))
+                            .WithMessage("Signature file extension must be .jpg, .jpeg or .png.")
+                            .When(x => x.File != null && x.File.Length > 0);
+
+                        RuleFor(x => x.File!.Length)
+                            .LessThanOrEqualTo(MaxFileSizeBytes)
+                            .WithMessage("Signature file size cannot exceed 5 MB.")
+                            .When(x => x.File != null && x.File.Length > 0);
                         break;
 
                     case "NotFound":

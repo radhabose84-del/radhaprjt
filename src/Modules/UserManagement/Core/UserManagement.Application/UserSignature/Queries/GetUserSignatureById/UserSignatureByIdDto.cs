@@ -8,11 +8,12 @@ namespace UserManagement.Application.UserSignature.Queries.GetUserSignatureById
         public int UserId { get; set; }
         public string? UserName { get; set; }
         public string? EmailId { get; set; }
-        public byte[]? SignatureImage { get; set; }
-        public string? SignatureBase64 { get; set; }
         public string? FileName { get; set; }
-        public string? ContentType { get; set; }
-        public int FileSizeBytes { get; set; }
+        public string? OriginalFileName { get; set; }
+        public string? FilePath { get; set; }
+        public string? FileType { get; set; }
+        public long FileSize { get; set; }
+        public string? ImageBase64 { get; set; }
         public Status IsActive { get; set; }
         public IsDelete IsDeleted { get; set; }
         public int CreatedBy { get; set; }

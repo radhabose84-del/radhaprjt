@@ -9,15 +9,18 @@ namespace UserManagement.Application.UserSignature.Queries.GetUserSignatureById
     public class GetUserSignatureByIdQueryHandler : IRequestHandler<GetUserSignatureByIdQuery, UserSignatureByIdDto>
     {
         private readonly IUserSignatureQueryRepository _userSignatureQueryRepository;
+        private readonly IUserSignatureFileStorage _fileStorage;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
 
         public GetUserSignatureByIdQueryHandler(
             IUserSignatureQueryRepository userSignatureQueryRepository,
+            IUserSignatureFileStorage fileStorage,
             IMapper mapper,
             IMediator mediator)
         {
             _userSignatureQueryRepository = userSignatureQueryRepository;
+            _fileStorage = fileStorage;
             _mapper = mapper;
             _mediator = mediator;
         }
@@ -32,6 +35,7 @@ namespace UserManagement.Application.UserSignature.Queries.GetUserSignatureById
             }
 
             var dto = _mapper.Map<UserSignatureByIdDto>(userSignature);
+            dto.ImageBase64 = await _fileStorage.ReadAsBase64Async(userSignature.FilePath, cancellationToken);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetById",
