@@ -20,13 +20,15 @@ namespace SalesManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllSalesAgreementAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? StatusName = null)
         {
             var result = await Mediator.Send(new GetAllSalesAgreementQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                StatusName = StatusName
             });
 
             return Ok(new
@@ -52,9 +54,11 @@ namespace SalesManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetSalesAgreementAutoCompleteAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetSalesAgreementAutoCompleteAsync(
+            [FromQuery] string? term = null,
+            [FromQuery] int? customerId = null)
         {
-            var result = await Mediator.Send(new GetSalesAgreementAutoCompleteQuery(term ?? string.Empty));
+            var result = await Mediator.Send(new GetSalesAgreementAutoCompleteQuery(term ?? string.Empty, customerId));
 
             return Ok(new
             {

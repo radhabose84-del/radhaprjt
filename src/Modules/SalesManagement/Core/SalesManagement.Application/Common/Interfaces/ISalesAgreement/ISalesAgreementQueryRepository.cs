@@ -4,9 +4,9 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesAgreement
 {
     public interface ISalesAgreementQueryRepository
     {
-        Task<(List<SalesAgreementHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<SalesAgreementHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusName);
         Task<SalesAgreementHeaderDto?> GetByIdAsync(int id);
-        Task<IReadOnlyList<SalesAgreementLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+        Task<IReadOnlyList<SalesAgreementLookupDto>> AutocompleteAsync(string term, int? customerId, CancellationToken ct);
 
         Task<bool> NotFoundAsync(int id);
         Task<bool> SalesGroupExistsAsync(int salesGroupId);

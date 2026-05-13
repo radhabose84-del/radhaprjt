@@ -20,7 +20,7 @@ namespace SalesManagement.Application.SalesAgreement.Queries.GetSalesAgreementAu
 
         public async Task<IReadOnlyList<SalesAgreementLookupDto>> Handle(GetSalesAgreementAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, request.CustomerId, cancellationToken);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
