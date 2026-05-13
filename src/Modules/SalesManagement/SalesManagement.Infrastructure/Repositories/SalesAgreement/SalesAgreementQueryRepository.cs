@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
@@ -17,6 +18,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IUnitLookup _unitLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public SalesAgreementQueryRepository(
             IDbConnection dbConnection,
@@ -24,7 +26,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             IPaymentTermLookup paymentTermLookup,
             IItemLookup itemLookup,
             IUOMLookup uomLookup,
-            IUnitLookup unitLookup)
+            IUnitLookup unitLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _customerLookup = customerLookup;
@@ -32,6 +35,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
             _unitLookup = unitLookup;
+            _ipAddressService = ipAddressService;
         }
 
         // ── Same-module SQL: headers + JOINed StatusName / SalesGroupName ─────
@@ -52,16 +56,27 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
             LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0";
 
-        public async Task<(List<SalesAgreementHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<SalesAgreementHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? statusName)
         {
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
                 : "AND (h.AgreementNo LIKE @Search OR h.Remarks LIKE @Search OR sg.SalesGroupName LIKE @Search OR sm.Description LIKE @Search)";
 
+            var statusFilter = string.IsNullOrWhiteSpace(statusName)
+                ? ""
+                : "AND sm.Description LIKE @StatusName";
+
+            // Unit scoping — auto-filter to the current user's unit. When unit context is absent
+            // (system / unscoped caller), @UnitId is NULL and the filter short-circuits to all rows.
+            var unitId = _ipAddressService.GetUnitId();
+
             var parameters = new DynamicParameters();
             parameters.Add("Search", $"%{searchTerm}%");
             parameters.Add("Offset", (pageNumber - 1) * pageSize);
             parameters.Add("PageSize", pageSize);
+            parameters.Add("UnitId", unitId);
+            if (!string.IsNullOrWhiteSpace(statusName))
+                parameters.Add("StatusName", $"%{statusName}%");
 
             // Rollup detail quantities at the header level + derive Status from IsActive + ValidTo.
             // Status: IsActive=0 → 'Inactive'; ValidTo < today → 'Expired'; else 'Active'.
@@ -71,7 +86,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                 FROM Sales.SalesAgreementHeader h
                 LEFT JOIN Sales.SalesGroup sg ON h.SalesGroupId = sg.Id AND sg.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster sm ON h.StatusId = sm.Id AND sm.IsDeleted = 0
-                WHERE h.IsDeleted = 0 {searchFilter};
+                WHERE h.IsDeleted = 0
+                  AND (@UnitId IS NULL OR h.UnitId = @UnitId)
+                  {searchFilter}
+                  {statusFilter};
 
                 SELECT h.Id, h.AgreementNo,
                     h.StatusId, sm.Description AS StatusName,
@@ -108,7 +126,10 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                     FROM Sales.SalesAgreementDetail
                     WHERE SalesAgreementHeaderId = h.Id
                 ) d
-                WHERE h.IsDeleted = 0 {searchFilter}
+                WHERE h.IsDeleted = 0
+                  AND (@UnitId IS NULL OR h.UnitId = @UnitId)
+                  {searchFilter}
+                  {statusFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -129,11 +150,15 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
 
         public async Task<SalesAgreementHeaderDto?> GetByIdAsync(int id)
         {
+            var unitId = _ipAddressService.GetUnitId();
+
             var headerSql = $@"
                 {HeaderProjection}
-                WHERE h.Id = @Id AND h.IsDeleted = 0";
+                WHERE h.Id = @Id
+                  AND h.IsDeleted = 0
+                  AND (@UnitId IS NULL OR h.UnitId = @UnitId)";
 
-            var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesAgreementHeaderDto>(headerSql, new { Id = id });
+            var header = await _dbConnection.QueryFirstOrDefaultAsync<SalesAgreementHeaderDto>(headerSql, new { Id = id, UnitId = unitId });
 
             if (header == null)
                 return null;
@@ -152,13 +177,17 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             return header;
         }
 
-        public async Task<IReadOnlyList<SalesAgreementLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<SalesAgreementLookupDto>> AutocompleteAsync(string term, int? customerId, CancellationToken ct)
         {
             // Eligibility for autocomplete (must satisfy ALL):
             //   • IsActive = 1                              (Inactive  → excluded)
             //   • ValidTo  >= today                         (Expired   → excluded)
             //   • Status   = 'Approved'                     (Pending / Rejected / Cancelled / ForeClosed → excluded)
             //   • BalanceQty (sum totalQty − sum releasedQty) > 0   (no remaining quantity → excluded)
+            //   • CustomerId (optional)                     (skipped when @CustomerId IS NULL)
+            //   • UnitId    (auto, from JWT/IP)             (skipped when @UnitId IS NULL — unscoped caller)
+            var unitId = _ipAddressService.GetUnitId();
+
             const string sql = @"
                 SELECT TOP 50 h.Id, h.AgreementNo, h.CustomerId
                 FROM Sales.SalesAgreementHeader h
@@ -175,11 +204,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                   AND h.ValidTo >= CAST(GETDATE() AS DATE)
                   AND (sm.Code = 'Approved' OR sm.Description = 'Approved')
                   AND (ISNULL(d.TotalQty, 0) - ISNULL(d.TotalReleasedQty, 0)) > 0
+                  AND (@CustomerId IS NULL OR h.CustomerId = @CustomerId)
+                  AND (@UnitId IS NULL OR h.UnitId = @UnitId)
                   AND (h.AgreementNo LIKE @Term OR CAST(h.Id AS VARCHAR) LIKE @Term)
                 ORDER BY h.Id DESC";
 
             var rows = (await _dbConnection.QueryAsync<AutocompleteRow>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct))).ToList();
+                new CommandDefinition(sql, new { Term = $"%{term}%", CustomerId = customerId, UnitId = unitId }, cancellationToken: ct))).ToList();
 
             if (rows.Count == 0)
                 return new List<SalesAgreementLookupDto>();

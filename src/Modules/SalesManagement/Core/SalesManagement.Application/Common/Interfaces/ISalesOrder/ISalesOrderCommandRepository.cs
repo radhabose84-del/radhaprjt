@@ -5,7 +5,10 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
 {
     public interface ISalesOrderCommandRepository
     {
-        Task<int> CreateAsync(SalesOrderHeader entity, int transactionTypeId);
+        // incrementAgreementReleasedQty: when true AND entity.SalesAgreementHeaderId.HasValue, the linked
+        // Sales.SalesAgreementDetail rows have ReleasedQty incremented by SUM(TotalWeight) grouped by
+        // (ItemId, VariantId), atomically within the same SQL transaction. Used by Rate Agreement orders only.
+        Task<int> CreateAsync(SalesOrderHeader entity, int transactionTypeId, bool incrementAgreementReleasedQty = false);
         Task<int> UpdateAsync(SalesOrderHeader entity);
         Task<bool> CancelAsync(int id, CancellationToken ct);
         Task<bool> ForecloseAsync(int id, CancellationToken ct);
