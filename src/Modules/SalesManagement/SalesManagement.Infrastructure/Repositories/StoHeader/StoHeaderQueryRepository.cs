@@ -197,9 +197,11 @@ namespace SalesManagement.Infrastructure.Repositories.StoHeader
             // Populate cross-module header lookups
             var supplyingPlant = await _unitLookup.GetByIdAsync(header.SupplyingPlantId);
             header.SupplyingPlantName = supplyingPlant?.UnitName;
+            header.SupplyingPlantPinCode = supplyingPlant?.PinCode;
 
             var receivingPlant = await _unitLookup.GetByIdAsync(header.ReceivingPlantId);
             header.ReceivingPlantName = receivingPlant?.UnitName;
+            header.ReceivingPlantPinCode = receivingPlant?.PinCode;
 
             var warehouses = await _warehouseLookup.GetByIdsAsync(
                 new[] { header.SupplyingStorageLocationId, header.ReceivingStorageLocationId });
