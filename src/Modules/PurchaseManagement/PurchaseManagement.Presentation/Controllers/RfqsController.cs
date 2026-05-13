@@ -1,5 +1,7 @@
 using Contracts.Dtos.Common;
 using PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create;
+using PurchaseManagement.Application.Quotation.RfqEntry.Commands.DeleteAttachment;
+using PurchaseManagement.Application.Quotation.RfqEntry.Commands.UploadAttachment;
 using PurchaseManagement.Application.Quotation.RfqEntry.Commands.UpsertDraft;
 using PurchaseManagement.Application.Quotation.RfqEntry.Dtos;
 using PurchaseManagement.Application.Quotation.RfqEntry.DTOs;
@@ -26,6 +28,30 @@ namespace PurchaseManagement.Presentation.Controllers
             var id = await _mediator.Send(cmd, ct);
             var payload = new ApiResponse<int>(StatusCodes.Status201Created, "RFQ created successfully.", id);
             return StatusCode(StatusCodes.Status201Created, payload);
+        }
+
+        // UPLOAD ATTACHMENT (multipart) — stages one file, returns metadata for inclusion in CREATE body
+        [HttpPost("upload-attachment")]
+        public async Task<IActionResult> UploadAttachment([FromForm] UploadRfqAttachmentCommand cmd, CancellationToken ct)
+        {
+            var result = await _mediator.Send(cmd, ct);
+            var payload = new ApiResponse<UploadRfqAttachmentResultDto>(
+                StatusCodes.Status200OK, "Attachment staged successfully.", result);
+            return Ok(payload);
+        }
+
+        // DELETE ATTACHMENT — soft-deletes one attachment from an existing RFQ
+        [HttpDelete("{rfqId:int}/attachments/{attachmentId:int}")]
+        public async Task<IActionResult> DeleteAttachment(int rfqId, int attachmentId, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new DeleteRfqAttachmentCommand(rfqId, attachmentId), ct);
+            if (!result)
+            {
+                return NotFound(new ApiResponse<object?>(
+                    StatusCodes.Status404NotFound, "Attachment not found.", null));
+            }
+            return Ok(new ApiResponse<object?>(
+                StatusCodes.Status200OK, "Attachment deleted successfully.", null));
         }
 
         // UPDATE RFQ (full)
