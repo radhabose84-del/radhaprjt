@@ -226,6 +226,27 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 module: "SalesOrder");
             await _mediator.Publish(auditEvent, cancellationToken);
 
+            // ─── Rate Agreement variant: skip workflow + ALL notifications ──────────
+            // When the order's SalesOrderTypeMaster.TypeName == "Rate Agreement", we save and return.
+            // No InApp, no Email, no Workflow approval outbox event is queued.
+            if (details.SalesOrderTypeMasterId.HasValue)
+            {
+                var soType = await _commandRepository.GetSalesOrderTypeMasterByIdAsync(details.SalesOrderTypeMasterId.Value);
+                if (string.Equals(soType?.TypeName, MiscEnumEntity.SalesOrderTypeRateAgreement, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogInformation(
+                        "Sales Order {SalesOrderNo} (Id={Id}) saved as Rate Agreement — workflow and notifications skipped.",
+                        salesOrderNo, newId);
+
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = true,
+                        Message = "Sales Order created successfully.",
+                        Data = newId
+                    };
+                }
+            }
+
             // ------------------- InApp notification: Sales Order created → Agent's Marketing Officer -------------------
             // Templates (subject/body) come from NotificationConfig (ModuleName='New Sales Order',
             // EventTypeId=Create). The recipient is resolved here in code — the agent's MO UserId

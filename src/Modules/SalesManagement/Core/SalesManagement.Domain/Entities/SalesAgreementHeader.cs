@@ -39,5 +39,8 @@ namespace SalesManagement.Domain.Entities
 
         // Child collection
         public ICollection<SalesAgreementDetail>? SalesAgreementDetails { get; set; }
+
+        // Reverse navigation — SalesOrderHeaders raised against this agreement
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }
