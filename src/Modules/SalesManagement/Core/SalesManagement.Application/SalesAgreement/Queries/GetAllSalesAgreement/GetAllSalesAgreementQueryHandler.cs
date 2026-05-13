@@ -21,7 +21,7 @@ namespace SalesManagement.Application.SalesAgreement.Queries.GetAllSalesAgreemen
 
         public async Task<ApiResponseDTO<List<SalesAgreementHeaderDto>>> Handle(GetAllSalesAgreementQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.StatusName);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllSalesAgreementQuery",
