@@ -16,6 +16,7 @@ namespace SalesManagement.Application.Common.Mappings
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.AgreementNo, opt => opt.Ignore())
                 .ForMember(dest => dest.StatusId, opt => opt.Ignore())
+                .ForMember(dest => dest.UnitId, opt => opt.Ignore())
                 .ForMember(dest => dest.SalesAgreementDetails, opt => opt.MapFrom(src => src.SalesAgreementDetails))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(_ => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(_ => IsDelete.NotDeleted));
