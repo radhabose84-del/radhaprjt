@@ -21,6 +21,12 @@ namespace SalesManagement.Application.SalesAgreement.Dto
         public string? PaymentTermsName { get; set; }
 
         public string? Remarks { get; set; }
+        public string? CustomerPoRefno { get; set; }
+        public string? AgentPOAttachment { get; set; }
+
+        // Capturing Unit (set on create from JWT/IP context; not in command DTO).
+        public int? UnitId { get; set; }
+        public string? UnitName { get; set; }
 
         // Rollup fields — populated by GetAllAsync (aggregated from SalesAgreementDetail).
         // Always 0 on GetById (line-level values are available in SalesAgreementDetails directly).

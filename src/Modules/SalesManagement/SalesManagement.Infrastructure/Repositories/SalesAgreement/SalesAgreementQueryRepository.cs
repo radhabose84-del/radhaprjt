@@ -2,6 +2,7 @@ using System.Data;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.ISalesAgreement;
 using SalesManagement.Application.SalesAgreement.Dto;
@@ -15,19 +16,22 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
         private readonly IPaymentTermLookup _paymentTermLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly IUnitLookup _unitLookup;
 
         public SalesAgreementQueryRepository(
             IDbConnection dbConnection,
             ICustomerLookup customerLookup,
             IPaymentTermLookup paymentTermLookup,
             IItemLookup itemLookup,
-            IUOMLookup uomLookup)
+            IUOMLookup uomLookup,
+            IUnitLookup unitLookup)
         {
             _dbConnection = dbConnection;
             _customerLookup = customerLookup;
             _paymentTermLookup = paymentTermLookup;
             _itemLookup = itemLookup;
             _uomLookup = uomLookup;
+            _unitLookup = unitLookup;
         }
 
         // ── Same-module SQL: headers + JOINed StatusName / SalesGroupName ─────
@@ -39,7 +43,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                 h.CustomerId,
                 h.SalesGroupId, sg.SalesGroupName,
                 h.PaymentTermsId,
-                h.Remarks,
+                h.Remarks, h.CustomerPoRefno, h.AgentPOAttachment,
+                h.UnitId,
                 h.IsActive, h.IsDeleted,
                 h.CreatedBy, h.CreatedDate, h.CreatedByName,
                 h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
@@ -74,7 +79,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
                     h.CustomerId,
                     h.SalesGroupId, sg.SalesGroupName,
                     h.PaymentTermsId,
-                    h.Remarks,
+                    h.Remarks, h.CustomerPoRefno, h.AgentPOAttachment,
+                    h.UnitId,
                     ISNULL(d.TotalQty, 0)        AS TotalQty,
                     ISNULL(d.TotalReleasedQty,0) AS TotalReleasedQty,
                     CASE
@@ -262,10 +268,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             var paymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
             var ptDict = paymentTerms.ToDictionary(p => p.Id, p => p.Description);
 
+            var units = await _unitLookup.GetAllUnitAsync();
+            var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
             foreach (var h in headers)
             {
                 h.CustomerName = customerDict.TryGetValue(h.CustomerId, out var cName) ? cName : null;
                 h.PaymentTermsName = ptDict.TryGetValue(h.PaymentTermsId, out var ptName) ? ptName : null;
+
+                if (h.UnitId.HasValue && unitDict.TryGetValue(h.UnitId.Value, out var unitName))
+                    h.UnitName = unitName;
             }
         }
 

@@ -64,6 +64,20 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             });
         }
 
+        public async Task<bool> UpdateAgentPOAttachmentAsync(int id, string fileName, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesAgreementHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.AgentPOAttachment = fileName;
+            _applicationDbContext.SalesAgreementHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task<bool> CancelAsync(int id, int cancelledStatusId, CancellationToken ct)
         {
             var existing = await _applicationDbContext.SalesAgreementHeader
