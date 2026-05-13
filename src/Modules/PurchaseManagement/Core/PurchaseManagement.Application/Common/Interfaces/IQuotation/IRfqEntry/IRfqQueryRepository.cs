@@ -22,5 +22,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry
         DateOnly now,
         int? excludingRfqId = null,
         CancellationToken ct = default);
+
+        Task<bool> AttachmentExistsAsync(int rfqId, int attachmentId, CancellationToken ct = default);
     }
 }

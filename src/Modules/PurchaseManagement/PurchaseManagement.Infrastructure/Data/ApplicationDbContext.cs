@@ -68,8 +68,9 @@ namespace PurchaseManagement.Infrastructure.Data
         //Rfq
         public DbSet<RfqMaster> Rfqs { get; set; }
         public DbSet<RfqItem> RfqItems { get; set; }
-        public DbSet<RfqSupplier> RfqSuppliers { get; set; }    
-        //End Rfq   
+        public DbSet<RfqSupplier> RfqSuppliers { get; set; }
+        public DbSet<RfqAttachment> RfqAttachments { get; set; }
+        //End Rfq
         //QuotationEntry        
         public DbSet<QuotationHeader> QuotationHeaders { get; set; }
         public DbSet<QuotationDetail> QuotationDetails { get; set; }
@@ -133,6 +134,7 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new RfqConfiguration());
             modelBuilder.ApplyConfiguration(new RfqItemConfiguration());
             modelBuilder.ApplyConfiguration(new RfqSupplierConfiguration());
+            modelBuilder.ApplyConfiguration(new RfqAttachmentConfiguration());
 
             //End Rfq
             modelBuilder.ApplyConfiguration(new TnCTemplateMasterConfiguration());

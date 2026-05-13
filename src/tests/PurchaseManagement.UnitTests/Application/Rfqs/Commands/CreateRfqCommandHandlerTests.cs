@@ -10,6 +10,7 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
+using Moq;
 
 namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
 {
@@ -25,12 +26,13 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
         private readonly Mock<ITimeZoneService> _mockTimeZone = new(MockBehavior.Loose);
         private readonly Mock<IPurchaseIndentCommand> _mockIndentRepo = new(MockBehavior.Loose);
         private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMisc = new(MockBehavior.Loose);
+        private readonly Mock<IRfqAttachmentFileStorage> _mockAttachmentStorage = new(MockBehavior.Loose);
 
         private CreateRfqCommandHandler CreateSut() =>
             new(_mockRfqRepo.Object, _mockMapper.Object, _mockIp.Object,
                 _mockOutbox.Object, _mockLogger.Object, _mockItemLookup.Object,
                 _mockUomLookup.Object, _mockTimeZone.Object, _mockIndentRepo.Object,
-                _mockAppDataMisc.Object);
+                _mockAppDataMisc.Object, _mockAttachmentStorage.Object);
 
         private void SetupHappyPath(int newId = 1)
         {
@@ -125,6 +127,98 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
             Func<Task> act = async () => await CreateSut().Handle(command, CancellationToken.None);
 
             await act.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task Handle_WithAttachments_MovesStagedFilesAndAttachesToAggregate()
+        {
+            SetupHappyPath();
+            _mockAttachmentStorage
+                .Setup(s => s.MoveStagedToPermanentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync<string, CancellationToken, IRfqAttachmentFileStorage, string>((staged, _) =>
+                    $"/Resources/Purchase/RfqAttachments/Default/Default/{Guid.NewGuid()}.pdf");
+
+            var command = new CreateRfqCommand
+            {
+                InitiationTypeId = 1,
+                LastSubmitDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
+                Items = new List<RfqItemCreateDto> { new() { ItemId = 1, HsnId = 1, Qty = 10, UomId = 1 } },
+                Suppliers = new List<RfqSupplierCreateDto> { new() { Name = "Supplier", Email = "s@s.com" } },
+                Attachments = new List<RfqAttachmentStageRef>
+                {
+                    new() { FileName = "TEMP_a.pdf", OriginalFileName = "spec.pdf", FileSize = 1024, FileType = "application/pdf" },
+                    new() { FileName = "TEMP_b.pdf", OriginalFileName = "lab.pdf", FileSize = 2048, FileType = "application/pdf" }
+                }
+            };
+
+            await CreateSut().Handle(command, CancellationToken.None);
+
+            _mockAttachmentStorage.Verify(
+                s => s.MoveStagedToPermanentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task Handle_CreationFailsAfterAttachmentsMoved_RollsBackMovedFiles()
+        {
+            SetupHappyPath();
+            var movedPaths = new List<string>();
+            _mockAttachmentStorage
+                .Setup(s => s.MoveStagedToPermanentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync<string, CancellationToken, IRfqAttachmentFileStorage, string>((staged, _) =>
+                {
+                    var path = $"/Resources/Purchase/RfqAttachments/Default/Default/{Guid.NewGuid()}.pdf";
+                    movedPaths.Add(path);
+                    return path;
+                });
+
+            _mockRfqRepo
+                .Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("simulated db failure"));
+
+            var command = new CreateRfqCommand
+            {
+                InitiationTypeId = 1,
+                LastSubmitDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
+                Items = new List<RfqItemCreateDto> { new() { ItemId = 1, HsnId = 1, Qty = 10, UomId = 1 } },
+                Suppliers = new List<RfqSupplierCreateDto> { new() { Name = "Supplier", Email = "s@s.com" } },
+                Attachments = new List<RfqAttachmentStageRef>
+                {
+                    new() { FileName = "TEMP_a.pdf", OriginalFileName = "a.pdf", FileSize = 1, FileType = "application/pdf" },
+                    new() { FileName = "TEMP_b.pdf", OriginalFileName = "b.pdf", FileSize = 2, FileType = "application/pdf" }
+                }
+            };
+
+            Func<Task> act = async () => await CreateSut().Handle(command, CancellationToken.None);
+            await act.Should().ThrowAsync<InvalidOperationException>();
+
+            // Both moved files should be cleaned up after the DB save failure.
+            foreach (var path in movedPaths)
+            {
+                _mockAttachmentStorage.Verify(
+                    s => s.DeleteAsync(path, It.IsAny<CancellationToken>()),
+                    Times.Once);
+            }
+        }
+
+        [Fact]
+        public async Task Handle_NoAttachments_DoesNotCallStorage()
+        {
+            SetupHappyPath();
+
+            var command = new CreateRfqCommand
+            {
+                InitiationTypeId = 1,
+                LastSubmitDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
+                Items = new List<RfqItemCreateDto> { new() { ItemId = 1, HsnId = 1, Qty = 10, UomId = 1 } },
+                Suppliers = new List<RfqSupplierCreateDto> { new() { Name = "Supplier", Email = "s@s.com" } }
+            };
+
+            await CreateSut().Handle(command, CancellationToken.None);
+
+            _mockAttachmentStorage.Verify(
+                s => s.MoveStagedToPermanentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
     }
 }
