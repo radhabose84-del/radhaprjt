@@ -31,7 +31,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<int> CreateAsync(SalesOrderHeader entity, int transactionTypeId)
+        public async Task<int> CreateAsync(SalesOrderHeader entity, int transactionTypeId, bool incrementAgreementReleasedQty = false)
         {
             var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
 
@@ -46,10 +46,14 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     entity.SalesOrderDetails = null;
                     entity.SalesOrderDiscounts = null;
 
-                    // Set default StatusId to "Pending"
-                    var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                        MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusPending);
-                    entity.StatusId = pendingStatus?.Id;
+                    // Default StatusId to "Pending" — but only when the caller hasn't pre-set one.
+                    // The handler pre-sets StatusId="Approved" for Rate Agreement orders (no workflow).
+                    if (!entity.StatusId.HasValue)
+                    {
+                        var pendingStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                            MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusPending);
+                        entity.StatusId = pendingStatus?.Id;
+                    }
 
                     // Fetch "Open" line item status id
                     var openStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
@@ -80,6 +84,28 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                             await _applicationDbContext.SalesOrderDiscount.AddAsync(discount);
                         }
                         await _applicationDbContext.SaveChangesAsync();
+                    }
+
+                    // Rate Agreement: increment Sales.SalesAgreementDetail.ReleasedQty for each
+                    // (ItemId, VariantId) consumed by this order. Single set-based UPDATE inside the
+                    // same SQL transaction — atomic with the order create. NULL-VariantId matching is
+                    // explicit (SQL Server '=' does NOT equate NULL with NULL).
+                    if (incrementAgreementReleasedQty && entity.SalesAgreementHeaderId.HasValue)
+                    {
+                        await _applicationDbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                            UPDATE sad
+                            SET sad.ReleasedQty = sad.ReleasedQty + grp.TotalWeight
+                            FROM Sales.SalesAgreementDetail sad
+                            INNER JOIN (
+                                SELECT ItemId, VariantId, SUM(TotalWeight) AS TotalWeight
+                                FROM Sales.SalesOrderDetail
+                                WHERE SalesOrderHeaderId = {entity.Id}
+                                GROUP BY ItemId, VariantId
+                            ) grp
+                                ON sad.ItemId = grp.ItemId
+                               AND ((sad.VariantId IS NULL AND grp.VariantId IS NULL) OR sad.VariantId = grp.VariantId)
+                            WHERE sad.SalesAgreementHeaderId = {entity.SalesAgreementHeaderId.Value};
+                        ");
                     }
 
                     // Increment DocNo via lookup — same connection + transaction
@@ -292,6 +318,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         public async Task<SalesOrderHeader?> GetByIdEntityAsync(int id)
         {
             return await _applicationDbContext.SalesOrderHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted);
+        }
+
+        public async Task<SalesManagement.Domain.Entities.SalesOrderTypeMaster?> GetSalesOrderTypeMasterByIdAsync(int id)
+        {
+            return await _applicationDbContext.SalesOrderTypeMaster
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted);
         }
 

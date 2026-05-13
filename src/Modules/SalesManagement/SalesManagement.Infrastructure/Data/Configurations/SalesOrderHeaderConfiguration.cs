@@ -293,6 +293,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.SalesAgreementHeaderId)
+                .HasColumnName("SalesAgreementHeaderId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Approval Status (same-module FK to MiscMaster)
             builder.Property(t => t.StatusId)
                 .HasColumnName("StatusId")
@@ -384,6 +389,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.SalesQuotationHeaderId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(t => t.SalesAgreementHeader)
+                .WithMany(a => a.SalesOrderHeaders)
+                .HasForeignKey(t => t.SalesAgreementHeaderId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.StatusMisc)
                 .WithMany(m => m.SalesOrderHeadersAsStatus)
                 .HasForeignKey(t => t.StatusId)
@@ -433,6 +444,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SalesGroupId);
             builder.HasIndex(t => t.OrderDate);
             builder.HasIndex(t => t.SalesQuotationHeaderId);
+            builder.HasIndex(t => t.SalesAgreementHeaderId);
             builder.HasIndex(t => t.AgentCommissionId);
             builder.HasIndex(t => t.AgentPaymentTermsId);
             builder.HasIndex(t => t.AgentCommissionSlabId);

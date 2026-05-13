@@ -108,7 +108,9 @@ internal sealed class WorkerInAppNotifier : IInAppNotifier
                     Timestamp = currentTime,
                     Type = "info",
                     UserId = id.ToString(),
-                    Value = value
+                    Value = value,
+                    ModuleTransactionId = context.ModuleTransactionId,
+                    ModuleTypeName = context.ModuleTypeName
                 });
                 signalRSent++;
             }

@@ -12,7 +12,8 @@
         decimal PandFCharge,
         decimal GstPercent,
         decimal Warranty, decimal ValidityDays,decimal DeliveryDays, decimal LineSubtotal, decimal GstAmount, decimal Total,
-        int  IsActive
+        int  IsActive,
+        int Id = 0
     );
     public record GetQuotationHeaderDto(
         int Id,
@@ -41,7 +42,8 @@
     );
 
     public record GetQuotationDetailDto(
-        int ItemId,string ItemCode, string ItemName,   
+        int Id,
+        int ItemId,string ItemCode, string ItemName,
         int HsnId,
         int UomId,int CurrencyId,string CurrencyName,  string UomName,
         decimal Quantity,

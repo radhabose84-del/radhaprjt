@@ -44,6 +44,9 @@ namespace SalesManagement.Application.SalesOrder.Dto
         // Sales Enquiry Header (same-module FK, nullable)
         public int? SalesEnquiryHeaderId { get; set; }
 
+        // Sales Agreement Header (same-module FK, nullable — populated when order is raised against an agreement)
+        public int? SalesAgreementHeaderId { get; set; }
+
         // Reference numbers
         public string? CustomerPoRefno { get; set; }
         public string? ComplaintRefno { get; set; }

@@ -4283,6 +4283,84 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("QuotationHeader", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileType")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<int>("RfqId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RfqId");
+
+                    b.ToTable("RfqAttachment", "Purchase");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqItem", b =>
                 {
                     b.Property<int>("Id")
@@ -5482,6 +5560,17 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Rfq");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqAttachment", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
+                        .WithMany("Attachments")
+                        .HasForeignKey("RfqId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rfq");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqItem", b =>
                 {
                     b.HasOne("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", "Rfq")
@@ -5825,6 +5914,8 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqMaster", b =>
                 {
+                    b.Navigation("Attachments");
+
                     b.Navigation("Items");
 
                     b.Navigation("QuotationRfq");

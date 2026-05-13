@@ -184,6 +184,7 @@ namespace PurchaseManagement.Infrastructure
             //Rfq
             services.AddScoped<IRfqCommandRepository, RfqCommandRepository>();
             services.AddScoped<IRfqQueryRepository, RfqQueryRepository>();
+            services.AddScoped<IRfqAttachmentFileStorage, RfqAttachmentFileStorage>();
             //QuotationEntry
             services.AddScoped<IQuotationCommandRepository, QuotationCommandRepository>();
             services.AddScoped<IQuotationQueryRepository, QuotationQueryRepository>();

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO;
 using System.Text.Json;
 using AutoMapper;
 using Contracts.Events.Notifications;
@@ -29,6 +30,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
         private readonly ILogger<CreateRfqCommandHandler> _logger;
         private readonly IPurchaseIndentCommand _indentRepo;
         private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+        private readonly IRfqAttachmentFileStorage _attachmentStorage;
 
         public CreateRfqCommandHandler(
             IRfqCommandRepository rfqRepo,
@@ -38,7 +40,8 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             ILogger<CreateRfqCommandHandler> logger,
             IItemLookup itemLookup,
             IUOMLookup uOMLookup, ITimeZoneService timeZoneService, IPurchaseIndentCommand indentRepo,
-            IAppDataMiscMasterLookup appDataMiscLookup)
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            IRfqAttachmentFileStorage attachmentStorage)
         {
             _rfqRepo = rfqRepo ?? throw new ArgumentNullException(nameof(rfqRepo));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -50,6 +53,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             _timeZoneService = timeZoneService ?? throw new ArgumentNullException(nameof(timeZoneService));
             _indentRepo = indentRepo;
             _appDataMiscLookup = appDataMiscLookup;
+            _attachmentStorage = attachmentStorage ?? throw new ArgumentNullException(nameof(attachmentStorage));
         }
         
         public async Task<int> Handle(CreateRfqCommand request, CancellationToken ct)
@@ -122,17 +126,55 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
                 }).ToList();
             }
 
-            // 4) Audit
-            rfq.UnitId = _ip.GetUnitId() ?? 0;
-            rfq.RfqCode = await _rfqRepo.GenerateNextCodeAsync(now, ct);
-            rfq.CreatedBy = _ip.GetUserId();
-            rfq.CreatedByName = _ip.GetUserName();
-            rfq.CreatedIP = _ip.GetSystemIPAddress();
-            rfq.CreatedDate = now;
+            // 3a) Attachments — move staged files to permanent and attach to aggregate.
+            // Wrapped with persist (step 5) in a try/catch so any failure rolls back moved files.
+            var movedPaths = new List<string>();
+            int id;
+            try
+            {
+                if (request.Attachments?.Count > 0)
+                {
+                    foreach (var att in request.Attachments)
+                    {
+                        var permanentPath = await _attachmentStorage.MoveStagedToPermanentAsync(att.FileName, ct);
+                        movedPaths.Add(permanentPath);
 
-            // 5) Persist
-            var id = await _rfqRepo.CreateAsync(rfq, ct);
-            if (id <= 0) throw new InvalidOperationException("RFQ creation failed.");
+                        rfq.Attachments.Add(new PurchaseManagement.Domain.Entities.Quotation.RfqEntry.RfqAttachment
+                        {
+                            FileName = Path.GetFileName(permanentPath),
+                            OriginalFileName = att.OriginalFileName,
+                            FilePath = permanentPath,
+                            FileType = att.FileType,
+                            FileSize = att.FileSize,
+                            CreatedBy = _ip.GetUserId(),
+                            CreatedByName = _ip.GetUserName(),
+                            CreatedIP = _ip.GetSystemIPAddress(),
+                            CreatedDate = now,
+                        });
+                    }
+                }
+
+                // 4) Audit
+                rfq.UnitId = _ip.GetUnitId() ?? 0;
+                rfq.RfqCode = await _rfqRepo.GenerateNextCodeAsync(now, ct);
+                rfq.CreatedBy = _ip.GetUserId();
+                rfq.CreatedByName = _ip.GetUserName();
+                rfq.CreatedIP = _ip.GetSystemIPAddress();
+                rfq.CreatedDate = now;
+
+                // 5) Persist
+                id = await _rfqRepo.CreateAsync(rfq, ct);
+                if (id <= 0) throw new InvalidOperationException("RFQ creation failed.");
+            }
+            catch
+            {
+                foreach (var path in movedPaths)
+                {
+                    try { await _attachmentStorage.DeleteAsync(path, CancellationToken.None); }
+                    catch { /* best-effort cleanup */ }
+                }
+                throw;
+            }
             if (request.IndentDetailIds?.Count > 0)
             {
                 var updated = await _indentRepo.UpdateRFQStatusAsync(request.IndentDetailIds);

@@ -7,6 +7,7 @@ using AutoMapper;
 using BackgroundService.Application.Dto;
 using Contracts.Interfaces;
 // using BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveApprovalRequest;
+using BackgroundService.Application.Workflow.ApprovalRequests.Queries.GetApprovalRequestDetail;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest;
 using BackgroundService.Domain.Common;
 using BackgroundService.Domain.Entities.Notification;
@@ -704,6 +705,54 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
             var dtoList = _mapper.Map<List<Application.Workflow.ApprovalRequests.Queries.GetApprovalRequestById.ApprovalRequestWithLinesDto>>(entities);
 
             return dtoList;
+        }
+
+        public async Task<List<ApprovalRequestDetailDto>> GetApprovalRequestDetailAsync(
+            int moduleTransactionId,
+            string workflowType,
+            bool pending,
+            int userId)
+        {
+            var sql = @"
+                SELECT
+                    AR.Id,
+                    AR.ModuleTransactionId,
+                    AR.WorkflowType,
+                    AR.WorkflowTypeId,
+                    AR.ApprovalStepDetailId,
+                    AR.ApprovalRuleId,
+                    AR.StatusId,
+                    MM.Code AS StatusCode,
+                    AR.ApproverBinding,
+                    AR.ApproverValue,
+                    AR.RequestedDate,
+                    AR.UnitId,
+                    AR.DepartmentId,
+                    AR.Remark,
+                    AR.WorkflowType AS ModuleTypeName
+                FROM [AppData].[ApprovalRequest] AR
+                INNER JOIN [AppData].[MiscMaster] MM ON MM.Id = AR.StatusId
+                WHERE AR.ModuleTransactionId = @ModuleTransactionId
+                  AND AR.WorkflowType = @WorkflowType
+                  AND AR.ApproverValue = @ApproverValue";
+
+            if (pending)
+            {
+                sql += " AND MM.Code = @PendingStatus";
+            }
+
+            sql += " ORDER BY AR.Id";
+
+            var parameters = new
+            {
+                ModuleTransactionId = moduleTransactionId,
+                WorkflowType = workflowType,
+                PendingStatus = MiscEnumEntity.Pending,
+                ApproverValue = userId.ToString()
+            };
+
+            var result = await _dbConnection.QueryAsync<ApprovalRequestDetailDto>(sql, parameters);
+            return result.ToList();
         }
 
         // public async Task<List<ApprovalRequest>> GetByModuleAsync( int moduleTransactionId,  int workflowTypeId)

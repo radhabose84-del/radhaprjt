@@ -39,7 +39,12 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Queries
 
             _mockMapper
                 .Setup(m => m.Map<RfqDto>(It.IsAny<object>()))
-                .Returns(new RfqDto(1, null, "RFQ001", 1, "Approved", 1, "Manual", null, DateOnly.FromDateTime(DateTime.Today), Array.Empty<RfqItemDto>(), Array.Empty<RfqSupplierDto>()));
+                .Returns(new RfqDto(
+                    1, null, "RFQ001", 1, "Approved", 1, "Manual", null,
+                    DateOnly.FromDateTime(DateTime.Today),
+                    Array.Empty<RfqItemDto>(),
+                    Array.Empty<RfqSupplierDto>(),
+                    Array.Empty<RfqAttachmentDto>()));
 
             var result = await CreateSut().Handle(
                 new GetRfqByIdQuery(1),
@@ -90,7 +95,8 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Queries
                     rfqId, null, "RFQ-Knit-50", 17, "Submitted", 20, "FromItemMaster", null,
                     DateOnly.FromDateTime(DateTime.Today),
                     new[] { new RfqItemDto(itemId, 1m, 11, string.Empty, string.Empty, 0m, 34, 0) },
-                    Array.Empty<RfqSupplierDto>()));
+                    Array.Empty<RfqSupplierDto>(),
+                    Array.Empty<RfqAttachmentDto>()));
 
             _mockItemLookup
                 .Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))

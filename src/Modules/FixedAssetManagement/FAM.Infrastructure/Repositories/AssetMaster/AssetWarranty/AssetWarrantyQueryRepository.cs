@@ -6,13 +6,14 @@ using Dapper;
 
 namespace FAM.Infrastructure.Repositories.AssetMaster.AssetWarranty
 {
-    public class AssetWarrantyQueryRepository : IAssetWarrantyQueryRepository    
+    public class AssetWarrantyQueryRepository : IAssetWarrantyQueryRepository
     {
         private readonly IDbConnection _dbConnection;
         public AssetWarrantyQueryRepository(IDbConnection dbConnection)
         {
-            _dbConnection = dbConnection;          
-        }     
+            _dbConnection = dbConnection;
+        }
+
         public async Task<(List<AssetWarrantyDTO>, int)> GetAllAssetWarrantyAsync(int PageNumber, int PageSize, string? SearchTerm)
         {
             var query = $$"""
@@ -45,8 +46,8 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetWarranty
 
             var assetWarranties= await _dbConnection.QueryMultipleAsync(query, parameters);
             var assetWarrantiesList = (await assetWarranties.ReadAsync<AssetWarrantyDTO>()).ToList();
-            int totalCount = (await assetWarranties.ReadFirstAsync<int>());             
-            return (assetWarrantiesList, totalCount);             
+            int totalCount = (await assetWarranties.ReadFirstAsync<int>());
+            return (assetWarrantiesList, totalCount);
         }
 
         public async Task<List<AssetWarrantyDTO>> GetByAssetWarrantyNameAsync(string searchPattern)
@@ -79,7 +80,7 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetWarranty
             LEFT JOIN FixedAsset.MiscMaster M on M.Id =A.WarrantyType
             LEFT JOIN FixedAsset.MiscMaster M1 on M1.Id =A.ServiceClaimStatus           
             WHERE A.Id = @assetId AND A.IsDeleted=0";
-            var assetWarranties = await _dbConnection.QueryFirstOrDefaultAsync<AssetWarrantyDTO>(query, new { assetId });           
+            var assetWarranties = await _dbConnection.QueryFirstOrDefaultAsync<AssetWarrantyDTO>(query, new { assetId });
             if (assetWarranties is null)
             {
                 throw new KeyNotFoundException($"AssetWarranty with ID {assetId} not found.");

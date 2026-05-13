@@ -1,4 +1,5 @@
 using System.Data;
+using Contracts.Dtos.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Sales;
 using Dapper;
 
@@ -45,6 +46,29 @@ internal sealed class OfficerAgentUserLookupRepository : IOfficerAgentUserLookup
             return null;
 
         return row.ReportToId;
+    }
+
+    public async Task<IReadOnlyList<MoChainRow>> GetMarketingOfficerChainByAgentIdsAsync(
+        IEnumerable<int> agentIds, CancellationToken cancellationToken = default)
+    {
+        var idList = agentIds?.Distinct().ToArray() ?? Array.Empty<int>();
+        if (idList.Length == 0)
+            return Array.Empty<MoChainRow>();
+
+        const string sql = @"
+            SELECT oa.AgentId,
+                   TRY_CONVERT(int, u.UserId)     AS MoUserId,
+                   TRY_CONVERT(int, u.ReportToId) AS ReportToId
+            FROM Sales.OfficerAgent oa
+            INNER JOIN AppSecurity.Users u
+                ON u.EmpId = oa.MarketingOfficerId
+                AND u.IsActive = 1
+            WHERE oa.AgentId IN @AgentIds
+              AND oa.IsActive = 1;";
+
+        var rows = await _dbConnection.QueryAsync<MoChainRow>(
+            new CommandDefinition(sql, new { AgentIds = idList }, cancellationToken: cancellationToken));
+        return rows.ToList();
     }
 
     private sealed class UserReportRow
