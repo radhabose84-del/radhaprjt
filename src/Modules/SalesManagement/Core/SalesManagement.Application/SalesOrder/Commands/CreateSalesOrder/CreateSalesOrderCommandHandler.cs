@@ -132,16 +132,23 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
 
             var entity = _mapper.Map<SalesOrderHeader>(details);
 
-            // ─── Rate Agreement detection (one EF lookup) — pre-sets StatusId="Approved" so
+            // ─── Non-workflow order detection (one EF lookup) — pre-sets StatusId="Approved" so
             //     the workflow path is skipped end-to-end. Cached for reuse below.
+            //     Currently: "Rate Agreement" and "Sample Order".
             var isRateAgreement = false;
+            var isSampleOrder = false;
+            string? soTypeName = null;
             if (details!.SalesOrderTypeMasterId.HasValue)
             {
                 var soType = await _commandRepository.GetSalesOrderTypeMasterByIdAsync(details.SalesOrderTypeMasterId.Value);
-                isRateAgreement = string.Equals(soType?.TypeName, MiscEnumEntity.SalesOrderTypeRateAgreement, StringComparison.OrdinalIgnoreCase);
+                soTypeName = soType?.TypeName;
+                isRateAgreement = string.Equals(soTypeName, MiscEnumEntity.SalesOrderTypeRateAgreement, StringComparison.OrdinalIgnoreCase);
+                isSampleOrder   = string.Equals(soTypeName, MiscEnumEntity.SalesOrderTypeSampleOrder,   StringComparison.OrdinalIgnoreCase);
             }
 
-            if (isRateAgreement)
+            var skipWorkflow = isRateAgreement || isSampleOrder;
+
+            if (skipWorkflow)
             {
                 var approvedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
                     MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved)
@@ -255,16 +262,16 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             // ─── Rate Agreement variant: skip workflow + ALL notifications ──────────
             // StatusId was already pre-set to "Approved" above (before CreateAsync) so the
             // order is persisted in its final state. No InApp / Email / Workflow outbox events.
-            if (isRateAgreement)
+            if (skipWorkflow)
             {
                 _logger.LogInformation(
-                    "Sales Order {SalesOrderNo} (Id={Id}) saved as Rate Agreement — status=Approved, workflow and notifications skipped.",
-                    salesOrderNo, newId);
+                    "Sales Order {SalesOrderNo} (Id={Id}) saved as {OrderType} — status=Approved, workflow and notifications skipped.",
+                    salesOrderNo, newId, soTypeName);
 
                 return new ApiResponseDTO<int>
                 {
                     IsSuccess = true,
-                    Message = "Rate Agreement Sales Order created successfully.",
+                    Message = $"{soTypeName} Sales Order created successfully.",
                     Data = newId
                 };
             }
