@@ -44,6 +44,8 @@ using UserManagement.Infrastructure.Repositories.Users;
 using UserManagement.Infrastructure.Repositories.RoleItemGroupMapping;
 using UserManagement.Application.Common.Interfaces.IUserFavoriteMenu;
 using UserManagement.Infrastructure.Repositories.UserFavoriteMenu;
+using UserManagement.Application.Common.Interfaces.IUserSignature;
+using UserManagement.Infrastructure.Repositories.UserSignature;
 using UserManagement.Infrastructure.Services;
 
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
@@ -374,6 +376,10 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IUserFavoriteMenuCommandRepository, UserFavoriteMenuCommandRepository>();
             services.AddScoped<IUserFavoriteMenuQueryRepository, UserFavoriteMenuQueryRepository>();
+
+            services.AddScoped<IUserSignatureCommandRepository, UserSignatureCommandRepository>();
+            services.AddScoped<IUserSignatureQueryRepository, UserSignatureQueryRepository>();
+            services.AddScoped<IUserSignatureFileStorage, UserSignatureFileStorage>();
 
             // --------------------------
             // Services

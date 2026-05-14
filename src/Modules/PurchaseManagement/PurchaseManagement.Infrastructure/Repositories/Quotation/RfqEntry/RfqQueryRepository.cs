@@ -34,6 +34,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
                 .Include(r => r.Suppliers)
                 .Include(r => r.RfqStatus)
                 .Include(r => r.InitiationType)
+                .Include(r => r.Attachments)
                 .FirstOrDefaultAsync(r => r.Id == id, ct);
 
             if (rfq != null && excludeQuotation)
@@ -346,6 +347,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             return await q.Distinct().ToListAsync(ct);
         }
 
-       
+        public Task<bool> AttachmentExistsAsync(int rfqId, int attachmentId, CancellationToken ct = default) =>
+            _db.RfqAttachments.AnyAsync(a =>
+                a.Id == attachmentId &&
+                a.RfqId == rfqId &&
+                a.IsDeleted == BaseEntity.IsDelete.NotDeleted, ct);
+
     }
 }

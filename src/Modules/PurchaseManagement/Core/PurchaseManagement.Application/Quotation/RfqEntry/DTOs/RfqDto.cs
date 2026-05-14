@@ -8,7 +8,8 @@ public record RfqDto(
     string RfqStatusDesc,
     int InitiationTypeId,
     string InitiationTypeDesc,
-    int? IndentId,    
-    DateOnly LastSubmitDate,    
+    int? IndentId,
+    DateOnly LastSubmitDate,
     RfqItemDto[] Items,
-    RfqSupplierDto[] Suppliers);
+    RfqSupplierDto[] Suppliers,
+    RfqAttachmentDto[] Attachments);

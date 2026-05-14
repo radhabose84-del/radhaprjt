@@ -17,7 +17,8 @@ public class RfqMaster : BaseEntity, IActivityTracked
     public int? IndentId { get; set; } // when FromIndent
     public ICollection<RfqItem> Items { get; set; } = new List<RfqItem>();
     public ICollection<RfqSupplier> Suppliers { get; set; } = new List<RfqSupplier>();
-    public DateOnly? LastSubmitDate { get; private set; }  
+    public ICollection<RfqAttachment> Attachments { get; set; } = new List<RfqAttachment>();
+    public DateOnly? LastSubmitDate { get; private set; }
     public ICollection<QuotationHeader> QuotationRfq { get; set; } = new List<QuotationHeader>();
     public ICollection<QuotationComparisonHeader> QuotationrfqConfirmed { get; set; } = new List<QuotationComparisonHeader>();
 }

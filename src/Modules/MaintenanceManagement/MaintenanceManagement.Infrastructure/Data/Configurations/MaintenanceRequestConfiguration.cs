@@ -95,15 +95,20 @@ namespace MaintenanceManagement.Infrastructure.Data.Configurations
                  .HasColumnName("SparesTypeId")
                  .HasColumnType("int");
 
-                 builder.Property(m => m.EstimatedServiceCost)                
+                 builder.Property(m => m.EstimatedServiceCost)
                  .HasColumnType("decimal")
                  .IsRequired(false);
 
-                 builder.Property(m => m.EstimatedServiceCost)                 
+                 builder.Property(m => m.EstimatedSpareCost)
                  .HasColumnType("decimal")
                  .IsRequired(false);
 
-                builder.Property(m => m.Remarks)                 
+                 builder.Property(m => m.ConvertedToPoAmount)
+                 .HasColumnType("decimal(18,2)")
+                 .HasDefaultValue(0m)
+                 .IsRequired();
+
+                builder.Property(m => m.Remarks)
                  .HasColumnType("nvarchar(max)")
                  .IsRequired(false);
 

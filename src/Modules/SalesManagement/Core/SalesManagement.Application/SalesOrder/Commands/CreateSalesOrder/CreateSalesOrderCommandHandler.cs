@@ -12,6 +12,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Contracts.Interfaces;
 using SalesManagement.Application.Common.Interfaces;
+using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Domain.Common;
@@ -23,6 +24,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
     public class CreateSalesOrderCommandHandler : IRequestHandler<CreateSalesOrderCommand, ApiResponseDTO<int>>
     {
         private readonly ISalesOrderCommandRepository _commandRepository;
+        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
@@ -37,6 +39,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
 
         public CreateSalesOrderCommandHandler(
             ISalesOrderCommandRepository commandRepository,
+            IMiscMasterQueryRepository miscMasterQueryRepository,
             IMapper mapper,
             IMediator mediator,
             IIPAddressService ipAddressService,
@@ -50,6 +53,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             IOfficerAgentUserLookup officerAgentUserLookup)
         {
             _commandRepository = commandRepository;
+            _miscMasterQueryRepository = miscMasterQueryRepository;
             _mapper = mapper;
             _mediator = mediator;
             _ipAddressService = ipAddressService;
@@ -128,8 +132,26 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
 
             var entity = _mapper.Map<SalesOrderHeader>(details);
 
+            // ─── Rate Agreement detection (one EF lookup) — pre-sets StatusId="Approved" so
+            //     the workflow path is skipped end-to-end. Cached for reuse below.
+            var isRateAgreement = false;
+            if (details!.SalesOrderTypeMasterId.HasValue)
+            {
+                var soType = await _commandRepository.GetSalesOrderTypeMasterByIdAsync(details.SalesOrderTypeMasterId.Value);
+                isRateAgreement = string.Equals(soType?.TypeName, MiscEnumEntity.SalesOrderTypeRateAgreement, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (isRateAgreement)
+            {
+                var approvedStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
+                    MiscEnumEntity.SalesOrderApprovalStatus, MiscEnumEntity.SalesOrderStatusApproved)
+                    ?? throw new ExceptionRules("Approved status is not configured in MiscMaster (MiscTypeCode='ApprovalStatus', Code='Approved').");
+
+                entity.StatusId = approvedStatus.Id;
+            }
+
             // Generate SalesOrderNo from DocumentSequence
-            if (!details!.SalesOrderTypeId.HasValue)
+            if (!details.SalesOrderTypeId.HasValue)
                 throw new ExceptionRules("SalesOrderTypeId is required.");
 
             var sequences = await _documentSequenceLookup.GenerateDocumentNumber(details.SalesOrderTypeId.Value);
@@ -139,7 +161,11 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             entity.OrderDate = DateOnly.FromDateTime(DateTime.UtcNow);
             entity.OrderUnitId = _ipAddressService.GetUnitId();
 
-            var newId = await _commandRepository.CreateAsync(entity, details.SalesOrderTypeId.Value);
+            // Rate Agreement orders that link to an agreement also roll up TotalWeight per (ItemId, VariantId)
+            // into Sales.SalesAgreementDetail.ReleasedQty. Atomic with the order save.
+            var incrementAgreementRelease = isRateAgreement && entity.SalesAgreementHeaderId.HasValue;
+
+            var newId = await _commandRepository.CreateAsync(entity, details.SalesOrderTypeId.Value, incrementAgreementRelease);
 
             // Foreclose parent order when this is a split-create scenario.
             if (isSplitOrder)
@@ -225,6 +251,23 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
                 details: $"Sales Order '{salesOrderNo}' created successfully with Id {newId}.",
                 module: "SalesOrder");
             await _mediator.Publish(auditEvent, cancellationToken);
+
+            // ─── Rate Agreement variant: skip workflow + ALL notifications ──────────
+            // StatusId was already pre-set to "Approved" above (before CreateAsync) so the
+            // order is persisted in its final state. No InApp / Email / Workflow outbox events.
+            if (isRateAgreement)
+            {
+                _logger.LogInformation(
+                    "Sales Order {SalesOrderNo} (Id={Id}) saved as Rate Agreement — status=Approved, workflow and notifications skipped.",
+                    salesOrderNo, newId);
+
+                return new ApiResponseDTO<int>
+                {
+                    IsSuccess = true,
+                    Message = "Rate Agreement Sales Order created successfully.",
+                    Data = newId
+                };
+            }
 
             // ------------------- InApp notification: Sales Order created → Agent's Marketing Officer -------------------
             // Templates (subject/body) come from NotificationConfig (ModuleName='New Sales Order',
@@ -329,7 +372,7 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Sales Order created successfully.",
+                Message = "Direct Sales Order created successfully.",
                 Data = newId
             };
         }

@@ -106,6 +106,10 @@
         "error": "must be a PDF file and less than 2 MB in size."
     },
     {
+        "rule": "FileSize",
+        "error": "must not exceed 5 MB."
+    },
+    {
         "rule": "Pincode",
         "pattern": "^[0-9]{6}$",
         "error": " must be a valid 6-digit pincode."
@@ -234,5 +238,9 @@
     {
         "rule": "MarketingOfficerAccess",
         "error": "Customer/Agent not assigned"
+    },
+    {
+        "rule": "ActivePolicy",
+        "error": "An active insurance already exists for this asset. Please wait until the current insurance expires before adding a new one."
     }
 ]

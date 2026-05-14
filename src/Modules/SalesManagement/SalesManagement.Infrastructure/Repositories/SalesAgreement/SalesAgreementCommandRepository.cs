@@ -64,79 +64,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             });
         }
 
-        public async Task<int> UpdateAsync(SalesAgreementHeader entity)
-        {
-            var existing = await _applicationDbContext.SalesAgreementHeader
-                .Include(h => h.SalesAgreementDetails)
-                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
-
-            if (existing == null)
-                return 0;
-
-            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
-
-            return await strategy.ExecuteAsync(async () =>
-            {
-                using var transaction = await _applicationDbContext.Database.BeginTransactionAsync();
-                try
-                {
-                    // Update mutable header fields (AgreementNo is immutable)
-                    existing.StatusId = entity.StatusId;
-                    existing.ValidFrom = entity.ValidFrom;
-                    existing.ValidTo = entity.ValidTo;
-                    existing.CustomerId = entity.CustomerId;
-                    existing.SalesGroupId = entity.SalesGroupId;
-                    existing.PaymentTermsId = entity.PaymentTermsId;
-                    existing.Remarks = entity.Remarks;
-                    existing.IsActive = entity.IsActive;
-
-                    // Diff details: match by Id; new lines insert; rows omitted from payload are removed
-                    var existingDetails = existing.SalesAgreementDetails?.ToList() ?? new List<SalesAgreementDetail>();
-                    var incomingDetails = entity.SalesAgreementDetails?.ToList() ?? new List<SalesAgreementDetail>();
-
-                    var incomingIds = incomingDetails.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();
-
-                    // Hard-delete rows that the client no longer sends (header soft-delete still hides them via header.IsDeleted)
-                    var toRemove = existingDetails.Where(d => !incomingIds.Contains(d.Id)).ToList();
-                    if (toRemove.Count > 0)
-                        _applicationDbContext.SalesAgreementDetail.RemoveRange(toRemove);
-
-                    foreach (var incoming in incomingDetails)
-                    {
-                        if (incoming.Id > 0)
-                        {
-                            var match = existingDetails.FirstOrDefault(d => d.Id == incoming.Id);
-                            if (match != null)
-                            {
-                                match.ItemId = incoming.ItemId;
-                                match.VariantId = incoming.VariantId;
-                                match.AgreedRate = incoming.AgreedRate;
-                                match.TotalQty = incoming.TotalQty;
-                                // ReleasedQty is system-maintained — preserved (not overwritten)
-                            }
-                        }
-                        else
-                        {
-                            incoming.SalesAgreementHeaderId = existing.Id;
-                            incoming.ReleasedQty = 0m;
-                            await _applicationDbContext.SalesAgreementDetail.AddAsync(incoming);
-                        }
-                    }
-
-                    _applicationDbContext.SalesAgreementHeader.Update(existing);
-                    await _applicationDbContext.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                    return existing.Id;
-                }
-                catch
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
-            });
-        }
-
-        public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
+        public async Task<bool> UpdateAgentPOAttachmentAsync(int id, string fileName, CancellationToken ct)
         {
             var existing = await _applicationDbContext.SalesAgreementHeader
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
@@ -144,8 +72,24 @@ namespace SalesManagement.Infrastructure.Repositories.SalesAgreement
             if (existing == null)
                 return false;
 
-            existing.IsDeleted = IsDelete.Deleted;
+            existing.AgentPOAttachment = fileName;
             _applicationDbContext.SalesAgreementHeader.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> CancelAsync(int id, int cancelledStatusId, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.SalesAgreementHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.StatusId = cancelledStatusId;
+            _applicationDbContext.SalesAgreementHeader.Update(existing);
+            // ModifiedBy / ModifiedDate / ModifiedByName / ModifiedIP are auto-populated
+            // by ApplicationDbContext.SaveChangesAsync() for any BaseEntity in the Modified state.
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }

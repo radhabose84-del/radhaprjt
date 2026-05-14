@@ -26,6 +26,7 @@ using PurchaseManagement.Infrastructure.Data;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Maintenance;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 {
@@ -43,10 +44,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
         private readonly IUOMLookup _uOMLookup;
         private readonly IUnitLookup _unitLookup;
         private readonly IMapper _mapper;
+        private readonly IMaintenanceRequestLookup _maintenanceRequestLookup;
 
 
         public ServicePurchaseOrderQueryRepository(IDbConnection conn, IIPAddressService ip, ApplicationDbContext db, ICurrencyLookup currencyLookup, IPartyLookup partyLookup,
-            IMiscMasterQueryRepository miscMasterQueryRepository, IUOMLookup uOMLookup, IUnitLookup unitLookup, IMapper mapper)
+            IMiscMasterQueryRepository miscMasterQueryRepository, IUOMLookup uOMLookup, IUnitLookup unitLookup, IMapper mapper,
+            IMaintenanceRequestLookup maintenanceRequestLookup)
         {
 
             _conn = conn;
@@ -58,6 +61,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             _uOMLookup = uOMLookup;
             _unitLookup = unitLookup;
             _mapper = mapper;
+            _maintenanceRequestLookup = maintenanceRequestLookup;
         }
 
 
@@ -250,6 +254,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             var schedules = (await multi.ReadAsync<PurchaseOrderServiceScheduleDto>()).ToList();
             var terms = (await multi.ReadAsync<PurchaseOrderServicePaymentTermDto>()).ToList();
             var docs = (await multi.ReadAsync<ServiceDocumentDto>()).ToList();
+
+            // Populate human-readable Request label (e.g. "MR-501") for lines linked to a MaintenanceRequest
+            var linkedRequestIds = lines
+                .Where(l => l.RequestId.HasValue && l.RequestId.Value > 0)
+                .Select(l => l.RequestId!.Value)
+                .Distinct()
+                .ToList();
+            if (linkedRequestIds.Count > 0)
+            {
+                var mrs = await _maintenanceRequestLookup.GetByIdsAsync(linkedRequestIds, ct);
+                var mrDict = mrs.ToDictionary(m => m.Id, m => m.RequestNo);
+                foreach (var ln in lines.Where(l => l.RequestId.HasValue && l.RequestId.Value > 0))
+                {
+                    ln.Request = mrDict.TryGetValue(ln.RequestId!.Value, out var label) ? label : null;
+                }
+            }
 
             // Stitch lines under service headers
             var linesByHeader = lines.GroupBy(x => x.ServicePoHeaderId).ToDictionary(g => g.Key, g => g.ToList());
@@ -831,6 +851,26 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
 
             return await _conn.QueryAsync<GetServicePOLinesDto>(
                 new CommandDefinition(sql, param, cancellationToken: ct));
+        }
+
+        public async Task<List<ServicePoLinkedRequestDto>> GetLinkedMaintenanceRequestsAsync(
+            int purchaseOrderId, CancellationToken ct)
+        {
+            // Legacy data stored 0 for "no link" before this column was used; treat 0 same as NULL.
+            const string sql = @"
+                SELECT
+                    l.RequestId          AS RequestId,
+                    SUM(l.PlannedValue)  AS TotalPlannedValue
+                FROM [Purchase].[PurchaseOrderServiceLine] l
+                WHERE l.PurchaseOrderId = @PoId
+                  AND l.IsDeleted = 0
+                  AND l.RequestId IS NOT NULL
+                  AND l.RequestId > 0
+                GROUP BY l.RequestId;";
+
+            var rows = await _conn.QueryAsync<ServicePoLinkedRequestDto>(
+                new CommandDefinition(sql, new { PoId = purchaseOrderId }, cancellationToken: ct));
+            return rows.ToList();
         }
 
         public async Task<SesFromScheduleRawDto?> GetSesCreateSourceAsync(

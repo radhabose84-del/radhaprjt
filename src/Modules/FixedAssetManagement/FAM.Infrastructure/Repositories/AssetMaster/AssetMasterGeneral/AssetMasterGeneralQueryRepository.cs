@@ -401,14 +401,17 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
             // Enrich warranty details with Country, State, City names via lookups
             if (warrantyDetails.Count > 0)
             {
+                static int ToInt(object? value)
+                    => value is null || value is DBNull ? 0 : Convert.ToInt32(value);
+
                 var countryIds = warrantyDetails
-                    .Select(w => (int)w.ServiceCountryId)
+                    .Select(w => ToInt(w.ServiceCountryId))
                     .Where(x => x > 0).Distinct().ToArray();
                 var stateIds = warrantyDetails
-                    .Select(w => (int)w.ServiceStateId)
+                    .Select(w => ToInt(w.ServiceStateId))
                     .Where(x => x > 0).Distinct().ToArray();
                 var cityIds = warrantyDetails
-                    .Select(w => (int)w.ServiceCityId)
+                    .Select(w => ToInt(w.ServiceCityId))
                     .Where(x => x > 0).Distinct().ToArray();
 
                 var countryMap = new Dictionary<int, string>();
@@ -433,11 +436,15 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetMasterGeneral
 
                 foreach (var w in warrantyDetails)
                 {
-                    if (countryMap.TryGetValue((int)w.ServiceCountryId, out var countryName))
+                    var countryId = ToInt(w.ServiceCountryId);
+                    var stateId   = ToInt(w.ServiceStateId);
+                    var cityId    = ToInt(w.ServiceCityId);
+
+                    if (countryId > 0 && countryMap.TryGetValue(countryId, out var countryName))
                         w.CountryName = countryName;
-                    if (stateMap.TryGetValue((int)w.ServiceStateId, out var stateName))
+                    if (stateId > 0 && stateMap.TryGetValue(stateId, out var stateName))
                         w.StateName = stateName;
-                    if (cityMap.TryGetValue((int)w.ServiceCityId, out var cityName))
+                    if (cityId > 0 && cityMap.TryGetValue(cityId, out var cityName))
                         w.CityName = cityName;
                 }
             }

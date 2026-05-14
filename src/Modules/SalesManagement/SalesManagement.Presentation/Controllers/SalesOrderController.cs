@@ -36,7 +36,8 @@ namespace SalesManagement.Presentation.Controllers
             [FromQuery] DateOnly? OrderDateFrom = null,
             [FromQuery] DateOnly? OrderDateTo = null,
             [FromQuery] string? PartyName = null,
-            [FromQuery] string? StatusName = null)
+            [FromQuery] string? StatusName = null,
+            [FromQuery] int? SalesOrderTypeMasterId = null)
         {
             var result = await Mediator.Send(new GetAllSalesOrderQuery
             {
@@ -46,7 +47,8 @@ namespace SalesManagement.Presentation.Controllers
                 OrderDateFrom = OrderDateFrom,
                 OrderDateTo = OrderDateTo,
                 PartyName = PartyName,
-                StatusName = StatusName
+                StatusName = StatusName,
+                SalesOrderTypeMasterId = SalesOrderTypeMasterId
             });
 
             return Ok(new

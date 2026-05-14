@@ -85,7 +85,8 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             string? name = null,
             Status active = Status.Active,
             IsDelete deleted = IsDelete.NotDeleted,
-            int? parentItemId = null)
+            int? parentItemId = null,
+            bool isCapitalItem = false)
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             var i = new ItemMaster
@@ -95,6 +96,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
                 IsActive = active,
                 IsDeleted = deleted,
                 ParentItemId = parentItemId,
+                IsCapitalItem = isCapitalItem,
                 IsOnSpot = false
             };
             await ctx.ItemMaster.AddAsync(i);
@@ -235,6 +237,35 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             var result = await CreateRepo().GetCandidateItemNamesAsync("UniqueCandidate");
 
             result.Should().Contain("UniqueCandidate");
+        }
+
+        // --- GetByIdAsync ---
+        // Regression for Bug #1 — the GetByIdAsync LINQ projection was missing the
+        // IsCapitalItem assignment, so the DTO always defaulted to false regardless
+        // of the underlying ItemMaster.IsCapitalItem column.
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_IsCapitalItem_True_When_Stored_True()
+        {
+            await ClearAsync();
+            var id = await SeedItemAsync("CAP_T", isCapitalItem: true);
+
+            var dto = await CreateRepo().GetByIdAsync(id);
+
+            dto.Should().NotBeNull();
+            dto!.IsCapitalItem.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_IsCapitalItem_False_When_Stored_False()
+        {
+            await ClearAsync();
+            var id = await SeedItemAsync("CAP_F", isCapitalItem: false);
+
+            var dto = await CreateRepo().GetByIdAsync(id);
+
+            dto.Should().NotBeNull();
+            dto!.IsCapitalItem.Should().BeFalse();
         }
 
         // --- GetBaseDirectoryAsync ---

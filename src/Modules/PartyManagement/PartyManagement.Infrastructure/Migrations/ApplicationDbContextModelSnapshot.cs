@@ -602,6 +602,14 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AlternateEmailId")
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("AlternateEmailId");
+
+                    b.Property<string>("AlternateMobileNumber")
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("AlternateMobileNumber");
+
                     b.Property<string>("ContactBy")
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("ContactBy");
@@ -787,6 +795,10 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AlternateName")
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("AlternateName");
+
                     b.Property<string>("CIN")
                         .HasColumnType("nvarchar(25)")
                         .HasColumnName("CIN");
@@ -909,6 +921,12 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsUpdate");
 
+                    b.Property<bool>("IsVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsVerified");
+
                     b.Property<int?>("LeadTime")
                         .HasColumnType("int")
                         .HasColumnName("LeadTime");
@@ -991,6 +1009,14 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("SellingPriceListId");
 
+                    b.Property<string>("ShortName")
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("ShortName");
+
+                    b.Property<int?>("StatusControlId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusControlId");
+
                     b.Property<int>("StatusId")
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
@@ -1024,6 +1050,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.HasIndex("PayementModeId");
 
                     b.HasIndex("RegistrationTypeId");
+
+                    b.HasIndex("StatusControlId");
 
                     b.HasIndex("StatusId");
 
@@ -1394,6 +1422,11 @@ namespace PartyManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "StatusControlMisc")
+                        .WithMany("StatusControlHeader")
+                        .HasForeignKey("StatusControlId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "StatusParty")
                         .WithMany("StatusHeader")
                         .HasForeignKey("StatusId")
@@ -1409,6 +1442,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PaymentModeTypeMisc");
 
                     b.Navigation("RegistrationType");
+
+                    b.Navigation("StatusControlMisc");
 
                     b.Navigation("StatusParty");
 
@@ -1549,6 +1584,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("SalesTypeAccountAssignment");
 
                     b.Navigation("SalesTypeShippingCondition");
+
+                    b.Navigation("StatusControlHeader");
 
                     b.Navigation("StatusHeader");
 

@@ -21,6 +21,12 @@ namespace SalesManagement.Application.SalesAgreement.Dto
         public string? PaymentTermsName { get; set; }
 
         public string? Remarks { get; set; }
+        public string? CustomerPoRefno { get; set; }
+        public string? AgentPOAttachment { get; set; }
+
+        // Capturing Unit (set on create from JWT/IP context; not in command DTO).
+        public int? UnitId { get; set; }
+        public string? UnitName { get; set; }
 
         // Rollup fields — populated by GetAllAsync (aggregated from SalesAgreementDetail).
         // Always 0 on GetById (line-level values are available in SalesAgreementDetails directly).
@@ -33,6 +39,10 @@ namespace SalesManagement.Application.SalesAgreement.Dto
         //   IsActive=1 AND ValidTo <  today → "Expired"
         //   IsActive=0                       → "Inactive"
         public string? Status { get; set; }
+
+        // "Y" when the agreement is eligible for cancel/release (Active + Approved + BalanceQty > 0),
+        // "N" otherwise (Expired, Inactive, non-Approved status, or no balance left).
+        public string? CancelFlag { get; set; }
 
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

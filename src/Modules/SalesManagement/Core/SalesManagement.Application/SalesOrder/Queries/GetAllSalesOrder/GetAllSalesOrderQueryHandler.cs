@@ -27,7 +27,8 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder
         {
             var (data, totalCount) = await _queryRepository.GetAllAsync(
                 request.PageNumber, request.PageSize, request.SearchTerm,
-                request.OrderDateFrom, request.OrderDateTo, request.PartyName, request.StatusName);
+                request.OrderDateFrom, request.OrderDateTo, request.PartyName, request.StatusName,
+                request.SalesOrderTypeMasterId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllSalesOrderQuery",

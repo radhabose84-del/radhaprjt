@@ -26,6 +26,7 @@ using System.Text.Json;
 using PurchaseManagement.Application.PurchaseOrder.Reports;
 using Contracts.Events.Purchase;
 using Contracts.Interfaces.Lookups.Budget;
+using Contracts.Interfaces.Operations.MaintenanceManagement;
 
 namespace PurchaseManagement.Application.Consumers
 {
@@ -42,6 +43,8 @@ namespace PurchaseManagement.Application.Consumers
         private readonly IMediator _mediator;
         private readonly IMrsEntryCommandRepository _mrsEntryCommandRepository;
         private readonly IServicePurchaseOrderCommandRepository _servicePurchaseOrderCommandRepository;
+        private readonly IServicePurchaseOrderQueryRepository _servicePurchaseOrderQueryRepository;
+        private readonly IMaintenanceRequestConversionService _maintenanceRequestConversionService;
         private readonly IIssueReturnEntryCommandRepository _issueReturnEntryCommandRepository;
         private readonly IIssueReturnEntryQueryRepository _issueReturnEntryQueryRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -59,6 +62,8 @@ namespace PurchaseManagement.Application.Consumers
             IMediator mediator,
             IMrsEntryCommandRepository mrsEntryCommandRepository,
             IServicePurchaseOrderCommandRepository servicePurchaseOrderCommandRepository,
+            IServicePurchaseOrderQueryRepository servicePurchaseOrderQueryRepository,
+            IMaintenanceRequestConversionService maintenanceRequestConversionService,
             IIssueReturnEntryCommandRepository issueReturnEntryCommandRepository,
             IIssueReturnEntryQueryRepository issueReturnEntryQueryRepository,
             IHttpContextAccessor httpContextAccessor,
@@ -75,6 +80,8 @@ namespace PurchaseManagement.Application.Consumers
             _mediator = mediator;
             _mrsEntryCommandRepository = mrsEntryCommandRepository;
             _servicePurchaseOrderCommandRepository = servicePurchaseOrderCommandRepository;
+            _servicePurchaseOrderQueryRepository = servicePurchaseOrderQueryRepository;
+            _maintenanceRequestConversionService = maintenanceRequestConversionService;
             _issueReturnEntryCommandRepository = issueReturnEntryCommandRepository;
             _issueReturnEntryQueryRepository = issueReturnEntryQueryRepository;
             _httpContextAccessor = httpContextAccessor;
@@ -323,6 +330,39 @@ namespace PurchaseManagement.Application.Consumers
                         var updated = await _servicePurchaseOrderCommandRepository.UpdateServicePOApproveAsync(poId, finalStatusId, context.CancellationToken);
                         if (!updated)
                             throw new Exception($"Service PO approval update failed for PoId={poId}");
+
+                        // ── EXTERNAL MAINTENANCE REQUEST CONVERSION ──
+                        // On Approved only: for each linked MaintenanceRequest in this PO's lines,
+                        // bump its ConvertedToPoAmount and flip status (Open → PartiallyConverted → FullyConverted).
+                        // Rejected POs leave the linked request untouched.
+                        if (status == MiscEnumEntity.Approved)
+                        {
+                            var linked = await _servicePurchaseOrderQueryRepository
+                                .GetLinkedMaintenanceRequestsAsync(poId, context.CancellationToken);
+
+                            foreach (var link in linked)
+                            {
+                                var applied = await _maintenanceRequestConversionService
+                                    .ApplyServicePoConversionAsync(
+                                        link.RequestId,
+                                        link.TotalPlannedValue,
+                                        context.CancellationToken);
+
+                                if (!applied)
+                                {
+                                    _logger.LogWarning(
+                                        "Service PO {PoId} approved but conversion update did not affect MaintenanceRequest {RequestId} (Δ={Delta}). " +
+                                        "Request may be missing or status MiscMaster code unresolved.",
+                                        poId, link.RequestId, link.TotalPlannedValue);
+                                }
+                                else
+                                {
+                                    _logger.LogInformation(
+                                        "MaintenanceRequest {RequestId} converted by {Delta} via Service PO {PoId}.",
+                                        link.RequestId, link.TotalPlannedValue, poId);
+                                }
+                            }
+                        }
                     }
 
                     await PublishCompletedAsync();
