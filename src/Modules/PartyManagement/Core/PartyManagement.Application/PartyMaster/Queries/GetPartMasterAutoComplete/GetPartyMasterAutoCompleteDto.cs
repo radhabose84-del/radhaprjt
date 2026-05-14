@@ -65,7 +65,9 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public string? LastName { get; set; }
         public string? Designation { get; set; }
         public string? EmailID { get; set; }
+        public string? AlternateEmailId { get; set; }
         public string? MobileNo { get; set; }
+        public string? AlternateMobileNumber { get; set; }
         public string? Phone { get; set; }
         public int? GenderId { get; set; }
         public string? GenderName { get; set; }

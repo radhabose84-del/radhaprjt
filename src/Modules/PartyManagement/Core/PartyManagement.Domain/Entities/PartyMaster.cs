@@ -6,6 +6,13 @@ namespace PartyManagement.Domain.Entities
     {
         public string? PartyCode { get; set; }
         public string? PartyName { get; set; }
+        public string? AlternateName { get; set; }
+        public string? ShortName { get; set; }
+        // Verified/Unverified flag (bit). Defaults to false (Unverified).
+        public bool IsVerified { get; set; }
+        // FK → MiscMaster (e.g. "Active" / "Blocked"). Nullable when not yet set.
+        public int? StatusControlId { get; set; }
+        public MiscMaster? StatusControlMisc { get; set; }
         public int? PartyZoneId { get; set; }
         public MiscMaster? ZoneType { get; set; } = null!;
         public int? RegistrationTypeId { get; set; }
