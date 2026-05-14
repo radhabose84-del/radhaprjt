@@ -5,6 +5,11 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMaster
         public int Id { get; set; }
         public string PartyCode { get; set; } = string.Empty;
         public string PartyName { get; set; } = string.Empty;
+        public string? AlternateName { get; set; }
+        public string? ShortName { get; set; }
+        public bool IsVerified { get; set; }
+        public int? StatusControlId { get; set; }
+        public string? StatusControlName { get; set; }
         public string RegistrationType { get; set; } = string.Empty;
         public string GSTNumber { get; set; } = string.Empty;
         public string PAN { get; set; } = string.Empty;

@@ -11,7 +11,9 @@ namespace PartyManagement.Domain.Entities
         public MiscMaster? Gender { get; set; } = null!;
         public string? Designation { get; set; }
         public string? EmailID { get; set; }
+        public string? AlternateEmailId { get; set; }
         public string? MobileNo { get; set; }
+        public string? AlternateMobileNumber { get; set; }
         public string? Phone { get; set; }
         public int? PreferredChannelId { get; set; }
         public MiscMaster? PreferredChannel { get; set; } = null!;
