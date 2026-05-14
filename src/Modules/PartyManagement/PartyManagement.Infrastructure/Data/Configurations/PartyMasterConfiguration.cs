@@ -40,6 +40,34 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(100)")
                 .IsRequired();
 
+            builder.Property(m => m.AlternateName)
+                .HasColumnName("AlternateName")
+                .HasColumnType("nvarchar(100)")
+                .IsRequired(false);
+
+            builder.Property(m => m.ShortName)
+                .HasColumnName("ShortName")
+                .HasColumnType("nvarchar(50)")
+                .IsRequired(false);
+
+            builder.Property(m => m.IsVerified)
+                .HasColumnName("IsVerified")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            // StatusControlId — nullable FK to MiscMaster (Active / Blocked) with full reverse nav.
+            builder.Property(m => m.StatusControlId)
+                .HasColumnName("StatusControlId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.HasOne(m => m.StatusControlMisc)
+                .WithMany(am => am.StatusControlHeader)
+                .HasForeignKey(m => m.StatusControlId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Property(m => m.PartyZoneId)  // Foreign Key column
                .HasColumnName("PartyZoneId")
                .HasColumnType("int");  // Set as int
