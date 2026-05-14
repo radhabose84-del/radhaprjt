@@ -13,5 +13,6 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetAllSalesOrder
         public DateOnly? OrderDateTo { get; set; }
         public string? PartyName { get; set; }
         public string? StatusName { get; set; }
+        public int? SalesOrderTypeMasterId { get; set; }
     }
 }
