@@ -1,3 +1,4 @@
+using InventoryManagement.Application.Item.ItemCategory.Commands.Shared;
 using MediatR;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemCategory
@@ -12,5 +13,6 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemC
         public byte IsBudgetApplicable { get; set; }
         public byte IsActive { get; set; }
         public List<int> ModuleIds { get; set; } = new();
+        public List<SampleQuantityItem> SampleQuantities { get; set; } = new();
     }
 }

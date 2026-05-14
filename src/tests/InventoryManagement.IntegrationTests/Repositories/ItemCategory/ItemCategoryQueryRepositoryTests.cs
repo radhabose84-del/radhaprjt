@@ -23,7 +23,8 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
 
         private ItemCategoryQueryRepository CreateRepo(
             Mock<IPurchaseItemCategoryValidation>? purchase = null,
-            Mock<IModuleLookup>? moduleLookup = null)
+            Mock<IModuleLookup>? moduleLookup = null,
+            Mock<IUnitLookup>? unitLookup = null)
         {
             if (purchase == null)
             {
@@ -41,9 +42,19 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
                         new() { ModuleId = 2, ModuleName = "Module 2" }
                     });
             }
+            if (unitLookup == null)
+            {
+                unitLookup = new Mock<IUnitLookup>(MockBehavior.Loose);
+                unitLookup.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
+                        ids.Select(id => new UnitLookupDto { UnitId = id, UnitName = $"Unit-{id}" }).ToList());
+                unitLookup.Setup(u => u.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((int id, CancellationToken _) =>
+                        new UnitLookupDto { UnitId = id, UnitName = $"Unit-{id}" });
+            }
 
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new ItemCategoryQueryRepository(conn, purchase.Object, moduleLookup.Object);
+            return new ItemCategoryQueryRepository(conn, purchase.Object, moduleLookup.Object, unitLookup.Object);
         }
 
         private async Task<int> EnsureItemGroupAsync()
