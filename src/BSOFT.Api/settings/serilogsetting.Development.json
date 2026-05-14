@@ -1,23 +1,26 @@
 {
   "Serilog": {
-      "Using": ["Serilog.Sinks.Console", "Serilog.Sinks.File", "Serilog.Sinks.MongoDB"],
-      "MinimumLevel": {
-      "Default": "Warning",
-        "Override": {
-          "Microsoft": "Warning",
-          "System": "Warning"
+    "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.MongoDB" ],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning",
+        "Hangfire": "Warning",
+        "MassTransit": "Warning"
+      }
+    },
+    "WriteTo": [
+      { "Name": "Console" },
+      {
+        "Name": "MongoDB",
+        "Args": {
+          "databaseUrl": "mongodb://192.168.1.126:27017/BannariERP",
+          "collectionName": "ApplicationLogs",
+          "restrictedToMinimumLevel": "Warning"
         }
-      },
-      "WriteTo": [
-        {
-          "Name": "MongoDB",
-          "Args": {
-            "databaseUrl": "mongodb://192.168.1.126:27017/BannariERP",
-            "collectionName": "ApplicationLogs",
-            "restrictedToMinimumLevel": "Warning"
-          }
-        }
-      ],
-      "Enrich": ["FromLogContext"]
-    }
-}  
+      }
+    ],
+    "Enrich": [ "FromLogContext" ]
+  }
+}

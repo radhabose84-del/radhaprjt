@@ -35,17 +35,25 @@ builder.Configuration
     .AddEnvironmentVariables();
 
 // ── Serilog ──────────────────────────────────────────────────────────────────
+var mongoUrl = builder.Configuration.GetConnectionString("MongoDbConnectionString")
+               ?? throw new InvalidOperationException(
+                   "Connection string 'MongoDbConnectionString' is missing from configuration.");
+
 builder.Services.AddSerilog(lc => lc
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
     .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
-    .MinimumLevel.Override("Hangfire", Serilog.Events.LogEventLevel.Information)
+    .MinimumLevel.Override("Hangfire", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File(
         path: Path.Combine(AppContext.BaseDirectory, "logs", "bsoft-worker-.log"),
         rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30));
+        retainedFileCountLimit: 30)
+    .WriteTo.MongoDB(
+        $"{mongoUrl}/BannariERP",
+        collectionName: "WorkerLogs",
+        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning));
 
 // ── Windows Service ──────────────────────────────────────────────────────────
 builder.Services.AddWindowsService(options =>
