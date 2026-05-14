@@ -279,6 +279,11 @@ namespace MaintenanceManagement.Infrastructure
             services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceItemValidation, Repositories.Validations.MaintenanceItemValidationRepository>();
             services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IPartyMasterMaintenanceValidation, Repositories.Validations.PartyMasterMaintenanceValidationRepository>();
 
+            // External Service Request linkage — used by PurchaseManagement Service PO flow
+            services.AddScoped<IMaintenanceRequestLookup, Repositories.Lookups.Maintenance.MaintenanceRequestLookupRepository>();
+            services.AddScoped<Contracts.Interfaces.Validations.MaintenanceManagement.IMaintenanceRequestValidation, Repositories.Validations.MaintenanceRequestValidationRepository>();
+            services.AddScoped<Contracts.Interfaces.Operations.MaintenanceManagement.IMaintenanceRequestConversionService, Repositories.Operations.MaintenanceRequestConversionRepository>();
+
             return services;
         }
     }

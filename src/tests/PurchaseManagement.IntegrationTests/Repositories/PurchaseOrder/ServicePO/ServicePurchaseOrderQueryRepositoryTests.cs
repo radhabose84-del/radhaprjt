@@ -49,11 +49,13 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PurchaseOrder.Service
             var partyLookup = new Mock<IPartyLookup>(MockBehavior.Loose);
             var uomLookup = new Mock<IUOMLookup>(MockBehavior.Loose);
             var mapper = new Mock<IMapper>(MockBehavior.Loose);
+            var maintenanceRequestLookup =
+                new Mock<Contracts.Interfaces.Lookups.Maintenance.IMaintenanceRequestLookup>(MockBehavior.Loose);
 
             return new ServicePurchaseOrderQueryRepository(
                 conn, _fixture.IpMock.Object, ctx, currencyLookup.Object,
                 partyLookup.Object, miscMock.Object, uomLookup.Object,
-                unitLookup.Object, mapper.Object);
+                unitLookup.Object, mapper.Object, maintenanceRequestLookup.Object);
         }
 
         [Fact]
