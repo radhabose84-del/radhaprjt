@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UserManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace UserManagement.Infrastructure.Migrations
+namespace BSOFT.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260513121926_UserSignature_DropBlob")]
+    partial class UserSignature_DropBlob
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2564,20 +2567,6 @@ namespace UserManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(200)")
                         .HasColumnName("FileName");
 
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("FilePath");
-
-                    b.Property<long>("FileSize")
-                        .HasColumnType("bigint")
-                        .HasColumnName("FileSize");
-
-                    b.Property<string>("FileType")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("FileType");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");
@@ -2597,11 +2586,6 @@ namespace UserManagement.Infrastructure.Migrations
 
                     b.Property<string>("ModifiedIP")
                         .HasColumnType("varchar(255)");
-
-                    b.Property<string>("OriginalFileName")
-                        .IsRequired()
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("OriginalFileName");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int")

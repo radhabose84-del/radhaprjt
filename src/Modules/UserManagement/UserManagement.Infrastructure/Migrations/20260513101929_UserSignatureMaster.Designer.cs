@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UserManagement.Infrastructure.Data;
 
 #nullable disable
 
-namespace UserManagement.Infrastructure.Migrations
+namespace BSOFT.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260513101929_UserSignatureMaster")]
+    partial class UserSignatureMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2545,6 +2548,11 @@ namespace UserManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ContentType");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -2564,19 +2572,9 @@ namespace UserManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(200)")
                         .HasColumnName("FileName");
 
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("FilePath");
-
-                    b.Property<long>("FileSize")
-                        .HasColumnType("bigint")
-                        .HasColumnName("FileSize");
-
-                    b.Property<string>("FileType")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("FileType");
+                    b.Property<int>("FileSizeBytes")
+                        .HasColumnType("int")
+                        .HasColumnName("FileSizeBytes");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -2598,10 +2596,10 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Property<string>("ModifiedIP")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("OriginalFileName")
+                    b.Property<byte[]>("SignatureImage")
                         .IsRequired()
-                        .HasColumnType("varchar(200)")
-                        .HasColumnName("OriginalFileName");
+                        .HasColumnType("varbinary(max)")
+                        .HasColumnName("SignatureImage");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int")
