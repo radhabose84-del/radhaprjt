@@ -32,8 +32,13 @@ namespace MaintenanceManagement.Domain.Entities
        public MiscMaster? SpareType { get; set; }         
        public decimal? EstimatedServiceCost { get; set;} = null!;
        public decimal? EstimatedSpareCost { get; set;}
-    
-       public string? Remarks { get; set; } 
+
+       // Running total of approved Service PO line values linked to this request.
+       // Updated by ApprovedRejectedConsumer when a Service PO is approved.
+       // Drives the PartiallyConverted / FullyConverted status transitions.
+       public decimal ConvertedToPoAmount { get; set; }
+
+       public string? Remarks { get; set; }
        public int?  RequestStatusId { get; set; }  
        public MiscMaster? RequestStatus { get; set; }    
        public ICollection<WorkOrder>? WorkOrdersRequest  {get; set;}        
