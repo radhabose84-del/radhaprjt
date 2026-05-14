@@ -1,4 +1,3 @@
-
 using AutoMapper;
 using Contracts.Common;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
@@ -7,12 +6,13 @@ using MediatR;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemCategory
 {
-    public class UpdateItemCategoryCommandHandler  : IRequestHandler<UpdateItemCategoryCommand, int>
+    public class UpdateItemCategoryCommandHandler : IRequestHandler<UpdateItemCategoryCommand, int>
     {
         private readonly IItemCategoryCommandRepository _itemCategoryCommandRepository;
         private readonly IItemCategoryQueryRepository _itemCategoryQueryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+
         public UpdateItemCategoryCommandHandler(IItemCategoryCommandRepository itemCategoryCommandRepository, IItemCategoryQueryRepository itemCategoryQueryRepository, IMediator mediator, IMapper mapper)
         {
             _itemCategoryCommandRepository = itemCategoryCommandRepository;
@@ -32,18 +32,19 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemC
             }
 
             var itemCategory = _mapper.Map<InventoryManagement.Domain.Entities.Item.ItemCategory>(request);
-            var result = await _itemCategoryCommandRepository.UpdateAsync(request.Id, itemCategory, request.ModuleIds);
-            
-            //Domain Event
+            var unitConfigs = _mapper.Map<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>(request.SampleQuantities ?? new());
+
+            var result = await _itemCategoryCommandRepository.UpdateAsync(request.Id, itemCategory, request.ModuleIds, unitConfigs);
+
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: itemCategory.Id.ToString(),
                 actionName: itemCategory.ItemCategoryName ?? "",
-                details: $"Notification Config was updated",
-                module: "NotificationConfig");
+                details: $"Item Category was updated",
+                module: "ItemCategory");
             await _mediator.Publish(domainEvent, cancellationToken);
-           
-            return result > 0 ? result : throw new ExceptionRules("Notification Config update failed.");   
+
+            return result > 0 ? result : throw new ExceptionRules("Item Category update failed.");
         }
     }
 }

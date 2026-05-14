@@ -1,4 +1,6 @@
+using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Users;
 using FluentValidation.TestHelper;
 using InventoryManagement.Application.Common.Interfaces.Item.ItemCategory;
@@ -13,6 +15,8 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
         private readonly Mock<IMaxLengthProvider> _mockMaxLengthProvider = new(MockBehavior.Loose);
         private readonly Mock<IItemCategoryCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IModuleLookup> _mockModuleLookup = new(MockBehavior.Loose);
+        private readonly Mock<IUnitLookup> _mockUnitLookup = new(MockBehavior.Loose);
+        private readonly Mock<IUOMLookup> _mockUomLookup = new(MockBehavior.Loose);
 
         public CreateItemCategoryCommandValidatorTests()
         {
@@ -28,10 +32,18 @@ namespace InventoryManagement.UnitTests.Validators.ItemCategory
                     new ModuleLookupDto { ModuleId = 1, ModuleName = "Module1" },
                     new ModuleLookupDto { ModuleId = 2, ModuleName = "Module2" }
                 });
+
+            _mockUnitLookup.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
+                    ids.Select(id => new UnitLookupDto { UnitId = id, UnitName = $"Unit-{id}" }).ToList());
+
+            _mockUomLookup.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
+                    ids.Select(id => new UOMLookupDto { Id = id, UOMName = $"UOM-{id}" }).ToList());
         }
 
         private CreateItemCategoryCommandValidator CreateValidator() =>
-            new(_mockMaxLengthProvider.Object, _mockCommandRepo.Object, _mockModuleLookup.Object);
+            new(_mockMaxLengthProvider.Object, _mockCommandRepo.Object, _mockModuleLookup.Object, _mockUnitLookup.Object, _mockUomLookup.Object);
 
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()

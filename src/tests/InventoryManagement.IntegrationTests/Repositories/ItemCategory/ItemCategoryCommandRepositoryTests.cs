@@ -60,7 +60,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("Cat_C1"), new List<int>());
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("Cat_C1"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
 
             id.Should().BeGreaterThan(0);
         }
@@ -71,7 +71,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("RootCat"), new List<int>());
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("RootCat"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
             var saved = await ctx.ItemCategory.FirstAsync(x => x.Id == id);
 
@@ -84,9 +84,9 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            var rootId = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("ParentCat"), new List<int>());
+            var rootId = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("ParentCat"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
-            var childId = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("ChildCat", parentId: rootId), new List<int>());
+            var childId = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("ChildCat", parentId: rootId), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
 
             var child = await ctx.ItemCategory.FirstAsync(x => x.Id == childId);
@@ -100,7 +100,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
             await using var ctx = _fixture.CreateFreshDbContext();
 
             var id = await CreateRepo(ctx).CreateAsync(
-                await BuildEntityAsync("ModCat"), new List<int> { 1, 2, 2 }); // dedup
+                await BuildEntityAsync("ModCat"), new List<int> { 1, 2, 2 }, new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>()); // dedup
             ctx.ChangeTracker.Clear();
 
             var modules = await ctx.ItemCategoryModule.Where(m => m.ItemCategoryId == id).ToListAsync();
@@ -114,12 +114,12 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         {
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("UPD1"), new List<int>());
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("UPD1"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
 
             var updated = await BuildEntityAsync("Updated");
             updated.IsActive = Status.Inactive;
-            var result = await CreateRepo(ctx).UpdateAsync(id, updated, new List<int>());
+            var result = await CreateRepo(ctx).UpdateAsync(id, updated, new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
 
             result.Should().Be(1);
@@ -133,7 +133,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            var result = await CreateRepo(ctx).UpdateAsync(9999999, await BuildEntityAsync("Ghost"), new List<int>());
+            var result = await CreateRepo(ctx).UpdateAsync(9999999, await BuildEntityAsync("Ghost"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
 
             result.Should().Be(-1);
         }
@@ -143,10 +143,10 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         {
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("Mod"), new List<int> { 1, 2 });
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("Mod"), new List<int> { 1, 2 }, new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
 
-            await CreateRepo(ctx).UpdateAsync(id, await BuildEntityAsync("Mod"), new List<int> { 3 });
+            await CreateRepo(ctx).UpdateAsync(id, await BuildEntityAsync("Mod"), new List<int> { 3 }, new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
 
             var modules = await ctx.ItemCategoryModule.Where(m => m.ItemCategoryId == id).ToListAsync();
@@ -161,7 +161,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         {
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("DEL1"), new List<int>());
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("DEL1"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
 
             var entity = await BuildEntityAsync("DEL1");
@@ -176,7 +176,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         {
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("DEL2"), new List<int>());
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("DEL2"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
             ctx.ChangeTracker.Clear();
 
             var entity = await BuildEntityAsync("DEL2");
@@ -207,7 +207,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         {
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("ExName"), new List<int>());
+            await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("ExName"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
 
             var result = await CreateRepo(ctx).ExistsByNameAsync("ExName");
 
@@ -221,7 +221,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         {
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("SelfN"), new List<int>());
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("SelfN"), new List<int>(), new List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>());
 
             var result = await CreateRepo(ctx).IsNameDuplicateAsync("SelfN", id);
 

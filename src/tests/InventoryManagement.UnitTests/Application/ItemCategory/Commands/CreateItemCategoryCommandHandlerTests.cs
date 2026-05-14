@@ -26,7 +26,7 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
                 .Returns(new InventoryManagement.Domain.Entities.Item.ItemCategory { ItemCategoryName = "Test Category" });
 
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>()))
+                .Setup(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>(), It.IsAny<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>()))
                 .ReturnsAsync(newId);
 
             _mockMediator
@@ -47,7 +47,7 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
         {
             SetupHappyPath();
             await CreateSut().Handle(ValidCommand(), CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>()), Times.Once);
+            _mockCommandRepo.Verify(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>(), It.IsAny<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>()), Times.Once);
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
                 It.IsAny<CreateItemCategoryCommand>()))
                 .Returns(new InventoryManagement.Domain.Entities.Item.ItemCategory());
 
-            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>()))
+            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>(), It.IsAny<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>()))
                 .ReturnsAsync(0);
 
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -100,8 +100,8 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
 
             InventoryManagement.Domain.Entities.Item.ItemCategory? capturedEntity = null;
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>()))
-                .Callback<InventoryManagement.Domain.Entities.Item.ItemCategory, List<int>>((e, _) => capturedEntity = e)
+                .Setup(r => r.CreateAsync(It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>(), It.IsAny<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>()))
+                .Callback<InventoryManagement.Domain.Entities.Item.ItemCategory, List<int>, List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>((e, _, _) => capturedEntity = e)
                 .ReturnsAsync(1);
 
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -129,7 +129,8 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
 
             _mockCommandRepo.Verify(r => r.CreateAsync(
                 It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(),
-                It.Is<List<int>>(ids => ids.Count == 3 && ids[0] == 10 && ids[1] == 20 && ids[2] == 30)),
+                It.Is<List<int>>(ids => ids.Count == 3 && ids[0] == 10 && ids[1] == 20 && ids[2] == 30),
+                It.IsAny<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>()),
                 Times.Once);
         }
 
@@ -161,7 +162,7 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
 
             _mockCommandRepo.Setup(r => r.CreateAsync(
                 It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(),
-                It.IsAny<List<int>>())).ReturnsAsync(123);
+                It.IsAny<List<int>>(), It.IsAny<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>())).ReturnsAsync(123);
 
             _mockMediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
@@ -189,7 +190,7 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Commands
                 .Returns(new InventoryManagement.Domain.Entities.Item.ItemCategory());
 
             _mockCommandRepo.Setup(r => r.CreateAsync(
-                It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>()))
+                It.IsAny<InventoryManagement.Domain.Entities.Item.ItemCategory>(), It.IsAny<List<int>>(), It.IsAny<List<InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig>>()))
                 .ThrowsAsync(new InvalidOperationException("DB connection lost"));
 
             var act = async () => await CreateSut().Handle(ValidCommand(), CancellationToken.None);

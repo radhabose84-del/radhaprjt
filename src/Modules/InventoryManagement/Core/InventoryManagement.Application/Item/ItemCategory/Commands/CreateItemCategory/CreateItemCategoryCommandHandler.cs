@@ -22,9 +22,10 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemC
         public async Task<int> Handle(CreateItemCategoryCommand request, CancellationToken cancellationToken)
         {
             var itemCategory = _mapper.Map<Domain.Entities.Item.ItemCategory>(request);
-            var result = await _itemCategoryRepository.CreateAsync(itemCategory, request.ModuleIds);
+            var unitConfigs = _mapper.Map<List<Domain.Entities.Item.ItemCategoryUnitConfig>>(request.SampleQuantities ?? new());
 
-            //Domain Event
+            var result = await _itemCategoryRepository.CreateAsync(itemCategory, request.ModuleIds, unitConfigs);
+
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: itemCategory.Id.ToString(),
@@ -36,5 +37,4 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemC
             return result > 0 ? result : throw new ExceptionRules("ItemCategory Creation Failed.");
         }
     }
-
 }
