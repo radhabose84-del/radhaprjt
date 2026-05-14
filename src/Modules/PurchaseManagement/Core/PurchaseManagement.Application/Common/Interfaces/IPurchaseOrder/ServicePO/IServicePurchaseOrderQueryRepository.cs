@@ -34,6 +34,13 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Servic
 
         Task<IEnumerable<GetServicePOLinesDto>> GetLinesByPoIdAsync(int poId, CancellationToken ct);
 
+        /// <summary>
+        /// Returns one row per linked MaintenanceRequest with the sum of PlannedValue across
+        /// all this PO's lines that reference it. Used by ApprovedRejectedConsumer to bump
+        /// each ESR's ConvertedToPoAmount when the Service PO is approved.
+        /// </summary>
+        Task<List<ServicePoLinkedRequestDto>> GetLinkedMaintenanceRequestsAsync(int purchaseOrderId, CancellationToken ct);
+
         Task<SesFromScheduleRawDto?> GetSesCreateSourceAsync(int purchaseOrderId, int scheduleNo, int serviceItemId, CancellationToken ct = default);
 
 

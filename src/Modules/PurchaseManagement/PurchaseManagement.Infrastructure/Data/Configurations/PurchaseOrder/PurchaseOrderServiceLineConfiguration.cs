@@ -8,7 +8,10 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder
     {
         public void Configure(EntityTypeBuilder<PurchaseOrderServiceLine> b)
         {
-                 b.ToTable("PurchaseOrderServiceLine", "Purchase");
+                 b.ToTable("PurchaseOrderServiceLine", "Purchase", t =>
+                    t.HasCheckConstraint(
+                        "CK_PurchaseOrderServiceLine_RequestId_NotZero",
+                        "[RequestId] IS NULL OR [RequestId] > 0"));
 
             b.HasKey(x => x.Id);
 

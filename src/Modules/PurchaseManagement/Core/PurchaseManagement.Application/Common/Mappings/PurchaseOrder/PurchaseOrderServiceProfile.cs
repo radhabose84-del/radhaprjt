@@ -163,7 +163,9 @@ namespace PurchaseManagement.Application.Common.Mappings.PurchaseOrder
                 .ForMember(d => d.PurchaseOrderId, o => o.MapFrom(s => s.PurchaseOrderId))
                 .ForMember(d => d.ServicePoHeaderId, o => o.MapFrom(s => s.ServicePoHeaderId))
                 .ForMember(d => d.LineNo, o => o.MapFrom(s => s.LineNo))
-                .ForMember(d => d.RequestId, o => o.MapFrom(s => s.RequestId))
+                // Coerce 0 → null. Legacy frontend posts 0 for "no link"; new code treats null as "no link".
+                .ForMember(d => d.RequestId, o => o.MapFrom(s =>
+                    s.RequestId.HasValue && s.RequestId.Value > 0 ? s.RequestId : (int?)null))
                 .ForMember(d => d.ServiceId, o => o.MapFrom(s => s.ServiceId))
                 .ForMember(d => d.ServiceDescription, o => o.MapFrom(s => s.ServiceDescription))
                 .ForMember(d => d.UOMId, o => o.MapFrom(s => s.UOMId))

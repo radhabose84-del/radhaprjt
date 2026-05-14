@@ -19,6 +19,8 @@ using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanc
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceServiceLocation;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceSparesType;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceDipatchMode;
+using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequestsForServicePo;
+using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequestForServicePoById;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using Microsoft.AspNetCore.Http;
 
@@ -409,9 +411,41 @@ namespace MaintenanceManagement.Presentation.Controllers
                     });
                 }
 
-             
+        // ───────────────────────────────────────────────────────────────
+        //  External Service Request lookup endpoints (used by Service PO UI)
+        // ───────────────────────────────────────────────────────────────
 
-      
-        
+        [HttpGet("for-service-po")]
+        public async Task<IActionResult> GetForServicePoAsync([FromQuery] string SearchTerm = null)
+        {
+            var result = await Mediator.Send(new GetMaintenanceRequestsForServicePoQuery
+            {
+                SearchTerm = SearchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data,
+                totalCount = result.TotalCount
+            });
+        }
+
+        [HttpGet("for-service-po/{id}")]
+        public async Task<IActionResult> GetForServicePoByIdAsync(int id)
+        {
+            var result = await Mediator.Send(new GetMaintenanceRequestForServicePoByIdQuery { Id = id });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
     }
 }
