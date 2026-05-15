@@ -28,7 +28,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNEntry
             public decimal ReceivedQuantity { get; set; }
             public DateTimeOffset? ExpiryDate { get; set; }
             public string? BatchNumber { get; set; }
-            
-        } 
+            public string? GrnDetailImage { get; set; }
+
+        }
     }
 }

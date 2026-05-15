@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry;
@@ -70,6 +71,24 @@ namespace PurchaseManagement.IntegrationTests.Repositories.GRN.GRNEntry
             var result = await CreateRepo().GetDocumentDirectoryAsync();
 
             result.Should().BeNull();
+        }
+
+        /// <summary>
+        /// The pending/QC GRN detail projections (SCRUM-1606) read B.GrnDetailImage from
+        /// Purchase.GrnDetail. This verifies the column is queryable in the test DB so the
+        /// detail SELECTs resolve. Full joined query flows are covered by unit tests
+        /// (see COMPLEXITY NOTE above).
+        /// </summary>
+        [Fact]
+        public async Task GrnDetailImage_Column_Should_Be_Queryable()
+        {
+            await using var conn = new SqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+
+            Func<Task> act = async () => await conn.QueryAsync<string>(
+                "SELECT TOP 0 GrnDetailImage FROM Purchase.GrnDetail");
+
+            await act.Should().NotThrowAsync();
         }
     }
 }

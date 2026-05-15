@@ -28,6 +28,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
             public string? UOMName { get; set; }
             public decimal? QcAcceptedQuantity { get; set; }
             public decimal? UnitPrice { get; set; }
+            public string? GrnDetailImage { get; set; }
             public List<PutawayRuleDto>? PutawayRules { get; set; }
 
             public class PutawayRuleDto

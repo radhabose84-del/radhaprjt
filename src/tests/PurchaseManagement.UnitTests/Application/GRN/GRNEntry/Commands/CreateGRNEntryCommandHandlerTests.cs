@@ -7,6 +7,7 @@ using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNEntry;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
+using static PurchaseManagement.Application.GRN.GRNEntry.Commands.CreateGRNEntry.CreateGRNEntryDto;
 
 namespace PurchaseManagement.UnitTests.Application.GRN.GRNEntry.Commands
 {
@@ -79,6 +80,52 @@ namespace PurchaseManagement.UnitTests.Application.GRN.GRNEntry.Commands
             Func<Task> act = () => CreateSut().Handle(command, CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>();
+        }
+
+        [Fact]
+        public async Task Handle_LineItemWithImage_PassesGrnDetailImageToEntity()
+        {
+            GrnHeader captured = null!;
+
+            _mockMapper
+                .Setup(m => m.Map<GrnHeader>(It.IsAny<object>()))
+                .Returns(new GrnHeader { GrnNo = null, GrnDetails = new List<GrnDetail>() });
+            _mockCmdRepo
+                .Setup(r => r.GenerateNextCodeAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync("GRN-001");
+            // Non-TEMP filename → passed straight through, no file rename/IO
+            _mockQryRepo
+                .Setup(r => r.GetDocumentDirectoryAsync())
+                .ReturnsAsync($"UT_{Guid.NewGuid():N}");
+            _mockQryRepo
+                .Setup(r => r.GetPoOtherDetails(
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(new List<PoValueDetailsDto> { new PoValueDetailsDto { UnitPrice = 10m } });
+            _mockCmdRepo
+                .Setup(r => r.CreateAsync(It.IsAny<GrnHeader>()))
+                .Callback<GrnHeader>(h => captured = h)
+                .ReturnsAsync(1);
+
+            var command = new CreateGRNEntryCommand
+            {
+                GrnEntryCreate = new CreateGRNEntryDto
+                {
+                    GRNDetailsDtos = new List<CreateGRNDetailsDto>
+                    {
+                        new CreateGRNDetailsDto
+                        {
+                            PoId = 1, ItemId = 1, OrderQuantity = 10m, DcQuantity = 5m,
+                            GrnDetailImage = "line1.png"
+                        }
+                    }
+                }
+            };
+
+            await CreateSut().Handle(command, CancellationToken.None);
+
+            captured.Should().NotBeNull();
+            captured.GrnDetails.Should().ContainSingle();
+            captured.GrnDetails!.First().GrnDetailImage.Should().Be("line1.png");
         }
 
         [Fact]
