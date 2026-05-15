@@ -6,5 +6,6 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetTotalPur
 public record GetTotalPurchaseValueQuery(
     int? BudgetGroupId,
     int? ItemCategoryId,
+    int? PoMethodId,
     DateTimeOffset Date)
     : IRequest<PurchaseValueTotalDto>;

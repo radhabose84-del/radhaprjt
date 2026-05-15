@@ -242,5 +242,13 @@
     {
         "rule": "ActivePolicy",
         "error": "An active insurance already exists for this asset. Please wait until the current insurance expires before adding a new one."
+    },
+    {
+        "rule": "GrnExists",
+        "error": "Cannot cancel - GRN has already been generated for this Purchase Order."
+    },
+    {
+        "rule": "GrnRequired",
+        "error": "Purchase Order cannot be foreclosed without a GRN. Use Cancel instead."
     }
 ]

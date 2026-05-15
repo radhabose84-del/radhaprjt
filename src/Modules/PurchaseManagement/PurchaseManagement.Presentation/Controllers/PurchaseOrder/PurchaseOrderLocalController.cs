@@ -1,5 +1,7 @@
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Cancel;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Delete;
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Update;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseOrder;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
@@ -148,6 +150,7 @@ public class PurchaseOrderLocalController : ApiControllerBase
     public async Task<IActionResult> GetTotalPurchaseValue(
         [FromQuery] int? budgetGroupId = null,
         [FromQuery] int? itemCategoryId = null,
+        [FromQuery] int? poMethodId = null,
         [FromQuery] DateTimeOffset? date = null,
         CancellationToken ct = default)
     {
@@ -159,15 +162,41 @@ public class PurchaseOrderLocalController : ApiControllerBase
             });
 
         var data = await Mediator.Send(
-            new GetTotalPurchaseValueQuery(budgetGroupId, itemCategoryId, date.Value), ct);
+            new GetTotalPurchaseValueQuery(budgetGroupId, itemCategoryId, poMethodId, date.Value), ct);
 
         return Ok(new { StatusCode = StatusCodes.Status200OK, message = "Fetched", data });
+    }
+
+    [HttpPut("cancel/{id:int}")]
+    public async Task<IActionResult> CancelPurchaseOrder(int id, CancellationToken ct)
+    {
+        var result = await Mediator.Send(new CancelPurchaseOrderCommand(id), ct);
+
+        return Ok(new
+        {
+            StatusCode = StatusCodes.Status200OK,
+            isSuccess = result,
+            message = result ? "Purchase Order cancelled successfully." : "Failed to cancel Purchase Order."
+        });
+    }
+
+    [HttpPut("foreclose/{id:int}")]
+    public async Task<IActionResult> ForeclosePurchaseOrder(int id, CancellationToken ct)
+    {
+        var result = await Mediator.Send(new ForeclosePurchaseOrderCommand(id), ct);
+
+        return Ok(new
+        {
+            StatusCode = StatusCodes.Status200OK,
+            isSuccess = result,
+            message = result ? "Purchase Order foreclosed successfully." : "Failed to foreclose Purchase Order."
+        });
     }
 
     [HttpGet("reports/rfq/pdf")]
     public async Task<IActionResult> Untitled([FromQuery] int unitId ,int poId)
     {
-        var pdf = await Mediator.Send(new GenerateUntitledPdfQuery(unitId, poId));       
+        var pdf = await Mediator.Send(new GenerateUntitledPdfQuery(unitId, poId));
         return File(pdf, "application/pdf", $"Po-{unitId}-{poId}.pdf");
-    } 
+    }
 } 

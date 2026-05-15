@@ -27,6 +27,8 @@ public interface IPurchaseOrderCommandRepository
         Task SaveChangesAsync(CancellationToken ct);
         IExecutionStrategy CreateExecutionStrategy();
         Task RecomputeIndentPoQtyAsync(HashSet<int> indentHeaderIds, CancellationToken ct);
+        Task<bool> CancelAsync(int id, CancellationToken ct);
+        Task<bool> ForecloseAsync(int id, CancellationToken ct);
 }
 
 
