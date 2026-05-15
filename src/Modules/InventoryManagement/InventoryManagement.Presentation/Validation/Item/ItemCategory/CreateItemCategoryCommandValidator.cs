@@ -71,6 +71,13 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemCategory
                             .WithMessage("A Category Name already exists.");
                         break;
 
+                    case "GreaterThanOrEqualToZero":
+                        RuleFor(x => x.EmergencyPoLimit)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateItemCategoryCommand.EmergencyPoLimit)} {rule.Error}")
+                            .When(x => x.EmergencyPoApplicable == 1 && x.EmergencyPoLimit.HasValue);
+                        break;
+
                     case "FKColumnDelete":
                         RuleFor(x => x.ModuleIds)
                             .MustAsync(async (ids, cancellation) =>

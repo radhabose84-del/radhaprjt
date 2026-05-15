@@ -5,6 +5,7 @@ using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseO
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderAutocomplete;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
+using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetTotalPurchaseValue;
 using PurchaseManagement.Application.PurchaseOrder.POAmendment;
 using PurchaseManagement.Application.PurchaseOrder.Reports;
 using MediatR;
@@ -143,6 +144,26 @@ public class PurchaseOrderLocalController : ApiControllerBase
             data = new { NewPurchaseOrderId = newId }
         });
     }
+    [HttpGet("total-purchase-value")]
+    public async Task<IActionResult> GetTotalPurchaseValue(
+        [FromQuery] int? budgetGroupId = null,
+        [FromQuery] int? itemCategoryId = null,
+        [FromQuery] DateTimeOffset? date = null,
+        CancellationToken ct = default)
+    {
+        if (!date.HasValue)
+            return BadRequest(new
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                message = "date is required."
+            });
+
+        var data = await Mediator.Send(
+            new GetTotalPurchaseValueQuery(budgetGroupId, itemCategoryId, date.Value), ct);
+
+        return Ok(new { StatusCode = StatusCodes.Status200OK, message = "Fetched", data });
+    }
+
     [HttpGet("reports/rfq/pdf")]
     public async Task<IActionResult> Untitled([FromQuery] int unitId ,int poId)
     {

@@ -43,7 +43,8 @@ public class PurchaseOrderHeader : BaseEntity, IActivityTracked
     public int? ProjectId { get; set; } 
     public int? WBSId { get; set; }
     public int? CostCenterId { get; set; } 
-    public int? BudgetGroupId { get; set; } 
+    public int? BudgetGroupId { get; set; }
+    public int? ItemCategoryId { get; set; }
     public int? BudgetRequestById { get; set; } 
     public int? BudgetDepartmentId { get; set; } 
     public int? FinancialYearId { get; set; }
