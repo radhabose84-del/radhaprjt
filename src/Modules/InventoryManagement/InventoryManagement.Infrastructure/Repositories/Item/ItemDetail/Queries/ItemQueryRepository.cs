@@ -751,8 +751,45 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 dp.Add("UnitId", unitId);
             }
 
-            var items = await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, dp);
-            return items.ToList();
+            var itemList = (await _dbConnection.QueryAsync<GetItemAutoCompleteDto>(sql, dp)).ToList();
+
+            // Attach ItemCategoryUnitConfig rows per item — filtered by the item's category and the
+            // caller's current unit (from IIPAddressService). Active + non-deleted only.
+            if (itemList.Count > 0)
+            {
+                var categoryIds = itemList.Select(i => i.ItemCategoryId).Distinct().ToArray();
+                var currentUnitId = _ipAddressService.GetUnitId() ?? 0;
+
+                if (categoryIds.Length > 0 && currentUnitId > 0)
+                {
+                    const string configSql = @"
+                        SELECT cfg.ItemCategoryId, cfg.UOMId AS UomId, u.UOMName AS UomName,
+                               cfg.UnitId, cfg.MaxSampleQuantity
+                        FROM Inventory.ItemCategoryUnitConfig cfg
+                        LEFT JOIN Inventory.UOM u ON u.Id = cfg.UOMId AND u.IsDeleted = 0
+                        WHERE cfg.ItemCategoryId IN @CategoryIds
+                          AND cfg.UnitId = @UnitId
+                          AND cfg.IsActive = 1
+                          AND cfg.IsDeleted = 0";
+
+                    var configs = (await _dbConnection.QueryAsync<ItemCategoryUnitConfigDto>(
+                        configSql, new { CategoryIds = categoryIds, UnitId = currentUnitId })).ToList();
+
+                    var configsByCategory = configs
+                        .GroupBy(c => c.ItemCategoryId)
+                        .ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var item in itemList)
+                    {
+                        item.ItemCategoryUnitConfigs =
+                            configsByCategory.TryGetValue(item.ItemCategoryId, out var rows)
+                                ? rows
+                                : new List<ItemCategoryUnitConfigDto>();
+                    }
+                }
+            }
+
+            return itemList;
         }
 
         public async Task<bool> SoftDeleteValidationAsync(int id)

@@ -904,6 +904,33 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = discountMasterId });
         }
 
+        public async Task<bool> SampleOrderExistsForPartyThisMonthAsync(int partyId, int salesOrderTypeMasterId, CancellationToken ct = default)
+        {
+            // Rule applies ONLY to "Sample Order" types. The type-name guard is part of the SQL so
+            // a non-Sample-Order type can never trip the duplicate check.
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM Sales.SalesOrderHeader h
+                    INNER JOIN Sales.SalesOrderTypeMaster sotm
+                        ON h.SalesOrderTypeMasterId = sotm.Id AND sotm.IsDeleted = 0
+                    WHERE h.PartyId = @PartyId
+                      AND h.SalesOrderTypeMasterId = @SalesOrderTypeMasterId
+                      AND h.IsDeleted = 0
+                      AND sotm.TypeName = @SampleOrderTypeName
+                      AND YEAR(h.OrderDate)  = YEAR(CAST(GETDATE() AS DATE))
+                      AND MONTH(h.OrderDate) = MONTH(CAST(GETDATE() AS DATE))
+                ) THEN 1 ELSE 0 END;";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(
+                new CommandDefinition(sql, new
+                {
+                    PartyId = partyId,
+                    SalesOrderTypeMasterId = salesOrderTypeMasterId,
+                    SampleOrderTypeName = MiscEnumEntity.SalesOrderTypeSampleOrder
+                }, cancellationToken: ct));
+        }
+
         public async Task<List<DiscountsBySalesGroupDto>> GetDiscountsBySalesGroupAsync(int salesGroupId, int slabTypeId, int paymentTermId, CancellationToken ct)
         {
             // Header — filter by SalesGroup (via DiscountSalesGroup), SlabType AND PaymentTerm (via DiscountPaymentTerm)
