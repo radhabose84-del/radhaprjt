@@ -20,6 +20,7 @@ public class GetTotalPurchaseValueQueryHandler
         var total = await _repo.GetTotalPurchaseValueAsync(
             request.BudgetGroupId,
             request.ItemCategoryId,
+            request.PoMethodId,
             request.Date,
             ct);
 

@@ -56,6 +56,16 @@ public class PurchaseOrderHeader : BaseEntity, IActivityTracked
     public ICollection<PurchaseOrderServiceHeader> ServicePos { get; set; } = new List<PurchaseOrderServiceHeader>();
     public ICollection<ServiceEntrySheet> ServiceEntrySheets { get; set; } = new List<ServiceEntrySheet>();
     public ICollection<ImportPOHeader> ImportPOHeader { get; set; } = new List<ImportPOHeader>();
+    // Cancelled fields
+    public DateTimeOffset? CancelledDate { get; set; }
+    public string? CancelledByName { get; set; }
+    public string? CancelledIP { get; set; }
+
+    // ForeClosed fields
+    public DateTimeOffset? ForeClosedDate { get; set; }
+    public string? ForeClosedByName { get; set; }
+    public string? ForeClosedIP { get; set; }
+
     public ICollection<PurchaseDocument>? PurchaseDocumentTypes { get; set; }= new List<PurchaseDocument>();
 }
 

@@ -77,7 +77,15 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
                 WHEN mStatus.Code = @Pending  THEN NULL
             END AS EditReason,
             h.RevisionNo,
-            h.AmendmentReason
+            h.AmendmentReason,
+            CAST(CASE WHEN x.HasGRN = 0 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanCancel,
+            CAST(CASE WHEN x.HasGRN = 1 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanForeclose,
+            h.CancelledDate,
+            h.CancelledByName,
+            h.CancelledIP,
+            h.ForeClosedDate,
+            h.ForeClosedByName,
+            h.ForeClosedIP
         FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
         LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
         LEFT JOIN Purchase.MiscMaster mCat    WITH (NOLOCK) ON mCat.Id    = h.POCategoryId        
@@ -235,13 +243,25 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
     public Task<IEnumerable<AutocompleteDto>> GetAutocompleteAsync(string? term, int? poMethodId,int? budgetGroupId, CancellationToken ct)
     {
         const string sql = @"
-            SELECT Id, PONumber 
-            FROM Purchase.PurchaseOrderHeader
-            WHERE IsDeleted=0 AND PONumber LIKE @t and unitId =@UnitId 
-            AND (@poMethodId IS NULL OR POMethodId = @poMethodId)
-            AND (@BudgetGroupId IS NULL OR BudgetGroupId = @BudgetGroupId)            
-            ORDER BY Id DESC;";
-        return _conn.QueryAsync<AutocompleteDto>(sql, new { t = $"%{term?.Trim()}%", poMethodId, UnitId = _ip.GetUnitId() ?? 0, budgetGroupId});
+            SELECT h.Id, h.PONumber
+            FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+            LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
+            WHERE h.IsDeleted = 0
+              AND h.UnitId = @UnitId
+              AND h.PONumber LIKE @t
+              AND (@poMethodId IS NULL OR h.POMethodId = @poMethodId)
+              AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+              AND (mStatus.Code IS NULL OR mStatus.Code NOT IN (@Cancelled, @ForeClosed))
+            ORDER BY h.Id DESC;";
+        return _conn.QueryAsync<AutocompleteDto>(sql, new
+        {
+            t = $"%{term?.Trim()}%",
+            poMethodId,
+            UnitId = _ip.GetUnitId() ?? 0,
+            budgetGroupId,
+            Cancelled = MiscEnumEntity.Cancelled,
+            ForeClosed = MiscEnumEntity.ForeClosed
+        });
     }
 
 
@@ -585,7 +605,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
     }
 
     public async Task<decimal> GetTotalPurchaseValueAsync(
-        int? budgetGroupId, int? itemCategoryId,
+        int? budgetGroupId, int? itemCategoryId, int? poMethodId,
         DateTimeOffset poDate,
         CancellationToken ct)
     {
@@ -603,6 +623,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
               )
               AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
               AND (@ItemCategoryId IS NULL OR h.ItemCategoryId = @ItemCategoryId)
+              AND (@PoMethodId IS NULL OR h.POMethodId = @PoMethodId)
               and m.Code = @POCategoryId
               AND MONTH(h.PODate) = @Month
               AND YEAR(h.PODate)  = @Year;";
@@ -614,10 +635,23 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
                 ApprovedCode = MiscEnumEntity.Approved,
                 BudgetGroupId = budgetGroupId,
                 ItemCategoryId = itemCategoryId,
+                PoMethodId = poMethodId,
                 Month = poDate.Month,
                 Year = poDate.Year,
                 Status = MiscEnumEntity.ApprovalStatus,
                 POCategoryId = MiscEnumEntity.EmergencyPO
             }, cancellationToken: ct));
+    }
+
+    public async Task<bool> NotFoundAsync(int id, CancellationToken ct)
+    {
+        const string sql = @"
+            SELECT CASE WHEN NOT EXISTS (
+                SELECT 1 FROM Purchase.PurchaseOrderHeader
+                WHERE Id = @Id AND IsDeleted = 0
+            ) THEN 1 ELSE 0 END";
+
+        return await _conn.ExecuteScalarAsync<bool>(
+            new CommandDefinition(sql, new { Id = id }, cancellationToken: ct));
     }
 }
