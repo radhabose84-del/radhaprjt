@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using PurchaseManagement.Infrastructure.Data;
@@ -68,6 +69,31 @@ namespace PurchaseManagement.IntegrationTests.Repositories.GRN.GRNEntry
             // See GateEntryCommandRepositoryTests for seeding GateEntry,
             // and unit tests for full GRN creation flow with mocked dependencies.
             repo.Should().NotBeNull();
+        }
+
+        /// <summary>
+        /// Verifies the per-line-item image column (added for SCRUM-1606) exists on
+        /// Purchase.GrnDetail with the correct type. The full GRN write chain is covered
+        /// by unit tests with mocked dependencies (see COMPLEXITY NOTE above).
+        /// </summary>
+        [Fact]
+        public async Task GrnDetail_Should_Have_GrnDetailImage_Column()
+        {
+            await using var conn = new SqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+
+            var column = await conn.QueryFirstOrDefaultAsync<(string DataType, int? MaxLength, string IsNullable)>(
+                @"SELECT DATA_TYPE AS DataType,
+                         CHARACTER_MAXIMUM_LENGTH AS MaxLength,
+                         IS_NULLABLE AS IsNullable
+                  FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE TABLE_SCHEMA = 'Purchase'
+                    AND TABLE_NAME = 'GrnDetail'
+                    AND COLUMN_NAME = 'GrnDetailImage'");
+
+            column.DataType.Should().Be("nvarchar");
+            column.MaxLength.Should().Be(250);
+            column.IsNullable.Should().Be("YES");
         }
     }
 }

@@ -103,7 +103,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry
                     TaxableAmount = itemValueoftax + cgstValue + sgstValue + igstValue,
                     QcAcceptedQuantity = detail.QcAcceptedQuantity ?? 0,
                     QcRejectedQuantity = detail.QcRejectedQuantity ?? 0,
-                    QcRejectedRemarks = detail.QcRejectedRemarks ?? string.Empty
+                    QcRejectedRemarks = detail.QcRejectedRemarks ?? string.Empty,
+                    GrnDetailImage = detail.GrnDetailImage
 
                 };
 
@@ -119,7 +120,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry
                     IGST = igstValue,
                     ItemValue = itemValueoftax,
                     TaxableAmount = itemValueoftax + cgstValue + sgstValue + igstValue,
-                    DiscountValue = discountvalue
+                    DiscountValue = discountvalue,
+                    GrnDetailImage = detail.GrnDetailImage
                 });
             }
 
@@ -165,6 +167,42 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry
                     }
                 }
             }
+            // ✅ Finalize per-line-item images → <GrnNo>_L<lineNo>.<ext>
+            //    (already-final filenames are passed through unchanged on re-save)
+            if (calculatedDetails.Any(c => !string.IsNullOrWhiteSpace(c.GrnDetailImage)))
+            {
+                string detailBaseDirectory = await _igrnEntryQueryRepository.GetDocumentDirectoryAsync();
+                string detailUploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", detailBaseDirectory);
+                EnsureDirectoryExists(detailUploadPath);
+
+                int lineNo = 0;
+                foreach (var calc in calculatedDetails)
+                {
+                    lineNo++;
+                    if (string.IsNullOrWhiteSpace(calc.GrnDetailImage)
+                        || !calc.GrnDetailImage.StartsWith("TEMP_"))
+                        continue;
+
+                    string oldDetailFilePath = Path.Combine(detailUploadPath, calc.GrnDetailImage);
+                    if (!File.Exists(oldDetailFilePath))
+                        continue;
+
+                    string newDetailFileName = $"{grnEntryHeader.GrnNo}_L{lineNo}{Path.GetExtension(oldDetailFilePath)}";
+                    string newDetailFilePath = Path.Combine(detailUploadPath, newDetailFileName);
+
+                    try
+                    {
+                        File.Move(oldDetailFilePath, newDetailFilePath, overwrite: true);
+                        calc.GrnDetailImage = newDetailFileName;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"File rename failed for '{calc.GrnDetailImage}' → '{newDetailFileName}': {ex.Message}", ex);
+                    }
+                }
+            }
+
             var result = await _iGrnEntryCommandRepository.UpdateAsync(grnEntryHeader.Id, grnEntryHeader,calculatedDetails,headerDto.UpdateGRNDetailsDtos);
             if (!result)
                 throw new ExceptionRules("GRN update failed.");
