@@ -20,12 +20,14 @@ namespace SalesManagement.Application.StoHeader.Dto
         // Supplying Plant & Storage Location (cross-module lookup)
         public int SupplyingPlantId { get; set; }
         public string? SupplyingPlantName { get; set; }
+        public string? SupplyingPlantPinCode { get; set; }
         public int SupplyingStorageLocationId { get; set; }
         public string? SupplyingStorageLocationName { get; set; }
 
         // Receiving Plant & Storage Location (cross-module lookup)
         public int ReceivingPlantId { get; set; }
         public string? ReceivingPlantName { get; set; }
+        public string? ReceivingPlantPinCode { get; set; }
         public int ReceivingStorageLocationId { get; set; }
         public string? ReceivingStorageLocationName { get; set; }
 

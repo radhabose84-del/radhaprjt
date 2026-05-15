@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using Contracts.Dtos.Lookups.Users;
 using InventoryManagement.Application.Common.Mappings;
+using InventoryManagement.Application.Item.ItemCategory.Queries.Shared;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategory
 {
@@ -37,5 +38,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
 
         // Optional upward link for internal use only (ignored in JSON)
         [JsonIgnore] public ItemCategoryDto? Parent { get; set; }
+
+        public List<SampleQuantityDto> SampleQuantities { get; set; } = new();
     }
 }

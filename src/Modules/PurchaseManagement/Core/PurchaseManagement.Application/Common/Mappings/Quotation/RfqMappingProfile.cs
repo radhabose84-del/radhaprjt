@@ -27,7 +27,22 @@ namespace PurchaseManagement.Application.Common.Mappings.Quotation
                 .ForMember(d => d.ModifiedByName, o => o.Ignore())
                 .ForMember(d => d.ModifiedIP, o => o.Ignore())
                 .ForMember(d => d.Items, o => o.MapFrom(s => s.Items))
-                .ForMember(d => d.Suppliers, o => o.MapFrom(s => s.Suppliers));
+                .ForMember(d => d.Suppliers, o => o.MapFrom(s => s.Suppliers))
+                .ForMember(d => d.Attachments, o => o.Ignore());
+
+            CreateMap<RfqAttachment, RfqAttachmentDto>()
+                .ForCtorParam(nameof(RfqAttachmentDto.Id), o => o.MapFrom(s => s.Id))
+                .ForCtorParam(nameof(RfqAttachmentDto.RfqId), o => o.MapFrom(s => s.RfqId))
+                .ForCtorParam(nameof(RfqAttachmentDto.FileName), o => o.MapFrom(s => s.FileName ?? string.Empty))
+                .ForCtorParam(nameof(RfqAttachmentDto.OriginalFileName), o => o.MapFrom(s => s.OriginalFileName ?? string.Empty))
+                .ForCtorParam(nameof(RfqAttachmentDto.FileType), o => o.MapFrom(s => s.FileType))
+                .ForCtorParam(nameof(RfqAttachmentDto.FileSize), o => o.MapFrom(s => s.FileSize));
+
+            CreateMap<IEnumerable<RfqAttachment>, RfqAttachmentDto[]>().ConvertUsing((src, _, ctx) =>
+                (src ?? Enumerable.Empty<RfqAttachment>())
+                    .Where(a => a.IsDeleted == DomainBase.IsDelete.NotDeleted)
+                    .Select(x => ctx.Mapper.Map<RfqAttachmentDto>(x))
+                    .ToArray());
 
             CreateMap<RfqItemCreateDto, RfqItem>()
                 .ForMember(d => d.Id, o => o.Ignore())
@@ -126,7 +141,8 @@ namespace PurchaseManagement.Application.Common.Mappings.Quotation
                 .ForCtorParam(nameof(RfqDto.IndentId), o => o.MapFrom(s => (int?)s.IndentId))
                 .ForCtorParam(nameof(RfqDto.LastSubmitDate), o => o.MapFrom(s => s.LastSubmitDate))
                 .ForCtorParam(nameof(RfqDto.Items), o => o.MapFrom(s => s.Items))
-                .ForCtorParam(nameof(RfqDto.Suppliers), o => o.MapFrom(s => s.Suppliers));
+                .ForCtorParam(nameof(RfqDto.Suppliers), o => o.MapFrom(s => s.Suppliers))
+                .ForCtorParam(nameof(RfqDto.Attachments), o => o.MapFrom(s => s.Attachments));
 
             // Autocomplete
             CreateMap<RfqMaster, RfqAutoCompleteDto>()

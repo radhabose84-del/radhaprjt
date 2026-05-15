@@ -54,9 +54,19 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnName("EmailID")
                 .HasColumnType("nvarchar(100)");
 
+            builder.Property(m => m.AlternateEmailId)
+                .HasColumnName("AlternateEmailId")
+                .HasColumnType("nvarchar(100)")
+                .IsRequired(false);
+
             builder.Property(m => m.MobileNo)
                 .HasColumnName("MobileNo")
                 .HasColumnType("nvarchar(50)");
+
+            builder.Property(m => m.AlternateMobileNumber)
+                .HasColumnName("AlternateMobileNumber")
+                .HasColumnType("nvarchar(50)")
+                .IsRequired(false);
 
             builder.Property(m => m.Phone)
                 .HasColumnName("Phone")

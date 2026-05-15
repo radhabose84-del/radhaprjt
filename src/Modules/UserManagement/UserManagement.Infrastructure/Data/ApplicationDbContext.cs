@@ -69,6 +69,7 @@ namespace UserManagement.Infrastructure.Data
         public DbSet<DepartmentGroup> DepartmentGroup { get; set; }
         public DbSet<RoleItemGroupMapping> RoleItemGroupMapping { get; set; }
         public DbSet<UserFavoriteMenu> UserFavoriteMenus { get; set; }
+        public DbSet<UserSignature> UserSignature { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -122,6 +123,7 @@ namespace UserManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new DepartmentGroupConfiguration());
             modelBuilder.ApplyConfiguration(new RoleItemGroupMappingConfiguration());
             modelBuilder.ApplyConfiguration(new UserFavoriteMenuConfiguration());
+            modelBuilder.ApplyConfiguration(new UserSignatureConfiguration());
 
 
 

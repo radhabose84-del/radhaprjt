@@ -24,11 +24,23 @@ namespace SalesManagement.Domain.Entities
 
         public string? Remarks { get; set; }
 
+        // Customer PO Reference number (free text)
+        public string? CustomerPoRefno { get; set; }
+
+        // Agent PO Attachment — uploaded file name (path resolved via company/unit at runtime)
+        public string? AgentPOAttachment { get; set; }
+
+        // Capturing Unit — set by handler from JWT/IP context at creation time (cross-module FK to UserManagement, no DB FK constraint).
+        public int? UnitId { get; set; }
+
         // Same-module navigation properties
         public MiscMaster? StatusMisc { get; set; }
         public SalesGroup? SalesGroup { get; set; }
 
         // Child collection
         public ICollection<SalesAgreementDetail>? SalesAgreementDetails { get; set; }
+
+        // Reverse navigation — SalesOrderHeaders raised against this agreement
+        public ICollection<SalesOrderHeader>? SalesOrderHeaders { get; set; }
     }
 }

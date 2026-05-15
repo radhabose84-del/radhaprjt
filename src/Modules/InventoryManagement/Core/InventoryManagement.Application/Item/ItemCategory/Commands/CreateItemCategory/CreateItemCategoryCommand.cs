@@ -1,4 +1,4 @@
-
+using InventoryManagement.Application.Item.ItemCategory.Commands.Shared;
 using MediatR;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemCategory
@@ -13,5 +13,6 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemC
         public byte? EmergencyPoApplicable { get; set; }
         public decimal? EmergencyPoLimit { get; set; }
         public List<int> ModuleIds { get; set; } = new();
+        public List<SampleQuantityItem> SampleQuantities { get; set; } = new();
     }
 }

@@ -68,6 +68,21 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(500)")
                 .IsRequired(false);
 
+            builder.Property(t => t.CustomerPoRefno)
+                .HasColumnName("CustomerPoRefno")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
+            builder.Property(t => t.AgentPOAttachment)
+                .HasColumnName("AgentPOAttachment")
+                .HasColumnType("varchar(255)")
+                .IsRequired(false);
+
+            builder.Property(t => t.UnitId)
+                .HasColumnName("UnitId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
@@ -108,6 +123,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.CustomerId);
             builder.HasIndex(t => t.StatusId);
             builder.HasIndex(t => t.SalesGroupId);
+            builder.HasIndex(t => t.UnitId);
             builder.HasIndex(t => new { t.ValidFrom, t.ValidTo });
         }
     }

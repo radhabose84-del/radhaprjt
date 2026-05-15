@@ -12,6 +12,8 @@ namespace SalesManagement.Application.SalesAgreement.Commands.CreateSalesAgreeme
         public int SalesGroupId { get; set; }
         public int PaymentTermsId { get; set; }
         public string? Remarks { get; set; }
+        public string? CustomerPoRefno { get; set; }
+        public string? AgentPOAttachment { get; set; }
         public List<CreateSalesAgreementDetailDto>? SalesAgreementDetails { get; set; }
     }
 }

@@ -340,5 +340,26 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
                 s.Email != null ? s.Email.Value : null,
                 s.Mobile))
             .ToListAsync(ct);
+
+        public async Task<string?> SoftDeleteAttachmentAsync(int rfqId, int attachmentId, CancellationToken ct = default)
+        {
+            var attachment = await _db.RfqAttachments
+                .FirstOrDefaultAsync(a =>
+                    a.Id == attachmentId &&
+                    a.RfqId == rfqId &&
+                    a.IsDeleted == Domain.Common.BaseEntity.IsDelete.NotDeleted, ct);
+
+            if (attachment == null)
+                return null;
+
+            attachment.IsDeleted = Domain.Common.BaseEntity.IsDelete.Deleted;
+            attachment.ModifiedBy = _ip.GetUserId();
+            attachment.ModifiedByName = _ip.GetUserName();
+            attachment.ModifiedIP = _ip.GetSystemIPAddress();
+            attachment.ModifiedDate = DateTimeOffset.UtcNow;
+
+            await _db.SaveChangesAsync(ct);
+            return attachment.FilePath;
+        }
     }
 }

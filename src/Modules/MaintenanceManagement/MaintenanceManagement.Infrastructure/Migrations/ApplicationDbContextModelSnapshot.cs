@@ -706,6 +706,12 @@ namespace MaintenanceManagement.Infrastructure.Migrations
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("ConvertedToPoAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
@@ -724,7 +730,7 @@ namespace MaintenanceManagement.Infrastructure.Migrations
 
                     b.Property<decimal?>("EstimatedSpareCost")
                         .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)");
+                        .HasColumnType("decimal");
 
                     b.Property<DateTimeOffset?>("ExpectedDispatchDate")
                         .HasColumnType("DateTimeOffset");

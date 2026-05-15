@@ -3858,6 +3858,10 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AgentPOAttachment")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("AgentPOAttachment");
+
                     b.Property<string>("AgreementNo")
                         .HasColumnType("varchar(30)")
                         .HasColumnName("AgreementNo");
@@ -3881,6 +3885,10 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("int")
                         .HasColumnName("CustomerId");
+
+                    b.Property<string>("CustomerPoRefno")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CustomerPoRefno");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -3922,6 +3930,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
 
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
                     b.Property<DateOnly>("ValidFrom")
                         .HasColumnType("date")
                         .HasColumnName("ValidFrom");
@@ -3941,6 +3953,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("SalesGroupId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("UnitId");
 
                     b.HasIndex("ValidFrom", "ValidTo");
 
@@ -5287,6 +5301,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("RevisionNumber");
 
+                    b.Property<int?>("SalesAgreementHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesAgreementHeaderId");
+
                     b.Property<int?>("SalesEnquiryHeaderId")
                         .HasColumnType("int")
                         .HasColumnName("SalesEnquiryHeaderId");
@@ -5412,6 +5430,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("PartyId");
 
                     b.HasIndex("PaymentTypeId");
+
+                    b.HasIndex("SalesAgreementHeaderId");
 
                     b.HasIndex("SalesEnquiryHeaderId");
 
@@ -8034,6 +8054,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("PaymentTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("SalesManagement.Domain.Entities.SalesAgreementHeader", "SalesAgreementHeader")
+                        .WithMany("SalesOrderHeaders")
+                        .HasForeignKey("SalesAgreementHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.SalesEnquiryHeader", "SalesEnquiryHeader")
                         .WithMany("SalesOrderHeaders")
                         .HasForeignKey("SalesEnquiryHeaderId")
@@ -8076,6 +8101,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("FreightType");
 
                     b.Navigation("PaymentType");
+
+                    b.Navigation("SalesAgreementHeader");
 
                     b.Navigation("SalesEnquiryHeader");
 
@@ -8593,6 +8620,8 @@ namespace SalesManagement.Infrastructure.Migrations
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesAgreementHeader", b =>
                 {
                     b.Navigation("SalesAgreementDetails");
+
+                    b.Navigation("SalesOrderHeaders");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesChannel", b =>

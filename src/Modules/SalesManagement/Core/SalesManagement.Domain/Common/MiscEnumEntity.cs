@@ -207,6 +207,11 @@ namespace SalesManagement.Domain.Common
         public const string PaymentTypeMiscType = "PaymentType";
         public const string PaymentTypeAdvance = "Advance";
 
+        // Sales Order Type Master — variants that skip workflow + notifications and persist with
+        // StatusId pre-set to "Approved".
+        public const string SalesOrderTypeRateAgreement = "Rate Agreement";
+        public const string SalesOrderTypeSampleOrder   = "Sample Order";
+
         // Sales Agreement
         public const string TransactionTypeSalesAgreement = "Sales Agreement";
         public const string SalesAgreementApprovalStatus = "ApprovalStatus";

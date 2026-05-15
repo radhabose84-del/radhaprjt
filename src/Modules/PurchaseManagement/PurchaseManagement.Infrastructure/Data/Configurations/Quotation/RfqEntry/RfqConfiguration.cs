@@ -60,6 +60,11 @@ public class RfqConfiguration : IEntityTypeConfiguration<RfqMaster>
             .HasForeignKey(s => s.RfqId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        b.HasMany(x => x.Attachments)
+            .WithOne(a => a.Rfq)
+            .HasForeignKey(a => a.RfqId)
+            .OnDelete(DeleteBehavior.Cascade);
+
           // --- BaseEntity columns (unchanged) ---
         b.Property(x => x.IsActive).HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();
         b.Property(x => x.IsDeleted).HasColumnName("IsDeleted").HasColumnType("bit").HasConversion(isDeleteConverter).IsRequired();

@@ -112,8 +112,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         public async Task<PartyMasterDto> GetByIdPartyMasterAsync(int id)
         {
             var sql = @"
-            SELECT pm.*
+            SELECT pm.*, sc.Description AS StatusControlName
             FROM Party.PartyMaster pm
+            LEFT JOIN Party.MiscMaster sc ON pm.StatusControlId = sc.Id AND sc.IsDeleted = 0
             WHERE pm.Id = @Id;
             select A.Id,A.PartyId,A.PartyTypeId,A.PartyGroupId,C.description as GlCategory from Party.PartyType A INNER JOIN Party.PartyGroup B ON A.PartyGroupId=B.Id INNER JOIN Party.MiscMaster C ON B.GlCategoryId=C.Id where a.PartyId=@Id;
             SELECT * FROM Party.PartyContact WHERE PartyId = @Id;
@@ -272,6 +273,11 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         a.Id,
                         a.PartyCode,
                         a.PartyName,
+                        a.AlternateName,
+                        a.ShortName,
+                        a.IsVerified,
+                        a.StatusControlId,
+                        sc.Description AS StatusControlName,
                         c.Description AS RegistrationType,
                         a.GSTNumber,
                         a.PAN,
@@ -285,9 +291,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     INNER JOIN Party.MiscMaster c ON a.RegistrationTypeId = c.Id
                     INNER JOIN Party.MiscMaster d ON b.PartyTypeId = d.Id
                     INNER JOIN Party.PartyGroup e ON e.Id = b.PartyGroupId
+                    LEFT JOIN Party.MiscMaster sc ON a.StatusControlId = sc.Id AND sc.IsDeleted = 0
                     WHERE a.IsDeleted = 0
                     {customerFilter}
-                    GROUP BY a.Id, a.PartyCode, a.PartyName, c.Description, a.GSTNumber, a.PAN, a.Website, a.PartyStatus, a.IsActive,a.CreatedDate
+                    GROUP BY a.Id, a.PartyCode, a.PartyName, a.AlternateName, a.ShortName, a.IsVerified, a.StatusControlId, sc.Description, c.Description, a.GSTNumber, a.PAN, a.Website, a.PartyStatus, a.IsActive,a.CreatedDate
                 )
                 SELECT *,
                     COUNT(*) OVER() AS TotalCount
@@ -511,7 +518,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 // Fetch contacts (Gender, PreferredChannel, ContactType from same-module MiscMaster)
                 const string contactSql = @"
                     SELECT pc.Id, pc.PartyId, pc.FirstName, pc.LastName, pc.Designation,
-                        pc.EmailID, pc.MobileNo, pc.Phone,
+                        pc.EmailID, pc.AlternateEmailId, pc.MobileNo, pc.AlternateMobileNumber, pc.Phone,
                         pc.GenderId, g.Description AS GenderName,
                         pc.PreferredChannelId, ch.Description AS PreferredChannelName,
                         pc.ContactTypeId, ct.Description AS ContactTypeName,
@@ -539,7 +546,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                                 LastName = c.LastName,
                                 Designation = c.Designation,
                                 EmailID = c.EmailID,
+                                AlternateEmailId = c.AlternateEmailId,
                                 MobileNo = c.MobileNo,
+                                AlternateMobileNumber = c.AlternateMobileNumber,
                                 Phone = c.Phone,
                                 GenderId = c.GenderId,
                                 GenderName = c.GenderName,

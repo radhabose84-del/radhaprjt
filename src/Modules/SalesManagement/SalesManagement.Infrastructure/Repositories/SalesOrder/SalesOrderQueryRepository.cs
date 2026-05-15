@@ -63,7 +63,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _divisionLookup = divisionLookup;
         }
 
-        public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null)
+        public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null, int? salesOrderTypeMasterId = null)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
@@ -73,6 +73,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             var dateFromFilter = orderDateFrom.HasValue ? "AND h.OrderDate >= @OrderDateFrom" : "";
             var dateToFilter = orderDateTo.HasValue ? "AND h.OrderDate <= @OrderDateTo" : "";
             var statusFilter = string.IsNullOrWhiteSpace(statusName) ? "" : "AND st.Description LIKE @StatusName";
+            var typeFilter = salesOrderTypeMasterId.HasValue ? "AND h.SalesOrderTypeMasterId = @SalesOrderTypeMasterId" : "";
 
             // Marketing Officer access scoping
             var moFilter = "";
@@ -86,6 +87,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (orderDateFrom.HasValue) param.Add("@OrderDateFrom", orderDateFrom.Value);
             if (orderDateTo.HasValue) param.Add("@OrderDateTo", orderDateTo.Value);
             if (!string.IsNullOrWhiteSpace(statusName)) param.Add("@StatusName", $"%{statusName}%");
+            if (salesOrderTypeMasterId.HasValue) param.Add("@SalesOrderTypeMasterId", salesOrderTypeMasterId.Value);
 
             if (await _accessFilter.ShouldApplyFilterAsync())
             {
@@ -104,7 +106,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {moFilter};
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {typeFilter} {moFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
                     h.SalesQuotationHeaderId,
@@ -210,7 +212,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 ) amd_latest ON amd_latest.SalesOrderHeaderId = h.Id
                     AND LOWER(st.Code) = LOWER('Approved')
                 LEFT JOIN Sales.MiscMaster amd_mm ON amd_latest.StatusId = amd_mm.Id AND amd_mm.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {moFilter}
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {typeFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -247,6 +249,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 {
                     if (item.UnitId.HasValue)
                         item.UnitName = unitDict.TryGetValue(item.UnitId.Value, out var uName) ? uName : null;
+
+                    // Combined Order: when no unit is attached (typically EnquiryType=2), display a label
+                    // so the grid doesn't show an empty cell.
+                    if (string.IsNullOrEmpty(item.UnitName))
+                        item.UnitName = "Combined Order";
+
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
                     if (item.AgentId.HasValue)
                         item.AgentName = agentDict.TryGetValue(item.AgentId.Value, out var aName) ? aName : null;

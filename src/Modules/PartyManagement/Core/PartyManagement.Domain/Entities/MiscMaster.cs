@@ -24,6 +24,7 @@ namespace PartyManagement.Domain.Entities
         public ICollection<PartyDocument>? PartyDocumentType { get; set; }
         public ICollection<PartyBank>? PartyBankType { get; set; }
         public ICollection<PartyMaster>? StatusHeader { get; set; }
+        public ICollection<PartyMaster>? StatusControlHeader { get; set; }
         public ICollection<BankAccount>? BankAccountType { get; set; }
         public ICollection<BankAccount>? BankAccountBranch { get; set; }
         public ICollection<SalesType>? SalesTypeShippingCondition { get; set; }

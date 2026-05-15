@@ -5,6 +5,10 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public int Id { get; set; }
         public string? PartyCode { get; set; } //Readonly Field
         public string? PartyName { get; set; }
+        public string? AlternateName { get; set; }
+        public string? ShortName { get; set; }
+        public byte IsVerified { get; set; }
+        public int? StatusControlId { get; set; }
         public int? PartyZoneId { get; set; }
         public int? RegistrationTypeId { get; set; }
         public string? GSTNumber { get; set; }
@@ -80,7 +84,9 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             public int? GenderId { get; set; }
             public string? Designation { get; set; }
             public string? EmailID { get; set; }
+            public string? AlternateEmailId { get; set; }
             public string? MobileNo { get; set; }
+            public string? AlternateMobileNumber { get; set; }
             public string? Phone { get; set; }
             public int? PreferredChannelId { get; set; }
             public int? ContactTypeId { get; set; }
