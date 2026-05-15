@@ -26,11 +26,11 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Queries
             };
 
             _mockQueryRepo
-                .Setup(r => r.GetSampleQuantityAsync(10, 2))
+                .Setup(r => r.GetSampleQuantityAsync(10, 2, 1))
                 .ReturnsAsync(dto);
 
             var result = await CreateSut().Handle(
-                new GetItemCategorySampleQuantityQuery { ItemCategoryId = 10, UnitId = 2 },
+                new GetItemCategorySampleQuantityQuery { ItemCategoryId = 10, UnitId = 2, UOMId = 1 },
                 CancellationToken.None);
 
             result.Should().NotBeNull();
@@ -42,29 +42,29 @@ namespace InventoryManagement.UnitTests.Application.ItemCategory.Queries
         public async Task Handle_NoConfig_ReturnsNull()
         {
             _mockQueryRepo
-                .Setup(r => r.GetSampleQuantityAsync(10, 99))
+                .Setup(r => r.GetSampleQuantityAsync(10, 99, 5))
                 .ReturnsAsync((SampleQuantityDto?)null);
 
             var result = await CreateSut().Handle(
-                new GetItemCategorySampleQuantityQuery { ItemCategoryId = 10, UnitId = 99 },
+                new GetItemCategorySampleQuantityQuery { ItemCategoryId = 10, UnitId = 99, UOMId = 5 },
                 CancellationToken.None);
 
             result.Should().BeNull();
         }
 
         [Fact]
-        public async Task Handle_CallsRepositoryOnce()
+        public async Task Handle_CallsRepositoryOnce_WithUomId()
         {
             _mockQueryRepo
-                .Setup(r => r.GetSampleQuantityAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .Setup(r => r.GetSampleQuantityAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync((SampleQuantityDto?)null);
 
             await CreateSut().Handle(
-                new GetItemCategorySampleQuantityQuery { ItemCategoryId = 1, UnitId = 1 },
+                new GetItemCategorySampleQuantityQuery { ItemCategoryId = 1, UnitId = 1, UOMId = 3 },
                 CancellationToken.None);
 
             _mockQueryRepo.Verify(
-                r => r.GetSampleQuantityAsync(1, 1),
+                r => r.GetSampleQuantityAsync(1, 1, 3),
                 Times.Once);
         }
     }

@@ -118,8 +118,8 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemCategory
                 .When(x => x.IsGroup == 1);
 
             RuleFor(x => x.SampleQuantities)
-                .Must(list => list == null || list.GroupBy(s => s.UnitId).All(g => g.Count() == 1))
-                .WithMessage("Duplicate Unit entries are not allowed within the same Item Category.")
+                .Must(list => list == null || list.GroupBy(s => new { s.UnitId, s.UOMId }).All(g => g.Count() == 1))
+                .WithMessage("Duplicate Unit + UOM combination is not allowed within the same Item Category.")
                 .When(x => x.SampleQuantities != null && x.SampleQuantities.Count > 0);
 
             RuleFor(x => x.SampleQuantities)
