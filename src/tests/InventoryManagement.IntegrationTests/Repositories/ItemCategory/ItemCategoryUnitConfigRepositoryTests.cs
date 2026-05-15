@@ -110,6 +110,23 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
             return u.Id;
         }
 
+        private async Task<int> EnsureUOM2Async()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var existing = await ctx.UOMs.FirstOrDefaultAsync(u => u.Code == "ICUCNOS");
+            if (existing != null) return existing.Id;
+            var typeId = await EnsureUomTypeMiscAsync();
+            var u = new UOM
+            {
+                Code = "ICUCNOS", UOMName = "Number-Test",
+                UOMTypeId = typeId, SortOrder = 2,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.UOMs.AddAsync(u);
+            await ctx.SaveChangesAsync();
+            return u.Id;
+        }
+
         private async Task<InventoryManagement.Domain.Entities.Item.ItemCategory> BuildCategoryAsync(string name = "UC_Cat1")
         {
             var groupId = await EnsureItemGroupAsync();
@@ -149,7 +166,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
         }
 
         [Fact]
-        public async Task CreateAsync_With_DuplicateUnitId_Dedups()
+        public async Task CreateAsync_SameUnit_SameUom_Dedups()
         {
             await ClearAsync();
             var uomId = await EnsureUOMAsync();
@@ -167,6 +184,33 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
 
             var saved = await ctx.ItemCategoryUnitConfig.Where(c => c.ItemCategoryId == catId).ToListAsync();
             saved.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task CreateAsync_SameUnit_DifferentUom_PersistsBothRows()
+        {
+            await ClearAsync();
+            var uomKg = await EnsureUOMAsync();
+            var uomNos = await EnsureUOM2Async();
+
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var configs = new List<ItemCategoryUnitConfig>
+            {
+                new() { UnitId = 1, UOMId = uomKg,  MaxSampleQuantity = 10m, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted },
+                new() { UnitId = 1, UOMId = uomNos, MaxSampleQuantity = 50m, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+            };
+
+            var catId = await CreateCommandRepo(ctx).CreateAsync(
+                await BuildCategoryAsync("UC_SameUnit_DiffUom"), new List<int>(), configs);
+            ctx.ChangeTracker.Clear();
+
+            var saved = await ctx.ItemCategoryUnitConfig
+                .Where(c => c.ItemCategoryId == catId && c.IsDeleted == IsDelete.NotDeleted)
+                .ToListAsync();
+
+            saved.Should().HaveCount(2);
+            saved.Select(s => s.UnitId).Distinct().Should().ContainSingle().Which.Should().Be(1);
+            saved.Select(s => s.UOMId).Should().BeEquivalentTo(new[] { uomKg, uomNos });
         }
 
         // ---------- Update (diff strategy) ----------
@@ -293,8 +337,36 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
                     await BuildCategoryAsync("UC_Q2"), new List<int>(), configs);
             }
 
-            var dto = await CreateQueryRepo().GetSampleQuantityAsync(catId, 1);
+            var dto = await CreateQueryRepo().GetSampleQuantityAsync(catId, 1, uomId);
             dto.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetSampleQuantityAsync_SameUnit_ResolvesByUom()
+        {
+            await ClearAsync();
+            var uomKg = await EnsureUOMAsync();
+            var uomNos = await EnsureUOM2Async();
+
+            int catId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var configs = new List<ItemCategoryUnitConfig>
+                {
+                    new() { UnitId = 1, UOMId = uomKg,  MaxSampleQuantity = 10m, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted },
+                    new() { UnitId = 1, UOMId = uomNos, MaxSampleQuantity = 50m, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+                };
+                catId = await CreateCommandRepo(ctx).CreateAsync(
+                    await BuildCategoryAsync("UC_Q_ByUom"), new List<int>(), configs);
+            }
+
+            var kg = await CreateQueryRepo().GetSampleQuantityAsync(catId, 1, uomKg);
+            var nos = await CreateQueryRepo().GetSampleQuantityAsync(catId, 1, uomNos);
+
+            kg.Should().NotBeNull();
+            kg!.MaxSampleQuantity.Should().Be(10m);
+            nos.Should().NotBeNull();
+            nos!.MaxSampleQuantity.Should().Be(50m);
         }
 
         [Fact]
@@ -314,8 +386,9 @@ namespace InventoryManagement.IntegrationTests.Repositories.ItemCategoryTests
                     await BuildCategoryAsync("UC_Q3"), new List<int>(), configs);
             }
 
-            (await CreateQueryRepo().UnitExistsForCategoryAsync(catId, 7, null)).Should().BeTrue();
-            (await CreateQueryRepo().UnitExistsForCategoryAsync(catId, 99, null)).Should().BeFalse();
+            (await CreateQueryRepo().UnitExistsForCategoryAsync(catId, 7, uomId, null)).Should().BeTrue();
+            (await CreateQueryRepo().UnitExistsForCategoryAsync(catId, 7, 9999, null)).Should().BeFalse();
+            (await CreateQueryRepo().UnitExistsForCategoryAsync(catId, 99, uomId, null)).Should().BeFalse();
         }
     }
 }
