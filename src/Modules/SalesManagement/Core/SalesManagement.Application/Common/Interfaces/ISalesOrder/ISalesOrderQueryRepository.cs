@@ -30,6 +30,11 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesOrder
         Task<bool> SubAgentExistsAsync(int subAgentId);
         Task<bool> HasDispatchAdviceAsync(int salesOrderHeaderId);
         Task<bool> DiscountMasterExistsAsync(int discountMasterId);
+
+        // Sample Order rule: returns true if the given SalesOrderTypeMasterId resolves to
+        // "Sample Order" AND the party already has a non-deleted Sample Order in the current
+        // calendar month. Returns false for any non-Sample-Order type (rule does not apply).
+        Task<bool> SampleOrderExistsForPartyThisMonthAsync(int partyId, int salesOrderTypeMasterId, CancellationToken ct = default);
         Task<List<SalesOrderInvoiceDto>> GetSalesOrderInvoicesAsync(int salesOrderId);
 
         /// <summary>

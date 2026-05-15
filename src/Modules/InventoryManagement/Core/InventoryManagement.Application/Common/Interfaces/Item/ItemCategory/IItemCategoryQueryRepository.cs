@@ -15,8 +15,8 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.ItemCategory
 
         Task<List<SampleQuantityDto>> GetSampleQuantitiesAsync(int itemCategoryId);
         Task<Dictionary<int, List<SampleQuantityDto>>> GetSampleQuantitiesByCategoryIdsAsync(IEnumerable<int> itemCategoryIds);
-        Task<SampleQuantityDto?> GetSampleQuantityAsync(int itemCategoryId, int unitId);
-        Task<bool> UnitExistsForCategoryAsync(int itemCategoryId, int unitId, int? excludeRowId);
+        Task<SampleQuantityDto?> GetSampleQuantityAsync(int itemCategoryId, int unitId, int uomId);
+        Task<bool> UnitExistsForCategoryAsync(int itemCategoryId, int unitId, int uomId, int? excludeRowId);
         Task<bool> IsLeafCategoryAsync(int itemCategoryId);
     }
 }

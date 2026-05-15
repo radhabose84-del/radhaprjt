@@ -85,7 +85,7 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item
             builder.HasIndex(b => b.ItemCategoryId);
             builder.HasIndex(b => b.UnitId);
             builder.HasIndex(b => b.UOMId);
-            builder.HasIndex(b => new { b.ItemCategoryId, b.UnitId })
+            builder.HasIndex(b => new { b.ItemCategoryId, b.UnitId, b.UOMId })
                    .IsUnique()
                    .HasFilter("[IsDeleted] = 0");
         }

@@ -106,12 +106,14 @@ namespace InventoryManagement.Presentation.Controllers.Item
         [HttpGet("sample-quantity")]
         public async Task<IActionResult> GetSampleQuantityAsync(
             [FromQuery] int itemCategoryId,
-            [FromQuery] int unitId)
+            [FromQuery] int unitId,
+            [FromQuery] int uomId)
         {
             var result = await Mediator.Send(new GetItemCategorySampleQuantityQuery
             {
                 ItemCategoryId = itemCategoryId,
-                UnitId = unitId
+                UnitId = unitId,
+                UOMId = uomId
             });
             return Ok(new
             {

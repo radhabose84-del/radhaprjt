@@ -15,7 +15,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
 
         public async Task<SampleQuantityDto?> Handle(GetItemCategorySampleQuantityQuery request, CancellationToken cancellationToken)
         {
-            return await _queryRepository.GetSampleQuantityAsync(request.ItemCategoryId, request.UnitId);
+            return await _queryRepository.GetSampleQuantityAsync(request.ItemCategoryId, request.UnitId, request.UOMId);
         }
     }
 }

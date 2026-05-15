@@ -53,7 +53,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             }
 
             var newConfigs = (unitConfigs ?? new List<ItemCategoryUnitConfig>())
-                .GroupBy(c => c.UnitId)
+                .GroupBy(c => new { c.UnitId, c.UOMId })
                 .Select(g => g.First())
                 .ToList();
             if (newConfigs.Count > 0)
@@ -136,7 +136,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             }
 
             var payload = (unitConfigs ?? new List<ItemCategoryUnitConfig>())
-                .GroupBy(c => c.UnitId)
+                .GroupBy(c => new { c.UnitId, c.UOMId })
                 .Select(g => g.First())
                 .ToList();
 

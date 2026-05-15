@@ -397,7 +397,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     }).ToList());
         }
 
-        public async Task<SampleQuantityDto?> GetSampleQuantityAsync(int itemCategoryId, int unitId)
+        public async Task<SampleQuantityDto?> GetSampleQuantityAsync(int itemCategoryId, int unitId, int uomId)
         {
             const string sql = @"
                 SELECT TOP 1
@@ -411,10 +411,11 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 LEFT JOIN Inventory.UOM U ON U.Id = SQ.UOMId AND U.IsDeleted = 0
                 WHERE SQ.ItemCategoryId = @ItemCategoryId
                   AND SQ.UnitId          = @UnitId
+                  AND SQ.UOMId           = @UOMId
                   AND SQ.IsDeleted       = 0
                   AND SQ.IsActive        = 1;";
 
-            var dto = await _dbConnection.QueryFirstOrDefaultAsync<SampleQuantityDto>(sql, new { ItemCategoryId = itemCategoryId, UnitId = unitId });
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<SampleQuantityDto>(sql, new { ItemCategoryId = itemCategoryId, UnitId = unitId, UOMId = uomId });
 
             if (dto != null)
             {
@@ -425,13 +426,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             return dto;
         }
 
-        public async Task<bool> UnitExistsForCategoryAsync(int itemCategoryId, int unitId, int? excludeRowId)
+        public async Task<bool> UnitExistsForCategoryAsync(int itemCategoryId, int unitId, int uomId, int? excludeRowId)
         {
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
                     SELECT 1 FROM Inventory.ItemCategoryUnitConfig
                     WHERE ItemCategoryId = @ItemCategoryId
                       AND UnitId          = @UnitId
+                      AND UOMId           = @UOMId
                       AND IsDeleted       = 0
                       AND (@ExcludeRowId IS NULL OR Id <> @ExcludeRowId)
                 ) THEN 1 ELSE 0 END;";
@@ -440,6 +442,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             {
                 ItemCategoryId = itemCategoryId,
                 UnitId = unitId,
+                UOMId = uomId,
                 ExcludeRowId = excludeRowId
             });
         }

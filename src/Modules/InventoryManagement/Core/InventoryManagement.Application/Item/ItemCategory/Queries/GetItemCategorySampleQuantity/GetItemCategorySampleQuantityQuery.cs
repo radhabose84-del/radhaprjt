@@ -7,5 +7,6 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
     {
         public int ItemCategoryId { get; set; }
         public int UnitId { get; set; }
+        public int UOMId { get; set; }
     }
 }
