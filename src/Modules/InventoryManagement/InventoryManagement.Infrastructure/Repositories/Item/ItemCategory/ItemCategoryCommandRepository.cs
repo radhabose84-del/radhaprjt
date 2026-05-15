@@ -109,6 +109,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             existingItemCategory.ParentCategoryId = itemCategory.ParentCategoryId;
             existingItemCategory.IsBudgetApplicable = itemCategory.IsBudgetApplicable;
             existingItemCategory.IsActive = itemCategory.IsActive;
+			existingItemCategory.IsActive=itemCategory.IsActive;
 
             _applicationDbContext.ItemCategory.Update(existingItemCategory);
             await _applicationDbContext.SaveChangesAsync();

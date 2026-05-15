@@ -51,6 +51,8 @@ const string sql = @"
         CASE WHEN btT.Id IS NOT NULL THEN bt.Description ELSE NULL END AS BudgetTypeName,
         bg.CarryForward,
         bg.IsParent,
+        bg.EmergencyPoApplicable,
+        bg.EmergencyPoLimit,
         bg.IsActive
     FROM [Budget].[BudgetGroup] bg WITH (NOLOCK)
     LEFT JOIN [Budget].[BudgetGroup] pbg WITH (NOLOCK) 
@@ -155,6 +157,8 @@ const string sql = @"
                 CostCenterName = string.Empty,
 
                 IsParent = x.IsParent,
+                EmergencyPoApplicable = x.EmergencyPoApplicable,
+                EmergencyPoLimit = x.EmergencyPoLimit,
                 IsActive = x.IsActive
             }).ToList();
 
@@ -191,6 +195,8 @@ const string sql = @"
             bg.AllocatedPercentage,
             bg.AllocatedSpindleCost,
             bg.IsParent,
+            bg.EmergencyPoApplicable,
+            bg.EmergencyPoLimit,
             bg.IsActive,
             bg.IsDeleted
             FROM [Budget].[BudgetGroup] bg WITH (NOLOCK)
@@ -243,6 +249,8 @@ const string sql = @"
                 CarryForward = entity.CarryForward,
 
                 IsParent = entity.IsParent,
+                EmergencyPoApplicable = entity.EmergencyPoApplicable,
+                EmergencyPoLimit = entity.EmergencyPoLimit,
                 IsActive = entity.IsActive
             };
 
@@ -267,8 +275,10 @@ const string sql = @"
             ELSE NULL 
         END AS ParentBudgetGroupName,
         bg.IsParent,
-        bg.AllocationRuleId,                
-        ar.Description AS AllocationRuleName 
+        bg.AllocationRuleId,
+        ar.Description AS AllocationRuleName,
+        bg.EmergencyPoApplicable,
+        bg.EmergencyPoLimit
         FROM Budget.BudgetGroup bg WITH (NOLOCK)
         LEFT JOIN Budget.MiscMaster ar WITH (NOLOCK)
         ON ar.Id = bg.AllocationRuleId AND ar.IsDeleted = 0
@@ -276,8 +286,8 @@ const string sql = @"
         ON bt.Id = bg.BudgetTypeId AND bt.IsDeleted = 0
         LEFT JOIN Budget.MiscTypeMaster btT WITH (NOLOCK)
         ON btT.Id = bt.MiscTypeId AND btT.IsDeleted = 0
-        AND LOWER(btT.MiscTypeCode) = LOWER(@BudgetTypeMiscTypeCode)     
-        WHERE 
+        AND LOWER(btT.MiscTypeCode) = LOWER(@BudgetTypeMiscTypeCode)
+        WHERE
         bg.IsActive = 1
         AND bg.IsDeleted = 0
         AND (@SearchPattern IS NULL OR bg.Name LIKE @SearchPattern)
@@ -339,7 +349,9 @@ const string sql = @"
         END AS ParentBudgetGroupName,
         bg.IsParent,
         bg.AllocationRuleId,
-        ar.Description AS AllocationRuleName
+        ar.Description AS AllocationRuleName,
+        bg.EmergencyPoApplicable,
+        bg.EmergencyPoLimit
         FROM Budget.BudgetGroup bg WITH (NOLOCK)
         LEFT JOIN Budget.BudgetGroup pbg WITH (NOLOCK)
         ON pbg.Id = bg.ParentBudgetGroupId AND pbg.IsDeleted = 0

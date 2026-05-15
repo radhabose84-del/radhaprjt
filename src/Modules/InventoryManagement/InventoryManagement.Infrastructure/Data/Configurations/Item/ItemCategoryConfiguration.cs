@@ -67,6 +67,20 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item
                 )
                 .IsRequired(false);          
            
+            builder.Property(ag => ag.EmergencyPoApplicable)
+                .HasColumnName("EmergencyPoApplicable")
+                .HasColumnType("bit")
+                .HasConversion(
+                    v => v == 1,
+                    v => v ? (byte)1 : (byte)0
+                )
+                .IsRequired(false);
+
+            builder.Property(ag => ag.EmergencyPoLimit)
+                .HasColumnName("EmergencyPoLimit")
+                .HasColumnType("decimal(18,2)")
+                .IsRequired(false);
+
             builder.Property(ag => ag.RootCategoryId)
                 .HasColumnName("RootCategoryId")
                 .HasColumnType("int")

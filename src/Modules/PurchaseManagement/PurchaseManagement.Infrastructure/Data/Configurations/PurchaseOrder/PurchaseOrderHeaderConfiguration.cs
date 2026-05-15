@@ -30,6 +30,7 @@ public class PurchaseOrderHeaderConfiguration : IEntityTypeConfiguration<Purchas
         b.Property(e => e.CostCenterId).IsRequired(false);
         b.Property(e => e.ProjectId).IsRequired(false);
         b.Property(e => e.PurchaseTypeId).IsRequired(false);
+        b.Property(e => e.ItemCategoryId).IsRequired(false);
 
         b.HasOne(x => x.MiscPoCategory)
          .WithMany(m => m.PurchaseOrderCategory)
