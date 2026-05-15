@@ -10,6 +10,8 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemC
         public byte? IsGroup { get; set; }
         public int? ParentCategoryId { get; set; }
         public byte? IsBudgetApplicable { get; set; }
+        public byte? EmergencyPoApplicable { get; set; }
+        public decimal? EmergencyPoLimit { get; set; }
         public List<int> ModuleIds { get; set; } = new();
     }
 }

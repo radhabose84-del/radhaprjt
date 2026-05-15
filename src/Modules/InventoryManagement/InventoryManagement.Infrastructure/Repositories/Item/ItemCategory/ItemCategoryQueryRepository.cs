@@ -36,6 +36,8 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC.ParentCategoryId END AS ParentCategoryId,
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC1.ItemCategoryName END AS ParentCategoryName,
                     IC.IsBudgetApplicable,
+                    IC.EmergencyPoApplicable,
+                    IC.EmergencyPoLimit,
                     IC.IsActive,
                     IC.IsDeleted,
                     IC.CreatedBy, IC.CreatedDate, IC.CreatedByName, IC.CreatedIP,
@@ -91,6 +93,8 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC.ParentCategoryId END AS ParentCategoryId,
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC1.ItemCategoryName END AS ParentCategoryName,
                     IC.IsBudgetApplicable,
+                    IC.EmergencyPoApplicable,
+                    IC.EmergencyPoLimit,
                     IC.IsActive,
                     IC.IsDeleted,
                     IC.CreatedBy, IC.CreatedDate, IC.CreatedByName, IC.CreatedIP,
@@ -220,7 +224,9 @@ namespace  InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     IC.ItemCategoryName,
                     IC1.ItemCategoryName AS ParentCategoryName,
                     IG.Id  AS ItemGroupId,
-                    IG.ItemGroupName
+                    IG.ItemGroupName,
+                    IC.EmergencyPoApplicable,
+                    IC.EmergencyPoLimit
                 FROM Inventory.ItemCategory IC
                 LEFT JOIN Inventory.ItemCategory IC1 ON IC.ParentCategoryId = IC1.Id
                 LEFT JOIN Inventory.ItemGroup IG     ON IG.Id = IC.ItemGroupId

@@ -77,6 +77,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             existingItemCategory.IsGroup = itemCategory.IsGroup;
             existingItemCategory.ParentCategoryId = itemCategory.ParentCategoryId;
             existingItemCategory.IsBudgetApplicable = itemCategory.IsBudgetApplicable;
+            existingItemCategory.EmergencyPoApplicable = itemCategory.EmergencyPoApplicable;
+            existingItemCategory.EmergencyPoLimit = itemCategory.EmergencyPoLimit;
             existingItemCategory.IsActive=itemCategory.IsActive;
 
             _applicationDbContext.ItemCategory.Update(existingItemCategory);

@@ -106,7 +106,8 @@ public class PurchaseOrderCreateDto
     public int? BudgetRequestById { get; set; } 
     public int? BudgetMonthId { get; set; } 
     public int? FinancialYearId { get; set; } 
-    public int? BudgetDepartmentId { get; set; } 
+    public int? BudgetDepartmentId { get; set; }
+    public int? ItemCategoryId { get; set; }
 
     public List<PurchaseLocalHeaderDto> Headers { get; set; } = new();
     public List<PurchasePaymentTermDto> PaymentTerms { get; set; } = new();
@@ -159,9 +160,11 @@ public sealed class PurchaseOrderListItemDto
     public int? PurchaseTypeId { get; set; }
     public int? BudgetGroupId { get; set; }
     public string? BudgetGroupName { get; set; }
-    public int? BudgetRequestById { get; set; } 
-    public int? BudgetDepartmentId { get; set; } 
-    
+    public int? BudgetRequestById { get; set; }
+    public int? BudgetDepartmentId { get; set; }
+    public int? ItemCategoryId { get; set; }
+    public string? ItemCategoryName { get; set; }
+
 }
 
 public sealed class PurchaseOrderDetailDto : PurchaseOrderUpdateDto

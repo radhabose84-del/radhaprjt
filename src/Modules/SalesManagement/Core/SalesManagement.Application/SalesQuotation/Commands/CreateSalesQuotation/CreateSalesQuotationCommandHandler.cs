@@ -127,7 +127,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                 Payload = serializedPayload
             };
 
-            await _outboxEventPublisher.ScheduleWithoutSaveAsync(@event, correlationId, cancellationToken);
+            await _outboxEventPublisher.ScheduleAsync(@event, correlationId, cancellationToken);
 
             // ------------------- Notification setup (shared by Email + InApp) -------------------
             var customer = await _partyDetailLookup.GetByIdAsync(request.CustomerId, cancellationToken);
@@ -210,7 +210,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                         ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotation
                     };
 
-                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(emailEvent, emailCorrelationId, cancellationToken);
+                    await _outboxEventPublisher.ScheduleAsync(emailEvent, emailCorrelationId, cancellationToken);
                     _logger.LogInformation(
                         "Email notification queued for customer '{CustomerName}' <{Email}>. Quotation {QuotationNo}, {ItemCount} items (CorrId: {Corr})",
                         customerName, customer.EmailID, quotationNo,
@@ -267,7 +267,7 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
                         ModuleTypeName = MiscEnumEntity.TransactionTypeSalesQuotation
                     };
 
-                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(inAppEvent, inAppCorrelationId, cancellationToken);
+                    await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
                     _logger.LogInformation(
                         "InApp notification queued for role-based users. Quotation {QuotationNo} (CorrId: {Corr})",
                         quotationNo, inAppCorrelationId);
@@ -277,9 +277,6 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
             {
                 _logger.LogError(ex, "Failed to publish InApp NotificationCreatedEvent for Sales Quotation {Id}", newId);
             }
-
-            // ------------------- Atomic commit: all outbox events saved together -------------------
-            await _outboxEventPublisher.SavePendingAsync(cancellationToken);
 
             return newId;
         }

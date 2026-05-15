@@ -14,6 +14,8 @@ namespace InventoryManagement.Domain.Entities.Item
         public ItemCategory ItemCategoryParent { get; set; } = null!;
         public ICollection<ItemCategory>? ChildCategories { get; set; } = new List<ItemCategory>(); // For hierarchical categories
         public byte? IsBudgetApplicable { get; set; }
+        public byte? EmergencyPoApplicable { get; set; }
+        public decimal? EmergencyPoLimit { get; set; }
         public int? RootCategoryId { get; set; }
         public ItemCategory? RootCategory { get; set; }
         public int? DeptId { get; set; }

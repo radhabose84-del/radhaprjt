@@ -62,7 +62,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             h.InsuranceTotal, h.TDSTotal, h.AdvanceAmount,
             mStatus.Code AS StatusCode,
             mCat.Code    AS POCategoryCode,
-            mMethod.Code AS POMethodCode, mMethod.id as POMethodId,h.BudgetGroupId,
+            mMethod.Code AS POMethodCode, mMethod.id as POMethodId,h.BudgetGroupId,h.ItemCategoryId,
             CASE 
                 WHEN x.HasGRN  = 1 THEN 2
                 WHEN x.HasGate = 1 THEN 2
@@ -582,5 +582,42 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             THEN 1 ELSE 0 END;";
 
         return await _conn.ExecuteScalarAsync<bool>(sql, new { id });
+    }
+
+    public async Task<decimal> GetTotalPurchaseValueAsync(
+        int? budgetGroupId, int? itemCategoryId,
+        DateTimeOffset poDate,
+        CancellationToken ct)
+    {
+        const string sql = @"
+            SELECT ISNULL(SUM(h.PurchaseValue), 0)
+            FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+            inner join Purchase.MiscMaster m WITH (NOLOCK) on m.Id = h.POCategoryId
+            WHERE h.IsDeleted = 0
+              AND h.UnitId = @UnitId
+              AND h.StatusId = (
+                    SELECT TOP 1 m.Id
+                    FROM Purchase.MiscMaster m WITH (NOLOCK)
+                    inner join Purchase.MiscTypeMaster mt WITH (NOLOCK) on mt.Id = m.MiscTypeId
+                    WHERE m.Code = @ApprovedCode and mt.MiscTypeCode =  @Status AND m.IsDeleted = 0
+              )
+              AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+              AND (@ItemCategoryId IS NULL OR h.ItemCategoryId = @ItemCategoryId)
+              and m.Code = @POCategoryId
+              AND MONTH(h.PODate) = @Month
+              AND YEAR(h.PODate)  = @Year;";
+
+        return await _conn.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(sql, new
+            {
+                UnitId = _ip.GetUnitId() ?? 0,
+                ApprovedCode = MiscEnumEntity.Approved,
+                BudgetGroupId = budgetGroupId,
+                ItemCategoryId = itemCategoryId,
+                Month = poDate.Month,
+                Year = poDate.Year,
+                Status = MiscEnumEntity.ApprovalStatus,
+                POCategoryId = MiscEnumEntity.EmergencyPO
+            }, cancellationToken: ct));
     }
 }

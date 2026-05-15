@@ -132,6 +132,16 @@ namespace BudgetManagement.Infrastructure.Data.Configuration
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(b => b.EmergencyPoApplicable)
+                .HasColumnName("EmergencyPoApplicable")
+                .HasColumnType("bit")
+                .IsRequired();
+
+            builder.Property(b => b.EmergencyPoLimit)
+                .HasColumnName("EmergencyPoLimit")
+                .HasColumnType("decimal(18,2)")
+                .IsRequired(false);
+
             builder.Property(b => b.CarryForward)
                 .HasColumnName("CarryForward")
                 .HasColumnType("bit")
