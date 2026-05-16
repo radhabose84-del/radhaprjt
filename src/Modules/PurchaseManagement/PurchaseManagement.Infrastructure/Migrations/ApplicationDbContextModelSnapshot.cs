@@ -293,6 +293,10 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
 
+                    b.Property<string>("GrnDetailImage")
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("GrnDetailImage");
+
                     b.Property<int>("GrnId")
                         .HasColumnType("int")
                         .HasColumnName("GrnId");
@@ -3072,6 +3076,17 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("CancelledByName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset?>("CancelledDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CancelledIP")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int?>("CapitalTypeId")
                         .HasColumnType("int");
 
@@ -3100,6 +3115,17 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int?>("FinancialYearId")
                         .HasColumnType("int");
 
+                    b.Property<string>("ForeClosedByName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset?>("ForeClosedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ForeClosedIP")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<decimal?>("FreightTotal")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -3120,6 +3146,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("IsDeleted")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ItemCategoryId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("ItemTotal")

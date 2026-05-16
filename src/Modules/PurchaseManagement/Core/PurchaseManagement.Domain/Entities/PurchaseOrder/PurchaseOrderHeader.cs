@@ -43,7 +43,8 @@ public class PurchaseOrderHeader : BaseEntity, IActivityTracked
     public int? ProjectId { get; set; } 
     public int? WBSId { get; set; }
     public int? CostCenterId { get; set; } 
-    public int? BudgetGroupId { get; set; } 
+    public int? BudgetGroupId { get; set; }
+    public int? ItemCategoryId { get; set; }
     public int? BudgetRequestById { get; set; } 
     public int? BudgetDepartmentId { get; set; } 
     public int? FinancialYearId { get; set; }
@@ -55,6 +56,16 @@ public class PurchaseOrderHeader : BaseEntity, IActivityTracked
     public ICollection<PurchaseOrderServiceHeader> ServicePos { get; set; } = new List<PurchaseOrderServiceHeader>();
     public ICollection<ServiceEntrySheet> ServiceEntrySheets { get; set; } = new List<ServiceEntrySheet>();
     public ICollection<ImportPOHeader> ImportPOHeader { get; set; } = new List<ImportPOHeader>();
+    // Cancelled fields
+    public DateTimeOffset? CancelledDate { get; set; }
+    public string? CancelledByName { get; set; }
+    public string? CancelledIP { get; set; }
+
+    // ForeClosed fields
+    public DateTimeOffset? ForeClosedDate { get; set; }
+    public string? ForeClosedByName { get; set; }
+    public string? ForeClosedIP { get; set; }
+
     public ICollection<PurchaseDocument>? PurchaseDocumentTypes { get; set; }= new List<PurchaseDocument>();
 }
 

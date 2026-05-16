@@ -390,6 +390,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         B.QcAcceptedQuantity,
                         B.QcRejectedQuantity,
                         B.QcRejectedRemarks,
+                        B.GrnDetailImage,
 
                         (B.OrderQuantity - ISNULL(gs.TotalGrnQty, 0)) AS PendingQty,
 
@@ -1319,6 +1320,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                                 B.DcQuantity,
                                 B.ReceivedQuantity,
                                 B.QcAcceptedQuantity,
+                                B.GrnDetailImage,
 
                                 ISNULL(
                                     CASE 

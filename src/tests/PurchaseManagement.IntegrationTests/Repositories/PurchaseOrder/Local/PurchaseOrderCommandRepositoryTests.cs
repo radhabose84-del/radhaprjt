@@ -53,7 +53,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PurchaseOrder.Local
             Mock<IMiscMasterQueryRepository>? miscMock = null)
         {
             miscMock ??= BuildMiscMock();
-            return new PurchaseOrderCommandRepository(ctx, miscMock.Object);
+            return new PurchaseOrderCommandRepository(ctx, miscMock.Object, _fixture.IpMock.Object);
         }
 
         [Fact]

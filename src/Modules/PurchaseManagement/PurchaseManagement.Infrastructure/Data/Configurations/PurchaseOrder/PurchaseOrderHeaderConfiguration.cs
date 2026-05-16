@@ -30,6 +30,17 @@ public class PurchaseOrderHeaderConfiguration : IEntityTypeConfiguration<Purchas
         b.Property(e => e.CostCenterId).IsRequired(false);
         b.Property(e => e.ProjectId).IsRequired(false);
         b.Property(e => e.PurchaseTypeId).IsRequired(false);
+        b.Property(e => e.ItemCategoryId).IsRequired(false);
+
+        // Cancelled fields
+        b.Property(x => x.CancelledDate).IsRequired(false);
+        b.Property(x => x.CancelledByName).HasMaxLength(100).IsRequired(false);
+        b.Property(x => x.CancelledIP).HasMaxLength(50).IsRequired(false);
+
+        // ForeClosed fields
+        b.Property(x => x.ForeClosedDate).IsRequired(false);
+        b.Property(x => x.ForeClosedByName).HasMaxLength(100).IsRequired(false);
+        b.Property(x => x.ForeClosedIP).HasMaxLength(50).IsRequired(false);
 
         b.HasOne(x => x.MiscPoCategory)
          .WithMany(m => m.PurchaseOrderCategory)

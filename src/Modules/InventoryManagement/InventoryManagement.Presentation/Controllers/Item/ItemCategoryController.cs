@@ -4,6 +4,7 @@ using InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemCateg
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategory;
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategoryAutoComplete;
 using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategoryById;
+using InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategorySampleQuantity;
 using InventoryManagement.Presentation.Controllers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -99,7 +100,26 @@ namespace InventoryManagement.Presentation.Controllers.Item
                 message = "Deleted successfully.",
                 statusCode = StatusCodes.Status200OK
             });
-        
+
+        }
+
+        [HttpGet("sample-quantity")]
+        public async Task<IActionResult> GetSampleQuantityAsync(
+            [FromQuery] int itemCategoryId,
+            [FromQuery] int unitId,
+            [FromQuery] int uomId)
+        {
+            var result = await Mediator.Send(new GetItemCategorySampleQuantityQuery
+            {
+                ItemCategoryId = itemCategoryId,
+                UnitId = unitId,
+                UOMId = uomId
+            });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
         }
                 
     }

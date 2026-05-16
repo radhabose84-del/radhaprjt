@@ -42,10 +42,12 @@ namespace PurchaseManagement.UnitTests.Domain
                 IGST = 0m,
                 GSTPercentage = 18m,
                 UOMId = 1,
-                TaxableAmount = 4900m
+                TaxableAmount = 4900m,
+                GrnDetailImage = "GRN-1_L1.png"
             };
 
             entity.Id.Should().Be(1);
+            entity.GrnDetailImage.Should().Be("GRN-1_L1.png");
             entity.GrnId.Should().Be(10);
             entity.PoId.Should().Be(100);
             entity.PoSlNoLocal.Should().Be(5);
@@ -79,6 +81,7 @@ namespace PurchaseManagement.UnitTests.Domain
                 GSTPercentage = null,
                 UOMId = null,
                 TaxableAmount = null,
+                GrnDetailImage = null,
                 PoGrnCategoryDetails = null,
                 PoGrnMethodDetails = null,
                 GrnPutAwayDetails = null
@@ -87,6 +90,7 @@ namespace PurchaseManagement.UnitTests.Domain
             entity.PoSlNoLocal.Should().BeNull();
             entity.ExpiryDate.Should().BeNull();
             entity.BatchNumber.Should().BeNull();
+            entity.GrnDetailImage.Should().BeNull();
             entity.GrnPutAwayDetails.Should().BeNull();
         }
 

@@ -104,6 +104,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands
                     ReceivedQuantity = detail.ReceivedQuantity,
                     ExpiryDate = detail.ExpiryDate,
                     BatchNumber = detail.BatchNumber,
+                    GrnDetailImage = detail.GrnDetailImage,
                     UOMId = poVal.UOMId ?? 0,
                     UnitPrice = poVal.UnitPrice ?? 0,
                     GSTPercentage = poVal.GSTPercentage ?? 0,
@@ -160,6 +161,42 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands
                     {
                         throw new InvalidOperationException(
                             $"File rename failed for '{grnEntryHeader.GrnReceivedImage}' → '{newFileName}': {ex.Message}", ex);
+                    }
+                }
+            }
+
+            // ✅ Finalize per-line-item images → <GrnNo>_L<lineNo>.<ext>
+            if (grnEntryHeader.GrnDetails != null
+                && grnEntryHeader.GrnDetails.Any(d => !string.IsNullOrWhiteSpace(d.GrnDetailImage)))
+            {
+                string detailBaseDirectory = await _igrnEntryQueryRepository.GetDocumentDirectoryAsync();
+                string detailUploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", detailBaseDirectory);
+                EnsureDirectoryExists(detailUploadPath);
+
+                int lineNo = 0;
+                foreach (var detail in grnEntryHeader.GrnDetails)
+                {
+                    lineNo++;
+                    if (string.IsNullOrWhiteSpace(detail.GrnDetailImage)
+                        || !detail.GrnDetailImage.StartsWith("TEMP_"))
+                        continue;
+
+                    string oldDetailFilePath = Path.Combine(detailUploadPath, detail.GrnDetailImage);
+                    if (!File.Exists(oldDetailFilePath))
+                        continue;
+
+                    string newDetailFileName = $"{grnEntryHeader.GrnNo}_L{lineNo}{Path.GetExtension(oldDetailFilePath)}";
+                    string newDetailFilePath = Path.Combine(detailUploadPath, newDetailFileName);
+
+                    try
+                    {
+                        File.Move(oldDetailFilePath, newDetailFilePath, overwrite: true);
+                        detail.GrnDetailImage = newDetailFileName;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException(
+                            $"File rename failed for '{detail.GrnDetailImage}' → '{newDetailFileName}': {ex.Message}", ex);
                     }
                 }
             }

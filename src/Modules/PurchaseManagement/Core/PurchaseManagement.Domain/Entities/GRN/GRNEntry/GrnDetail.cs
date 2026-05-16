@@ -33,7 +33,8 @@ namespace PurchaseManagement.Domain.Entities.GRN.GRNEntry
         public decimal? IGST { get; set; }
         public decimal? GSTPercentage { get; set; }
         public int? UOMId { get; set; }
-        public decimal? TaxableAmount { get; set; }           
+        public decimal? TaxableAmount { get; set; }
+        public string? GrnDetailImage { get; set; }
         public ICollection<GrnPutAwayRule>? GrnPutAwayDetails { get; set; }
         
 

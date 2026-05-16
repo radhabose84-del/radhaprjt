@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using Contracts.Dtos.Lookups.Users;
 using InventoryManagement.Application.Common.Mappings;
+using InventoryManagement.Application.Item.ItemCategory.Queries.Shared;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCategory
 {
@@ -15,6 +16,8 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
         public int? ParentCategoryId { get; set; }
         public string? ParentCategoryName { get; set; }
         public int IsBudgetApplicable { get; set; }
+        public int EmergencyPoApplicable { get; set; }
+        public decimal? EmergencyPoLimit { get; set; }
         public List<ModuleLookupDto> Modules { get; set; } = new();
         public int IsActive { get; set; }
         public int IsDeleted { get; set; }
@@ -35,5 +38,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
 
         // Optional upward link for internal use only (ignored in JSON)
         [JsonIgnore] public ItemCategoryDto? Parent { get; set; }
+
+        public List<SampleQuantityDto> SampleQuantities { get; set; } = new();
     }
 }

@@ -44,5 +44,9 @@ namespace PurchaseManagement.Domain.Common
 
         public const string ServiceEntrySheet = "Service Entry Sheet";
         public const string Incoterms = "Incoterms";
+        public const string EmergencyPO = "Emergency";
+
+        public const string Cancelled = "Cancelled";
+        public const string ForeClosed = "ForeClosed";
     }
 }

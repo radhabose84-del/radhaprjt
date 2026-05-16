@@ -270,6 +270,15 @@ namespace BudgetManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(250)")
                         .HasColumnName("Description");
 
+                    b.Property<bool>("EmergencyPoApplicable")
+                        .HasColumnType("bit")
+                        .HasColumnName("EmergencyPoApplicable");
+
+                    b.Property<decimal?>("EmergencyPoLimit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("EmergencyPoLimit");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");

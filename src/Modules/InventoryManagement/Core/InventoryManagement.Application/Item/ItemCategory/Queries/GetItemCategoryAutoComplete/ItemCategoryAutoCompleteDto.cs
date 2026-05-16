@@ -10,5 +10,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
         public int? ItemGroupId { get; set; }
         public string? ItemGroupName { get; set; }
         public List<ModuleLookupDto> Modules { get; set; } = new();
+        public int EmergencyPoApplicable { get; set; }
+        public decimal? EmergencyPoLimit { get; set; }
     }
 }

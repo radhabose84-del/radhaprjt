@@ -14,6 +14,9 @@ using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanc
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequestType;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceServiceLocation;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceServiceType;
+using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequestForServicePoById;
+using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequestsForServicePo;
+using Contracts.Dtos.Lookups.Maintenance;
 using MaintenanceManagement.Application.MiscMaster.Queries.GetMiscMaster;
 using MaintenanceManagement.Presentation.Controllers;
 using MediatR;
@@ -134,6 +137,74 @@ namespace MaintenanceManagement.UnitTests.Controllers
                 .ReturnsAsync(new ApiResponseDTO<List<GetExistingVendorDetailsDto>> { IsSuccess = true, Data = new() { new() } });
 
             var result = await CreateSut().GetExistingVendor("U001", "V001");
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        // ── ESR linkage endpoints (Service PO consumer) ────────────────────────
+
+        [Fact]
+        public async Task GetForServicePo_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetMaintenanceRequestsForServicePoQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<List<MaintenanceRequestLookupDto>>
+                {
+                    IsSuccess = true,
+                    Data = new() { new MaintenanceRequestLookupDto { Id = 1, RequestNo = "MR-1" } },
+                    TotalCount = 1
+                });
+
+            var result = await CreateSut().GetForServicePoAsync("MR-1");
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetForServicePo_CallsMediatorSend_Once()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetMaintenanceRequestsForServicePoQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<List<MaintenanceRequestLookupDto>>
+                {
+                    IsSuccess = true, Data = new(), TotalCount = 0
+                });
+
+            await CreateSut().GetForServicePoAsync(null);
+
+            _mockMediator.Verify(
+                m => m.Send(It.IsAny<GetMaintenanceRequestsForServicePoQuery>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task GetForServicePoById_ReturnsOkResult_WhenFound()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetMaintenanceRequestForServicePoByIdQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<MaintenanceRequestLookupDto?>
+                {
+                    IsSuccess = true,
+                    Data = new MaintenanceRequestLookupDto { Id = 501, RequestNo = "MR-501" }
+                });
+
+            var result = await CreateSut().GetForServicePoByIdAsync(501);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetForServicePoById_ReturnsOkResult_WhenNotFound()
+        {
+            // Controller still returns 200 with isSuccess=false; matches existing pattern in this codebase
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetMaintenanceRequestForServicePoByIdQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<MaintenanceRequestLookupDto?>
+                {
+                    IsSuccess = false, Message = "MaintenanceRequest not found.", Data = null
+                });
+
+            var result = await CreateSut().GetForServicePoByIdAsync(999999);
+
             result.Should().BeOfType<OkObjectResult>();
         }
     }

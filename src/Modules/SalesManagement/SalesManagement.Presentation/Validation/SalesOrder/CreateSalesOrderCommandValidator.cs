@@ -313,6 +313,19 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                         .GreaterThan(0).WithMessage("PaymentTermId must be greater than zero.");
                 })
                 .When(x => x.SalesOrderDetails?.Discounts != null && x.SalesOrderDetails.Discounts.Any());
+
+            // Sample Order — one order per party per calendar month.
+            // The repository guards the "Sample Order"-only scope, so this is a no-op for every
+            // other order type even though the rule is always wired.
+            RuleFor(x => x.SalesOrderDetails!)
+                .MustAsync(async (details, ct) =>
+                    !await _queryRepository.SampleOrderExistsForPartyThisMonthAsync(
+                        details!.PartyId, details.SalesOrderTypeMasterId ?? 0, ct))
+                .WithMessage("A Sample Order already exists for this party in the current month. Only one Sample Order per party per month is allowed.")
+                .When(x => x.SalesOrderDetails != null
+                        && x.SalesOrderDetails.PartyId > 0
+                        && x.SalesOrderDetails.SalesOrderTypeMasterId.HasValue
+                        && x.SalesOrderDetails.SalesOrderTypeMasterId > 0);
         }
     }
 }

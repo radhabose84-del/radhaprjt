@@ -1,4 +1,5 @@
 using Contracts.Interfaces.Lookups.Budget;
+using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using PurchaseManagement.Application.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
@@ -12,9 +13,11 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Queries
         private readonly Mock<IPurchaseOrderQueryRepository> _mockRepo = new(MockBehavior.Loose);
         private readonly Mock<IPartyLookup> _mockPartyLookup = new(MockBehavior.Loose);
         private readonly Mock<IBudgetGroupLookup> _mockBudgetGroupLookup = new(MockBehavior.Loose);
+        private readonly Mock<IInventoryCategoryLookup> _mockInventoryCategoryLookup = new(MockBehavior.Loose);
 
         private GetPurchaseOrdersQueryHandler CreateSut() =>
-            new(_mockRepo.Object, _mockPartyLookup.Object, _mockBudgetGroupLookup.Object);
+            new(_mockRepo.Object, _mockPartyLookup.Object, _mockBudgetGroupLookup.Object,
+                _mockInventoryCategoryLookup.Object);
 
         [Fact]
         public void Constructor_CreatesHandler()

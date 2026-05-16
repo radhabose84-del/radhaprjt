@@ -277,6 +277,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             detail.ItemValue = calc.ItemValue;
                             detail.TaxableAmount = calc.TaxableAmount;
                             detail.DiscountValue = calc.DiscountValue;
+
+                            // Only set when a new/finalized image is supplied — never clear an existing one
+                            if (!string.IsNullOrWhiteSpace(calc.GrnDetailImage))
+                                detail.GrnDetailImage = calc.GrnDetailImage;
                         }
                         
                     }

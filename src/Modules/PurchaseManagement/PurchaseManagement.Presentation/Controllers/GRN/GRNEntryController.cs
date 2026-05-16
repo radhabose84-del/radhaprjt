@@ -81,6 +81,42 @@ namespace PurchaseManagement.Presentation.Controllers.GRN
             });
         }
 
+        [HttpPost("uploadGRNDetail-document")]
+        public async Task<IActionResult> UploadGRNDetailDocument(UploadGrnDetailDocumentCommand uploadGrnDetailDocumentCommand)
+        {
+
+            var file = await _mediator.Send(uploadGrnDetailDocumentCommand);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                message = "File uploaded successfully.",
+                data = file,
+                errors = ""
+            });
+        }
+        [HttpDelete("deleteGRNDetail-document")]
+        public async Task<IActionResult> DeleteGRNDetailDocument([FromBody] DeleteGrnDetailDocumentCommand deleteGrnDetailDocumentCommand)
+        {
+            if (deleteGrnDetailDocumentCommand == null || string.IsNullOrWhiteSpace(deleteGrnDetailDocumentCommand.GrnDetaildocumentPath))
+            {
+                return BadRequest(new
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    message = "Invalid request. 'GrnDetaildocumentPath' cannot be null or empty.",
+                    errors = ""
+                });
+            }
+            var file = await _mediator.Send(deleteGrnDetailDocumentCommand);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                message = "File deleted successfully.",
+                errors = ""
+            });
+        }
+
         [HttpPost("uploadGRNQC-document")]
         public async Task<IActionResult> UploadGRNQCDocument(UploadGrnQcDocumentCommand uploadGrnQcDocumentCommand)
         {

@@ -62,7 +62,7 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             h.InsuranceTotal, h.TDSTotal, h.AdvanceAmount,
             mStatus.Code AS StatusCode,
             mCat.Code    AS POCategoryCode,
-            mMethod.Code AS POMethodCode, mMethod.id as POMethodId,h.BudgetGroupId,
+            mMethod.Code AS POMethodCode, mMethod.id as POMethodId,h.BudgetGroupId,h.ItemCategoryId,
             CASE 
                 WHEN x.HasGRN  = 1 THEN 2
                 WHEN x.HasGate = 1 THEN 2
@@ -77,7 +77,15 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
                 WHEN mStatus.Code = @Pending  THEN NULL
             END AS EditReason,
             h.RevisionNo,
-            h.AmendmentReason
+            h.AmendmentReason,
+            CAST(CASE WHEN x.HasGRN = 0 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanCancel,
+            CAST(CASE WHEN x.HasGRN = 1 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanForeclose,
+            h.CancelledDate,
+            h.CancelledByName,
+            h.CancelledIP,
+            h.ForeClosedDate,
+            h.ForeClosedByName,
+            h.ForeClosedIP
         FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
         LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
         LEFT JOIN Purchase.MiscMaster mCat    WITH (NOLOCK) ON mCat.Id    = h.POCategoryId        
@@ -235,13 +243,25 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
     public Task<IEnumerable<AutocompleteDto>> GetAutocompleteAsync(string? term, int? poMethodId,int? budgetGroupId, CancellationToken ct)
     {
         const string sql = @"
-            SELECT Id, PONumber 
-            FROM Purchase.PurchaseOrderHeader
-            WHERE IsDeleted=0 AND PONumber LIKE @t and unitId =@UnitId 
-            AND (@poMethodId IS NULL OR POMethodId = @poMethodId)
-            AND (@BudgetGroupId IS NULL OR BudgetGroupId = @BudgetGroupId)            
-            ORDER BY Id DESC;";
-        return _conn.QueryAsync<AutocompleteDto>(sql, new { t = $"%{term?.Trim()}%", poMethodId, UnitId = _ip.GetUnitId() ?? 0, budgetGroupId});
+            SELECT h.Id, h.PONumber
+            FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+            LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
+            WHERE h.IsDeleted = 0
+              AND h.UnitId = @UnitId
+              AND h.PONumber LIKE @t
+              AND (@poMethodId IS NULL OR h.POMethodId = @poMethodId)
+              AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+              AND (mStatus.Code IS NULL OR mStatus.Code NOT IN (@Cancelled, @ForeClosed))
+            ORDER BY h.Id DESC;";
+        return _conn.QueryAsync<AutocompleteDto>(sql, new
+        {
+            t = $"%{term?.Trim()}%",
+            poMethodId,
+            UnitId = _ip.GetUnitId() ?? 0,
+            budgetGroupId,
+            Cancelled = MiscEnumEntity.Cancelled,
+            ForeClosed = MiscEnumEntity.ForeClosed
+        });
     }
 
 
@@ -582,5 +602,56 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             THEN 1 ELSE 0 END;";
 
         return await _conn.ExecuteScalarAsync<bool>(sql, new { id });
+    }
+
+    public async Task<decimal> GetTotalPurchaseValueAsync(
+        int? budgetGroupId, int? itemCategoryId, int? poMethodId,
+        DateTimeOffset poDate,
+        CancellationToken ct)
+    {
+        const string sql = @"
+            SELECT ISNULL(SUM(h.PurchaseValue), 0)
+            FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+            inner join Purchase.MiscMaster m WITH (NOLOCK) on m.Id = h.POCategoryId
+            WHERE h.IsDeleted = 0
+              AND h.UnitId = @UnitId
+              AND h.StatusId = (
+                    SELECT TOP 1 m.Id
+                    FROM Purchase.MiscMaster m WITH (NOLOCK)
+                    inner join Purchase.MiscTypeMaster mt WITH (NOLOCK) on mt.Id = m.MiscTypeId
+                    WHERE m.Code = @ApprovedCode and mt.MiscTypeCode =  @Status AND m.IsDeleted = 0
+              )
+              AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+              AND (@ItemCategoryId IS NULL OR h.ItemCategoryId = @ItemCategoryId)
+              AND (@PoMethodId IS NULL OR h.POMethodId = @PoMethodId)
+              and m.Code = @POCategoryId
+              AND MONTH(h.PODate) = @Month
+              AND YEAR(h.PODate)  = @Year;";
+
+        return await _conn.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(sql, new
+            {
+                UnitId = _ip.GetUnitId() ?? 0,
+                ApprovedCode = MiscEnumEntity.Approved,
+                BudgetGroupId = budgetGroupId,
+                ItemCategoryId = itemCategoryId,
+                PoMethodId = poMethodId,
+                Month = poDate.Month,
+                Year = poDate.Year,
+                Status = MiscEnumEntity.ApprovalStatus,
+                POCategoryId = MiscEnumEntity.EmergencyPO
+            }, cancellationToken: ct));
+    }
+
+    public async Task<bool> NotFoundAsync(int id, CancellationToken ct)
+    {
+        const string sql = @"
+            SELECT CASE WHEN NOT EXISTS (
+                SELECT 1 FROM Purchase.PurchaseOrderHeader
+                WHERE Id = @Id AND IsDeleted = 0
+            ) THEN 1 ELSE 0 END";
+
+        return await _conn.ExecuteScalarAsync<bool>(
+            new CommandDefinition(sql, new { Id = id }, cancellationToken: ct));
     }
 }

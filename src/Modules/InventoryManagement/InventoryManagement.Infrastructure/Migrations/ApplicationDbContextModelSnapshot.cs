@@ -447,6 +447,15 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DeptId");
 
+                    b.Property<bool?>("EmergencyPoApplicable")
+                        .HasColumnType("bit")
+                        .HasColumnName("EmergencyPoApplicable");
+
+                    b.Property<decimal?>("EmergencyPoLimit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("EmergencyPoLimit");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -528,6 +537,79 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ItemCategoryModule", "Inventory");
+                });
+
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemCategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemCategoryId");
+
+                    b.Property<decimal>("MaxSampleQuantity")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("MaxSampleQuantity");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("UOMId")
+                        .HasColumnType("int")
+                        .HasColumnName("UOMId");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemCategoryId");
+
+                    b.HasIndex("UOMId");
+
+                    b.HasIndex("UnitId");
+
+                    b.HasIndex("ItemCategoryId", "UnitId", "UOMId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("ItemCategoryUnitConfig", "Inventory");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
@@ -2625,6 +2707,25 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ItemCategory");
                 });
 
+            modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemCategoryUnitConfig", b =>
+                {
+                    b.HasOne("InventoryManagement.Domain.Entities.Item.ItemCategory", "ItemCategory")
+                        .WithMany("UnitConfigs")
+                        .HasForeignKey("ItemCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InventoryManagement.Domain.Entities.UOM", "UOM")
+                        .WithMany()
+                        .HasForeignKey("UOMId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ItemCategory");
+
+                    b.Navigation("UOM");
+                });
+
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemInventory", b =>
                 {
                     b.HasOne("InventoryManagement.Domain.Entities.MiscMaster", "MiscDefaultMaterialRequestType")
@@ -3128,6 +3229,8 @@ namespace InventoryManagement.Infrastructure.Migrations
                     b.Navigation("ItemMasterCategory");
 
                     b.Navigation("PutAwayRuleCategory");
+
+                    b.Navigation("UnitConfigs");
                 });
 
             modelBuilder.Entity("InventoryManagement.Domain.Entities.Item.ItemDetail.ItemMaster", b =>

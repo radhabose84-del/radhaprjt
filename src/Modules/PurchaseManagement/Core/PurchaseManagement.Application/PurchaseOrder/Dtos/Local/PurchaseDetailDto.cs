@@ -106,7 +106,8 @@ public class PurchaseOrderCreateDto
     public int? BudgetRequestById { get; set; } 
     public int? BudgetMonthId { get; set; } 
     public int? FinancialYearId { get; set; } 
-    public int? BudgetDepartmentId { get; set; } 
+    public int? BudgetDepartmentId { get; set; }
+    public int? ItemCategoryId { get; set; }
 
     public List<PurchaseLocalHeaderDto> Headers { get; set; } = new();
     public List<PurchasePaymentTermDto> PaymentTerms { get; set; } = new();
@@ -159,9 +160,24 @@ public sealed class PurchaseOrderListItemDto
     public int? PurchaseTypeId { get; set; }
     public int? BudgetGroupId { get; set; }
     public string? BudgetGroupName { get; set; }
-    public int? BudgetRequestById { get; set; } 
-    public int? BudgetDepartmentId { get; set; } 
-    
+    public int? BudgetRequestById { get; set; }
+    public int? BudgetDepartmentId { get; set; }
+    public int? ItemCategoryId { get; set; }
+    public string? ItemCategoryName { get; set; }
+
+    // Cancel / Foreclose eligibility flags
+    public bool CanCancel { get; set; }
+    public bool CanForeclose { get; set; }
+
+    // Cancel details
+    public DateTimeOffset? CancelledDate { get; set; }
+    public string? CancelledByName { get; set; }
+    public string? CancelledIP { get; set; }
+
+    // Foreclose details
+    public DateTimeOffset? ForeClosedDate { get; set; }
+    public string? ForeClosedByName { get; set; }
+    public string? ForeClosedIP { get; set; }
 }
 
 public sealed class PurchaseOrderDetailDto : PurchaseOrderUpdateDto
