@@ -1,5 +1,3 @@
-#nullable disable
-
 using UserManagement.Domain.Entities;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using System.Data;
@@ -16,7 +14,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
             _dbConnection = dbConnection;   
 
         }
-        public async Task<(UserManagement.Domain.Entities.UserRole,IList<RoleModule>,IList<RoleParent>,IList<RoleChild>,IList<RoleMenuPrivileges>)> GetByIdAsync(int roleEntitlementId)
+        public async Task<(UserManagement.Domain.Entities.UserRole?,IList<RoleModule>,IList<RoleParent>,IList<RoleChild>,IList<RoleMenuPrivileges>)> GetByIdAsync(int roleEntitlementId)
         {
 
             var  query = @"
