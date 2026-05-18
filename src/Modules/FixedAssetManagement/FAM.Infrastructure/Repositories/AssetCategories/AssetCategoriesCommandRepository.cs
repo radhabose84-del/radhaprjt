@@ -112,7 +112,7 @@ namespace FAM.Infrastructure.Repositories.AssetCategories
         existingassetcategories.CategoryName = assetCategories.CategoryName;
         existingassetcategories.Description = assetCategories.Description;
         existingassetcategories.AssetGroupId=assetCategories.AssetGroupId;
-        existingassetcategories.SortOrder = assetCategories.SortOrder;
+        // SortOrder is system-managed (auto-assigned on create) — never overwritten on update
         existingassetcategories.IsActive = assetCategories.IsActive;
 
         // Mark the entity as modified
