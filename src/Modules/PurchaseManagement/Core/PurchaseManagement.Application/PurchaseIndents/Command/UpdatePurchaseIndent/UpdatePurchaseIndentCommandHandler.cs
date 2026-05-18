@@ -68,7 +68,7 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseI
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
-                var result = await _purchaseIndentCommand.UpdateAsync(Indent, JsonSerializer.Serialize(request));
+                var result = await _purchaseIndentCommand.UpdateAsync(Indent, JsonSerializer.Serialize(request), request.IsApprovalEdit);
 
                 if (result && request.IsDraft == 0)
                 {
