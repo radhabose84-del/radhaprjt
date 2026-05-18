@@ -18,7 +18,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
         public int IsBudgetApplicable { get; set; }
         public int? EmergencyPOById { get; set; }
         public string? EmergencyPOByName { get; set; }
-        public decimal? EmgencyValueLimit { get; set; }
+        public decimal? EmergencyValueLimit { get; set; }
         public int? EmergencyActionId { get; set; }
         public string? EmergencyActionName { get; set; }
         public List<ModuleLookupDto> Modules { get; set; } = new();

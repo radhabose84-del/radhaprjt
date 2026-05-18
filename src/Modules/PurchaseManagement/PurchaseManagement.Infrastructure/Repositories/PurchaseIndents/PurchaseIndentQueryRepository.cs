@@ -336,10 +336,14 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
                     ID.TotalEstimatedCost                  AS TotalEstimatedCost,
                     ID.PRConsumptionDays                   AS PRConsumptionDays,
                     ID.Remark                              AS Remark,
-                    ID.IsRFQDone                           AS IsRFQDone
+                    ID.IsRFQDone                           AS IsRFQDone,
+                    IC.EmergencyPOById                     AS EmergencyPOById,
+                    IC.EmergencyValueLimit                   AS EmergencyValueLimit,
+                    IC.EmergencyActionId                   AS EmergencyActionId
 
                 FROM Purchase.IndentHeader IH
                 INNER JOIN Purchase.IndentDetail ID ON ID.IndentHeaderId = IH.Id
+                LEFT JOIN Inventory.ItemCategory IC ON IC.Id = ID.ItemCategoryId AND IC.IsDeleted = 0
                 INNER JOIN Purchase.MiscMaster HeaderStatus ON IH.StatusId = HeaderStatus.Id
                 INNER JOIN Purchase.MiscMaster LineStatus   ON ID.StatusId = LineStatus.Id
                 INNER JOIN Purchase.MiscMaster IndentType   ON IH.IndentTypeId = IndentType.Id

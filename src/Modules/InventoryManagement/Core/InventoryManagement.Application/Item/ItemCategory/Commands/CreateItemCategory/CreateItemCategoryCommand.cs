@@ -11,7 +11,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemC
         public int? ParentCategoryId { get; set; }
         public byte? IsBudgetApplicable { get; set; }
         public int? EmergencyPOById { get; set; }
-        public decimal? EmgencyValueLimit { get; set; }
+        public decimal? EmergencyValueLimit { get; set; }
         public int? EmergencyActionId { get; set; }
         public List<int> ModuleIds { get; set; } = new();
         public List<SampleQuantityItem> SampleQuantities { get; set; } = new();

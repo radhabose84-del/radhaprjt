@@ -109,7 +109,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             existingItemCategory.ParentCategoryId = itemCategory.ParentCategoryId;
             existingItemCategory.IsBudgetApplicable = itemCategory.IsBudgetApplicable;
             existingItemCategory.EmergencyPOById = itemCategory.EmergencyPOById;
-            existingItemCategory.EmgencyValueLimit = itemCategory.EmgencyValueLimit;
+            existingItemCategory.EmergencyValueLimit = itemCategory.EmergencyValueLimit;
             existingItemCategory.EmergencyActionId = itemCategory.EmergencyActionId;
             existingItemCategory.IsActive = itemCategory.IsActive;
 

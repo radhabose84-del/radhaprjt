@@ -66,10 +66,10 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemCategory
                         break;
 
                     case "GreaterThanOrEqualToZero":
-                        RuleFor(x => x.EmgencyValueLimit)
+                        RuleFor(x => x.EmergencyValueLimit)
                             .GreaterThanOrEqualTo(0)
-                            .WithMessage($"{nameof(UpdateItemCategoryCommand.EmgencyValueLimit)} {rule.Error}")
-                            .When(x => x.EmergencyPOById.HasValue && x.EmgencyValueLimit.HasValue);
+                            .WithMessage($"{nameof(UpdateItemCategoryCommand.EmergencyValueLimit)} {rule.Error}")
+                            .When(x => x.EmergencyPOById.HasValue && x.EmergencyValueLimit.HasValue);
                         break;
 
                     case "FKColumnDelete":
