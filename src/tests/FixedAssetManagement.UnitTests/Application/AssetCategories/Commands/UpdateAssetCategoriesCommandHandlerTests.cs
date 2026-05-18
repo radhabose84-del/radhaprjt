@@ -31,10 +31,6 @@ namespace FixedAssetManagement.UnitTests.Application.AssetCategories.Commands
                 .Setup(r => r.IsAssetCategoryLinkedAsync(id))
                 .ReturnsAsync(false);
 
-            _mockCommandRepo
-                .Setup(r => r.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<int>(), id))
-                .ReturnsAsync((false, false));
-
             _mockMapper
                 .Setup(m => m.Map<FAM.Domain.Entities.AssetCategories>(It.IsAny<object>()))
                 .Returns(entity);
