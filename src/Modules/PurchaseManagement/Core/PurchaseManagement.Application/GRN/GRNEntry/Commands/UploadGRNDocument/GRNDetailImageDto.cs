@@ -1,0 +1,12 @@
+using PurchaseManagement.Application.Common.Mappings;
+using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
+
+namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.UploadGRNDocument
+{
+    public class GRNDetailImageDto : IMapFrom<GrnDetail>
+    {
+
+        public string? ImagePath { get; set; }
+        public string? GrnDetailDocumentBase64 { get; set; }
+    }
+}

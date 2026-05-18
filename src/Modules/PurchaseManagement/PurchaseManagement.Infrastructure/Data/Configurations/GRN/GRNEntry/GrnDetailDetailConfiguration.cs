@@ -129,6 +129,10 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.GRN.GRNEntry
                  .HasColumnName("QcRejectedRemarks")
                  .HasColumnType("nvarchar(250)");
 
+            builder.Property(m => m.GrnDetailImage)
+                 .HasColumnName("GrnDetailImage")
+                 .HasColumnType("nvarchar(250)");
+
 
            
 

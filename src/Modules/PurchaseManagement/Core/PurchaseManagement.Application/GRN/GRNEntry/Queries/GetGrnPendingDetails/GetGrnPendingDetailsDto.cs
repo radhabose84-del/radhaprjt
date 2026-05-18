@@ -56,8 +56,9 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
             public decimal? QcAcceptedQuantity { get; set; }
             public decimal? QcRejectedQuantity { get; set; }
             public string? QcRejectedRemarks { get; set; }
-           
-            // Calculated 
+            public string? GrnDetailImage { get; set; }
+
+            // Calculated
             public decimal PendingQty { get; set; } }
         }
 }
