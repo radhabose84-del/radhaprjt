@@ -10,6 +10,9 @@ namespace PurchaseManagement.Domain.Entities
         public int ItemUOMId { get; set; }
         public decimal? Rate { get; set; }
         public decimal QuantityRequired { get; set; }
+        // Pre-edit QuantityRequired, captured ONCE the first time an approver edits the line
+        // at an IsEdit-enabled approval step. NULL until the line is edited.
+        public decimal? OldQuantityRequired { get; set; }
         public DateOnly RequiredDate { get; set; }
         public decimal? TotalEstimatedCost { get; set; }
         public int PRConsumptionDays { get; set; }

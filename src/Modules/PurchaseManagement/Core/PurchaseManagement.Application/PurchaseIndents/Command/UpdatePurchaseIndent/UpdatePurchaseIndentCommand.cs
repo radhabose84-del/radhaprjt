@@ -12,6 +12,9 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseI
         public int DepartmentId { get; set; }
         public byte IsActive { get; set; }
         public byte IsDraft { get; set; }
+        // true ONLY when the save originates from the approver's edit-during-approval screen.
+        // Drives the one-time OldQuantityRequired capture. Normal creator edits send false.
+        public bool IsApprovalEdit { get; set; }
         public ICollection<IndentDetailUpdateDto> IndentDetails { get; set; } = default!;
     }
 }
