@@ -1,5 +1,6 @@
 using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using MediatR;
@@ -73,6 +74,27 @@ namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Create
                         : "Purchase order was not created.",
                     Data = id
                 };
+            }
+
+            // ----------------- CONTRACT PO -----------------
+            if (await _lookup.IsContractAsync(r.POMethodId, ct))
+            {
+                if (r.Contract is null)
+                {
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Contract PO details are required for Contract POMethod.",
+                        Data = 0
+                    };
+                }
+
+                r.Contract.POMethodId = r.POMethodId;
+
+                var response = await _mediator.Send(
+                    new CreateContractReleasePOCommand(r.Contract), ct);
+
+                return response;
             }
 
             // ----------------- UNSUPPORTED METHOD -----------------

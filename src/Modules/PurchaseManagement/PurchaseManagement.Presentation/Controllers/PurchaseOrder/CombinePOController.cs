@@ -5,6 +5,7 @@ using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Amendment;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOById;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Delete;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
@@ -57,6 +58,18 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
             {
                 StatusCode = ok ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest,
                 message = ok ? "Updated successfully." : "Update failed.",
+                data = ok
+            });
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int id, [FromQuery] int poMethodId, CancellationToken ct)
+        {
+            var ok = await _mediator.Send(new DeleteCombinePOCommand(id, poMethodId), ct);
+            return Ok(new
+            {
+                StatusCode = ok ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest,
+                message = ok ? "Deleted successfully." : "Delete failed.",
                 data = ok
             });
         }

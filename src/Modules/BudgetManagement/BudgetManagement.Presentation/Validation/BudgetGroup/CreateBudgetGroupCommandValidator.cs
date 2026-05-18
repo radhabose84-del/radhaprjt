@@ -122,11 +122,6 @@ namespace BudgetManagement.Presentation.Validation.BudgetGroup
                       x.AllocatedSpindleCost.GetValueOrDefault() > 0))
                 .WithMessage("Only one of AllocatedPercentage or AllocatedSpindleCost can be provided.");
 
-            // ---------- Emergency PO ----------
-            RuleFor(x => x.EmergencyPoLimit)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("EmergencyPoLimit must be zero or positive.")
-                .When(x => x.EmergencyPoApplicable && x.EmergencyPoLimit.HasValue);
         }
     }
 }

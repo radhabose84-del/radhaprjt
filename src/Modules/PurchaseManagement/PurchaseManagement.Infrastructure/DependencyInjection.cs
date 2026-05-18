@@ -58,6 +58,8 @@ using PurchaseManagement.Infrastructure.Repositories.ExchangeRate;
 using PurchaseManagement.Application.Common.Interfaces.IExchangeRate;
 using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Infrastructure.Repositories.Port;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
+using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
@@ -282,6 +284,9 @@ namespace PurchaseManagement.Infrastructure
 
             services.AddScoped<IPurchaseBillEntryCommandRepository, PurchaseBillEntryCommandRepository>();
             services.AddScoped<IPurchaseBillEntryQueryRepository, PurchaseBillEntryQueryRepository>();
+
+            services.AddScoped<IContractPOCommandRepository, ContractPOCommandRepository>();
+            services.AddScoped<IContractPOQueryRepository, ContractPOQueryRepository>();
 
             // // AutoMapper profiles
             // services.AddAutoMapper(

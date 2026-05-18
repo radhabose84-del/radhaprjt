@@ -82,6 +82,267 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("ActivityLog", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPODetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BalanceQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("BalanceValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ContractPOHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ContractQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("ContractRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ContractValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("GSTPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("HSNId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemSno")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UOMId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UtilizedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("UtilizedValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractPOHeaderId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ContractPODetail", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPOHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BalanceValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset>("ContractDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ContractPONumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalContractValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UtilizedValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset>("ValidityFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ValidityTo")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractPONumber")
+                        .IsUnique();
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("UnitId");
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("ContractPOHeader", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPOReleaseHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContractPODetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ContractPOHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("ReleaseDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ReleasePOId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ReleasedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("ReleasedRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ReleasedValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractPODetailId");
+
+                    b.HasIndex("ContractPOHeaderId");
+
+                    b.HasIndex("ReleasePOId");
+
+                    b.ToTable("ContractPOReleaseHistory", "Purchase");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.DutyMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -2510,6 +2771,220 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("PurchaseBillEntryHeader", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO.PurchaseContractDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("CGST")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("CGSTPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("ContractPODetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DiscountTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DiscountValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("GSTPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("IGST")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("IGSTPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemSno")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ItemValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("OtherCharge")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PandFCharge")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("PandFType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PurchaseContractHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal?>("SGST")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SGSTPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTimeOffset?>("ScheduleDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("UOMId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractPODetailId");
+
+                    b.HasIndex("DiscountTypeId");
+
+                    b.HasIndex("PurchaseContractHeaderId");
+
+                    b.ToTable("PurchaseContractDetail", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO.PurchaseContractHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BillingAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ContractPOHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeliveryAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal?>("FreightCharges")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("IncotermsId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IsActive")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IsDeleted")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsPartialReceiptAllowed")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModeOfDispatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PurchaseOrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TermDescription")
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TermsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractPOHeaderId");
+
+                    b.HasIndex("IncotermsId");
+
+                    b.HasIndex("ModeOfDispatchId");
+
+                    b.HasIndex("PurchaseOrderId")
+                        .IsUnique();
+
+                    b.ToTable("PurchaseContractHeader", "Purchase");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO.ImportPODetail", b =>
                 {
                     b.Property<int>("Id")
@@ -4783,6 +5258,55 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("PurchaseDocuments", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPODetail", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.ContractPO.ContractPOHeader", "ContractPOHeader")
+                        .WithMany("ContractPODetails")
+                        .HasForeignKey("ContractPOHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ContractPOHeader");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPOHeader", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscStatus")
+                        .WithMany("ContractPOStatuses")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("MiscStatus");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPOReleaseHistory", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.ContractPO.ContractPODetail", "ContractPODetail")
+                        .WithMany("ContractPOReleaseHistories")
+                        .HasForeignKey("ContractPODetailId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.ContractPO.ContractPOHeader", "ContractPOHeader")
+                        .WithMany("ContractPOReleaseHistories")
+                        .HasForeignKey("ContractPOHeaderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader", "ReleasePurchaseOrder")
+                        .WithMany("ContractPOReleaseHistories")
+                        .HasForeignKey("ReleasePOId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ContractPODetail");
+
+                    b.Navigation("ContractPOHeader");
+
+                    b.Navigation("ReleasePurchaseOrder");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.DutyMaster", b =>
                 {
                     b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscCOA")
@@ -5136,6 +5660,65 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PurchaseBillEntryHeader");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO.PurchaseContractDetail", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.ContractPO.ContractPODetail", "ContractPODetail")
+                        .WithMany()
+                        .HasForeignKey("ContractPODetailId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscDiscountType")
+                        .WithMany("PurchaseContractDetailDiscount")
+                        .HasForeignKey("DiscountTypeId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO.PurchaseContractHeader", "PurchaseContractHeader")
+                        .WithMany("Details")
+                        .HasForeignKey("PurchaseContractHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ContractPODetail");
+
+                    b.Navigation("MiscDiscountType");
+
+                    b.Navigation("PurchaseContractHeader");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO.PurchaseContractHeader", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.ContractPO.ContractPOHeader", "ContractPOHeader")
+                        .WithMany()
+                        .HasForeignKey("ContractPOHeaderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscIncoterms")
+                        .WithMany("PurchaseContractHeaderIncoterms")
+                        .HasForeignKey("IncotermsId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscModeOfDispatch")
+                        .WithMany("PurchaseContractHeaderMode")
+                        .HasForeignKey("ModeOfDispatchId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader", "PurchaseOrder")
+                        .WithMany("ContractPOHeaders")
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ContractPOHeader");
+
+                    b.Navigation("MiscIncoterms");
+
+                    b.Navigation("MiscModeOfDispatch");
+
+                    b.Navigation("PurchaseOrder");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO.ImportPODetail", b =>
@@ -5697,6 +6280,18 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("PODocumentId");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPODetail", b =>
+                {
+                    b.Navigation("ContractPOReleaseHistories");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.ContractPO.ContractPOHeader", b =>
+                {
+                    b.Navigation("ContractPODetails");
+
+                    b.Navigation("ContractPOReleaseHistories");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.DutyMaster", b =>
                 {
                     b.Navigation("ImportPODuty");
@@ -5752,6 +6347,8 @@ namespace PurchaseManagement.Infrastructure.Migrations
                 {
                     b.Navigation("ActivityTypes");
 
+                    b.Navigation("ContractPOStatuses");
+
                     b.Navigation("GateEntryDetailsPoMethod");
 
                     b.Navigation("GateEntryReceived");
@@ -5799,6 +6396,12 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("PriceMasterSourceFrom");
 
                     b.Navigation("PriceMasterStatus");
+
+                    b.Navigation("PurchaseContractDetailDiscount");
+
+                    b.Navigation("PurchaseContractHeaderIncoterms");
+
+                    b.Navigation("PurchaseContractHeaderMode");
 
                     b.Navigation("PurchaseLocalDetailDiscount");
 
@@ -5886,6 +6489,11 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Lines");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO.PurchaseContractHeader", b =>
+                {
+                    b.Navigation("Details");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO.ImportPOHeader", b =>
                 {
                     b.Navigation("ImportPODetails");
@@ -5898,6 +6506,10 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader", b =>
                 {
+                    b.Navigation("ContractPOHeaders");
+
+                    b.Navigation("ContractPOReleaseHistories");
+
                     b.Navigation("Headers");
 
                     b.Navigation("ImportPOHeader");
