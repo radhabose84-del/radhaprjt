@@ -51,8 +51,6 @@ const string sql = @"
         CASE WHEN btT.Id IS NOT NULL THEN bt.Description ELSE NULL END AS BudgetTypeName,
         bg.CarryForward,
         bg.IsParent,
-        bg.EmergencyPoApplicable,
-        bg.EmergencyPoLimit,
         bg.IsActive
     FROM [Budget].[BudgetGroup] bg WITH (NOLOCK)
     LEFT JOIN [Budget].[BudgetGroup] pbg WITH (NOLOCK) 
@@ -157,8 +155,6 @@ const string sql = @"
                 CostCenterName = string.Empty,
 
                 IsParent = x.IsParent,
-                EmergencyPoApplicable = x.EmergencyPoApplicable,
-                EmergencyPoLimit = x.EmergencyPoLimit,
                 IsActive = x.IsActive
             }).ToList();
 
@@ -195,8 +191,6 @@ const string sql = @"
             bg.AllocatedPercentage,
             bg.AllocatedSpindleCost,
             bg.IsParent,
-            bg.EmergencyPoApplicable,
-            bg.EmergencyPoLimit,
             bg.IsActive,
             bg.IsDeleted
             FROM [Budget].[BudgetGroup] bg WITH (NOLOCK)
@@ -249,8 +243,6 @@ const string sql = @"
                 CarryForward = entity.CarryForward,
 
                 IsParent = entity.IsParent,
-                EmergencyPoApplicable = entity.EmergencyPoApplicable,
-                EmergencyPoLimit = entity.EmergencyPoLimit,
                 IsActive = entity.IsActive
             };
 
@@ -276,9 +268,7 @@ const string sql = @"
         END AS ParentBudgetGroupName,
         bg.IsParent,
         bg.AllocationRuleId,
-        ar.Description AS AllocationRuleName,
-        bg.EmergencyPoApplicable,
-        bg.EmergencyPoLimit
+        ar.Description AS AllocationRuleName
         FROM Budget.BudgetGroup bg WITH (NOLOCK)
         LEFT JOIN Budget.MiscMaster ar WITH (NOLOCK)
         ON ar.Id = bg.AllocationRuleId AND ar.IsDeleted = 0
@@ -349,9 +339,7 @@ const string sql = @"
         END AS ParentBudgetGroupName,
         bg.IsParent,
         bg.AllocationRuleId,
-        ar.Description AS AllocationRuleName,
-        bg.EmergencyPoApplicable,
-        bg.EmergencyPoLimit
+        ar.Description AS AllocationRuleName
         FROM Budget.BudgetGroup bg WITH (NOLOCK)
         LEFT JOIN Budget.BudgetGroup pbg WITH (NOLOCK)
         ON pbg.Id = bg.ParentBudgetGroupId AND pbg.IsDeleted = 0

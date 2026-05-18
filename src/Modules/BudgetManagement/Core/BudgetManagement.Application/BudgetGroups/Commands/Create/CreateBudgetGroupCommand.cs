@@ -17,8 +17,6 @@ namespace BudgetManagement.Application.BudgetGroups.Commands.CreateBudgetGroup
         public int BudgetTypeId { get; set; }          
         public bool CarryForward { get; set; } = false;
         public bool IsParent { get; set; }
-        public bool EmergencyPoApplicable { get; set; }
-        public decimal? EmergencyPoLimit { get; set; }
         public bool IsActive { get; set; } = true;
     }
 }

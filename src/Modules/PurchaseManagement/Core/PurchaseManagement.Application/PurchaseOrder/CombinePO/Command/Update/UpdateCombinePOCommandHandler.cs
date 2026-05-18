@@ -1,5 +1,6 @@
 using MediatR;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Update;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Update;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
@@ -18,7 +19,6 @@ public sealed class UpdateCombinePOCommandHandler : IRequestHandler<UpdateCombin
 
         if (await _lookup.IsLocalAsync(dto.POMethodId, ct))
         {
-            // keep inner DTO in sync if UI didn’t set it
             if (dto.Local is not null) dto.Local.POMethodId = dto.POMethodId;
             return await _mediator.Send(new UpdatePurchaseOrderCommand { Data = dto.Local! }, ct);
         }
@@ -27,6 +27,12 @@ public sealed class UpdateCombinePOCommandHandler : IRequestHandler<UpdateCombin
         {
             if (dto.Import is not null) dto.Import.POMethodId = dto.POMethodId;
             return await _mediator.Send(new UpdateImportPOCommand { Data = dto.Import! }, ct);
+        }
+
+        if (await _lookup.IsContractAsync(dto.POMethodId, ct))
+        {
+            if (dto.Contract is not null) dto.Contract.POMethodId = dto.POMethodId;
+            return await _mediator.Send(new UpdateContractReleasePOCommand(dto.Contract!), ct);
         }
 
         throw new InvalidOperationException("Unsupported POMethodId.");
