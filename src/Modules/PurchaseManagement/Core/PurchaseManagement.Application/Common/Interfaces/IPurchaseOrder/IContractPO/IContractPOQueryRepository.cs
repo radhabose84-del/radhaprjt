@@ -1,6 +1,7 @@
 using PurchaseManagement.Application.ContractPO.Dto;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.ContractPO;
 
-namespace PurchaseManagement.Application.Common.Interfaces.IContractPO;
+namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 
 public interface IContractPOQueryRepository
 {
@@ -12,4 +13,11 @@ public interface IContractPOQueryRepository
     Task<bool> AlreadyExistsAsync(string contractPONumber, int? excludeId = null);
     Task<bool> HasReleaseHistoryAsync(int id);
     Task<bool> SoftDeleteValidationAsync(int id);
+
+    // Combine PO validation
+    Task<bool> IsContractActiveAndValidAsync(int contractPOHeaderId);
+    Task<decimal> GetContractDetailBalanceAsync(int contractPODetailId);
+
+    // Contract Release PO (Combine PO) queries
+    Task<ContractReleasePODetailVm?> GetContractReleasePOByIdAsync(int poId, CancellationToken ct);
 }

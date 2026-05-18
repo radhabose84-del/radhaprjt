@@ -9,7 +9,7 @@ using PurchaseManagement.Application.ContractPO.Queries.AutoComplete;
 using PurchaseManagement.Application.ContractPO.Queries.GetAll;
 using PurchaseManagement.Application.ContractPO.Queries.GetById;
 
-namespace PurchaseManagement.Presentation.Controllers;
+namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder;
 
 [Route("api/[controller]")]
 public class ContractPOController : ApiControllerBase

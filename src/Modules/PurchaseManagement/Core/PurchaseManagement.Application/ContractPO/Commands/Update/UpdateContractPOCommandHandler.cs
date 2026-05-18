@@ -1,7 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using MediatR;
-using PurchaseManagement.Application.Common.Interfaces.IContractPO;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Application.ContractPO.Dto;
 using PurchaseManagement.Domain.Entities.ContractPO;
 using PurchaseManagement.Domain.Events;

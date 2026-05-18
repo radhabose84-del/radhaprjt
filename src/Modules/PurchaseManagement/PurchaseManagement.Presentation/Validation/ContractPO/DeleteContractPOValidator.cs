@@ -1,5 +1,5 @@
 using FluentValidation;
-using PurchaseManagement.Application.Common.Interfaces.IContractPO;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Application.ContractPO.Commands.Delete;
 
 namespace PurchaseManagement.Presentation.Validation.ContractPO;

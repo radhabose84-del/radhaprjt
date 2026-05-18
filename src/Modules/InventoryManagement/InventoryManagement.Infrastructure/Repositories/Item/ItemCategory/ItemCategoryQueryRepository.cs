@@ -41,8 +41,11 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC.ParentCategoryId END AS ParentCategoryId,
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC1.ItemCategoryName END AS ParentCategoryName,
                     IC.IsBudgetApplicable,
-                    IC.EmergencyPoApplicable,
-                    IC.EmergencyPoLimit,
+                    IC.EmergencyPOById,
+                    EPOB.Description AS EmergencyPOByName,
+                    IC.EmgencyValueLimit,
+                    IC.EmergencyActionId,
+                    EA.Description AS EmergencyActionName,
                     IC.IsActive,
                     IC.IsDeleted,
                     IC.CreatedBy, IC.CreatedDate, IC.CreatedByName, IC.CreatedIP,
@@ -50,6 +53,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 FROM Inventory.ItemCategory IC
                 JOIN Inventory.ItemGroup IG ON IG.Id = IC.ItemGroupId
                 LEFT JOIN Inventory.ItemCategory IC1 ON IC.ParentCategoryId = IC1.Id
+                LEFT JOIN Inventory.MiscMaster EPOB ON EPOB.Id = IC.EmergencyPOById AND EPOB.IsDeleted = 0
+                LEFT JOIN Inventory.MiscMaster EA ON EA.Id = IC.EmergencyActionId AND EA.IsDeleted = 0
                 WHERE IC.IsDeleted = 0
                 AND IC.Id = @Id;";
 
@@ -100,8 +105,11 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC.ParentCategoryId END AS ParentCategoryId,
                     CASE WHEN IC.ParentCategoryId = IC.Id THEN NULL ELSE IC1.ItemCategoryName END AS ParentCategoryName,
                     IC.IsBudgetApplicable,
-                    IC.EmergencyPoApplicable,
-                    IC.EmergencyPoLimit,
+                    IC.EmergencyPOById,
+                    EPOB.Description AS EmergencyPOByName,
+                    IC.EmgencyValueLimit,
+                    IC.EmergencyActionId,
+                    EA.Description AS EmergencyActionName,
                     IC.IsActive,
                     IC.IsDeleted,
                     IC.CreatedBy, IC.CreatedDate, IC.CreatedByName, IC.CreatedIP,
@@ -109,6 +117,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 FROM Inventory.ItemCategory IC
                 JOIN Inventory.ItemGroup IG ON IG.Id = IC.ItemGroupId
                 LEFT JOIN Inventory.ItemCategory IC1 ON IC.ParentCategoryId = IC1.Id
+                LEFT JOIN Inventory.MiscMaster EPOB ON EPOB.Id = IC.EmergencyPOById AND EPOB.IsDeleted = 0
+                LEFT JOIN Inventory.MiscMaster EA ON EA.Id = IC.EmergencyActionId AND EA.IsDeleted = 0
                 WHERE IC.IsDeleted = 0
                 {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (IC.ItemCategoryName LIKE @Search )")}}
                 AND (@ModuleId IS NULL OR EXISTS (
@@ -262,11 +272,16 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     IC1.ItemCategoryName AS ParentCategoryName,
                     IG.Id  AS ItemGroupId,
                     IG.ItemGroupName,
-                    IC.EmergencyPoApplicable,
-                    IC.EmergencyPoLimit
+                    IC.EmergencyPOById,
+                    EPOB.Description AS EmergencyPOByName,
+                    IC.EmgencyValueLimit,
+                    IC.EmergencyActionId,
+                    EA.Description AS EmergencyActionName
                 FROM Inventory.ItemCategory IC
                 LEFT JOIN Inventory.ItemCategory IC1 ON IC.ParentCategoryId = IC1.Id
                 LEFT JOIN Inventory.ItemGroup IG     ON IG.Id = IC.ItemGroupId
+                LEFT JOIN Inventory.MiscMaster EPOB ON EPOB.Id = IC.EmergencyPOById AND EPOB.IsDeleted = 0
+                LEFT JOIN Inventory.MiscMaster EA ON EA.Id = IC.EmergencyActionId AND EA.IsDeleted = 0
                 WHERE IC.IsDeleted = 0
                 AND IC.IsActive  = 1
                 AND IC.ItemCategoryName LIKE @SearchPattern

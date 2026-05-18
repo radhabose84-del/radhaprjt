@@ -3,7 +3,7 @@ using Contracts.Common;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
-using PurchaseManagement.Application.Common.Interfaces.IContractPO;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Application.ContractPO.Dto;
 using PurchaseManagement.Domain.Entities.ContractPO;
 using PurchaseManagement.Domain.Events;

@@ -1,6 +1,6 @@
 using Contracts.Common;
 using MediatR;
-using PurchaseManagement.Application.Common.Interfaces.IContractPO;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Domain.Events;
 
 namespace PurchaseManagement.Application.ContractPO.Commands.Delete;
