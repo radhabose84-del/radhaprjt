@@ -10,4 +10,5 @@ public class ApiResponseDTO<T>
     public int PageSize { get; set; }
     public List<string>? Errors { get; set; }
     public int StatusCode { get; set; }
+    public string? TraceId { get; set; }
 }

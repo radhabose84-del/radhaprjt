@@ -2,7 +2,9 @@ using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands;
+using PurchaseManagement.Application.GRN.GRNEntry.Commands.DeleteGRNDocument;
 using PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry;
+using PurchaseManagement.Application.GRN.GRNEntry.Commands.UploadGRNDocument;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGateEntryPending;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGateEntryPendingPo;
 using PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPending;
@@ -71,6 +73,54 @@ namespace PurchaseManagement.UnitTests.Controllers
             var result = await CreateSut().GetPoPendingAsync();
 
             result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task UploadGRNDetailDocument_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<UploadGrnDetailDocumentCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GRNDetailImageDto { ImagePath = "TEMP_abc.png" });
+
+            var result = await CreateSut().UploadGRNDetailDocument(new UploadGrnDetailDocumentCommand());
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task UploadGRNDetailDocument_CallsMediatorSend_Once()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<UploadGrnDetailDocumentCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GRNDetailImageDto());
+
+            await CreateSut().UploadGRNDetailDocument(new UploadGrnDetailDocumentCommand());
+
+            _mockMediator.Verify(
+                m => m.Send(It.IsAny<UploadGrnDetailDocumentCommand>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteGRNDetailDocument_WithValidPath_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<DeleteGrnDetailDocumentCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var result = await CreateSut().DeleteGRNDetailDocument(
+                new DeleteGrnDetailDocumentCommand { GrnDetaildocumentPath = "TEMP_abc.png" });
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task DeleteGRNDetailDocument_WithEmptyPath_ReturnsBadRequest()
+        {
+            var result = await CreateSut().DeleteGRNDetailDocument(
+                new DeleteGrnDetailDocumentCommand { GrnDetaildocumentPath = "" });
+
+            result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]

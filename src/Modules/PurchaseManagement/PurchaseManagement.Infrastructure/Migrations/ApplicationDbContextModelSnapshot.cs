@@ -554,6 +554,10 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
 
+                    b.Property<string>("GrnDetailImage")
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("GrnDetailImage");
+
                     b.Property<int>("GrnId")
                         .HasColumnType("int")
                         .HasColumnName("GrnId");
@@ -1229,6 +1233,11 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
                     b.Property<string>("ModifiedIP")
                         .HasColumnType("varchar(20)");
+
+                    b.Property<decimal?>("OldQuantityRequired")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("OldQuantityRequired");
 
                     b.Property<decimal?>("POQty")
                         .HasPrecision(18, 6)

@@ -20,7 +20,7 @@ public sealed class GetAllSalesOrderQueryHandlerTests
     public async Task Handle_ReturnsSuccess()
     {
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null, null))
             .ReturnsAsync((new List<SalesOrderHeaderDto> { new() { Id = 1 } }, 1));
 
         var result = await CreateSut().Handle(
@@ -37,7 +37,7 @@ public sealed class GetAllSalesOrderQueryHandlerTests
         var dateFrom = new DateOnly(2026, 1, 1);
         var dateTo = new DateOnly(2026, 12, 31);
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, "search", dateFrom, dateTo, "Party", "Approved"))
+            .Setup(r => r.GetAllAsync(1, 10, "search", dateFrom, dateTo, "Party", "Approved", null))
             .ReturnsAsync((new List<SalesOrderHeaderDto>(), 0));
 
         var result = await CreateSut().Handle(
@@ -57,7 +57,7 @@ public sealed class GetAllSalesOrderQueryHandlerTests
     public async Task Handle_EmptyResult_ReturnsEmptyList()
     {
         _mockQueryRepo
-            .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null))
+            .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null, null))
             .ReturnsAsync((new List<SalesOrderHeaderDto>(), 0));
 
         var result = await CreateSut().Handle(

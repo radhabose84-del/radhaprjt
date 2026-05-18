@@ -1,6 +1,9 @@
 using Contracts.Dtos.Lookups.Party;
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Sales;
+using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SalesManagement.Infrastructure.Data;
@@ -20,6 +23,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
             Mock<ICustomerLookup>? customer = null,
             Mock<IAgentLookup>? agent = null,
             Mock<ISubAgentLookup>? subAgent = null,
+            Mock<IUserLookup> userLookup = null,
+            Mock<IOfficerAgentUserLookup> officerAgentUserLookup = null,
             Mock<IDataAccessFilter>? accessFilter = null)
         {
             if (customer == null)
@@ -46,6 +51,16 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
                 subAgent.Setup(s => s.GetAllSubAgentAsync())
                     .ReturnsAsync((IReadOnlyList<SubAgentLookupDto>)new List<SubAgentLookupDto>());
             }
+            if (userLookup == null)
+            {
+                userLookup = new Mock<IUserLookup>(MockBehavior.Loose);
+                userLookup.Setup(u => u.GetAllUserAsync())
+                    .ReturnsAsync(new List<UserLookupDto>());
+            }
+            if (officerAgentUserLookup == null)
+            {
+                officerAgentUserLookup = new Mock<IOfficerAgentUserLookup>(MockBehavior.Loose);
+            }
             if (accessFilter == null)
             {
                 accessFilter = new Mock<IDataAccessFilter>(MockBehavior.Loose);
@@ -55,7 +70,8 @@ namespace SalesManagement.IntegrationTests.Repositories.AgentCustomerMapping
 
             return new AgentCustomerMappingQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
-                customer.Object, agent.Object, subAgent.Object, accessFilter.Object);
+                customer.Object, agent.Object, subAgent.Object,
+                userLookup.Object, officerAgentUserLookup.Object, accessFilter.Object);
         }
 
         private async Task<int> EnsureSalesGroupAsync()

@@ -78,56 +78,26 @@ public class BankMasterController : ApiControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateAsync([FromBody] UpdateBankMasterCommand body, CancellationToken ct)
     {
-        try
+        await _mediator.Send(body, ct);
+        return Ok(new
         {
-            await _mediator.Send(body, ct);
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                message = "Updated successfully.",
-                data = true
-            });
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound(new
-            {
-                StatusCode = StatusCodes.Status404NotFound,
-                message = "Bank not found."
-            });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new
-            {
-                StatusCode = StatusCodes.Status400BadRequest,
-                message = ex.Message
-            });
-        }
+            StatusCode = StatusCodes.Status200OK,
+            message = "Updated successfully.",
+            data = true
+        });
     }
 
     // DELETE: api/BankMaster/5
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteAsync(int id, CancellationToken ct)
     {
-         try
+        await _mediator.Send(new DeleteBankMasterCommand(id), ct);
+        return Ok(new
         {
-            await _mediator.Send(new DeleteBankMasterCommand(id), ct); // just await; no 'ok'
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                message = "Deleted successfully.",
-                data = true
-            });
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound(new
-            {
-                StatusCode = StatusCodes.Status404NotFound,
-                message = "Bank not found."
-            });
-        }
+            StatusCode = StatusCodes.Status200OK,
+            message = "Deleted successfully.",
+            data = true
+        });
     }
 
     // GET: api/BankMaster/by-name?term=icici

@@ -48,7 +48,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             return false;
         }
 
-        public async Task<bool> UpdateAsync(IndentHeader indentHeader, string request)
+        public async Task<bool> UpdateAsync(IndentHeader indentHeader, string request, bool isApprovalEdit = false)
         {
             
 
@@ -111,6 +111,19 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
                         existingDetail.ItemCategoryId = updatedDetail.ItemCategoryId;
                         existingDetail.ItemUOMId = updatedDetail.ItemUOMId;
                         existingDetail.Rate = updatedDetail.Rate;
+
+                        // Capture the pre-change quantity ONLY when the save comes from the
+                        // approver's edit-during-approval screen (isApprovalEdit == true), and
+                        // only the FIRST time it changes (OldQuantityRequired == null preserves
+                        // the true original across re-edits). Normal creator pending edits
+                        // (isApprovalEdit == false) never trigger this.
+                        if (isApprovalEdit
+                            && existingDetail.OldQuantityRequired == null
+                            && existingDetail.QuantityRequired != updatedDetail.QuantityRequired)
+                        {
+                            existingDetail.OldQuantityRequired = existingDetail.QuantityRequired;
+                        }
+
                         existingDetail.QuantityRequired = updatedDetail.QuantityRequired;
                         existingDetail.RequiredDate = updatedDetail.RequiredDate;
                         existingDetail.TotalEstimatedCost = updatedDetail.TotalEstimatedCost;

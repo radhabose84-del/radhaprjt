@@ -36,7 +36,8 @@ namespace MaintenanceManagement.IntegrationTests.Common
             ConfigureMocks();
             await CreateDbContextAsync();
             await EnsureMaintenanceSchemaAsync();
-            await DbContext.Database.EnsureCreatedAsync();
+            await DbContext.Database.EnsureCreatedAsync();  // must run before any stub tables
+            await EnsureAppDataStubsAsync();
         }
 
         private void ConfigureMocks()
@@ -85,6 +86,26 @@ CREATE DATABASE [{DbName}];
             await DbContext.Database.ExecuteSqlRawAsync(@"
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Maintenance')
     EXEC('CREATE SCHEMA Maintenance');
+");
+        }
+
+        // Called AFTER EnsureCreatedAsync so the pre-existing table doesn't cause
+        // EF Core's HasTables() check to skip Maintenance table creation.
+        private async Task EnsureAppDataStubsAsync()
+        {
+            await DbContext.Database.ExecuteSqlRawAsync(@"
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'AppData')
+    EXEC('CREATE SCHEMA AppData');
+");
+            await DbContext.Database.ExecuteSqlRawAsync(@"
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'AppData.Department') AND type = 'U')
+BEGIN
+    CREATE TABLE AppData.Department (
+        Id       INT           NOT NULL PRIMARY KEY,
+        DeptName NVARCHAR(100) NOT NULL
+    );
+    INSERT INTO AppData.Department (Id, DeptName) VALUES (1, 'Test Department');
+END;
 ");
         }
 

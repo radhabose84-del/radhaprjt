@@ -37,6 +37,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry
             public decimal? QcAcceptedQuantity { get; set; }
             public decimal? QcRejectedQuantity { get; set; }
             public string? QcRejectedRemarks { get; set; }
+            public string? GrnDetailImage { get; set; }
             
     
             

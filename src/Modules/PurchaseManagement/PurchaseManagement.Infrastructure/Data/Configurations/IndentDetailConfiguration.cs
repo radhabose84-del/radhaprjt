@@ -59,6 +59,11 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations
                    .HasColumnType("decimal(18,2)")
                    .IsRequired();
 
+            builder.Property(m => m.OldQuantityRequired)
+                   .HasColumnName("OldQuantityRequired")
+                   .HasColumnType("decimal(18,2)")
+                   .IsRequired(false);
+
             // builder.Property(m => m.ApprovedQuantity)
             // .HasColumnName("ApprovedQuantity")
             // .HasColumnType("decimal(18,2)")
