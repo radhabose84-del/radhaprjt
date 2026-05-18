@@ -36,6 +36,9 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoCom
         public string? SaleUom { get; set; }
  		public List<ItemVendorDto>? Vendors { get; set; }
 		public decimal? CurrentStockQty { get; set; }
+        public int? EmergencyPOById { get; set; }
+        public decimal? EmergencyValueLimit { get; set; }
+        public int? EmergencyActionId { get; set; }
         // Populated only by GetItemsByVariantFilter — config rows for this item's category + current unit.
         public List<ItemCategoryUnitConfigDto>? ItemCategoryUnitConfigs { get; set; }
     }

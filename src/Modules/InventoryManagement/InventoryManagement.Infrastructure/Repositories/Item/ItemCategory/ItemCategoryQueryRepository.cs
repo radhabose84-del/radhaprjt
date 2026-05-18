@@ -43,7 +43,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     IC.IsBudgetApplicable,
                     IC.EmergencyPOById,
                     EPOB.Description AS EmergencyPOByName,
-                    IC.EmgencyValueLimit,
+                    IC.EmergencyValueLimit,
                     IC.EmergencyActionId,
                     EA.Description AS EmergencyActionName,
                     IC.IsActive,
@@ -107,7 +107,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     IC.IsBudgetApplicable,
                     IC.EmergencyPOById,
                     EPOB.Description AS EmergencyPOByName,
-                    IC.EmgencyValueLimit,
+                    IC.EmergencyValueLimit,
                     IC.EmergencyActionId,
                     EA.Description AS EmergencyActionName,
                     IC.IsActive,
@@ -274,7 +274,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                     IG.ItemGroupName,
                     IC.EmergencyPOById,
                     EPOB.Description AS EmergencyPOByName,
-                    IC.EmgencyValueLimit,
+                    IC.EmergencyValueLimit,
                     IC.EmergencyActionId,
                     EA.Description AS EmergencyActionName
                 FROM Inventory.ItemCategory IC

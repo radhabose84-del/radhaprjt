@@ -72,8 +72,8 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item
                 .HasColumnType("int")
                 .IsRequired(false);
 
-            builder.Property(ag => ag.EmgencyValueLimit)
-                .HasColumnName("EmgencyValueLimit")
+            builder.Property(ag => ag.EmergencyValueLimit)
+                .HasColumnName("EmergencyValueLimit")
                 .HasColumnType("decimal(18,2)")
                 .IsRequired(false);
 
