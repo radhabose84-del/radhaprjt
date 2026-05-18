@@ -398,7 +398,7 @@ namespace InventoryManagement.IntegrationTests.Repositories.UOMsTests
             await SeedUomUnderMiscAsync("VL_LTR3", "Litres3", volumeId);
             await SeedUomUnderMiscAsync("VL_ML3", "Millilitre3", volumeId);
 
-            var result = await CreateRepo().GetUOM("Litre", "VolUnits");
+            var result = await CreateRepo().GetUOM("Litres", "VolUnits");
 
             result.Should().ContainSingle();
             result[0].UOMName.Should().Be("Litres3");

@@ -18,63 +18,104 @@ public class GlobalExceptionMiddleware
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IHostEnvironment env)
+    public GlobalExceptionMiddleware(
+        RequestDelegate next,
+        ILogger<GlobalExceptionMiddleware> logger,
+        IHostEnvironment env)
     {
-        _next = next;
+        _next   = next;
         _logger = logger;
-        _env = env;
+        _env    = env;
     }
 
     public async Task Invoke(HttpContext context)
     {
         var traceId = context.TraceIdentifier;
-        context.Request.EnableBuffering();
 
         try
         {
-            LogRequest(context, traceId);
             await _next(context);
+        }
+        catch (TaskCanceledException)
+        {
+            // Client disconnected — no response needed
+        }
+        catch (OperationCanceledException)
+        {
+            // Client disconnected — no response needed
         }
         catch (ValidationException ex)
         {
-            await HandleValidationException(context, ex);
+            _logger.LogDebug("TraceId: {TraceId} | Validation failed: {Errors}",
+                traceId, string.Join(" | ", ex.Errors.Select(e => e.ErrorMessage)));
+
+            await HandleValidationException(context, ex, traceId);
+        }
+        catch (EntityAlreadyExistsException ex)
+        {
+            _logger.LogWarning("TraceId: {TraceId} | Already exists: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status409Conflict, ex.Message, traceId);
         }
         catch (EntityNotFoundException ex)
         {
-            await HandleException(context, StatusCodes.Status404NotFound, ex.Message);
+            _logger.LogWarning("TraceId: {TraceId} | Not found: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status404NotFound, ex.Message, traceId);
         }
         catch (ExceptionRules ex)
         {
-            await HandleException(context, StatusCodes.Status400BadRequest, ex.Message);
+            _logger.LogWarning("TraceId: {TraceId} | Business rule: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status400BadRequest, ex.Message, traceId);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("TraceId: {TraceId} | Unauthorized: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status401Unauthorized, ex.Message, traceId);
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogWarning("TraceId: {TraceId} | Null argument: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status400BadRequest, ex.Message, traceId);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("TraceId: {TraceId} | Bad argument: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status400BadRequest, ex.Message, traceId);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning("TraceId: {TraceId} | Key not found: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status404NotFound, ex.Message, traceId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("TraceId: {TraceId} | Invalid operation: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status400BadRequest, ex.Message, traceId);
+        }
+        catch (NotImplementedException ex)
+        {
+            _logger.LogError("TraceId: {TraceId} | Not implemented: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status501NotImplemented, "Feature not implemented.", traceId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "TraceId: {TraceId}, Unhandled exception", traceId);
+            _logger.LogError(ex, "TraceId: {TraceId} | Unhandled exception at {Path}",
+                traceId, context.Request.Path);
 
             var message = _env.IsDevelopment()
                 ? $"{ex.Message}{(ex.InnerException != null ? $" | Inner: {ex.InnerException.Message}" : "")}"
-                : "Internal Server Error";
+                : "An unexpected error occurred. Please contact support.";
 
-            await HandleException(context, StatusCodes.Status500InternalServerError, message);
+            await HandleException(context, StatusCodes.Status500InternalServerError, message, traceId);
         }
     }
 
-    private void LogRequest(HttpContext context, string traceId)
-    {
-        var method = context.Request.Method;
-        if (method == HttpMethods.Get || method == HttpMethods.Post || method == HttpMethods.Put)
-        {
-            _logger.LogInformation("TraceId: {TraceId}, Request Path: {Path}, Method: {Method}",
-                traceId, context.Request.Path, context.Request.Method);
-        }
-    }
-
-    private static async Task HandleValidationException(HttpContext context, ValidationException ex)
+    private static async Task HandleValidationException(
+        HttpContext context, ValidationException ex, string traceId)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        context.Response.StatusCode  = StatusCodes.Status400BadRequest;
 
-        var errors = (ex.Errors ?? Enumerable.Empty<FluentValidation.Results.ValidationFailure>())
+        var errors = (ex.Errors ?? [])
             .Select(e => e.ErrorMessage)
             .Where(m => !string.IsNullOrWhiteSpace(m))
             .Distinct()
@@ -85,27 +126,35 @@ public class GlobalExceptionMiddleware
 
         var response = new ApiResponseDTO<object>
         {
-            IsSuccess = false,
+            IsSuccess  = false,
             StatusCode = StatusCodes.Status400BadRequest,
-            Message = "Validation failed",
-            Errors = errors
+            Message    = "Validation failed",
+            Errors     = errors,
+            TraceId    = traceId
         };
 
-        await context.Response.WriteAsync(JsonSerializer.Serialize(response, JsonOptions));
+        await context.Response.WriteAsync(
+            JsonSerializer.Serialize(response, JsonOptions),
+            context.RequestAborted);
     }
 
-    private static async Task HandleException(HttpContext context, int statusCode, string message)
+    private static async Task HandleException(
+        HttpContext context, int statusCode, string message, string traceId)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = statusCode;
+        context.Response.StatusCode  = statusCode;
 
         var response = new ApiResponseDTO<object>
         {
-            IsSuccess = false,
+            IsSuccess  = false,
             StatusCode = statusCode,
-            Message = message
+            Message    = message,
+            Errors     = [message],
+            TraceId    = traceId
         };
 
-        await context.Response.WriteAsync(JsonSerializer.Serialize(response, JsonOptions));
+        await context.Response.WriteAsync(
+            JsonSerializer.Serialize(response, JsonOptions),
+            context.RequestAborted);
     }
 }

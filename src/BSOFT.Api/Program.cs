@@ -1,5 +1,6 @@
 using FluentValidation;
 using Hangfire;
+using Serilog;
 using MediatR;
 using BSOFT.Api.Configurations;
 using BSOFT.Api.Filters;
@@ -36,10 +37,11 @@ builder.Configuration
     .AddJsonFile("settings/jwtsetting.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
 
+builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSharedInfrastructureServices();
 builder.Services.AddBsoftResilience(builder.Configuration);
-builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 
 // ✅ MediatR pipeline behaviors
@@ -78,7 +80,7 @@ builder.Services.AddLookupCaching(options =>
 {
     options.CacheDuration         = TimeSpan.FromMinutes(30); // sliding — safety net for out-of-band changes
     options.AbsoluteExpiration    = TimeSpan.FromHours(4);    // hard ceiling on staleness if eviction is missed
-    options.SizeLimit             = 5000;                     // headroom for ~50 lookup interfaces × ~50 method+arg combos
+    options.SizeLimit             = 8000;                     // 71 lookup interfaces × ~50 method+arg combos ≈ 3,550; 8,000 gives 2× headroom
     options.EnableDetailedLogging = false;                    // flip to true only when debugging cache behavior
 });
 
@@ -96,6 +98,14 @@ builder.Services.AddControllers(o =>
 builder.Services.AddSwaggerDocumentation();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddCorsPolicy();
+
+// ✅ Hangfire server — maintenance-jobs queue only; never competes with BSOFT.Worker's queues
+builder.Services.AddHangfireServer(options =>
+{
+    options.ServerName  = "BSOFT.Api";
+    options.Queues      = ["maintenance-jobs"];
+    options.WorkerCount = 5;
+});
 
 var app = builder.Build();
 
@@ -138,16 +148,6 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     DashboardTitle = "BSOFT Hangfire Dashboard"
 });
 
-// ✅ Hangfire server — BSOFT.Api executes business-domain Hangfire jobs in-process.
-//    Only listens on "maintenance-jobs" so it never competes with BSOFT.Worker's
-//    infrastructure queues (forgot_password, user_unlock, sql-outbox).
-//    WorkerCount is capped to avoid background threads starving API request threads.
-app.UseHangfireServer(new BackgroundJobServerOptions
-{
-    ServerName = "BSOFT.Api",
-    Queues = ["maintenance-jobs"],
-    WorkerCount = 5
-});
 
 // Poll maintenance.OutboxMessages for scheduling events every minute.
 // MaintenanceOutboxProcessorJob handles: MachineWiseScheduleCreationEvent,

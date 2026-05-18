@@ -68,22 +68,12 @@ public class RoleEntitlementsController : ApiControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateRoleEntitlement(UpdateRoleEntitlementCommand command)
     {
-          if (command.RoleId != command.RoleId)
-         {
-             return BadRequest(new 
-             {
-                 StatusCode = StatusCodes.Status400BadRequest,
-                 Message = "Invalid request. All ModuleMenus must have the same RoleId as the provided RoleId."
-             });
-         }
-           await Mediator.Send(command);
-   
-                return Ok(new 
-                { 
-                    StatusCode = StatusCodes.Status200OK, 
-                    message = "Role Entitlement updated successfully",
-                });
-           
+        await Mediator.Send(command);
+        return Ok(new
+        {
+            StatusCode = StatusCodes.Status200OK,
+            message = "Role Entitlement updated successfully",
+        });
     }
 
         [HttpGet("roleprivileges/{UserId}")]

@@ -8,6 +8,7 @@ using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
 using SalesManagement.Application.Common.Interfaces.ISalesOrder;
 using SalesManagement.Application.SalesOrder.Commands.CreateSalesOrder;
@@ -20,6 +21,7 @@ namespace SalesManagement.UnitTests.Application.SalesOrder.Commands;
 public sealed class CreateSalesOrderCommandHandlerTests
 {
     private readonly Mock<ISalesOrderCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+    private readonly Mock<IMiscMasterQueryRepository> _mockMiscMasterQueryRepo = new(MockBehavior.Loose);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
     private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
@@ -33,7 +35,7 @@ public sealed class CreateSalesOrderCommandHandlerTests
     private readonly Mock<IOfficerAgentUserLookup> _mockOfficerAgentUserLookup = new(MockBehavior.Loose);
 
     private CreateSalesOrderCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object,
+        new(_mockCommandRepo.Object, _mockMiscMasterQueryRepo.Object, _mockMapper.Object, _mockMediator.Object,
             _mockIpService.Object, _mockCompanyLookup.Object, _mockUnitLookup.Object,
             _mockDocSeqLookup.Object, _mockLogger.Object, _mockOutbox.Object,
             _mockAppDataMiscLookup.Object, _mockPartyDetailLookup.Object, _mockOfficerAgentUserLookup.Object);
@@ -51,7 +53,7 @@ public sealed class CreateSalesOrderCommandHandlerTests
         _mockIpService.Setup(s => s.GetUnitId()).Returns(1);
 
         _mockCommandRepo
-            .Setup(r => r.CreateAsync(It.IsAny<SalesOrderHeader>(), It.IsAny<int>()))
+            .Setup(r => r.CreateAsync(It.IsAny<SalesOrderHeader>(), It.IsAny<int>(), It.IsAny<bool>()))
             .ReturnsAsync(newId);
 
         _mockCommandRepo
@@ -88,7 +90,7 @@ public sealed class CreateSalesOrderCommandHandlerTests
 
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Be("Sales Order created successfully.");
+        result.Message.Should().Be("Direct Sales Order created successfully.");
     }
 
     [Fact]
@@ -107,7 +109,7 @@ public sealed class CreateSalesOrderCommandHandlerTests
         await CreateSut().Handle(ValidCommand(), CancellationToken.None);
 
         _mockCommandRepo.Verify(
-            r => r.CreateAsync(It.IsAny<SalesOrderHeader>(), It.IsAny<int>()),
+            r => r.CreateAsync(It.IsAny<SalesOrderHeader>(), It.IsAny<int>(), It.IsAny<bool>()),
             Times.Once);
     }
 

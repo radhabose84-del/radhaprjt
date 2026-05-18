@@ -120,6 +120,10 @@ namespace UserManagement.IntegrationTests.Repositories.UserSession
             ctx.UserSession.RemoveRange(sessions);
             await ctx.SaveChangesAsync();
 
+            var signatures = await ctx.UserSignature.ToListAsync();
+            ctx.UserSignature.RemoveRange(signatures);
+            await ctx.SaveChangesAsync();
+
             var users = await ctx.User.ToListAsync();
             ctx.User.RemoveRange(users);
             await ctx.SaveChangesAsync();
