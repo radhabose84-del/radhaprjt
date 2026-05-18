@@ -40,6 +40,8 @@ using MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest;
 using MaintenanceManagement.Application.Common.Interfaces.IPreventiveScheduler;
 using MaintenanceManagement.Infrastructure.Repositories.PreventiveSchedulers;
 using MaintenanceManagement.Infrastructure.Repositories.WorkOrder;
+using MaintenanceManagement.Application.Common.Interfaces.IServiceHistory;
+using MaintenanceManagement.Infrastructure.Repositories.ServiceHistory;
 using MaintenanceManagement.Application.Common.Interfaces.IItem;
 using MaintenanceManagement.Infrastructure.Repositories.Item;
 using MaintenanceManagement.Application.Common.Interfaces.IStcokLedger;
@@ -171,6 +173,7 @@ namespace MaintenanceManagement.Infrastructure
             // ✅ CRITICAL: WorkOrder repositories
             services.AddScoped<IWorkOrderCommandRepository, WorkOrderCommandRepository>();
             services.AddScoped<IWorkOrderQueryRepository, WorkOrderQueryRepository>();
+            services.AddScoped<IServiceHistoryQueryRepository, ServiceHistoryQueryRepository>();
 
             services.AddScoped<IActivityCheckListMasterQueryRepository, ActivityCheckListMasterQueryRepository>();
             services.AddScoped<IActivityCheckListMasterCommandRepository, ActivityCheckListMasterCommandRepository>();
