@@ -72,9 +72,9 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetInsurance
             {
                 AssetId = assetId,
                 PolicyNo = policyNo,
-                StartDate = new DateOnly(2025, 1, 1),
+                StartDate = DateOnly.FromDateTime(DateTime.Today),
                 Insuranceperiod = 12,
-                EndDate = new DateOnly(2026, 1, 1),
+                EndDate = DateOnly.FromDateTime(DateTime.Today.AddYears(1)),
                 PolicyAmount = 50000m,
                 VendorCode = "VC_Q",
                 RenewalStatus = 1,

@@ -5,7 +5,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent
     public interface IPurchaseIndentCommand
     {
         Task<IndentHeader> CreateAsync(IndentHeader indentHeader);
-        Task<bool> UpdateAsync(IndentHeader indentHeader, string request);
+        Task<bool> UpdateAsync(IndentHeader indentHeader, string request, bool isApprovalEdit = false);
         Task<bool> DeleteAsync(int id, IndentHeader indentHeader);
         // Task<List<IndentDetail>> UpdateIndentDetailAsync(List<IndentDetail> indentDetail);
         Task<bool> RollbackStatusAsync(int id);
