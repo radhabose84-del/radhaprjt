@@ -38,6 +38,11 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
 using Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Persistence.Configurations;
+using PurchaseManagement.Domain.Entities.ContractPO;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
+using PurchaseManagement.Infrastructure.Data.Configurations.ContractPO;
+using PurchaseContractHeaderConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ContractPO.PurchaseContractHeaderConfiguration;
+using PurchaseContractDetailConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ContractPO.PurchaseContractDetailConfiguration;
 using PurchaseManagement.Domain.Entities.Outbox;
 using PurchaseManagement.Infrastructure.Data.Configurations.Outbox;
 
@@ -116,6 +121,15 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<PurchaseBillEntryDetail> PurchaseBillEntryDetails  { get; set; }
         public DbSet<ServiceEntrySheetDocument> ServiceEntrySheetDocuments { get; set; }
 
+        // Contract PO (standalone contract master)
+        public DbSet<ContractPOHeader> ContractPOHeaders { get; set; }
+        public DbSet<ContractPODetail> ContractPODetails { get; set; }
+        public DbSet<ContractPOReleaseHistory> ContractPOReleaseHistories { get; set; }
+
+        // Contract PO (4th PO type — release PO under PurchaseOrderHeader)
+        public DbSet<PurchaseContractHeader> PurchaseContractHeaders { get; set; }
+        public DbSet<PurchaseContractDetail> PurchaseContractDetails { get; set; }
+
         // Outbox Pattern
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
@@ -188,6 +202,15 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new PurchaseBillEntryHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new PurchaseBillEntryDetailConfiguration());
             modelBuilder.ApplyConfiguration(new ServiceEntrySheetDocumentConfiguration());
+
+            // Contract PO (standalone)
+            modelBuilder.ApplyConfiguration(new ContractPOHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new ContractPODetailConfiguration());
+            modelBuilder.ApplyConfiguration(new ContractPOReleaseHistoryConfiguration());
+
+            // Contract PO (4th PO type under PurchaseOrderHeader)
+            modelBuilder.ApplyConfiguration(new PurchaseContractHeaderConfig());
+            modelBuilder.ApplyConfiguration(new PurchaseContractDetailConfig());
 
             // Outbox Pattern
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());

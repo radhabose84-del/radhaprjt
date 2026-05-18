@@ -57,6 +57,10 @@ using PurchaseManagement.Application.PurchaseOrder.BillEntry.Dto;
 using PurchaseManagement.Application.PurchaseOrder.BillEntry.Queries.GetAll;
 using PurchaseManagement.Application.IssueReturn.Command.CreateIssueReturn;
 using PurchaseManagement.Presentation.Validation.IssueReturn;
+using PurchaseManagement.Application.ContractPO.Commands.Create;
+using PurchaseManagement.Application.ContractPO.Commands.Update;
+using PurchaseManagement.Application.ContractPO.Commands.Delete;
+using PurchaseManagement.Presentation.Validation.ContractPO;
 using Microsoft.Extensions.DependencyInjection;
 
 
@@ -122,8 +126,12 @@ namespace PurchaseManagement.Presentation.Validation.Common
             services.AddScoped<IValidator<PurchaseBillEntryDetailDto>, PurchaseBillEntryCommandValidator>();
             services.AddScoped<IValidator<PurchaseBillEntryHeaderDto>, PurchaseBillEntryDtoValidator>();
             services.AddScoped<IValidator<GetAllPurchaseBillEntryQuery>, GetPurchaseBillEntryListQueryValidator>(); 
-            services.AddScoped<IValidator<CreateIssueReturnEntryCommand>, CreateIssueReturnEntryCommandValidator>();           
-            
+            services.AddScoped<IValidator<CreateIssueReturnEntryCommand>, CreateIssueReturnEntryCommandValidator>();
+
+            services.AddScoped<IValidator<CreateContractPOCommand>, CreateContractPOValidator>();
+            services.AddScoped<IValidator<UpdateContractPOCommand>, UpdateContractPOValidator>();
+            services.AddScoped<IValidator<DeleteContractPOCommand>, DeleteContractPOValidator>();
+
         }
     }
 }
