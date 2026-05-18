@@ -28,7 +28,7 @@ namespace FAM.Application.Common.Mappings
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.AssetGroupId, opt => opt.MapFrom(src => src.AssetGroupId))
-                .ForMember(dest => dest.SortOrder, opt => opt.MapFrom(src => src.SortOrder))
+                .ForMember(dest => dest.SortOrder, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ==1 ? Status.Active : Status.Inactive));
 
             CreateMap<DeleteAssetCategoriesCommand, FAM.Domain.Entities.AssetCategories>()
