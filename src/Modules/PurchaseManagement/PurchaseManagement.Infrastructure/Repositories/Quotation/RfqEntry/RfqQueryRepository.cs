@@ -253,12 +253,14 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
                 var sId = statusId.Value;
 
                 if (sId == pending.Id)
-                {                  
+                {
+                    // Pending = RFQs whose submission deadline has reached/passed
+                    // (window closed → awaiting comparison) as of the current date.
                     q = q.Where(r =>
                         r.LastSubmitDate.HasValue &&
-                        r.LastSubmitDate.Value >= date &&
+                        r.LastSubmitDate.Value <= date &&
                         (
-                            !comparisonHeaders.Any(ch => ch.RfqId == r.Id) || 
+                            !comparisonHeaders.Any(ch => ch.RfqId == r.Id) ||
                             comparisonHeaders.Any(ch =>
                                 ch.RfqId == r.Id &&
                                 ch.StatusId == sId)
@@ -276,9 +278,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             {
                 var pendingId = pending.Id;
 
+                // Default (no status) = same Pending rule: deadline reached/passed.
                 q = q.Where(r =>
                     r.LastSubmitDate.HasValue &&
-                    r.LastSubmitDate.Value >= date &&
+                    r.LastSubmitDate.Value <= date &&
                     (
                         !comparisonHeaders.Any(ch => ch.RfqId == r.Id) || // no comparison row
                         comparisonHeaders.Any(ch =>

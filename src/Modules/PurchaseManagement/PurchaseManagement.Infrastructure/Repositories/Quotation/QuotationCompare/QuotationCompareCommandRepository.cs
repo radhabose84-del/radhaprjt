@@ -35,6 +35,30 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
                         select m.Id
                     ).FirstOrDefaultAsync();
 
+            // A comparison is unique per RFQ. If one already exists, update it
+            // in place; otherwise insert a new one.
+            var existing = await _dbContext.QuotationComparisonHeader
+                .Include(h => h.QuotationConfirmedDetails)
+                .FirstOrDefaultAsync(h => h.RfqId == entity.RfqId);
+
+            if (existing is not null)
+            {
+                // Replace the existing detail lines with the submitted set.
+                _dbContext.QuotationComparisonDetail.RemoveRange(existing.QuotationConfirmedDetails);
+                existing.QuotationConfirmedDetails = entity.QuotationConfirmedDetails;
+
+                existing.RfqCode = entity.RfqCode;
+                existing.StatusId = pendingStatusId;          // selection changed → set Pending for approval
+                existing.ConfirmedDate = DateTime.Now;
+                existing.ModifiedBy = _ipAddressService.GetUserId();
+                existing.ModifiedByName = _ipAddressService.GetUserName();
+                existing.ModifiedDate = DateTime.Now;
+                existing.ModifiedIP = _ipAddressService.GetSystemIPAddress();
+
+                await _dbContext.SaveChangesAsync();
+                return existing.Id;
+            }
+
             entity.StatusId = pendingStatusId;
             entity.CreatedBy = _ipAddressService.GetUserId();
             entity.CreatedByName = _ipAddressService.GetUserName();
@@ -42,22 +66,19 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
             entity.CreatedIP = _ipAddressService.GetSystemIPAddress();
             entity.ConfirmedDate = DateTime.Now;
 
-            // Add main PartyMaster
             await _dbContext.QuotationComparisonHeader.AddAsync(entity);
 
             // EF will automatically save non-null child collections
             await _dbContext.SaveChangesAsync();
 
-            return entity.Id; ;
-        }
-
-        public async Task<bool> ExistsAsync(int rfqId, string rfqCode)
-        {
-            return await _dbContext.QuotationComparisonHeader
-                .AnyAsync(q => q.RfqId == rfqId && q.RfqCode == rfqCode);
+            return entity.Id;
         }
         public async Task<QuoteComparisonWorkFlowDto> GetByIdQuoteComparisonWorkFlowAsync(int id)
         {
+            // Resolve the unit id before the query so the projection uses a
+            // plain value rather than a service call inside the expression tree.
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
             var entity = await _dbContext.QuotationComparisonHeader
             .Where(x => x.Id == id)
             .Select(x => new QuoteComparisonWorkFlowDto
@@ -66,9 +87,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.QuotationComp
                 RfqCode = x.RfqCode,
                 RfqId = x.RfqId,
                 StatusId = x.StatusId,
-                UnitId = _ipAddressService.GetUnitId() ?? 0
+                UnitId = unitId
                 //RfqHeaderId = x.RfqHeaderId,
-                //OverrideStatus = x.OverrideStatus                           
+                //OverrideStatus = x.OverrideStatus
             })
             .FirstOrDefaultAsync();
 
