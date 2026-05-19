@@ -19,8 +19,8 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
             {
                 VehicleMovementRecordId = 1,
                 UnitId = 1,
-                GrossWeight = 100.5m,
-                TareWeight = 50.0m,
+                GrossWeight = 100,
+                TareWeight = 50,
                 QAInspectionRequired = false,
                 QAStatusId = null,
                 Remarks = "Test remarks",
@@ -118,7 +118,7 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
         public async Task Validate_NegativeGrossWeight_FailsValidation()
         {
             var command = ValidCommand();
-            command.GrossWeight = -1m;
+            command.GrossWeight = -1;
             SetupAllAsyncMocks(command.VehicleMovementRecordId, command.UnitId);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -130,7 +130,7 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
         public async Task Validate_NegativeTareWeight_FailsValidation()
         {
             var command = ValidCommand();
-            command.TareWeight = -1m;
+            command.TareWeight = -1;
             SetupAllAsyncMocks(command.VehicleMovementRecordId, command.UnitId);
 
             var result = await CreateValidator().TestValidateAsync(command);

@@ -82,6 +82,74 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             return entity.Id;
         }
 
+        private async Task<int> SeedGateInwardWithAttachmentAsync(ApplicationDbContext ctx, int vmrId)
+        {
+            var entity = new GateEntryManagement.Domain.Entities.GateInwardHdr
+            {
+                GateEntryNo = "GE-ATT-1",
+                VehicleMovementRecordId = vmrId,
+                GrossWeight = 1000,
+                TareWeight = 200,
+                NetWeight = 800,
+                QAInspectionRequired = false,
+                UnitId = 1,
+                AttachmentFileName = "abc.pdf",
+                AttachmentOriginalFileName = "lr-copy.pdf",
+                AttachmentFilePath = "GateEntry/abc.pdf",
+                AttachmentFileType = "application/pdf",
+                AttachmentFileSize = 2048,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.GateInwardHdr.AddAsync(entity);
+            await ctx.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        // --- CLEAR ATTACHMENT ---
+
+        [Fact]
+        public async Task ClearAttachmentAsync_Should_Return_OldPath_And_NullColumns()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (_, vmrId) = await SeedPrerequisitesAsync(ctx);
+            var id = await SeedGateInwardWithAttachmentAsync(ctx, vmrId);
+            ctx.ChangeTracker.Clear();
+
+            var oldPath = await CreateRepository(ctx).ClearAttachmentAsync(id, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            oldPath.Should().Be("GateEntry/abc.pdf");
+            var reloaded = await ctx.GateInwardHdr.FirstAsync(x => x.Id == id);
+            reloaded.AttachmentFileName.Should().BeNull();
+            reloaded.AttachmentFilePath.Should().BeNull();
+            reloaded.AttachmentFileSize.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ClearAttachmentAsync_Should_Return_Null_When_NoAttachment()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (_, vmrId) = await SeedPrerequisitesAsync(ctx);
+            var id = await SeedGateInwardAsync(ctx, vmrId);
+            ctx.ChangeTracker.Clear();
+
+            var oldPath = await CreateRepository(ctx).ClearAttachmentAsync(id, CancellationToken.None);
+
+            oldPath.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ClearAttachmentAsync_Should_Return_Null_When_NotFound()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await SeedPrerequisitesAsync(ctx);
+
+            var oldPath = await CreateRepository(ctx).ClearAttachmentAsync(9999, CancellationToken.None);
+
+            oldPath.Should().BeNull();
+        }
+
         // --- SOFT DELETE ---
 
         [Fact]

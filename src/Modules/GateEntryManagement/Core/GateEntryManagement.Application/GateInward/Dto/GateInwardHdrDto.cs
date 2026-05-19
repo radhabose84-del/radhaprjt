@@ -17,6 +17,15 @@ namespace GateEntryManagement.Application.GateInward.Dto
         public int UnitId { get; set; }
         public string? UnitName { get; set; }
         public string? Remarks { get; set; }
+
+        // Single Gate Entry Document — AttachmentFilePath returns the composed
+        // preview URL ({ImagePath}{GateEntryImage}/{AttachmentFileName})
+        public string? AttachmentFileName { get; set; }
+        public string? AttachmentOriginalFileName { get; set; }
+        public string? AttachmentFilePath { get; set; }
+        public string? AttachmentFileType { get; set; }
+        public long? AttachmentFileSize { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }
