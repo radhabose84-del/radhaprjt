@@ -49,7 +49,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseIndent.Commands
                 .ReturnsAsync(header);
 
             _mockCommandRepo
-                .Setup(r => r.UpdateAsync(It.IsAny<IndentHeader>(), It.IsAny<string>()))
+                .Setup(r => r.UpdateAsync(It.IsAny<IndentHeader>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .ReturnsAsync(true);
 
             _mockUnitOfWork
@@ -99,7 +99,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseIndent.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             _mockCommandRepo.Verify(
-                r => r.UpdateAsync(It.IsAny<IndentHeader>(), It.IsAny<string>()),
+                r => r.UpdateAsync(It.IsAny<IndentHeader>(), It.IsAny<string>(), It.IsAny<bool>()),
                 Times.Once);
         }
 
