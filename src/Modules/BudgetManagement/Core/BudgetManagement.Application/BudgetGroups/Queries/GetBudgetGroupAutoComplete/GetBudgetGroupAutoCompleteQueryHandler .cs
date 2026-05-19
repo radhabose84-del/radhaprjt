@@ -19,7 +19,8 @@ namespace BudgetManagement.Application.BudgetGroups.Queries.GetBudgetGroupAutoCo
             // Repo already returns BudgetGroupAutoCompleteDto list
             var result = await _budgetGroupQueryRepository.GetBudgetGroupAutoCompleteAsync(
                 search,
-                 cancellationToken);
+                request.EmergencyPoApplicable,
+                cancellationToken);
 
             return result;
         }

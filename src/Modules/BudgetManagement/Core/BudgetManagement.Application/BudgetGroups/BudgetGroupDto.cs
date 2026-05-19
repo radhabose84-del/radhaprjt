@@ -31,6 +31,7 @@ namespace BudgetManagement.Application.BudgetGroups
         public int? BudgetTypeId { get; set; }
         public string? BudgetTypeName { get; set; }   // from MiscMaster.Code/Description
         public bool CarryForward { get; set; }
+        public bool EmergencyPoApplicable { get; set; }
         public bool IsParent { get; set; }
         public bool IsActive { get; set; }
     }
@@ -57,6 +58,7 @@ namespace BudgetManagement.Application.BudgetGroups
         public int? BudgetTypeId { get; set; }
         public string? BudgetTypeName { get; set; }
         public bool CarryForward { get; set; }
+        public bool EmergencyPoApplicable { get; set; }
         public bool IsParent { get; set; }
         public bool IsActive { get; set; }
     }
@@ -73,6 +75,7 @@ namespace BudgetManagement.Application.BudgetGroups
         public string? AllocationRuleName { get; set; }
         public int? BudgetTypeId { get; set; }
         public bool CarryForward { get; set; }
+        public bool EmergencyPoApplicable { get; set; }
     }
 
     public class BudgetGroupListFilterDto
@@ -88,6 +91,7 @@ namespace BudgetManagement.Application.BudgetGroups
         public int? AllocationRuleId { get; set; }
         public int? BudgetTypeId { get; set; }        // optional filter
         public bool? CarryForward { get; set; }       // optional filter
+        public bool? EmergencyPoApplicable { get; set; } // optional filter
 
     }
 

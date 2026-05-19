@@ -137,6 +137,12 @@ namespace BudgetManagement.Infrastructure.Data.Configuration
                 .HasColumnType("bit")
                 .IsRequired();
 
+            builder.Property(b => b.EmergencyPoApplicable)
+                .HasColumnName("EmergencyPoApplicable")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
             builder
                 .HasOne(b => b.ParentBudgetGroup)
                 .WithMany()

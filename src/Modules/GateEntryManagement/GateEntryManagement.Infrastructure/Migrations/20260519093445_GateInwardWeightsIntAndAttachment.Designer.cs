@@ -4,6 +4,7 @@ using GateEntryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GateEntryManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519093445_GateInwardWeightsIntAndAttachment")]
+    partial class GateInwardWeightsIntAndAttachment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,9 +108,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(20)")
                         .HasColumnName("GateEntryNo");
 
-                    b.Property<decimal?>("GrossWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(10,3)")
+                    b.Property<int?>("GrossWeight")
+                        .HasColumnType("int")
                         .HasColumnName("GrossWeight");
 
                     b.Property<bool>("IsActive")
@@ -134,9 +136,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
-                    b.Property<decimal?>("NetWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(10,3)")
+                    b.Property<int?>("NetWeight")
+                        .HasColumnType("int")
                         .HasColumnName("NetWeight");
 
                     b.Property<bool>("QAInspectionRequired")
@@ -153,9 +154,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(250)")
                         .HasColumnName("Remarks");
 
-                    b.Property<decimal?>("TareWeight")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(10,3)")
+                    b.Property<int?>("TareWeight")
+                        .HasColumnType("int")
                         .HasColumnName("TareWeight");
 
                     b.Property<int>("UnitId")

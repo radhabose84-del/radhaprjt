@@ -93,7 +93,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
             _mockIp.Setup(i => i.GetUserName()).Returns("test");
             _mockIp.Setup(i => i.GetSystemIPAddress()).Returns("127.0.0.1");
 
-            _mockDocSequence.Setup(d => d.GetTransactionTypeIdAsync("CombinePO", "Purchase", unitId))
+            _mockDocSequence.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), unitId))
                 .ReturnsAsync(1);
             _mockDocSequence.Setup(d => d.GenerateDocumentNumber(1))
                 .ReturnsAsync(new List<string> { "IMP-001" });

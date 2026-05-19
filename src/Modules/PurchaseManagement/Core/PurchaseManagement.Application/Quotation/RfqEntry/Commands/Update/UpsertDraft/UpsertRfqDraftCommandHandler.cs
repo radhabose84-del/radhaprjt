@@ -1,6 +1,8 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using PurchaseManagement.Domain.Entities.ValueObjects;
 using MediatR;
@@ -10,10 +12,16 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.UpsertDraft
 public class UpsertRfqDraftCommandHandler : IRequestHandler<UpsertRfqDraftCommand, UpsertRfqDraftResult>
 {
     private readonly IRfqCommandRepository _repo;
-    private readonly IIPAddressService _ip; 
+    private readonly IIPAddressService _ip;
+    private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-    public UpsertRfqDraftCommandHandler(IRfqCommandRepository repo, IIPAddressService ip) 
-        => (_repo,_ip) = (repo,ip);
+    public UpsertRfqDraftCommandHandler(IRfqCommandRepository repo, IIPAddressService ip,
+        IDocumentSequenceLookup documentSequenceLookup)
+    {
+        _repo = repo;
+        _ip = ip;
+        _documentSequenceLookup = documentSequenceLookup;
+    }
 
     public async Task<UpsertRfqDraftResult> Handle(UpsertRfqDraftCommand request, CancellationToken ct)
     {
@@ -37,13 +45,23 @@ public class UpsertRfqDraftCommandHandler : IRequestHandler<UpsertRfqDraftComman
         // -------------------------------------------------
         if (request.Id is null)
         {
-            var code          = await _repo.GenerateNextCodeAsync(DateTimeOffset.UtcNow, ct);
+            var unitId = _ip.GetUnitId() ?? 0;
+
+            // Generate RfqCode from DocumentSequence
+            var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeRFQ, MiscEnumEntity.ModulePurchase, unitId)
+                ?? throw new InvalidOperationException("No transaction type configured for RFQ.");
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
+            var code = sequences.Count > 0
+                ? sequences[^1]
+                : throw new InvalidOperationException("No document sequence configured for RFQ.");
+
             var draftStatusId = await _repo.GetStatusIdByCodeAsync("DRAFT", ct);
 
             var rfq = new RfqMaster
             {
                 RfqCode          = code,
-                UnitId           = _ip.GetUnitId() ?? 0,
+                UnitId           = unitId,
                 InitiationTypeId = request.InitiationTypeId ?? 0,
                 IndentId         = request.IndentId,
                 RfqStatusId      = draftStatusId,
@@ -73,7 +91,7 @@ public class UpsertRfqDraftCommandHandler : IRequestHandler<UpsertRfqDraftComman
                         GSTNumber  = s.Gst
                     }).ToList();
 
-            var id = await _repo.CreateAsync(rfq, ct);
+            var id = await _repo.CreateAsync(rfq, transactionTypeId, ct);
             return new UpsertRfqDraftResult(id, rfq.RfqCode);
         }
 
