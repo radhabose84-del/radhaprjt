@@ -338,12 +338,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
                     ID.Remark                              AS Remark,
                     ID.IsRFQDone                           AS IsRFQDone,
                     IC.EmergencyPOById                     AS EmergencyPOById,
-                    IC.EmergencyValueLimit                   AS EmergencyValueLimit,
-                    IC.EmergencyActionId                   AS EmergencyActionId
+                    EmgPOBy.Code                           AS EmergencyPOBy,
+                    IC.EmergencyValueLimit                  AS EmergencyValueLimit,
+                    IC.EmergencyActionId                   AS EmergencyActionId,
+                    EmgAction.Code                         AS EmergencyAction
 
                 FROM Purchase.IndentHeader IH
                 INNER JOIN Purchase.IndentDetail ID ON ID.IndentHeaderId = IH.Id
                 LEFT JOIN Inventory.ItemCategory IC ON IC.Id = ID.ItemCategoryId AND IC.IsDeleted = 0
+                LEFT JOIN Inventory.MiscMaster EmgPOBy ON EmgPOBy.Id = IC.EmergencyPOById AND EmgPOBy.IsDeleted = 0
+                LEFT JOIN Inventory.MiscMaster EmgAction ON EmgAction.Id = IC.EmergencyActionId AND EmgAction.IsDeleted = 0
                 INNER JOIN Purchase.MiscMaster HeaderStatus ON IH.StatusId = HeaderStatus.Id
                 INNER JOIN Purchase.MiscMaster LineStatus   ON ID.StatusId = LineStatus.Id
                 INNER JOIN Purchase.MiscMaster IndentType   ON IH.IndentTypeId = IndentType.Id

@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Data;
@@ -32,7 +33,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Quotation.RfqEntry
         private RfqCommandRepository CreateRepo(ApplicationDbContext ctx)
         {
             var unitLookup = new Mock<IUnitLookup>(MockBehavior.Loose);
-            return new RfqCommandRepository(ctx, _fixture.IpMock.Object, unitLookup.Object);
+            var docSequence = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
+            return new RfqCommandRepository(ctx, _fixture.IpMock.Object, unitLookup.Object, docSequence.Object);
         }
 
         [Fact]

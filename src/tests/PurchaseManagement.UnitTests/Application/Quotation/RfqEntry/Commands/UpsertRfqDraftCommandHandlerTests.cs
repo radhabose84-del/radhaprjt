@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Application.Quotation.RfqEntry.Commands.UpsertDraft;
@@ -10,19 +11,29 @@ namespace PurchaseManagement.UnitTests.Application.Quotation.RfqEntry.Commands
     {
         private readonly Mock<IRfqCommandRepository> _mockRepo = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSequence = new(MockBehavior.Loose);
 
         private UpsertRfqDraftCommandHandler CreateSut() =>
-            new(_mockRepo.Object, _mockIp.Object);
+            new(_mockRepo.Object, _mockIp.Object, _mockDocSequence.Object);
+
+        private void SetupDocSequence()
+        {
+            _mockDocSequence
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockDocSequence
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "RFQ001" });
+        }
 
         [Fact]
         public async Task Handle_CreateDraft_ReturnsNewId()
         {
             var command = new UpsertRfqDraftCommand { Id = null, InitiationTypeId = 1 };
-            _mockRepo.Setup(r => r.GenerateNextCodeAsync(It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("RFQ001");
+            SetupDocSequence();
             _mockRepo.Setup(r => r.GetStatusIdByCodeAsync("DRAFT", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
-            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
+            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(10);
             _mockIp.Setup(i => i.GetUnitId()).Returns(1);
 
@@ -36,17 +47,16 @@ namespace PurchaseManagement.UnitTests.Application.Quotation.RfqEntry.Commands
         public async Task Handle_CreateDraft_CallsCreateOnce()
         {
             var command = new UpsertRfqDraftCommand { Id = null, InitiationTypeId = 1 };
-            _mockRepo.Setup(r => r.GenerateNextCodeAsync(It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("RFQ001");
+            SetupDocSequence();
             _mockRepo.Setup(r => r.GetStatusIdByCodeAsync("DRAFT", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
-            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
+            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(10);
             _mockIp.Setup(i => i.GetUnitId()).Returns(1);
 
             await CreateSut().Handle(command, CancellationToken.None);
 
-            _mockRepo.Verify(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockRepo.Verify(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -76,17 +86,14 @@ namespace PurchaseManagement.UnitTests.Application.Quotation.RfqEntry.Commands
                     new DraftItemDto { ItemId = 0, UomId = 0, Qty = 0 } // invalid - should be filtered
                 }
             };
-            _mockRepo.Setup(r => r.GenerateNextCodeAsync(It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("RFQ002");
+            SetupDocSequence();
             _mockRepo.Setup(r => r.GetStatusIdByCodeAsync("DRAFT", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
-            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(11);
             _mockIp.Setup(i => i.GetUnitId()).Returns(1);
 
             RfqMaster? captured = null;
-            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
-                .Callback<RfqMaster, CancellationToken>((r, _) => captured = r)
+            _mockRepo.Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .Callback<RfqMaster, int, CancellationToken>((r, _, _) => captured = r)
                 .ReturnsAsync(11);
 
             await CreateSut().Handle(command, CancellationToken.None);

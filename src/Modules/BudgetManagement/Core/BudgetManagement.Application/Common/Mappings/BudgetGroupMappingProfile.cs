@@ -15,13 +15,15 @@ namespace BudgetManagement.Application.Common.Mappings
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
                 .ForMember(dest => dest.BudgetTypeId, opt => opt.MapFrom(src => src.BudgetTypeId))
-                .ForMember(dest => dest.CarryForward, opt => opt.MapFrom(src => src.CarryForward));
+                .ForMember(dest => dest.CarryForward, opt => opt.MapFrom(src => src.CarryForward))
+                .ForMember(dest => dest.EmergencyPoApplicable, opt => opt.MapFrom(src => src.EmergencyPoApplicable));
 
             CreateMap<UpdateBudgetGroupCommand, Domain.Entities.BudgetGroup>()
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive ? Status.Active : Status.Inactive))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
                 .ForMember(dest => dest.BudgetTypeId, opt => opt.MapFrom(src => src.BudgetTypeId))
-                .ForMember(dest => dest.CarryForward, opt => opt.MapFrom(src => src.CarryForward));
+                .ForMember(dest => dest.CarryForward, opt => opt.MapFrom(src => src.CarryForward))
+                .ForMember(dest => dest.EmergencyPoApplicable, opt => opt.MapFrom(src => src.EmergencyPoApplicable));
                 
            // Delete command mapping (soft delete)
             CreateMap<DeleteBudgetGroupCommand, Domain.Entities.BudgetGroup>()

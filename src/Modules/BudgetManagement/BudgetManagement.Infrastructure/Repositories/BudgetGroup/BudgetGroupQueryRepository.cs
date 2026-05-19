@@ -50,6 +50,7 @@ const string sql = @"
         bg.BudgetTypeId,
         CASE WHEN btT.Id IS NOT NULL THEN bt.Description ELSE NULL END AS BudgetTypeName,
         bg.CarryForward,
+        bg.EmergencyPoApplicable,
         bg.IsParent,
         bg.IsActive
     FROM [Budget].[BudgetGroup] bg WITH (NOLOCK)
@@ -74,6 +75,7 @@ const string sql = @"
         AND (@ParentBudgetGroupId IS NULL OR bg.ParentBudgetGroupId = @ParentBudgetGroupId)
         AND (@BudgetTypeId IS NULL OR bg.BudgetTypeId = @BudgetTypeId)
         AND (@CarryForward IS NULL OR bg.CarryForward = @CarryForward)
+        AND (@EmergencyPoApplicable IS NULL OR bg.EmergencyPoApplicable = @EmergencyPoApplicable)
         AND (@AllocationRuleId IS NULL OR bg.AllocationRuleId = @AllocationRuleId)
         AND (
             @IsActive IS NULL
@@ -86,7 +88,7 @@ const string sql = @"
     -- Get the total count
     SELECT COUNT(1) AS TotalCount
     FROM [Budget].[BudgetGroup] bg WITH (NOLOCK)
-    WHERE 
+    WHERE
         bg.IsDeleted = 0
         AND (@SearchTerm IS NULL OR bg.Name LIKE @SearchTerm)
         AND (@UnitId IS NULL OR bg.UnitId = @UnitId)
@@ -95,6 +97,7 @@ const string sql = @"
         AND (@ParentBudgetGroupId IS NULL OR bg.ParentBudgetGroupId = @ParentBudgetGroupId)
         AND (@BudgetTypeId IS NULL OR bg.BudgetTypeId = @BudgetTypeId)
         AND (@CarryForward IS NULL OR bg.CarryForward = @CarryForward)
+        AND (@EmergencyPoApplicable IS NULL OR bg.EmergencyPoApplicable = @EmergencyPoApplicable)
         AND (@AllocationRuleId IS NULL OR bg.AllocationRuleId = @AllocationRuleId)
         AND (
             @IsActive IS NULL
@@ -112,6 +115,7 @@ const string sql = @"
                 AllocationRuleId = filter.AllocationRuleId,
                 BudgetTypeId = filter.BudgetTypeId,
                 CarryForward = filter.CarryForward,
+                EmergencyPoApplicable = filter.EmergencyPoApplicable,
                 BudgetTypeMiscTypeCode = MiscEnumEntity.BudgetType,
                 IsActive = filter.IsActive,
                 Skip = skip,
@@ -149,6 +153,7 @@ const string sql = @"
                 BudgetTypeId = x.BudgetTypeId,
                 BudgetTypeName = x.BudgetTypeName,
                 CarryForward = x.CarryForward,
+                EmergencyPoApplicable = x.EmergencyPoApplicable,
 
                 UnitName = string.Empty,
                 DepartmentName = string.Empty,
@@ -178,9 +183,10 @@ const string sql = @"
             bg.BudgetTypeId,
             bt.Description AS BudgetTypeName,
             bg.CarryForward,
-            CASE 
-                WHEN bg.IsParent = 1 THEN bg.Name 
-                ELSE parent.Name 
+            bg.EmergencyPoApplicable,
+            CASE
+                WHEN bg.IsParent = 1 THEN bg.Name
+                ELSE parent.Name
             END AS ParentBudgetGroupName,
             bg.CurrencyId,
             bg.AllocationRuleId,
@@ -241,6 +247,7 @@ const string sql = @"
                 BudgetTypeId = entity.BudgetTypeId,
                 BudgetTypeName = entity.BudgetTypeName,
                 CarryForward = entity.CarryForward,
+                EmergencyPoApplicable = entity.EmergencyPoApplicable,
 
                 IsParent = entity.IsParent,
                 IsActive = entity.IsActive
@@ -252,6 +259,7 @@ const string sql = @"
         // AUTOCOMPLETE 
         public async Task<List<BudgetGroupAutoCompleteDto>> GetBudgetGroupAutoCompleteAsync(
             string searchPattern,
+            bool emergencyPoApplicable = false,
             CancellationToken ct = default)
         {
             const string sql = @"
@@ -262,9 +270,10 @@ const string sql = @"
         bg.BudgetTypeId,
         CASE WHEN btT.Id IS NOT NULL THEN bt.Description ELSE NULL END AS BudgetTypeName,
         bg.CarryForward,
-        CASE 
-            WHEN bg.IsParent = 1 THEN bg.Name 
-            ELSE NULL 
+        bg.EmergencyPoApplicable,
+        CASE
+            WHEN bg.IsParent = 1 THEN bg.Name
+            ELSE NULL
         END AS ParentBudgetGroupName,
         bg.IsParent,
         bg.AllocationRuleId,
@@ -281,12 +290,14 @@ const string sql = @"
         bg.IsActive = 1
         AND bg.IsDeleted = 0
         AND (@SearchPattern IS NULL OR bg.Name LIKE @SearchPattern)
+        AND (@EmergencyPoApplicable = 0 OR bg.EmergencyPoApplicable = 1)
         ORDER BY bg.IsParent DESC, bg.CreatedDate DESC;";
 
             var param = new
             {
                 SearchPattern = string.IsNullOrWhiteSpace(searchPattern) ? null : $"%{searchPattern.Trim()}%",
-                BudgetTypeMiscTypeCode = MiscEnumEntity.BudgetType
+                BudgetTypeMiscTypeCode = MiscEnumEntity.BudgetType,
+                EmergencyPoApplicable = emergencyPoApplicable
             };
 
             var list = await _db.QueryAsync<BudgetGroupAutoCompleteDto>(sql, param);
@@ -333,7 +344,8 @@ const string sql = @"
         bg.BudgetTypeId,
             CASE WHEN btT.Id IS NOT NULL THEN bt.Description ELSE NULL END AS BudgetTypeName,
         bg.CarryForward,
-        CASE 
+        bg.EmergencyPoApplicable,
+        CASE
             WHEN bg.ParentBudgetGroupId IS NULL THEN NULL
             ELSE pbg.Name
         END AS ParentBudgetGroupName,

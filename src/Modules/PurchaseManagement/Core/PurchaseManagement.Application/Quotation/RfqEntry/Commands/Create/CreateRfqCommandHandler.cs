@@ -5,10 +5,12 @@ using AutoMapper;
 using Contracts.Events.Notifications;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Finance;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -31,6 +33,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
         private readonly IPurchaseIndentCommand _indentRepo;
         private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
         private readonly IRfqAttachmentFileStorage _attachmentStorage;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
         public CreateRfqCommandHandler(
             IRfqCommandRepository rfqRepo,
@@ -41,7 +44,8 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             IItemLookup itemLookup,
             IUOMLookup uOMLookup, ITimeZoneService timeZoneService, IPurchaseIndentCommand indentRepo,
             IAppDataMiscMasterLookup appDataMiscLookup,
-            IRfqAttachmentFileStorage attachmentStorage)
+            IRfqAttachmentFileStorage attachmentStorage,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _rfqRepo = rfqRepo ?? throw new ArgumentNullException(nameof(rfqRepo));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -54,6 +58,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
             _indentRepo = indentRepo;
             _appDataMiscLookup = appDataMiscLookup;
             _attachmentStorage = attachmentStorage ?? throw new ArgumentNullException(nameof(attachmentStorage));
+            _documentSequenceLookup = documentSequenceLookup ?? throw new ArgumentNullException(nameof(documentSequenceLookup));
         }
         
         public async Task<int> Handle(CreateRfqCommand request, CancellationToken ct)
@@ -156,14 +161,23 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
 
                 // 4) Audit
                 rfq.UnitId = _ip.GetUnitId() ?? 0;
-                rfq.RfqCode = await _rfqRepo.GenerateNextCodeAsync(now, ct);
+
+                // Generate RfqCode from DocumentSequence
+                var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                    MiscEnumEntity.TransactionTypeRFQ, MiscEnumEntity.ModulePurchase, rfq.UnitId ?? 0)
+                    ?? throw new InvalidOperationException("No transaction type configured for RFQ.");
+                var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
+                rfq.RfqCode = sequences.Count > 0
+                    ? sequences[^1]
+                    : throw new InvalidOperationException("No document sequence configured for RFQ.");
+
                 rfq.CreatedBy = _ip.GetUserId();
                 rfq.CreatedByName = _ip.GetUserName();
                 rfq.CreatedIP = _ip.GetSystemIPAddress();
                 rfq.CreatedDate = now;
 
                 // 5) Persist
-                id = await _rfqRepo.CreateAsync(rfq, ct);
+                id = await _rfqRepo.CreateAsync(rfq, transactionTypeId, ct);
                 if (id <= 0) throw new InvalidOperationException("RFQ creation failed.");
             }
             catch

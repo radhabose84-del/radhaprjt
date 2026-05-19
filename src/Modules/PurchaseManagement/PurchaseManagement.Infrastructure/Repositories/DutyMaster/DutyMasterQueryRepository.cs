@@ -90,28 +90,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.DutyMaster
 
             return data;
         }
-        public async Task<string> GenerateDutyCodeAsync(CancellationToken ct)
-        {
-            const string prefix = "DUT";
-            const int width = 3;
-
-            const string sql = @"
-            SELECT ISNULL(MAX(TRY_CONVERT(int, RIGHT(DutyCode, @width))), 0)
-            FROM Purchase.DutyMaster WITH (NOLOCK)
-            WHERE DutyCode LIKE @prefix + '-%';";
-
-
-            var maxNum = await _conn.ExecuteScalarAsync<int>(
-                new CommandDefinition(sql, new { prefix, width }, cancellationToken: ct));
-
-            var next = maxNum + 1;
-            return $"{prefix}-{next.ToString().PadLeft(width, '0')}";
-        }
         public async Task<IReadOnlyList<DutyMasterReadDto>> GetByTariffOrHsnAsync(
-      IEnumerable<string> tariffNumbers,
-      IEnumerable<string> hsnCodes,
-      DateTimeOffset onDate,
-      CancellationToken ct = default)
+            IEnumerable<string> tariffNumbers,
+            IEnumerable<string> hsnCodes,
+            DateTimeOffset onDate,
+            CancellationToken ct = default)
         {
             var tariffs = (tariffNumbers ?? Array.Empty<string>())
                 .Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
