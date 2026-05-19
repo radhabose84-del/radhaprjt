@@ -8,9 +8,9 @@ namespace GateEntryManagement.Application.GateInward.Dto
         public string? VehicleMovementId { get; set; }
         public string? VehicleNumber { get; set; }
         public string? DriverName { get; set; }
-        public int? GrossWeight { get; set; }
-        public int? TareWeight { get; set; }
-        public int? NetWeight { get; set; }
+        public decimal? GrossWeight { get; set; }
+        public decimal? TareWeight { get; set; }
+        public decimal? NetWeight { get; set; }
         public bool QAInspectionRequired { get; set; }
         public int? QAStatusId { get; set; }
         public string? QAStatusName { get; set; }

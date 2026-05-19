@@ -10,9 +10,9 @@ namespace GateEntryManagement.Domain.Entities
         public int VehicleMovementRecordId { get; set; }
 
         // Weighbridge
-        public int? GrossWeight { get; set; }
-        public int? TareWeight { get; set; }
-        public int? NetWeight { get; set; }
+        public decimal? GrossWeight { get; set; }
+        public decimal? TareWeight { get; set; }
+        public decimal? NetWeight { get; set; }
 
         // QA
         public bool QAInspectionRequired { get; set; }

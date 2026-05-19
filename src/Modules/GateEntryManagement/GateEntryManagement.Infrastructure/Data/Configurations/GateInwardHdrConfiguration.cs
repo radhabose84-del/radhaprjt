@@ -38,17 +38,17 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             // Weighbridge
             builder.Property(t => t.GrossWeight)
                 .HasColumnName("GrossWeight")
-                .HasColumnType("int")
+                .HasColumnType("decimal(10,3)")
                 .IsRequired(false);
 
             builder.Property(t => t.TareWeight)
                 .HasColumnName("TareWeight")
-                .HasColumnType("int")
+                .HasColumnType("decimal(10,3)")
                 .IsRequired(false);
 
             builder.Property(t => t.NetWeight)
                 .HasColumnName("NetWeight")
-                .HasColumnType("int")
+                .HasColumnType("decimal(10,3)")
                 .IsRequired(false);
 
             // QA
