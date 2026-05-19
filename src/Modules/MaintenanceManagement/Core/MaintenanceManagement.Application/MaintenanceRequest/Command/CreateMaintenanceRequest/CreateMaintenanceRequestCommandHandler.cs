@@ -13,6 +13,7 @@ using MaintenanceManagement.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Party;
 
 namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest
 {
@@ -55,6 +56,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
         private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDepartmentLookup _departmentLookup;
+        private readonly ISupplierLookup _supplierLookup;
 
         public CreateMaintenanceRequestCommandHandler(
             IMaintenanceRequestCommandRepository maintenanceRequestCommandRepository,
@@ -66,7 +68,8 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             ILogger<CreateMaintenanceRequestCommandHandler> logger,
             IOutboxEventPublisher outboxEventPublisher,
             IMiscMasterQueryRepository miscMasterQueryRepository,
-            IDepartmentLookup departmentLookup)
+            IDepartmentLookup departmentLookup,
+            ISupplierLookup supplierLookup)
         {
             _maintenanceRequestCommandRepository = maintenanceRequestCommandRepository;
             _imapper = imapper;
@@ -78,6 +81,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             _outboxEventPublisher = outboxEventPublisher;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _departmentLookup = departmentLookup;
+            _supplierLookup = supplierLookup;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(
@@ -111,6 +115,52 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
             maintenanceRequest.RequestStatusId = openStatus.Id;
             maintenanceRequest.CompanyId = _ipAddressService.GetCompanyId() ?? 0;
             maintenanceRequest.UnitId = _ipAddressService.GetUnitId() ?? 0;
+
+            // ── Vendor (External Service Request) ─────────────────────────────
+            // Vendor is derived only from the ERP Party Master selection. The
+            // legacy integrated-system fetch has been removed, so OldVendor* are
+            // never populated. VendorName is resolved server-side from VendorId
+            // so it always matches Party Master (client-sent name is ignored).
+            maintenanceRequest.OldVendorId = null;
+            maintenanceRequest.OldVendorName = null;
+
+            var externalTypes = await _maintenanceRequestQueryRepository.GetMaintenanceExternalRequestTypeAsync();
+            var externalTypeId = externalTypes?.FirstOrDefault()?.Id;
+            var isExternalRequest = externalTypeId.HasValue
+                && maintenanceRequest.RequestTypeId == externalTypeId.Value;
+
+            if (isExternalRequest)
+            {
+                if (!maintenanceRequest.VendorId.HasValue || maintenanceRequest.VendorId.Value <= 0)
+                {
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Please select a vendor."
+                    };
+                }
+
+                var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(
+                    maintenanceRequest.VendorId.Value, cancellationToken);
+
+                if (supplier == null)
+                {
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Selected vendor is not a valid active supplier."
+                    };
+                }
+
+                maintenanceRequest.VendorId = supplier.Id;
+                maintenanceRequest.VendorName = supplier.VendorName;
+            }
+            else
+            {
+                // Internal requests do not carry a vendor.
+                maintenanceRequest.VendorId = null;
+                maintenanceRequest.VendorName = null;
+            }
 
             // ═══════════════════════════════════════════════════════════════════
             // ATOMIC PATTERN:
@@ -256,7 +306,9 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
                 actionDetail: "Create",
                 actionCode: request.MachineId.ToString(),
                 actionName: "Maintenance Request Created",
-                details: $"Maintenance Request created. CorrelationId: {correlationId}",
+                details: $"Maintenance Request created. CorrelationId: {correlationId}. " +
+                         $"VendorId: {maintenanceRequest.VendorId?.ToString() ?? "N/A"}, " +
+                         $"VendorName: {maintenanceRequest.VendorName ?? "N/A"}",
                 module: "MaintenanceRequest"
             );
 

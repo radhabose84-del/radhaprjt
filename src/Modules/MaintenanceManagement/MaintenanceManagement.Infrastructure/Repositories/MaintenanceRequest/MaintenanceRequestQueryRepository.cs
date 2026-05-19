@@ -397,36 +397,6 @@ namespace MaintenanceManagement.Infrastructure.Repositories.MaintenanceRequest
                 }  
          
 
-                 public async Task<List<MaintenanceManagement.Domain.Entities.ExistingVendorDetails>> GetVendorDetails(string OldUnitId, string? VendorCode)
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@OldUnitId", OldUnitId, DbType.String);
-
-                // Correctly pass NULL or wildcard pattern
-                if (!string.IsNullOrWhiteSpace(VendorCode))
-                {
-                    parameters.Add("@Slcode", VendorCode, DbType.String); // No wildcard in C# - handled in SQL
-                }
-                else
-                {
-                    parameters.Add("@Slcode", DBNull.Value, DbType.String);
-                }
-
-                var vendorDetailsList = await _dbConnection.QueryAsync<MaintenanceManagement.Domain.Entities.ExistingVendorDetails>(
-                    "dbo.GetVendorDetails", 
-                    parameters, 
-                    commandType: CommandType.StoredProcedure
-                );
-
-                if (!vendorDetailsList.Any())
-                {
-                    Log.Information("No data returned from stored procedure!");
-                }
-
-                    return vendorDetailsList?.ToList() ?? new List<MaintenanceManagement.Domain.Entities.ExistingVendorDetails>();
-            }
-
-
                public async Task<List<MaintenanceManagement.Domain.Entities.MiscMaster>> GetMaintenancestatusAsync()
                 {
                     const string query = @"

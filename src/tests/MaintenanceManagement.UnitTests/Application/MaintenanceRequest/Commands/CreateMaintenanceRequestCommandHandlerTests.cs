@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.Common.Interfaces.IMiscMaster;
@@ -24,11 +25,20 @@ namespace MaintenanceManagement.UnitTests.Application.MaintenanceRequest.Command
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Loose);
         private readonly Mock<IDepartmentLookup> _mockDeptLookup = new(MockBehavior.Loose);
+        private readonly Mock<ISupplierLookup> _mockSupplierLookup = new(MockBehavior.Loose);
+
+        public CreateMaintenanceRequestCommandHandlerTests()
+        {
+            // Default: no External request type configured → requests treated as Internal
+            // (no vendor required). Individual tests can override.
+            _mockQueryRepo.Setup(r => r.GetMaintenanceExternalRequestTypeAsync())
+                .ReturnsAsync(new List<MaintenanceManagement.Domain.Entities.MiscMaster>());
+        }
 
         private CreateMaintenanceRequestCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object, _mockQueryRepo.Object,
                 _mockWorkOrderCommand.Object, _mockIpService.Object, _mockLogger.Object, _mockOutbox.Object,
-                _mockMiscRepo.Object, _mockDeptLookup.Object);
+                _mockMiscRepo.Object, _mockDeptLookup.Object, _mockSupplierLookup.Object);
 
         [Fact]
         public void Constructor_DoesNotThrow()

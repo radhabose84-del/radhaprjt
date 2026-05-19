@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces.Lookups.Party;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand;
 using MaintenanceManagement.Domain.Events;
@@ -12,9 +13,12 @@ namespace MaintenanceManagement.UnitTests.Application.MaintenanceRequest.Command
         private readonly Mock<IMaintenanceRequestCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
+        private readonly Mock<IMaintenanceRequestQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<ISupplierLookup> _mockSupplierLookup = new(MockBehavior.Loose);
 
         private UpdateMaintenanceRequestCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object);
+            new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object,
+                _mockQueryRepo.Object, _mockSupplierLookup.Object);
 
         private static UpdateMaintenanceRequestCommand ValidCommand() => new()
         {
@@ -33,6 +37,9 @@ namespace MaintenanceManagement.UnitTests.Application.MaintenanceRequest.Command
                 .Returns(new MaintenanceManagement.Domain.Entities.MaintenanceRequest());
             _mockCommandRepo.Setup(r => r.UpdateAsync(It.IsAny<MaintenanceManagement.Domain.Entities.MaintenanceRequest>()))
                 .ReturnsAsync(updateResult);
+            // No External request type configured → request treated as Internal (no vendor required).
+            _mockQueryRepo.Setup(r => r.GetMaintenanceExternalRequestTypeAsync())
+                .ReturnsAsync(new List<MaintenanceManagement.Domain.Entities.MiscMaster>());
         }
 
         [Fact]
