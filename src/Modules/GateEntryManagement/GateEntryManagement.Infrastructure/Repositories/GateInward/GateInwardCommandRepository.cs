@@ -63,5 +63,26 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task<string?> ClearAttachmentAsync(int gateInwardHdrId, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.GateInwardHdr
+                .FirstOrDefaultAsync(x => x.Id == gateInwardHdrId && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null || string.IsNullOrWhiteSpace(existing.AttachmentFilePath))
+                return null;
+
+            var oldPath = existing.AttachmentFilePath;
+
+            existing.AttachmentFileName = null;
+            existing.AttachmentOriginalFileName = null;
+            existing.AttachmentFilePath = null;
+            existing.AttachmentFileType = null;
+            existing.AttachmentFileSize = null;
+
+            _applicationDbContext.GateInwardHdr.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return oldPath;
+        }
     }
 }

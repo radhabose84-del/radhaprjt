@@ -38,17 +38,17 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             // Weighbridge
             builder.Property(t => t.GrossWeight)
                 .HasColumnName("GrossWeight")
-                .HasColumnType("decimal(10,3)")
+                .HasColumnType("int")
                 .IsRequired(false);
 
             builder.Property(t => t.TareWeight)
                 .HasColumnName("TareWeight")
-                .HasColumnType("decimal(10,3)")
+                .HasColumnType("int")
                 .IsRequired(false);
 
             builder.Property(t => t.NetWeight)
                 .HasColumnName("NetWeight")
-                .HasColumnType("decimal(10,3)")
+                .HasColumnType("int")
                 .IsRequired(false);
 
             // QA
@@ -71,6 +71,32 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.Remarks)
                 .HasColumnName("Remarks")
                 .HasColumnType("varchar(250)")
+                .IsRequired(false);
+
+            // Single Gate Entry Document (optional)
+            builder.Property(t => t.AttachmentFileName)
+                .HasColumnName("AttachmentFileName")
+                .HasColumnType("nvarchar(260)")
+                .IsRequired(false);
+
+            builder.Property(t => t.AttachmentOriginalFileName)
+                .HasColumnName("AttachmentOriginalFileName")
+                .HasColumnType("nvarchar(260)")
+                .IsRequired(false);
+
+            builder.Property(t => t.AttachmentFilePath)
+                .HasColumnName("AttachmentFilePath")
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
+
+            builder.Property(t => t.AttachmentFileType)
+                .HasColumnName("AttachmentFileType")
+                .HasColumnType("nvarchar(100)")
+                .IsRequired(false);
+
+            builder.Property(t => t.AttachmentFileSize)
+                .HasColumnName("AttachmentFileSize")
+                .HasColumnType("bigint")
                 .IsRequired(false);
 
             // Audit

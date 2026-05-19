@@ -34,9 +34,9 @@ namespace GateEntryManagement.UnitTests.Domain
                 Id = 1,
                 GateEntryNo = "GE00001",
                 VehicleMovementRecordId = 5,
-                GrossWeight = 1000m,
-                TareWeight = 200m,
-                NetWeight = 800m,
+                GrossWeight = 1000,
+                TareWeight = 200,
+                NetWeight = 800,
                 QAInspectionRequired = true,
                 QAStatusId = 3,
                 UnitId = 1,
@@ -46,9 +46,9 @@ namespace GateEntryManagement.UnitTests.Domain
             entity.Id.Should().Be(1);
             entity.GateEntryNo.Should().Be("GE00001");
             entity.VehicleMovementRecordId.Should().Be(5);
-            entity.GrossWeight.Should().Be(1000m);
-            entity.TareWeight.Should().Be(200m);
-            entity.NetWeight.Should().Be(800m);
+            entity.GrossWeight.Should().Be(1000);
+            entity.TareWeight.Should().Be(200);
+            entity.NetWeight.Should().Be(800);
             entity.QAInspectionRequired.Should().BeTrue();
             entity.QAStatusId.Should().Be(3);
         }
@@ -69,6 +69,40 @@ namespace GateEntryManagement.UnitTests.Domain
             entity.GateEntryNo.Should().BeNull();
             entity.GrossWeight.Should().BeNull();
             entity.QAStatusId.Should().BeNull();
+        }
+
+        [Fact]
+        public void GateInwardHdr_AttachmentProperties_ShouldBeAssignable()
+        {
+            var entity = new GateInwardHdr
+            {
+                AttachmentFileName = "abc.pdf",
+                AttachmentOriginalFileName = "lr-copy.pdf",
+                AttachmentFilePath = "GateEntry/abc.pdf",
+                AttachmentFileType = "application/pdf",
+                AttachmentFileSize = 2048
+            };
+
+            entity.AttachmentFileName.Should().Be("abc.pdf");
+            entity.AttachmentOriginalFileName.Should().Be("lr-copy.pdf");
+            entity.AttachmentFilePath.Should().Be("GateEntry/abc.pdf");
+            entity.AttachmentFileType.Should().Be("application/pdf");
+            entity.AttachmentFileSize.Should().Be(2048);
+        }
+
+        [Fact]
+        public void GateInwardHdr_AttachmentProperties_ShouldAcceptNull()
+        {
+            var entity = new GateInwardHdr
+            {
+                AttachmentFileName = null,
+                AttachmentFilePath = null,
+                AttachmentFileSize = null
+            };
+
+            entity.AttachmentFileName.Should().BeNull();
+            entity.AttachmentFilePath.Should().BeNull();
+            entity.AttachmentFileSize.Should().BeNull();
         }
 
         [Fact]

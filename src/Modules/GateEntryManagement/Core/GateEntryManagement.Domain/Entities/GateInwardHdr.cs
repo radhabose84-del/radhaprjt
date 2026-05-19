@@ -10,9 +10,9 @@ namespace GateEntryManagement.Domain.Entities
         public int VehicleMovementRecordId { get; set; }
 
         // Weighbridge
-        public decimal? GrossWeight { get; set; }
-        public decimal? TareWeight { get; set; }
-        public decimal? NetWeight { get; set; }
+        public int? GrossWeight { get; set; }
+        public int? TareWeight { get; set; }
+        public int? NetWeight { get; set; }
 
         // QA
         public bool QAInspectionRequired { get; set; }
@@ -21,6 +21,14 @@ namespace GateEntryManagement.Domain.Entities
         // Additional
         public int UnitId { get; set; }                   // Cross-module FK (UserManagement)
         public string? Remarks { get; set; }
+
+        // Single Gate Entry Document (optional). Stored filename only;
+        // preview URL composed from Gate.MiscTypeMaster (ImagePath + GateEntryImage).
+        public string? AttachmentFileName { get; set; }
+        public string? AttachmentOriginalFileName { get; set; }
+        public string? AttachmentFilePath { get; set; }
+        public string? AttachmentFileType { get; set; }
+        public long? AttachmentFileSize { get; set; }
 
         // Navigation Properties
         public VehicleMovementRecord? VehicleMovementRecord { get; set; }

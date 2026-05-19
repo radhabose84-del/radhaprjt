@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using GateEntryManagement.Application.GateInward.Commands.CreateGateInward;
 using GateEntryManagement.Application.GateInward.Commands.DeleteGateInward;
+using GateEntryManagement.Application.GateInward.Commands.UploadGateInwardAttachment;
+using GateEntryManagement.Application.GateInward.Commands.DeleteGateInwardAttachment;
 using GateEntryManagement.Application.GateInward.Queries.GetAllGateInward;
 using GateEntryManagement.Application.GateInward.Queries.GetGateInwardById;
 using GateEntryManagement.Application.GateInward.Queries.GetGateInwardAutoComplete;
@@ -72,6 +74,32 @@ namespace GateEntryManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        [HttpPost("upload-attachment")]
+        public async Task<IActionResult> UploadAttachment([FromForm] UploadGateInwardAttachmentCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                message = "Attachment staged successfully.",
+                data = result
+            });
+        }
+
+        [HttpDelete("attachment")]
+        public async Task<IActionResult> DeleteAttachment([FromQuery] int gateInwardHdrId)
+        {
+            var result = await Mediator.Send(new DeleteGateInwardAttachmentCommand(gateInwardHdrId));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Attachment deleted successfully." : "Attachment not found."
             });
         }
 
