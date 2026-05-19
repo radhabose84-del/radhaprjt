@@ -303,7 +303,7 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
 
         return await _db.SaveChangesAsync(ct);
     }
-   public async Task<string> GenerateNextCodeAsync(
+    public async Task<string> GenerateNextCodeAsync(
     int poCategoryId,
     int? poMethodId,
     DateTimeOffset poDate,
@@ -381,7 +381,7 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
 
         var next = max + 1;
         return $"{prefix}{next:D2}";
-    }
+    } 
 
     private static (DateTimeOffset start, DateTimeOffset endExclusive) GetFyRange(DateTimeOffset poDate, int startMonth = 4)
     {

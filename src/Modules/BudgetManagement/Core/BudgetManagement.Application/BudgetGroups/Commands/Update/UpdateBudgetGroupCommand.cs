@@ -22,6 +22,7 @@ namespace BudgetManagement.Application.BudgetGroups.Commands.UpdateBudgetGroup
         public decimal? AllocatedSpindleCost { get; set; }
         public int BudgetTypeId { get; set; }
         public bool CarryForward { get; set; } = false;
+        public bool EmergencyPoApplicable { get; set; } = false;
         public bool IsParent { get; set; }
         public bool IsActive { get; set; }
     }

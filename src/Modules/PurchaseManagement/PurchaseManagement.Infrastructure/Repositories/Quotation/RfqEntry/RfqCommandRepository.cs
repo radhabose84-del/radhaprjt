@@ -1,10 +1,13 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IRfqEntry;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using PurchaseManagement.Infrastructure.Data;
 using Contracts.Interfaces.Lookups.Users;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
 {
@@ -13,20 +16,39 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
         private readonly ApplicationDbContext _db;
         private readonly IIPAddressService _ip;
         private readonly IUnitLookup _unitLookup;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public RfqCommandRepository(ApplicationDbContext db, IIPAddressService ip, IUnitLookup unitLookup)
+        public RfqCommandRepository(ApplicationDbContext db, IIPAddressService ip, IUnitLookup unitLookup,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _db = db;
             _ip = ip;
             _unitLookup = unitLookup;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(RfqMaster rfq, CancellationToken ct = default)
-        {   
-            rfq.RfqStatusId= await GetStatusIdByCodeAsync("SUBMIT", ct);                       
-            await _db.Rfqs.AddAsync(rfq, ct);
-            await _db.SaveChangesAsync(ct);
-            return rfq.Id;
+        public async Task<int> CreateAsync(RfqMaster rfq, int transactionTypeId, CancellationToken ct = default)
+        {
+            rfq.RfqStatusId = await GetStatusIdByCodeAsync("SUBMIT", ct);
+
+            await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+            try
+            {
+                await _db.Rfqs.AddAsync(rfq, ct);
+                await _db.SaveChangesAsync(ct);
+
+                var dbConnection = _db.Database.GetDbConnection();
+                var dbTransaction = transaction.GetDbTransaction();
+                await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                await transaction.CommitAsync(ct);
+                return rfq.Id;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
         }
 
         public Task<RfqMaster?> GetAggregateTrackingAsync(int id, CancellationToken ct = default) =>
@@ -131,7 +153,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             });
         }
         
-        public async Task<string> GenerateNextCodeAsync( DateTimeOffset rfqDate,CancellationToken ct = default)
+        /* public async Task<string> GenerateNextCodeAsync( DateTimeOffset rfqDate,CancellationToken ct = default)
         {
             var unitId = _ip.GetUnitId() ?? 0;
               string unitCode;
@@ -165,7 +187,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Quotation.RfqEntry
             }
 
             return $"{prefix}{(max + 1):D2}";
-        }
+        } */
         private static (DateTimeOffset start, DateTimeOffset endExclusive) GetFyRange(DateTimeOffset poDate, int startMonth)
         {
             var y = poDate.Month >= startMonth ? poDate.Year : poDate.Year - 1;
