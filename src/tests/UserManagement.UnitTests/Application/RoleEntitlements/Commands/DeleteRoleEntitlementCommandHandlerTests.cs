@@ -1,7 +1,4 @@
-using AutoMapper;
 using Contracts.Common;
-using MediatR;
-using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Commands.DeleteRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;
 
@@ -9,13 +6,7 @@ namespace UserManagement.UnitTests.Application.RoleEntitlements.Commands
 {
     public sealed class DeleteRoleEntitlementCommandHandlerTests
     {
-        private readonly Mock<IRoleEntitlementCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IRoleEntitlementQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
-        private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
-
-        private DeleteRoleEntitlementCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        private static DeleteRoleEntitlementCommandHandler CreateSut() => new();
 
         [Fact]
         public async Task Handle_AnyRequest_ReturnsFailureResponse()
@@ -35,7 +26,7 @@ namespace UserManagement.UnitTests.Application.RoleEntitlements.Commands
 
             var result = await CreateSut().Handle(command, CancellationToken.None);
 
-            result.Message.Should().Be("RoleEntitlement deletion failed.");
+            result.Message.Should().Be("RoleEntitlement deletion is not supported.");
         }
 
         [Fact]

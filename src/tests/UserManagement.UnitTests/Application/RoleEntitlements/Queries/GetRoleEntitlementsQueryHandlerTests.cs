@@ -1,5 +1,3 @@
-using AutoMapper;
-using MediatR;
 using UserManagement.Application.Common.Interfaces.IRoleEntitlement;
 using UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements;
 
@@ -8,11 +6,8 @@ namespace UserManagement.UnitTests.Application.RoleEntitlements.Queries
     public sealed class GetRoleEntitlementsQueryHandlerTests
     {
         private readonly Mock<IRoleEntitlementQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-        private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
-        private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
-        private GetRoleEntitlementsQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+        private static GetRoleEntitlementsQueryHandler CreateSut() => new();
 
         [Fact]
         public async Task Handle_AnyQuery_ReturnsEmptyList()

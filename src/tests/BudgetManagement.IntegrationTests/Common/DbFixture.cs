@@ -136,11 +136,11 @@ SET IDENTITY_INSERT Budget.BudgetGroup ON;
 IF NOT EXISTS (SELECT 1 FROM Budget.BudgetGroup WHERE Id = 1)
     INSERT INTO Budget.BudgetGroup
         (Id, Name, UnitId, DepartmentId, CostCenterId, CurrencyId,
-         IsParent, CarryForward, EmergencyPoApplicable, IsActive, IsDeleted,
+         IsParent, CarryForward, IsActive, IsDeleted,
          CreatedBy, CreatedByName, CreatedIP, CreatedDate)
     VALUES
         (1, 'Test Group', 1, 1, 1, 1,
-         0, 0, 0, 1, 0,
+         0, 0, 1, 0,
          1, 'test-user', '127.0.0.1', SYSDATETIMEOFFSET());
 SET IDENTITY_INSERT Budget.BudgetGroup OFF;
 ");
