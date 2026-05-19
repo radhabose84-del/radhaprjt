@@ -1,6 +1,8 @@
 using PurchaseManagement.Domain.Common;
+using PurchaseManagement.Domain.Entities.ContractPO;
 using PurchaseManagement.Domain.Entities.GRN.GateEntry;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.Local;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
@@ -56,6 +58,13 @@ public class PurchaseOrderHeader : BaseEntity, IActivityTracked
     public ICollection<PurchaseOrderServiceHeader> ServicePos { get; set; } = new List<PurchaseOrderServiceHeader>();
     public ICollection<ServiceEntrySheet> ServiceEntrySheets { get; set; } = new List<ServiceEntrySheet>();
     public ICollection<ImportPOHeader> ImportPOHeader { get; set; } = new List<ImportPOHeader>();
+
+    // Contract PO (4th PO type — release PO against a contract)
+    public ICollection<PurchaseContractHeader> ContractPOHeaders { get; set; } = new List<PurchaseContractHeader>();
+
+    // Release history — tracks which release POs were created against contracts
+    public ICollection<ContractPOReleaseHistory> ContractPOReleaseHistories { get; set; } = new List<ContractPOReleaseHistory>();
+
     // Cancelled fields
     public DateTimeOffset? CancelledDate { get; set; }
     public string? CancelledByName { get; set; }

@@ -15,7 +15,6 @@ namespace FAM.Presentation.Validation.AssetCategories
         public UpdateAssetCategoriesCommandValidator(MaxLengthProvider maxLengthProvider, IAssetCategoriesCommandRepository assetCategoriesCommandRepository)
         {
             _assetCategoriesCommandRepository = assetCategoriesCommandRepository;
-            var SortOrderMaxLength = maxLengthProvider.GetMaxLength<FAM.Domain.Entities.AssetCategories>("SortOrder") ?? 4;
             var CategoryNameMaxLength = maxLengthProvider.GetMaxLength<FAM.Domain.Entities.AssetCategories>("CategoryName") ?? 50;
             var CategoryDescriptionMaxLength = maxLengthProvider.GetMaxLength<FAM.Domain.Entities.AssetCategories>("Description") ?? 250;
             var CategoryIdMaxLength = maxLengthProvider.GetMaxLength<FAM.Domain.Entities.AssetCategories>("AssetGroupId") ?? 4;
@@ -46,9 +45,6 @@ namespace FAM.Presentation.Validation.AssetCategories
                         break;
                     case "MaxLength":
                         // Apply MaxLength validation using dynamic max length values
-                        RuleFor(x => x.SortOrder.ToString())
-                            .MaximumLength(SortOrderMaxLength)
-                            .WithMessage($"{nameof(UpdateAssetCategoriesCommand.SortOrder)} {rule.Error} {SortOrderMaxLength}");
                         RuleFor(x => x.CategoryName)
                             .MaximumLength(CategoryNameMaxLength)
                             .WithMessage($"{nameof(UpdateAssetCategoriesCommand.CategoryName)} {rule.Error} {CategoryNameMaxLength}");
@@ -62,16 +58,12 @@ namespace FAM.Presentation.Validation.AssetCategories
                     case "Alphanumeric":
                         // CategoryName is a name field, not a code field — no alphanumeric restriction
                         break;
-                    case "AlphabeticOnly":
-                         RuleFor(x => x.Description)
+                    case "NameField":
+                        // Description allows alphabets, numbers and spaces — only special characters are restricted
+                        RuleFor(x => x.Description)
                         .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                         .When(x => !string.IsNullOrEmpty(x.Description))
                         .WithMessage($"{nameof(UpdateAssetCategoriesCommand.Description)} {rule.Error}");
-                        break;
-                    case "NonNegativeInteger":
-                        RuleFor(x => x.SortOrder.ToString())
-                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                            .WithMessage($"{nameof(UpdateAssetCategoriesCommand.SortOrder)} {rule.Error}");
                         break;
                     case "AlreadyExists":
                         RuleFor(x => x.CategoryName)

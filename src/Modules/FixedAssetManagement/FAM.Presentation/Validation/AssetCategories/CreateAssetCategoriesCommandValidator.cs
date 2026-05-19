@@ -65,7 +65,8 @@ namespace FAM.Presentation.Validation.AssetCategories
                     case "Alphanumeric":
                         // CategoryName is a name field, not a code field — no alphanumeric restriction
                         break;
-                    case "AlphabeticOnly":
+                    case "NameField":
+                        // Description allows alphabets, numbers and spaces — only special characters are restricted
                         RuleFor(x => x.Description)
                        .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                        .When(x => !string.IsNullOrEmpty(x.Description))

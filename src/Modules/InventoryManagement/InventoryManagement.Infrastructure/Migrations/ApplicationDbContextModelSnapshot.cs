@@ -447,14 +447,18 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DeptId");
 
-                    b.Property<bool?>("EmergencyPoApplicable")
-                        .HasColumnType("bit")
-                        .HasColumnName("EmergencyPoApplicable");
+                    b.Property<int?>("EmergencyActionId")
+                        .HasColumnType("int")
+                        .HasColumnName("EmergencyActionId");
 
-                    b.Property<decimal?>("EmergencyPoLimit")
+                    b.Property<int?>("EmergencyPOById")
+                        .HasColumnType("int")
+                        .HasColumnName("EmergencyPOById");
+
+                    b.Property<decimal?>("EmergencyValueLimit")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)")
-                        .HasColumnName("EmergencyPoLimit");
+                        .HasColumnName("EmergencyValueLimit");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");

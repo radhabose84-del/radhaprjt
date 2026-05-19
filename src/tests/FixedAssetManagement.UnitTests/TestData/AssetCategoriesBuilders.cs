@@ -10,24 +10,25 @@ namespace FixedAssetManagement.UnitTests.TestData
     {
         public static CreateAssetCategoriesCommand ValidCreateCommand(
             string categoryName = "TestCategory",
-            int assetGroupId = 1) =>
+            int assetGroupId = 1,
+            string description = "Testdescription") =>
             new CreateAssetCategoriesCommand
             {
                 CategoryName = categoryName,
-                Description = "Testdescription",
+                Description = description,
                 AssetGroupId = assetGroupId
             };
 
         public static UpdateAssetCategoriesCommand ValidUpdateCommand(
             int id = 1,
             string categoryName = "UpdatedCategory",
-            int assetGroupId = 1) =>
+            int assetGroupId = 1,
+            string description = "Updateddescription") =>
             new UpdateAssetCategoriesCommand
             {
                 Id = id,
                 CategoryName = categoryName,
-                Description = "Updateddescription",
-                SortOrder = 1,
+                Description = description,
                 AssetGroupId = assetGroupId,
                 IsActive = 1
             };

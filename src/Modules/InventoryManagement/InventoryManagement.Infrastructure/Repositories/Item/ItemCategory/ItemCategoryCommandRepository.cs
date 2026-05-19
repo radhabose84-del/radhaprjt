@@ -108,8 +108,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
             existingItemCategory.IsGroup = itemCategory.IsGroup;
             existingItemCategory.ParentCategoryId = itemCategory.ParentCategoryId;
             existingItemCategory.IsBudgetApplicable = itemCategory.IsBudgetApplicable;
+            existingItemCategory.EmergencyPOById = itemCategory.EmergencyPOById;
+            existingItemCategory.EmergencyValueLimit = itemCategory.EmergencyValueLimit;
+            existingItemCategory.EmergencyActionId = itemCategory.EmergencyActionId;
             existingItemCategory.IsActive = itemCategory.IsActive;
-			existingItemCategory.IsActive=itemCategory.IsActive;
 
             _applicationDbContext.ItemCategory.Update(existingItemCategory);
             await _applicationDbContext.SaveChangesAsync();

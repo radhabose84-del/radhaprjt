@@ -38,21 +38,8 @@ namespace FAM.Application.AssetCategories.Command.UpdateAssetCategories
                     throw new ValidationException("This master is linked with other records. You cannot inactivate this record.");
             }
 
-         // Check for duplicate GroupName or SortOrder
-       var (isNameDuplicate, isSortOrderDuplicate) = await _iAssetCategoriesCommandRepository
-                                .CheckForDuplicatesAsync(request.CategoryName ?? string.Empty, request.SortOrder, request.Id);
-
-        if (isNameDuplicate || isSortOrderDuplicate)
-        {
-            string errorMessage = isNameDuplicate && isSortOrderDuplicate
-            ? "Both Category Name and Sort Order already exist."
-            : isNameDuplicate
-            ? "Asset Category name already exists."
-            : "AssetCategory with the same Sort Order already exists.";
-
-            throw new ValidationException(errorMessage);
-           
-        }
+        // Name uniqueness is enforced by UpdateAssetCategoriesCommandValidator;
+        // SortOrder is system-managed and not modified on update
         var assetCategories = _Imapper.Map<FAM.Domain.Entities.AssetCategories>(request);
         var result = await _iAssetCategoriesCommandRepository.UpdateAsync(request.Id, assetCategories);
 

@@ -20,5 +20,8 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentD
         public decimal UnitPrice { get; set; }
         public decimal LastPOPrice { get; set; }
         public bool IsOnSpot { get; set; }
+        public int? EmergencyPOById { get; set; }
+        public decimal? EmergencyValueLimit { get; set; }
+        public int? EmergencyActionId { get; set; }
     }
 }

@@ -10,7 +10,9 @@ using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
 using PurchaseManagement.Domain.Entities.MRS;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
+using PurchaseManagement.Domain.Entities.ContractPO;
 using PurchaseManagement.Domain.Entities.IssueReturn;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 namespace PurchaseManagement.Domain.Entities
 {
     public class MiscMaster : BaseEntity
@@ -86,8 +88,18 @@ namespace PurchaseManagement.Domain.Entities
         public ICollection<ImportPOHeader>? ImportLCPaymentMode { get; set; }
         public ICollection<ImportPOHeader>? ImportTTPaymentMode { get; set; }
         public ICollection<PurchaseOrderHeader>? POCapitalType { get; set; }
-        public ICollection<PurchaseOrderHeader>? POPurchaseType { get; set; } 
-        
+        public ICollection<PurchaseOrderHeader>? POPurchaseType { get; set; }
+
+        // Contract PO — standalone contract status
+        public ICollection<ContractPOHeader>? ContractPOStatuses { get; set; }
+
+        // Purchase Contract Header — Incoterms & ModeOfDispatch (4th PO type)
+        public ICollection<PurchaseContractHeader>? PurchaseContractHeaderIncoterms { get; set; }
+        public ICollection<PurchaseContractHeader>? PurchaseContractHeaderMode { get; set; }
+
+        // Purchase Contract Detail — Discount type
+        public ICollection<PurchaseContractDetail>? PurchaseContractDetailDiscount { get; set; }
+
     }
     }
         
