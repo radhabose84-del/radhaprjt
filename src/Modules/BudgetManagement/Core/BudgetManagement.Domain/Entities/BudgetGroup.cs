@@ -25,8 +25,6 @@
             public MiscMaster? BudgetType { get; set; }
             public bool CarryForward { get; set; }
             public bool IsParent { get; set; }
-            public bool EmergencyPoApplicable { get; set; }
-            public decimal? EmergencyPoLimit { get; set; }
             public ICollection<BudgetAllocation>? BudgetAllocationGroupType { get; set; }   
             public ICollection<BudgetRequest>? BudgetRequestGroupType { get; set; }   
         }

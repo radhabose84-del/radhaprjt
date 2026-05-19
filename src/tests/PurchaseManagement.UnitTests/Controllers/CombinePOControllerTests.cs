@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Amendment;
-using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Create.Command;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOById;
 using PurchaseManagement.Presentation.Controllers.PurchaseOrder;

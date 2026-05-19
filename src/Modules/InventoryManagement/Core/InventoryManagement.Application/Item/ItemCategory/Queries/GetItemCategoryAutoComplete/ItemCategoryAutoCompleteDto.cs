@@ -10,7 +10,10 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
         public int? ItemGroupId { get; set; }
         public string? ItemGroupName { get; set; }
         public List<ModuleLookupDto> Modules { get; set; } = new();
-        public int EmergencyPoApplicable { get; set; }
-        public decimal? EmergencyPoLimit { get; set; }
+        public int? EmergencyPOById { get; set; }
+        public string? EmergencyPOByName { get; set; }
+        public decimal? EmergencyValueLimit { get; set; }
+        public int? EmergencyActionId { get; set; }
+        public string? EmergencyActionName { get; set; }
     }
 }

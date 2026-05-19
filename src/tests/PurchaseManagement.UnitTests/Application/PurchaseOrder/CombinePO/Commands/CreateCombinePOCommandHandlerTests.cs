@@ -2,7 +2,7 @@ using Contracts.Common;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO;
-using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Create.Command;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;

@@ -35,6 +35,7 @@ namespace PurchaseManagement.Domain.Common
         public const string POMethod = "POMethod";
         public const string Local = "Local";
         public const string Import = "Import";
+        public const string Contract = "Contract";
         public const string POCategoryService = "Service";
         public const string Capital = "Capital";
         public const string ServiceCategoryRecurring = "Recurring";
@@ -48,5 +49,9 @@ namespace PurchaseManagement.Domain.Common
 
         public const string Cancelled = "Cancelled";
         public const string ForeClosed = "ForeClosed";
+        public const string TransactionTypeLPO = "Local Purchase Order";
+        public const string TransactionTypeCPO = "Contract Purchase Order";
+        public const string TransactionTypeIPO = "Import Purchase Order";
+        public const string ModulePurchase = "Purchase";
     }
 }

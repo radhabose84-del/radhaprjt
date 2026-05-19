@@ -66,7 +66,8 @@ namespace FAM.Presentation.Validation.AssetSubCategories
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                             .WithMessage($"{nameof(CreateAssetSubCategoriesCommand.SubCategoryName)} {rule.Error}");
                         break;
-                    case "AlphabeticOnly":
+                    case "NameField":
+                        // Description allows alphabets, numbers and spaces — only special characters are restricted
                         RuleFor(x => x.Description)
                        .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                        .When(x => !string.IsNullOrEmpty(x.Description))

@@ -38,5 +38,34 @@ namespace PurchaseManagement.UnitTests.Application.Quotation.RfqEntry.Queries
             query.SearchPattern.Should().Be("rfq");
             query.StatusId.Should().Be(3);
         }
+
+        [Fact]
+        public async Task Handle_ShouldForward_StatusId_And_LastSubmitDate_ToRepository()
+        {
+            // The handler must pass the StatusId and submission date through to
+            // the repository unchanged.
+            var date = new DateOnly(2026, 5, 16);
+
+            _mockRepo
+                .Setup(r => r.GetRfqAutoCompleteComparisonAsync(
+                    "knit", date, 55, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<RfqAutoCompleteDto>
+                {
+                    new() { Id = 1230, RfqCode = "RFQ-Knit-36", LastSubmitDate = date }
+                });
+
+            var result = await CreateSut().Handle(
+                new GetRfqAutoCompleteComparisonQuery
+                {
+                    SearchPattern = "knit",
+                    LastSubmitDate = date,
+                    StatusId = 55
+                },
+                CancellationToken.None);
+
+            result.Should().ContainSingle(x => x.Id == 1230);
+            _mockRepo.Verify(r => r.GetRfqAutoCompleteComparisonAsync(
+                "knit", date, 55, It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

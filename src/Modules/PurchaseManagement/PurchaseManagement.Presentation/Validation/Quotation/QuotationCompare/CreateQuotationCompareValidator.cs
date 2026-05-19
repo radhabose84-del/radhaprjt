@@ -1,6 +1,5 @@
 using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
-using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationCompare;
 using PurchaseManagement.Application.Quotation.QuotationCompare.Commands.CreateQuoteComparsion;
 using PurchaseManagement.Domain.Common;
 using FluentValidation;
@@ -14,14 +13,11 @@ namespace PurchaseManagement.Presentation.Validation.Quotation.QuotationCompare
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IWorkflowLookup _workflowLookup;
-        private readonly IQuotationCompareCommandRepository _iquotationCompareCommandRepository;
         private readonly IIPAddressService _ipAddressService;
 
         public CreateQuotationCompareValidator(
-            IQuotationCompareCommandRepository iquotationCompareCommandRepository,
             MaxLengthProvider maxLengthProvider, IWorkflowLookup workflowLookup, IIPAddressService iPAddressService)
         {
-            _iquotationCompareCommandRepository = iquotationCompareCommandRepository;
             _workflowLookup = workflowLookup;
             _ipAddressService = iPAddressService;
 
@@ -93,14 +89,9 @@ namespace PurchaseManagement.Presentation.Validation.Quotation.QuotationCompare
                         });
                         break;
 
-                    case "AlreadyExists":
-                        RuleFor(x => x.CreateQuoteComparsion)
-                            .MustAsync(async (quotation, cancellation) =>
-                                !await _iquotationCompareCommandRepository.ExistsAsync(
-                                    quotation.RfqId,
-                                    quotation.RfqCode ?? string.Empty))
-                            .WithMessage("Quotation Comparison already exists for the same RFQ Id and RFQ Code.");
-                        break;
+                    // No uniqueness rule here: a comparison is unique per RFQ and
+                    // the repository creates or updates it accordingly. Re-submitting
+                    // an existing comparison is a valid action and is not rejected.
 
                     default:
                         break;

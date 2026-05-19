@@ -16,8 +16,11 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
         public int? ParentCategoryId { get; set; }
         public string? ParentCategoryName { get; set; }
         public int IsBudgetApplicable { get; set; }
-        public int EmergencyPoApplicable { get; set; }
-        public decimal? EmergencyPoLimit { get; set; }
+        public int? EmergencyPOById { get; set; }
+        public string? EmergencyPOByName { get; set; }
+        public decimal? EmergencyValueLimit { get; set; }
+        public int? EmergencyActionId { get; set; }
+        public string? EmergencyActionName { get; set; }
         public List<ModuleLookupDto> Modules { get; set; } = new();
         public int IsActive { get; set; }
         public int IsDeleted { get; set; }

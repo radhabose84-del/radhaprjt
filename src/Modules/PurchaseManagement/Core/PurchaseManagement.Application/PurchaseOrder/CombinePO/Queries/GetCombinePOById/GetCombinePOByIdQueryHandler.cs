@@ -1,6 +1,7 @@
 using MediatR;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetPOById;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetById;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOById;
@@ -8,7 +9,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetComb
 public sealed class GetCombinePOByIdQueryHandler : IRequestHandler<GetCombinePOByIdQuery, GetCombinePOByIdVm>
 {
     private readonly IMediator _mediator;
-    private readonly IPoMethodLookup _lookup; // resolves Local/Import IDs from MiscMaster
+    private readonly IPoMethodLookup _lookup;
 
     public GetCombinePOByIdQueryHandler(IMediator mediator, IPoMethodLookup lookup)
     {
@@ -33,6 +34,14 @@ public sealed class GetCombinePOByIdQueryHandler : IRequestHandler<GetCombinePOB
             vm.Import = await _mediator.Send(new GetImportPOByIdQuery(request.Id), ct);
             if (vm.Import is null)
                 throw new KeyNotFoundException($"Import PO {request.Id} not found.");
+            return vm;
+        }
+
+        if (await _lookup.IsContractAsync(request.POMethodId, ct))
+        {
+            vm.Contract = await _mediator.Send(new GetContractReleasePOByIdQuery(request.Id), ct);
+            if (vm.Contract is null)
+                throw new KeyNotFoundException($"Contract Release PO {request.Id} not found.");
             return vm;
         }
 
