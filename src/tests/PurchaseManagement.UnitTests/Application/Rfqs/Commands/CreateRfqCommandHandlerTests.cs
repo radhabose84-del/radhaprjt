@@ -1,6 +1,7 @@
 using AutoMapper;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -27,12 +28,14 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
         private readonly Mock<IPurchaseIndentCommand> _mockIndentRepo = new(MockBehavior.Loose);
         private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMisc = new(MockBehavior.Loose);
         private readonly Mock<IRfqAttachmentFileStorage> _mockAttachmentStorage = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSequence = new(MockBehavior.Loose);
 
         private CreateRfqCommandHandler CreateSut() =>
             new(_mockRfqRepo.Object, _mockMapper.Object, _mockIp.Object,
                 _mockOutbox.Object, _mockLogger.Object, _mockItemLookup.Object,
                 _mockUomLookup.Object, _mockTimeZone.Object, _mockIndentRepo.Object,
-                _mockAppDataMisc.Object, _mockAttachmentStorage.Object);
+                _mockAppDataMisc.Object, _mockAttachmentStorage.Object,
+                _mockDocSequence.Object);
 
         private void SetupHappyPath(int newId = 1)
         {
@@ -53,12 +56,15 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
             _mockIp.Setup(i => i.GetUserName()).Returns("test-user");
             _mockIp.Setup(i => i.GetSystemIPAddress()).Returns("127.0.0.1");
 
-            _mockRfqRepo
-                .Setup(r => r.GenerateNextCodeAsync(It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("RFQ001");
+            _mockDocSequence
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockDocSequence
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "RFQ001" });
 
             _mockRfqRepo
-                .Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(newId);
 
             _mockUomLookup
@@ -104,7 +110,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             _mockRfqRepo.Verify(
-                r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()),
+                r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -113,7 +119,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
         {
             SetupHappyPath();
             _mockRfqRepo
-                .Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(0);
 
             var command = new CreateRfqCommand
@@ -173,7 +179,7 @@ namespace PurchaseManagement.UnitTests.Application.Rfqs.Commands
                 });
 
             _mockRfqRepo
-                .Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.CreateAsync(It.IsAny<RfqMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException("simulated db failure"));
 
             var command = new CreateRfqCommand
