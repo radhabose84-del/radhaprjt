@@ -3,6 +3,7 @@ using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.ContractPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
@@ -45,14 +46,14 @@ public sealed class CreateContractReleasePOCommandHandler
         // Generate PONumber from DocumentSequence
         var unitId = _ipAddressService.GetUnitId()
             ?? throw new ExceptionRules("UnitId is not available for the current user.");
-        var transactionTypeId = await _documentSequenceLookup
-            .GetTransactionTypeIdAsync("CombinePO", "Purchase", unitId)
-            ?? throw new ExceptionRules("No transaction type configured for Combine PO.");
+        var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+            MiscEnumEntity.TransactionTypeCPO, MiscEnumEntity.ModulePurchase, unitId)
+            ?? throw new ExceptionRules("No transaction type configured for Contract PO.");
 
         var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
         var poNumber = sequences.Count > 0
             ? sequences[^1]
-            : throw new ExceptionRules("No document sequence configured for Combine PO.");
+            : throw new ExceptionRules("No document sequence configured for Contract PO.");
 
         // Build PurchaseOrderHeader
         var poHeader = new PurchaseOrderHeader

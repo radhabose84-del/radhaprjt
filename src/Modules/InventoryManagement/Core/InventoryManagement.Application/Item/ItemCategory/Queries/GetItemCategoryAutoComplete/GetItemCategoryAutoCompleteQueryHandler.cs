@@ -20,7 +20,7 @@ namespace InventoryManagement.Application.Item.ItemCategory.Queries.GetItemCateg
 
         public async Task<List<ItemCategoryAutoCompleteDto>> Handle(GetItemCategoryAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _itemCategoryQueryRepository.GetItemCategoryAutoCompleteAsync(request.GroupId, request.SearchPattern ?? string.Empty, request.IsGroup ?? false, request.excludeId, request.ModuleId);
+            var result = await _itemCategoryQueryRepository.GetItemCategoryAutoCompleteAsync(request.GroupId, request.SearchPattern ?? string.Empty, request.IsGroup ?? false, request.excludeId, request.ModuleId, request.EmergencyPo);
             var itemCategory = _mapper.Map<List<ItemCategoryAutoCompleteDto>>(result);
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

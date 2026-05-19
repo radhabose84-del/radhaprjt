@@ -1,11 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO;
-using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Create.Command;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Amendment;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOById;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
-using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Delete;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Cancel;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Foreclose;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
@@ -62,15 +63,29 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
             });
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id, [FromQuery] int poMethodId, CancellationToken ct)
+        [HttpPut("cancel/{id:int}")]
+        public async Task<IActionResult> Cancel([FromRoute] int id, [FromQuery] int poMethodId, CancellationToken ct)
         {
-            var ok = await _mediator.Send(new DeleteCombinePOCommand(id, poMethodId), ct);
+            var result = await _mediator.Send(new CancelCombinePOCommand(id, poMethodId), ct);
+
             return Ok(new
             {
-                StatusCode = ok ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest,
-                message = ok ? "Deleted successfully." : "Delete failed.",
-                data = ok
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Purchase Order cancelled successfully." : "Failed to cancel Purchase Order."
+            });
+        }
+
+        [HttpPut("foreclose/{id:int}")]
+        public async Task<IActionResult> Foreclose([FromRoute] int id, [FromQuery] int poMethodId, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new ForecloseCombinePOCommand(id, poMethodId), ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Purchase Order foreclosed successfully." : "Failed to foreclose Purchase Order."
             });
         }
     }

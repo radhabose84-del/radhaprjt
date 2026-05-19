@@ -1,12 +1,11 @@
 using AutoMapper;
 using Contracts.Interfaces.Lookups.Budget;
-using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.PurchaseOrder;
@@ -22,13 +21,12 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
     private readonly IIPAddressService _ip;
     private readonly ITimeZoneService _tz;
     private readonly IMapper _mapper;
-    private readonly IPurchaseOrderCommandRepository _poRepo;
     private readonly ILogger<CreateImportPOCommandHandler> _logger;
     private readonly IMiscMasterQueryRepository _misc;
     private readonly IPODocumentQueryRepository _poDocumentQueryRepository;
-    private readonly IImportPOQueryRepository _purchaseOrderQueryRepository;    
-    private readonly IUnitLookup _unitLookup;
-    private readonly IBudgetAllocationLookup _budgetAllocationLookup;    
+    private readonly IImportPOQueryRepository _purchaseOrderQueryRepository;
+    private readonly IBudgetAllocationLookup _budgetAllocationLookup;
+    private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
     public CreateImportPOCommandHandler(
         IImportPOCommandRepository repo,
@@ -37,14 +35,16 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
         ITimeZoneService tz,
         ILogger<CreateImportPOCommandHandler> logger,
         IMiscMasterQueryRepository misc,
-        IPurchaseOrderCommandRepository poRepo,
-        IPODocumentQueryRepository poDocumentQueryRepository,  IImportPOQueryRepository purchaseOrderQueryRepository, IUnitLookup unitLookup, IBudgetAllocationLookup budgetAllocationLookup
-        )
+        IPODocumentQueryRepository poDocumentQueryRepository,
+        IImportPOQueryRepository purchaseOrderQueryRepository,
+        IBudgetAllocationLookup budgetAllocationLookup,
+        IDocumentSequenceLookup documentSequenceLookup)
     {
         _repo = repo; _mapper = mapper; _ip = ip; _tz = tz; _logger = logger;
-        _misc = misc; _poRepo = poRepo; _poDocumentQueryRepository = poDocumentQueryRepository;_purchaseOrderQueryRepository = purchaseOrderQueryRepository; 
-        _unitLookup = unitLookup ?? throw new ArgumentNullException(nameof(unitLookup));
+        _misc = misc; _poDocumentQueryRepository = poDocumentQueryRepository;
+        _purchaseOrderQueryRepository = purchaseOrderQueryRepository;
         _budgetAllocationLookup = budgetAllocationLookup ?? throw new ArgumentNullException(nameof(budgetAllocationLookup));
+        _documentSequenceLookup = documentSequenceLookup;
     }
 
     public async Task<int> Handle(CreateImportPOCommand request, CancellationToken ct)
@@ -61,22 +61,14 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
 
         entity.UnitId = _ip.GetUnitId() ?? 0;
 
-        var units = await _unitLookup.GetAllUnitAsync();
-        var unitLookupDict = units.ToDictionary(u => u.UnitId, u => (u.ShortName ?? string.Empty).Trim());
-
-        if (!unitLookupDict.TryGetValue(entity.UnitId, out var unitCode) || string.IsNullOrWhiteSpace(unitCode))
-        {
-            var msg = $"Invalid UnitId {entity.UnitId}. Failed to generate PO number.";
-            _logger.LogWarning(msg);
-            throw new InvalidOperationException(msg);
-        }
-
-        entity.PONumber = await _poRepo.GenerateNextCodeAsync(
-                entity.POCategoryId,
-                entity.POMethodId,
-                entity.PODate,
-                unitCode,
-                ct);
+        // Generate PONumber from DocumentSequence (same pattern as ContractReleasePO)
+        var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+            MiscEnumEntity.TransactionTypeIPO, MiscEnumEntity.ModulePurchase, entity.UnitId)
+            ?? throw new InvalidOperationException("No transaction type configured for PO.");
+        var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
+        entity.PONumber = sequences.Count > 0
+            ? sequences[^1]
+            : throw new InvalidOperationException("No document sequence configured for PO.");
         entity.CreatedBy = _ip.GetUserId();
         entity.CreatedByName = _ip.GetUserName();
         entity.CreatedIP = _ip.GetSystemIPAddress();
@@ -163,6 +155,9 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
                         entity.PurchaseValue);
                 }
             }
+
+            // Increment DocNo via lookup — same connection + transaction
+            await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConn, dbTx);
 
             await transaction.CommitAsync(ct);
             return poId;
