@@ -5,6 +5,7 @@ using Contracts.Commands.Workflow;
 using Contracts.Events.Notifications;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using Contracts.Interfaces;
@@ -38,6 +39,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
         private readonly IBudgetAllocationLookup _budgetAllocationLookup;
         private readonly IFinancialYearLookup _financialYearLookup;
         private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
         public CreatePurchaseOrderCommandHandler(
             IPurchaseOrderCommandRepository repo,
@@ -51,7 +53,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             ICompanyLookup companyLookup,
             IBudgetAllocationLookup budgetAllocationLookup,
             IFinancialYearLookup financialYearLookup,
-            IAppDataMiscMasterLookup appDataMiscLookup)
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _repo = repo;
             _mapper = mapper;
@@ -66,6 +69,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                                       throw new ArgumentNullException(nameof(budgetAllocationLookup));
             _financialYearLookup = financialYearLookup;
             _appDataMiscLookup = appDataMiscLookup;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreatePurchaseOrderCommand request, CancellationToken ct)
@@ -166,26 +170,19 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
 
             // --- Audit + numbering
             entity.UnitId = _ip.GetUnitId() ?? 0;
+            
 
-            // Get unit code for PO number generation
-            var units = await _unitLookup.GetAllUnitAsync();
-            var unitLookupDict = units.ToDictionary(u => u.UnitId, u => (u.ShortName ?? string.Empty).Trim());
-            if (!unitLookupDict.TryGetValue(entity.UnitId, out var unitCode) || string.IsNullOrWhiteSpace(unitCode))
-            {
-                return new ApiResponseDTO<int>
-                {
-                    IsSuccess = false,
-                    Message = $"Invalid UnitId {entity.UnitId}. Failed to generate PO number.",
-                    Data = 0
-                };
-            }
+            // Generate PONumber from DocumentSequence (same pattern as ContractReleasePO)
+            //var transactionTypeId = await _documentSequenceLookup
+            // .GetTransactionTypeIdAsync("CombinePO", "Purchase", entity.UnitId)
+            var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeLPO, MiscEnumEntity.ModulePurchase , entity.UnitId)
+                ?? throw new InvalidOperationException("No transaction type configured for PO.");
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
 
-            entity.PONumber = await _repo.GenerateNextCodeAsync(
-                entity.POCategoryId,
-                entity.POMethodId,
-                entity.PODate,
-                unitCode,
-                ct);
+            entity.PONumber = sequences.Count > 0
+                ? sequences[^1]
+                : throw new InvalidOperationException("No document sequence configured for PO.");
 
             entity.CreatedBy = _ip.GetUserId();
             entity.CreatedByName = _ip.GetUserName();
@@ -311,6 +308,10 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     }
 
                     await _repo.SaveChangesAsync(ct);
+
+                    // Increment DocNo via lookup — same connection + transaction
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConn, dbTx);
+
                     await transaction.CommitAsync(ct);
 
                     _logger.LogInformation(
@@ -335,7 +336,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     return new ApiResponseDTO<int>
                     {
                         IsSuccess = false,
-                        Message = $"Purchase order creation failed: {ex.Message}",
+                        Message = $"Purchase order creation failed: {ex.InnerException?.Message ?? ex.Message}",
                         Data = 0
                     };
                 }

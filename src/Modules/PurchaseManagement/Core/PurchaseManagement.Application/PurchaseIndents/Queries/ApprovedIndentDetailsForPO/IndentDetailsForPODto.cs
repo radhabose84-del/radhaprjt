@@ -21,7 +21,9 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentD
         public decimal LastPOPrice { get; set; }
         public bool IsOnSpot { get; set; }
         public int? EmergencyPOById { get; set; }
+        public string? EmergencyPOBy { get; set; }
         public decimal? EmergencyValueLimit { get; set; }
         public int? EmergencyActionId { get; set; }
+        public string? EmergencyAction { get; set; }
     }
 }

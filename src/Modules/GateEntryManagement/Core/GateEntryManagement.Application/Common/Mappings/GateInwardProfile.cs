@@ -13,7 +13,13 @@ namespace GateEntryManagement.Application.Common.Mappings
             CreateMap<CreateGateInwardCommand, GateInwardHdr>()
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
-                .ForMember(dest => dest.GateInwardDetails, opt => opt.Ignore());
+                .ForMember(dest => dest.GateInwardDetails, opt => opt.Ignore())
+                // Attachment is staged then set explicitly in the handler (not name-mapped)
+                .ForMember(dest => dest.AttachmentFileName, opt => opt.Ignore())
+                .ForMember(dest => dest.AttachmentOriginalFileName, opt => opt.Ignore())
+                .ForMember(dest => dest.AttachmentFilePath, opt => opt.Ignore())
+                .ForMember(dest => dest.AttachmentFileType, opt => opt.Ignore())
+                .ForMember(dest => dest.AttachmentFileSize, opt => opt.Ignore());
 
             CreateMap<CreateGateInwardDetailDto, GateInwardDtl>();
         }

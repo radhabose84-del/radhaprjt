@@ -14,8 +14,8 @@ namespace GateEntryManagement.UnitTests.TestData
             new CreateGateInwardCommand
             {
                 VehicleMovementRecordId = vehicleMovementRecordId,
-                GrossWeight = 1000m,
-                TareWeight = 200m,
+                GrossWeight = 1000,
+                TareWeight = 200,
                 QAInspectionRequired = false,
                 QAStatusId = null,
                 UnitId = unitId,
@@ -40,9 +40,9 @@ namespace GateEntryManagement.UnitTests.TestData
                 VehicleMovementId = "VMR00001",
                 VehicleNumber = "KA01AB1234",
                 DriverName = "John Doe",
-                GrossWeight = 1000m,
-                TareWeight = 200m,
-                NetWeight = 800m,
+                GrossWeight = 1000,
+                TareWeight = 200,
+                NetWeight = 800,
                 QAInspectionRequired = false,
                 UnitId = 1,
                 UnitName = "Unit 1",
@@ -71,15 +71,40 @@ namespace GateEntryManagement.UnitTests.TestData
                 DriverName = "John Doe"
             };
 
+        public static GateInwardAttachmentStageRef ValidAttachmentStageRef() =>
+            new GateInwardAttachmentStageRef
+            {
+                FileName = "TEMP_abc.pdf",
+                OriginalFileName = "lr-copy.pdf",
+                FileSize = 12345,
+                FileType = "application/pdf"
+            };
+
+        public static CreateGateInwardCommand ValidCreateCommandWithAttachment() =>
+            new CreateGateInwardCommand
+            {
+                VehicleMovementRecordId = 1,
+                GrossWeight = 1000,
+                TareWeight = 200,
+                QAInspectionRequired = false,
+                UnitId = 1,
+                Remarks = "With attachment",
+                GateInwardDetails = new List<CreateGateInwardDetailDto>
+                {
+                    new CreateGateInwardDetailDto { ReferenceDocTypeId = 1, ReferenceDocNo = "PO001", PartyName = "P" }
+                },
+                Attachment = ValidAttachmentStageRef()
+            };
+
         public static GateEntryManagement.Domain.Entities.GateInwardHdr ValidEntity(int id = 1) =>
             new GateEntryManagement.Domain.Entities.GateInwardHdr
             {
                 Id = id,
                 GateEntryNo = "GE00001",
                 VehicleMovementRecordId = 1,
-                GrossWeight = 1000m,
-                TareWeight = 200m,
-                NetWeight = 800m,
+                GrossWeight = 1000,
+                TareWeight = 200,
+                NetWeight = 800,
                 QAInspectionRequired = false,
                 UnitId = 1,
                 Remarks = "Test gate inward",

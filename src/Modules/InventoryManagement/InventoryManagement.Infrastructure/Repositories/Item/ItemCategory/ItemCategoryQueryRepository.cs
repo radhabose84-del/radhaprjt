@@ -261,11 +261,11 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
         public async Task<List<ItemCategoryAutoCompleteDto>> GetItemCategoryAutoCompleteAsync(
             int? groupId,
             string searchPattern,
-            bool isParent, int excludeId, int? moduleId)
+            bool isParent, int excludeId, int? moduleId, bool emergencyPo = false)
         {
             searchPattern = searchPattern ?? string.Empty;
 
-            const string sql = @"
+            var sql = @"
                 SELECT
                     IC.Id,
                     IC.ItemCategoryName,
@@ -290,8 +290,12 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemCategory
                 AND (@ExcludeId = 0 OR IC.Id <> @ExcludeId)
                 AND (@ModuleId IS NULL OR EXISTS (
                     SELECT 1 FROM Inventory.ItemCategoryModule ICM
-                    WHERE ICM.ItemCategoryId = IC.Id AND ICM.ModuleId = @ModuleId))
-                ORDER BY IC.ItemCategoryName;";
+                    WHERE ICM.ItemCategoryId = IC.Id AND ICM.ModuleId = @ModuleId))";
+
+            if (emergencyPo)
+                sql += " AND IC.EmergencyPOById IS NOT NULL AND IC.EmergencyPOById > 0";
+
+            sql += " ORDER BY IC.ItemCategoryName;";
 
             var parameters = new
             {

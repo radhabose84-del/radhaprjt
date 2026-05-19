@@ -1,9 +1,8 @@
 using System.Data.Common;
 using AutoMapper;
-using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Budget;
-using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,6 @@ using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
@@ -27,18 +25,17 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
         private readonly Mock<ITimeZoneService> _mockTz = new(MockBehavior.Loose);
         private readonly Mock<ILogger<CreateImportPOCommandHandler>> _mockLogger = new(MockBehavior.Loose);
         private readonly Mock<IMiscMasterQueryRepository> _mockMisc = new(MockBehavior.Loose);
-        private readonly Mock<IPurchaseOrderCommandRepository> _mockPoRepo = new(MockBehavior.Loose);
         private readonly Mock<IPODocumentQueryRepository> _mockPoDocs = new(MockBehavior.Loose);
         private readonly Mock<IImportPOQueryRepository> _mockImportQuery = new(MockBehavior.Loose);
-        private readonly Mock<IUnitLookup> _mockUnitLookup = new(MockBehavior.Loose);
         private readonly Mock<IBudgetAllocationLookup> _mockBudgetLookup = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSequence = new(MockBehavior.Loose);
 
         private CreateImportPOCommandHandler CreateSut() =>
             new(
                 _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
-                _mockLogger.Object, _mockMisc.Object, _mockPoRepo.Object,
-                _mockPoDocs.Object, _mockImportQuery.Object, _mockUnitLookup.Object,
-                _mockBudgetLookup.Object);
+                _mockLogger.Object, _mockMisc.Object, _mockPoDocs.Object,
+                _mockImportQuery.Object, _mockBudgetLookup.Object,
+                _mockDocSequence.Object);
 
         [Fact]
         public async Task Handle_NullData_ThrowsNullReferenceException()
@@ -51,23 +48,12 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
         }
 
         [Fact]
-        public void Constructor_NullUnitLookup_ThrowsArgumentNullException()
-        {
-            var act = () => new CreateImportPOCommandHandler(
-                _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
-                _mockLogger.Object, _mockMisc.Object, _mockPoRepo.Object,
-                _mockPoDocs.Object, _mockImportQuery.Object, null!, _mockBudgetLookup.Object);
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("unitLookup");
-        }
-
-        [Fact]
         public void Constructor_NullBudgetLookup_ThrowsArgumentNullException()
         {
             var act = () => new CreateImportPOCommandHandler(
                 _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
-                _mockLogger.Object, _mockMisc.Object, _mockPoRepo.Object,
-                _mockPoDocs.Object, _mockImportQuery.Object, _mockUnitLookup.Object, null!);
+                _mockLogger.Object, _mockMisc.Object, _mockPoDocs.Object,
+                _mockImportQuery.Object, null!, _mockDocSequence.Object);
 
             act.Should().Throw<ArgumentNullException>().WithParameterName("budgetAllocationLookup");
         }
@@ -107,15 +93,10 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
             _mockIp.Setup(i => i.GetUserName()).Returns("test");
             _mockIp.Setup(i => i.GetSystemIPAddress()).Returns("127.0.0.1");
 
-            _mockUnitLookup.Setup(u => u.GetAllUnitAsync()).ReturnsAsync(new List<UnitLookupDto>
-            {
-                new() { UnitId = unitId, UnitName = "Unit1", ShortName = "U1" }
-            });
-
-            _mockPoRepo.Setup(p => p.GenerateNextCodeAsync(
-                    It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<DateTimeOffset>(),
-                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("IMP-001");
+            _mockDocSequence.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), unitId))
+                .ReturnsAsync(1);
+            _mockDocSequence.Setup(d => d.GenerateDocumentNumber(1))
+                .ReturnsAsync(new List<string> { "IMP-001" });
 
             _mockRepo.Setup(r => r.CreateExecutionStrategy()).Returns(new ImmediateExecutionStrategy());
 

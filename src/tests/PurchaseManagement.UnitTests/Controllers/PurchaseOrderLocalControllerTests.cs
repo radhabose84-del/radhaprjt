@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
-using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Delete;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Update;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseOrder;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
@@ -40,18 +39,6 @@ namespace PurchaseManagement.UnitTests.Controllers
                 .ReturnsAsync(true);
 
             var result = await CreateSut().Update(new PurchaseOrderUpdateDto(), CancellationToken.None);
-
-            result.Should().BeOfType<OkObjectResult>();
-        }
-
-        [Fact]
-        public async Task Delete_ReturnsOkResult()
-        {
-            _mockMediator
-                .Setup(m => m.Send(It.IsAny<DeletePurchaseOrderCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
-
-            var result = await CreateSut().Delete(1, CancellationToken.None);
 
             result.Should().BeOfType<OkObjectResult>();
         }

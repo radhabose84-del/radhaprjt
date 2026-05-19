@@ -3,6 +3,7 @@ using Contracts.Common;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -28,13 +29,14 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Commands
         private readonly Mock<IBudgetAllocationLookup> _mockBudgetLookup = new(MockBehavior.Loose);
         private readonly Mock<IFinancialYearLookup> _mockFyLookup = new(MockBehavior.Loose);
         private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMisc = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSequence = new(MockBehavior.Loose);
 
         private CreatePurchaseOrderCommandHandler CreateSut() =>
             new(
                 _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
                 _mockLogger.Object, _mockOutbox.Object, _mockPoDocs.Object,
                 _mockUnitLookup.Object, _mockCompanyLookup.Object, _mockBudgetLookup.Object,
-                _mockFyLookup.Object, _mockAppDataMisc.Object);
+                _mockFyLookup.Object, _mockAppDataMisc.Object, _mockDocSequence.Object);
 
         [Fact]
         public async Task Handle_NullData_ReturnsFailure()
