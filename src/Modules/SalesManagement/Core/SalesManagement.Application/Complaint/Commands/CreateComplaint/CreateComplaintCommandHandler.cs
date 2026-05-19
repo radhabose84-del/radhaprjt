@@ -5,6 +5,7 @@ using Contracts.Events.Notifications;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Sales;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
@@ -21,6 +22,7 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
     public class CreateComplaintCommandHandler : IRequestHandler<CreateComplaintCommand, ApiResponseDTO<int>>
     {
         private readonly IComplaintCommandRepository _commandRepository;
+        private readonly IComplaintQueryRepository _queryRepository;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
@@ -29,9 +31,11 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
         private readonly IMapper _mapper;
         private readonly ILogger<CreateComplaintCommandHandler> _logger;
         private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+        private readonly IOfficerAgentUserLookup _officerAgentUserLookup;
 
         public CreateComplaintCommandHandler(
             IComplaintCommandRepository commandRepository,
+            IComplaintQueryRepository queryRepository,
             IMiscMasterQueryRepository miscMasterQueryRepository,
             IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
@@ -39,9 +43,11 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             IMediator mediator,
             IMapper mapper,
             ILogger<CreateComplaintCommandHandler> logger,
-            IAppDataMiscMasterLookup appDataMiscLookup)
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            IOfficerAgentUserLookup officerAgentUserLookup)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _miscMasterQueryRepository = miscMasterQueryRepository;
             _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
@@ -50,6 +56,7 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             _mapper = mapper;
             _logger = logger;
             _appDataMiscLookup = appDataMiscLookup;
+            _officerAgentUserLookup = officerAgentUserLookup;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateComplaintCommand request, CancellationToken cancellationToken)
@@ -100,10 +107,14 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
             var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
 
             // ------------------- Event 1 — InApp notification: Complaint raised → Agent's MO -------------------
-            // ModuleName='New Complaint' matches NotificationConfig 31. EventTypeId resolved at runtime
-            // (Ids vary across environments). Dispatcher resolves recipient via TargetTypeId 2081
-            // (COMPLAINT_AGENT_MO_USER) — chains ComplaintHeader → ComplaintDetail →
-            // InvoiceHeader.AgentId → OfficerAgent → User.
+            // ModuleName='New Complaint'. The notification dispatcher (WorkFlow_GetUserId)
+            // does NOT dynamically resolve the complaint's agent MO — it would fall back to
+            // the static NotificationLevelHierarchy.TargetId. So we resolve the real
+            // recipient(s) here (same chain as sp_EvaluateApproval:
+            // ComplaintHeader → ComplaintDetail → InvoiceHeader → DispatchAdviceHeader →
+            // SalesOrderHeader.AgentId → OfficerAgent → User) and pass them via
+            // OverrideTargetUserIds. If resolution yields nobody, OverrideTargetUserIds is
+            // left unset and the dispatcher falls back to its configured target (no regression).
             try
             {
                 var createEventType = await _appDataMiscLookup.GetMiscMasterByNameAsync(
@@ -117,6 +128,32 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
                 }
                 else
                 {
+                    // Dynamically resolve the complaint's Agent's MO user(s):
+                    //  (a) Sales-only query → effective Agent id(s)
+                    //  (b) cross-module IOfficerAgentUserLookup → MO UserId(s)
+                    var agentIds = await _queryRepository.GetComplaintAgentIdsAsync(newId);
+
+                    var moUserIds = new List<int>();
+                    if (agentIds.Count > 0)
+                    {
+                        var moChain = await _officerAgentUserLookup
+                            .GetMarketingOfficerChainByAgentIdsAsync(agentIds, cancellationToken);
+                        moUserIds = moChain
+                            .Where(r => r.MoUserId.HasValue && r.MoUserId.Value > 0)
+                            .Select(r => r.MoUserId!.Value)
+                            .Distinct()
+                            .ToList();
+                    }
+
+                    if (moUserIds.Count > 0)
+                        _logger.LogInformation(
+                            "Resolved {Count} agent-MO recipient(s) for 'New Complaint' InApp, Complaint {Id}: [{Users}]",
+                            moUserIds.Count, newId, string.Join(",", moUserIds));
+                    else
+                        _logger.LogWarning(
+                            "No agent-MO recipient resolved for 'New Complaint' InApp, Complaint {Id} — " +
+                            "falling back to configured notification target.", newId);
+
                     var inAppCorrelationId = Guid.NewGuid();
                     var inAppEvent = new NotificationCreatedEvent
                     {
@@ -138,7 +175,9 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
                         param8        = string.Empty,
                         param9        = string.Empty,
                         param10       = string.Empty,
-                        // OverrideTargetUserIds NOT set — dispatcher resolves via SP/TargetType
+                        // Dynamic recipient override (Agent's MO). Null/empty when nothing
+                        // resolved → dispatcher falls back to the configured target.
+                        OverrideTargetUserIds = moUserIds.Count > 0 ? moUserIds : null,
                         ModuleTransactionId = newId,
                         ModuleTypeName = MiscEnumEntity.ComplaintModuleTypeName
                     };

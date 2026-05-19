@@ -4,8 +4,10 @@ using Contracts.Common;
 using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Dtos.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Sales;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces.IComplaint;
@@ -21,6 +23,7 @@ namespace SalesManagement.UnitTests.Application.Complaint.Commands;
 public sealed class CreateComplaintCommandHandlerTests
 {
     private readonly Mock<IComplaintCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+    private readonly Mock<IComplaintQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
     private readonly Mock<IMiscMasterQueryRepository> _mockMiscRepo = new(MockBehavior.Loose);
     private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
     private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
@@ -29,11 +32,12 @@ public sealed class CreateComplaintCommandHandlerTests
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
     private readonly Mock<ILogger<CreateComplaintCommandHandler>> _mockLogger = new(MockBehavior.Loose);
     private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMiscLookup = new(MockBehavior.Loose);
+    private readonly Mock<IOfficerAgentUserLookup> _mockOfficerAgentUserLookup = new(MockBehavior.Loose);
 
     private CreateComplaintCommandHandler CreateSut() =>
-        new(_mockCommandRepo.Object, _mockMiscRepo.Object, _mockDocSeqLookup.Object,
+        new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object, _mockDocSeqLookup.Object,
             _mockIpService.Object, _mockOutbox.Object, _mockMediator.Object, _mockMapper.Object,
-            _mockLogger.Object, _mockAppDataMiscLookup.Object);
+            _mockLogger.Object, _mockAppDataMiscLookup.Object, _mockOfficerAgentUserLookup.Object);
 
     private void SetupHappyPath(int newId = 1)
     {
@@ -62,6 +66,17 @@ public sealed class CreateComplaintCommandHandlerTests
         _mockCommandRepo
             .Setup(r => r.CreateAsync(It.IsAny<ComplaintHeader>(), It.IsAny<int>()))
             .ReturnsAsync(newId);
+
+        // Default: no agent ids resolved → OverrideTargetUserIds stays null (fallback).
+        // Individual tests override these to assert the dynamic-recipient path.
+        _mockQueryRepo
+            .Setup(r => r.GetComplaintAgentIdsAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<int>());
+
+        _mockOfficerAgentUserLookup
+            .Setup(l => l.GetMarketingOfficerChainByAgentIdsAsync(
+                It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<MoChainRow>());
 
         _mockOutbox
             .Setup(o => o.ScheduleAsync(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -197,6 +212,67 @@ public sealed class CreateComplaintCommandHandlerTests
                 It.Is<NotificationCreatedEvent>(e =>
                     e.ModuleName == MiscEnumEntity.NotifModuleNewComplaint &&
                     e.EventTypeId == 1046),
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_AgentMoResolved_SetsOverrideTargetUserIds()
+    {
+        SetupHappyPath();
+        _mockQueryRepo
+            .Setup(r => r.GetComplaintAgentIdsAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<int> { 34 });
+        _mockOfficerAgentUserLookup
+            .Setup(l => l.GetMarketingOfficerChainByAgentIdsAsync(
+                It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<MoChainRow>
+            {
+                new() { AgentId = 34, MoUserId = 37, ReportToId = null }
+            });
+
+        var command = new CreateComplaintCommand
+        {
+            CustomerId = 1,
+            ComplaintDate = new DateOnly(2026, 1, 1),
+            Details = new List<CreateComplaintDetailDto>()
+        };
+
+        await CreateSut().Handle(command, CancellationToken.None);
+
+        _mockOutbox.Verify(
+            o => o.ScheduleAsync(
+                It.Is<NotificationCreatedEvent>(e =>
+                    e.ModuleName == MiscEnumEntity.NotifModuleNewComplaint &&
+                    e.OverrideTargetUserIds != null &&
+                    e.OverrideTargetUserIds.Count == 1 &&
+                    e.OverrideTargetUserIds[0] == 37),
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_NoAgentMoResolved_LeavesOverrideTargetUserIdsNull()
+    {
+        SetupHappyPath();
+        // Default SetupHappyPath returns empty list → fallback path.
+
+        var command = new CreateComplaintCommand
+        {
+            CustomerId = 1,
+            ComplaintDate = new DateOnly(2026, 1, 1),
+            Details = new List<CreateComplaintDetailDto>()
+        };
+
+        await CreateSut().Handle(command, CancellationToken.None);
+
+        _mockOutbox.Verify(
+            o => o.ScheduleAsync(
+                It.Is<NotificationCreatedEvent>(e =>
+                    e.ModuleName == MiscEnumEntity.NotifModuleNewComplaint &&
+                    e.OverrideTargetUserIds == null),
                 It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
