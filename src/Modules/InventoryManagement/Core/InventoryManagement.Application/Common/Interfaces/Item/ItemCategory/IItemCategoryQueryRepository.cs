@@ -8,7 +8,7 @@ namespace InventoryManagement.Application.Common.Interfaces.Item.ItemCategory
     {
         Task<ItemCategoryDto?> GetByIdAsync(int id);
         Task<(IEnumerable<dynamic>, int)> GetAllItemCategoryAsync(int PageNumber, int PageSize, string? SearchTerm, int? moduleId);
-        Task<List<ItemCategoryAutoCompleteDto>> GetItemCategoryAutoCompleteAsync(int? groupId, string searchPattern, bool isParent, int excludeId, int? moduleId);
+        Task<List<ItemCategoryAutoCompleteDto>> GetItemCategoryAutoCompleteAsync(int? groupId, string searchPattern, bool isParent, int excludeId, int? moduleId, bool emergencyPo = false);
         Task<bool> SoftDeleteValidation(int Id);
         Task<List<InventoryManagement.Domain.Entities.Item.ItemCategory>> GetCategoryByIdsAsync(IEnumerable<int> ids);
         Task<bool> IsLinkedWithActiveItemsAsync(int itemCategoryId);

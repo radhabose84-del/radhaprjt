@@ -4,6 +4,7 @@ using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using MediatR;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Create.Command;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Create
 {
