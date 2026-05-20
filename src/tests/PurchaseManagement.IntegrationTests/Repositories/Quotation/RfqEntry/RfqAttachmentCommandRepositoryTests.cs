@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -24,7 +25,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Quotation.RfqEntry
         private RfqCommandRepository CreateRepo(ApplicationDbContext ctx)
         {
             var unitLookup = new Mock<IUnitLookup>(MockBehavior.Loose);
-            return new RfqCommandRepository(ctx, _fixture.IpMock.Object, unitLookup.Object);
+            var docSeq = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
+            return new RfqCommandRepository(ctx, _fixture.IpMock.Object, unitLookup.Object, docSeq.Object);
         }
 
         private async Task<int> SeedAttachmentDirectlyAsync(

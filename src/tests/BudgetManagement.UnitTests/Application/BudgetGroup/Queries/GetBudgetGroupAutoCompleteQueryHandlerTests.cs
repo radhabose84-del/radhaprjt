@@ -17,7 +17,7 @@ namespace BudgetManagement.UnitTests.Application.BudgetGroup.Queries
         {
             var dtos = new List<BudgetGroupAutoCompleteDto> { BudgetGroupBuilders.ValidAutoCompleteDto() };
             _mockQueryRepo
-                .Setup(r => r.GetBudgetGroupAutoCompleteAsync("test", It.IsAny<CancellationToken>()))
+                .Setup(r => r.GetBudgetGroupAutoCompleteAsync("test", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(dtos);
 
             var result = await CreateSut().Handle(
@@ -32,7 +32,7 @@ namespace BudgetManagement.UnitTests.Application.BudgetGroup.Queries
         {
             var dtos = new List<BudgetGroupAutoCompleteDto> { BudgetGroupBuilders.ValidAutoCompleteDto() };
             _mockQueryRepo
-                .Setup(r => r.GetBudgetGroupAutoCompleteAsync(string.Empty, It.IsAny<CancellationToken>()))
+                .Setup(r => r.GetBudgetGroupAutoCompleteAsync(string.Empty, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(dtos);
 
             var result = await CreateSut().Handle(
@@ -46,7 +46,7 @@ namespace BudgetManagement.UnitTests.Application.BudgetGroup.Queries
         public async Task Handle_EmptyResult_ReturnsEmptyList()
         {
             _mockQueryRepo
-                .Setup(r => r.GetBudgetGroupAutoCompleteAsync("xyz", It.IsAny<CancellationToken>()))
+                .Setup(r => r.GetBudgetGroupAutoCompleteAsync("xyz", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<BudgetGroupAutoCompleteDto>());
 
             var result = await CreateSut().Handle(

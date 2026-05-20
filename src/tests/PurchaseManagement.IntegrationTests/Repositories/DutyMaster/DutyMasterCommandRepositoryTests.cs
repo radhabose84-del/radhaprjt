@@ -1,4 +1,4 @@
-using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.MiscMaster;
@@ -12,6 +12,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
     public sealed class DutyMasterCommandRepositoryTests
     {
         private readonly DbFixture _fixture;
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeq = new(MockBehavior.Loose);
 
         public DutyMasterCommandRepositoryTests(DbFixture fixture)
         {
@@ -19,7 +20,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         }
 
         private DutyMasterCommandRepository CreateRepository(PurchaseManagement.Infrastructure.Data.ApplicationDbContext ctx) =>
-            new(ctx, _fixture.IpMock.Object);
+            new(ctx, _fixture.IpMock.Object, _mockDocSeq.Object);
 
         private static PurchaseManagement.Domain.Entities.DutyMaster BuildEntity(
             int dutyCategoryId,
@@ -78,7 +79,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             var (_, miscId) = await SeedPrerequisitesAsync(ctx);
 
             var entity = BuildEntity(miscId, miscId);
-            var id = await CreateRepository(ctx).CreateAsync(entity, CancellationToken.None);
+            var id = await CreateRepository(ctx).CreateAsync(entity, 1, CancellationToken.None);
 
             id.Should().BeGreaterThan(0);
         }
@@ -90,7 +91,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             var (_, miscId) = await SeedPrerequisitesAsync(ctx);
 
             var entity = BuildEntity(miscId, miscId, "DUT-002", "85.17");
-            var id = await CreateRepository(ctx).CreateAsync(entity, CancellationToken.None);
+            var id = await CreateRepository(ctx).CreateAsync(entity, 1, CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.Set<PurchaseManagement.Domain.Entities.DutyMaster>()
@@ -110,7 +111,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             var (_, miscId) = await SeedPrerequisitesAsync(ctx);
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, miscId), CancellationToken.None);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, miscId), 1, CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
@@ -123,7 +124,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             var (_, miscId) = await SeedPrerequisitesAsync(ctx);
-            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, miscId), CancellationToken.None);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity(miscId, miscId), 1, CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             await CreateRepository(ctx).SoftDeleteAsync(id, CancellationToken.None);
