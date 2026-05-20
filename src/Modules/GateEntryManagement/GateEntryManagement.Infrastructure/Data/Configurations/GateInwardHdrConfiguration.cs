@@ -79,24 +79,9 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(260)")
                 .IsRequired(false);
 
-            builder.Property(t => t.AttachmentOriginalFileName)
-                .HasColumnName("AttachmentOriginalFileName")
-                .HasColumnType("nvarchar(260)")
-                .IsRequired(false);
-
             builder.Property(t => t.AttachmentFilePath)
                 .HasColumnName("AttachmentFilePath")
                 .HasColumnType("nvarchar(500)")
-                .IsRequired(false);
-
-            builder.Property(t => t.AttachmentFileType)
-                .HasColumnName("AttachmentFileType")
-                .HasColumnType("nvarchar(100)")
-                .IsRequired(false);
-
-            builder.Property(t => t.AttachmentFileSize)
-                .HasColumnName("AttachmentFileSize")
-                .HasColumnType("bigint")
                 .IsRequired(false);
 
             // Audit

@@ -74,10 +74,7 @@ namespace GateEntryManagement.UnitTests.TestData
         public static GateInwardAttachmentStageRef ValidAttachmentStageRef() =>
             new GateInwardAttachmentStageRef
             {
-                FileName = "TEMP_abc.pdf",
-                OriginalFileName = "lr-copy.pdf",
-                FileSize = 12345,
-                FileType = "application/pdf"
+                FileName = "TEMP_abc.pdf"
             };
 
         public static CreateGateInwardCommand ValidCreateCommandWithAttachment() =>

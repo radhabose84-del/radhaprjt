@@ -98,9 +98,6 @@ namespace GateEntryManagement.UnitTests.Application.GateInward.Commands
             captured.Should().NotBeNull();
             captured!.AttachmentFileName.Should().Be("GE00001.pdf");
             captured.AttachmentFilePath.Should().Be("GateEntry/GE00001.pdf");
-            captured.AttachmentOriginalFileName.Should().Be("lr-copy.pdf");
-            captured.AttachmentFileType.Should().Be("application/pdf");
-            captured.AttachmentFileSize.Should().Be(12345);
         }
 
         [Fact]
