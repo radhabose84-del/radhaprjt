@@ -1,11 +1,11 @@
 using AutoMapper;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 using PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create;
 
@@ -17,7 +17,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ServicePO.Comma
         private readonly Mock<IServicePurchaseOrderCommandRepository> _mockServiceRepo = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
         private readonly Mock<ITimeZoneService> _mockTz = new(MockBehavior.Loose);
-        private readonly Mock<IPurchaseOrderCommandRepository> _mockPoRepo = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocumentSequenceLookup = new(MockBehavior.Loose);
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IServicePurchaseOrderQueryRepository> _mockServiceQuery = new(MockBehavior.Loose);
         private readonly Mock<IUnitLookup> _mockUnitLookup = new(MockBehavior.Loose);
@@ -26,7 +26,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ServicePO.Comma
         private CreateServicePurchaseOrderCommandHandler CreateSut() =>
             new(
                 _mockMapper.Object, _mockServiceRepo.Object, _mockIp.Object, _mockTz.Object,
-                _mockPoRepo.Object, _mockOutbox.Object, _mockServiceQuery.Object,
+                _mockDocumentSequenceLookup.Object, _mockOutbox.Object, _mockServiceQuery.Object,
                 _mockUnitLookup.Object, _mockLogger.Object);
 
         [Fact]
@@ -51,9 +51,12 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ServicePO.Comma
                 .Setup(u => u.GetAllUnitAsync())
                 .ReturnsAsync(new List<Contracts.Dtos.Lookups.Users.UnitLookupDto>());
 
-            _mockPoRepo
-                .Setup(r => r.GenerateNextCodeAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("PO-001");
+            _mockDocumentSequenceLookup
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(42);
+            _mockDocumentSequenceLookup
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "PO-KNIT-Service-2627-01" });
 
             _mockServiceRepo
                 .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader>(), It.IsAny<CancellationToken>()))
@@ -64,6 +67,57 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ServicePO.Comma
             var result = await CreateSut().Handle(command, CancellationToken.None);
 
             result.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task Handle_NoTransactionTypeConfigured_ThrowsInvalidOperation()
+        {
+            _mockMapper
+                .Setup(m => m.Map<PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader>(It.IsAny<object>()))
+                .Returns(new PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader());
+
+            _mockUnitLookup
+                .Setup(u => u.GetAllUnitAsync())
+                .ReturnsAsync(new List<Contracts.Dtos.Lookups.Users.UnitLookupDto>());
+
+            // No "Service Purchase Order" TransactionType seeded → lookup returns null
+            _mockDocumentSequenceLookup
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync((int?)null);
+
+            var command = new CreateServicePoCommand { Data = new PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO.CreateServicePurchaseOrderDto() };
+
+            Func<Task> act = () => CreateSut().Handle(command, CancellationToken.None);
+
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("*Service Purchase Order*");
+        }
+
+        [Fact]
+        public async Task Handle_NoDocumentSequenceConfigured_ThrowsInvalidOperation()
+        {
+            _mockMapper
+                .Setup(m => m.Map<PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader>(It.IsAny<object>()))
+                .Returns(new PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader());
+
+            _mockUnitLookup
+                .Setup(u => u.GetAllUnitAsync())
+                .ReturnsAsync(new List<Contracts.Dtos.Lookups.Users.UnitLookupDto>());
+
+            // TransactionType exists but DocumentSequence returns empty → handler must throw
+            _mockDocumentSequenceLookup
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(42);
+            _mockDocumentSequenceLookup
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string>());
+
+            var command = new CreateServicePoCommand { Data = new PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO.CreateServicePurchaseOrderDto() };
+
+            Func<Task> act = () => CreateSut().Handle(command, CancellationToken.None);
+
+            await act.Should().ThrowAsync<InvalidOperationException>()
+                .WithMessage("*No document sequence configured*");
         }
     }
 }
