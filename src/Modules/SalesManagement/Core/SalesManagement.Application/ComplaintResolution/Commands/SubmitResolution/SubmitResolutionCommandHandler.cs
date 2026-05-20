@@ -1,9 +1,14 @@
 using AutoMapper;
 using Contracts.Commands.Workflow;
 using Contracts.Common;
+using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Sales;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces;
+using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
@@ -24,6 +29,10 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
         private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IComplaintQueryRepository _complaintQueryRepository;
+        private readonly IOfficerAgentUserLookup _officerAgentUserLookup;
+        private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+        private readonly ILogger<SubmitResolutionCommandHandler> _logger;
 
         public SubmitResolutionCommandHandler(
             IComplaintResolutionCommandRepository commandRepository,
@@ -33,7 +42,11 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
             ITimeZoneService timeZoneService,
             IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IComplaintQueryRepository complaintQueryRepository,
+            IOfficerAgentUserLookup officerAgentUserLookup,
+            IAppDataMiscMasterLookup appDataMiscLookup,
+            ILogger<SubmitResolutionCommandHandler> logger)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -43,6 +56,10 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
             _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
+            _complaintQueryRepository = complaintQueryRepository;
+            _officerAgentUserLookup = officerAgentUserLookup;
+            _appDataMiscLookup = appDataMiscLookup;
+            _logger = logger;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(SubmitResolutionCommand request, CancellationToken cancellationToken)
@@ -110,9 +127,87 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolut
                 newId = await _commandRepository.CreateAsync(entity);
             }
 
+            var unitId = _ipAddressService.GetUnitId();
+            var userName = _ipAddressService.GetUserName();
+
+            // ------------------- InApp notification: Resolution submitted → Agent's MO -------------------
+            // Recipient resolved dynamically (same agent→MO chain as sp_EvaluateApproval
+            // Block 5 / the New-Complaint hook): GetComplaintAgentIdsAsync → IOfficerAgentUserLookup.
+            // OverrideTargetUserIds null when nothing resolves → dispatcher fallback (no regression).
+            try
+            {
+                var createEventType = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                    MiscEnumEntity.NotifEventTypeMiscType, MiscEnumEntity.NotifEventTypeCreate);
+
+                if (createEventType == null)
+                {
+                    _logger.LogWarning(
+                        "MiscMaster EventType='{Code}' not found — skipping 'Resolution Submitted' InApp for Complaint {Id}",
+                        MiscEnumEntity.NotifEventTypeCreate, request.ComplaintHeaderId);
+                }
+                else
+                {
+                    var agentIds = await _complaintQueryRepository
+                        .GetComplaintAgentIdsAsync(request.ComplaintHeaderId);
+
+                    var moUserIds = new List<int>();
+                    if (agentIds.Count > 0)
+                    {
+                        var moChain = await _officerAgentUserLookup
+                            .GetMarketingOfficerChainByAgentIdsAsync(agentIds, cancellationToken);
+                        moUserIds = moChain
+                            .Where(r => r.MoUserId.HasValue && r.MoUserId.Value > 0)
+                            .Select(r => r.MoUserId!.Value)
+                            .Distinct()
+                            .ToList();
+                    }
+
+                    if (moUserIds.Count > 0)
+                        _logger.LogInformation(
+                            "Resolved {Count} agent-MO recipient(s) for 'Resolution Submitted' InApp, Complaint {Id}: [{Users}]",
+                            moUserIds.Count, request.ComplaintHeaderId, string.Join(",", moUserIds));
+                    else
+                        _logger.LogWarning(
+                            "No agent-MO recipient resolved for 'Resolution Submitted' InApp, Complaint {Id} — " +
+                            "falling back to configured notification target.", request.ComplaintHeaderId);
+
+                    var inAppCorrelationId = Guid.NewGuid();
+                    var inAppEvent = new NotificationCreatedEvent
+                    {
+                        CorrelationId = inAppCorrelationId,
+                        CreatedByName = userName ?? string.Empty,
+                        UnitId        = unitId ?? 0,
+                        ModuleName    = MiscEnumEntity.NotifModuleResolutionSubmitted,
+                        EventTypeId   = createEventType.Id,
+                        Email         = string.Empty,
+                        ccMail        = string.Empty,
+                        Mobile        = string.Empty,
+                        param1        = request.ComplaintHeaderId.ToString(),
+                        param2        = string.Empty,
+                        param3        = currentTime,
+                        param4        = string.Empty,
+                        param5        = userName ?? string.Empty,
+                        param6        = string.Empty,
+                        param7        = string.Empty,
+                        param8        = string.Empty,
+                        param9        = string.Empty,
+                        param10       = string.Empty,
+                        OverrideTargetUserIds = moUserIds.Count > 0 ? moUserIds : null,
+                        ModuleTransactionId = request.ComplaintHeaderId,
+                        ModuleTypeName = MiscEnumEntity.ComplaintResolutionModuleTypeName
+                    };
+                    await _outboxEventPublisher.ScheduleAsync(inAppEvent, inAppCorrelationId, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to publish 'Resolution Submitted' InApp notification for Complaint {Id}",
+                    request.ComplaintHeaderId);
+            }
+
             // Publish workflow approval request via Outbox
             var correlationId = Guid.NewGuid();
-            var unitId = _ipAddressService.GetUnitId();
             var payload = JsonSerializer.Serialize(new
             {
                 Header = new

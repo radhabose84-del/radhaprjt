@@ -1,8 +1,15 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Dtos.Lookups.Inventory;
+using Contracts.Dtos.Lookups.Sales;
+using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Sales;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces;
+using SalesManagement.Application.Common.Interfaces.IComplaint;
 using SalesManagement.Application.Common.Interfaces.IComplaintResolution;
 using SalesManagement.Application.Common.Interfaces.IMiscMaster;
 using SalesManagement.Application.Common.Interfaces.IOutbox;
@@ -23,10 +30,16 @@ public sealed class SubmitResolutionCommandHandlerTests
     private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
     private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
+    private readonly Mock<IComplaintQueryRepository> _mockComplaintQueryRepo = new(MockBehavior.Loose);
+    private readonly Mock<IOfficerAgentUserLookup> _mockOfficerAgentUserLookup = new(MockBehavior.Loose);
+    private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMiscLookup = new(MockBehavior.Loose);
+    private readonly Mock<ILogger<SubmitResolutionCommandHandler>> _mockLogger = new(MockBehavior.Loose);
 
     private SubmitResolutionCommandHandler CreateSut() =>
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object, _mockIpService.Object,
-            _mockTzService.Object, _mockOutbox.Object, _mockMediator.Object, _mockMapper.Object);
+            _mockTzService.Object, _mockOutbox.Object, _mockMediator.Object, _mockMapper.Object,
+            _mockComplaintQueryRepo.Object, _mockOfficerAgentUserLookup.Object,
+            _mockAppDataMiscLookup.Object, _mockLogger.Object);
 
     private void SetupHappyPath(int newId = 1)
     {
@@ -50,6 +63,23 @@ public sealed class SubmitResolutionCommandHandlerTests
         _mockOutbox
             .Setup(o => o.ScheduleAsync(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
+        // ----- Dynamic 'Resolution Submitted' InApp recipient defaults -----
+        _mockIpService.Setup(s => s.GetUserName()).Returns("test-user");
+
+        _mockAppDataMiscLookup
+            .Setup(l => l.GetMiscMasterByNameAsync(
+                MiscEnumEntity.NotifEventTypeMiscType, MiscEnumEntity.NotifEventTypeCreate))
+            .ReturnsAsync(new Contracts.Dtos.Lookups.Inventory.MiscMasterLookupDto { Id = 1046, Code = "Create" });
+
+        _mockComplaintQueryRepo
+            .Setup(r => r.GetComplaintAgentIdsAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<int>());
+
+        _mockOfficerAgentUserLookup
+            .Setup(l => l.GetMarketingOfficerChainByAgentIdsAsync(
+                It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<MoChainRow>());
     }
 
     [Fact]
@@ -257,5 +287,98 @@ public sealed class SubmitResolutionCommandHandlerTests
         }, CancellationToken.None);
 
         captured.ClosureStatusId.Should().NotBe(ClosedStatusId);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Dynamic 'Resolution Submitted' InApp recipient (agent → MO chain).
+    // Static WorkFlow_GetUserId can't resolve per-complaint, so the handler
+    // resolves the agent-MO recipient in C# and passes it via
+    // NotificationCreatedEvent.OverrideTargetUserIds.
+    // ---------------------------------------------------------------------------
+
+    private List<NotificationCreatedEvent> CaptureScheduledNotifications()
+    {
+        var captured = new List<NotificationCreatedEvent>();
+        _mockOutbox
+            .Setup(o => o.ScheduleAsync(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Callback<object, Guid, CancellationToken>((evt, _, _) =>
+            {
+                if (evt is NotificationCreatedEvent n)
+                    captured.Add(n);
+            })
+            .Returns(Task.CompletedTask);
+        return captured;
+    }
+
+    [Fact]
+    public async Task Handle_ValidCommand_PublishesResolutionSubmittedNotification()
+    {
+        SetupHappyPath();
+        var notifications = CaptureScheduledNotifications();
+
+        await CreateSut().Handle(new SubmitResolutionCommand
+        {
+            ComplaintHeaderId = 7, ResolutionTypeId = 3, ResolutionSummary = "Replace"
+        }, CancellationToken.None);
+
+        notifications.Should().ContainSingle(n =>
+            n.ModuleName == MiscEnumEntity.NotifModuleResolutionSubmitted &&
+            n.ModuleTransactionId == 7 &&
+            n.param1 == "7");
+    }
+
+    [Fact]
+    public async Task Handle_AgentMoResolved_SetsOverrideTargetUserIds()
+    {
+        SetupHappyPath();
+        _mockComplaintQueryRepo
+            .Setup(r => r.GetComplaintAgentIdsAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<int> { 34 });
+        _mockOfficerAgentUserLookup
+            .Setup(l => l.GetMarketingOfficerChainByAgentIdsAsync(
+                It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<MoChainRow> { new() { AgentId = 34, MoUserId = 37 } });
+        var notifications = CaptureScheduledNotifications();
+
+        await CreateSut().Handle(new SubmitResolutionCommand
+        {
+            ComplaintHeaderId = 1, ResolutionTypeId = 3, ResolutionSummary = "Replace"
+        }, CancellationToken.None);
+
+        var resolutionNotif = notifications.Single(n =>
+            n.ModuleName == MiscEnumEntity.NotifModuleResolutionSubmitted);
+        resolutionNotif.OverrideTargetUserIds.Should().BeEquivalentTo(new[] { 37 });
+    }
+
+    [Fact]
+    public async Task Handle_NoAgentMoResolved_OverrideTargetUserIdsIsNull()
+    {
+        SetupHappyPath(); // defaults: empty agent ids + empty MO chain
+        var notifications = CaptureScheduledNotifications();
+
+        await CreateSut().Handle(new SubmitResolutionCommand
+        {
+            ComplaintHeaderId = 1, ResolutionTypeId = 3, ResolutionSummary = "Replace"
+        }, CancellationToken.None);
+
+        var resolutionNotif = notifications.Single(n =>
+            n.ModuleName == MiscEnumEntity.NotifModuleResolutionSubmitted);
+        resolutionNotif.OverrideTargetUserIds.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_NotificationFailure_DoesNotFailResolution()
+    {
+        SetupHappyPath();
+        _mockComplaintQueryRepo
+            .Setup(r => r.GetComplaintAgentIdsAsync(It.IsAny<int>()))
+            .ThrowsAsync(new InvalidOperationException("lookup down"));
+
+        var result = await CreateSut().Handle(new SubmitResolutionCommand
+        {
+            ComplaintHeaderId = 1, ResolutionTypeId = 3, ResolutionSummary = "Replace"
+        }, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
     }
 }

@@ -5,6 +5,7 @@ using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Events.Notifications;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using SalesManagement.Application.Common.Interfaces;
@@ -30,12 +31,13 @@ public sealed class SubmitQCReviewCommandHandlerTests
     private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
     private readonly Mock<ILogger<SubmitQCReviewCommandHandler>> _mockLogger = new(MockBehavior.Loose);
     private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMiscLookup = new(MockBehavior.Loose);
+    private readonly Mock<IDepartmentUserLookup> _mockDepartmentUserLookup = new(MockBehavior.Loose);
 
     private SubmitQCReviewCommandHandler CreateSut() =>
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMiscRepo.Object,
             _mockIpService.Object, _mockTzService.Object, _mockOutbox.Object,
             _mockMediator.Object, _mockMapper.Object, _mockLogger.Object,
-            _mockAppDataMiscLookup.Object);
+            _mockAppDataMiscLookup.Object, _mockDepartmentUserLookup.Object);
 
     private void SetupHappyPath(int newId = 1)
     {
@@ -66,6 +68,12 @@ public sealed class SubmitQCReviewCommandHandlerTests
             .Setup(l => l.GetMiscMasterByNameAsync(
                 MiscEnumEntity.NotifEventTypeMiscType, MiscEnumEntity.NotifEventTypeCreate))
             .ReturnsAsync(new MiscMasterLookupDto { Id = 1046, Code = "Create" });
+
+        // Default: no QC-reviewer resolves → OverrideTargetUserIds stays null (dispatcher fallback)
+        _mockDepartmentUserLookup
+            .Setup(l => l.GetActiveUserIdsByApprovalStepTargetTypeAsync(
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<int>());
     }
 
     [Fact]
@@ -199,5 +207,116 @@ public sealed class SubmitQCReviewCommandHandlerTests
         var result = await CreateSut().Handle(command, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+    }
+
+    // ============================================================
+    // Dynamic QC-reviewer recipient (AppData.ApprovalStepDepartmentMapping → users).
+    // Static WorkFlow_GetUserId can't resolve the QC department team, so the handler
+    // resolves it in C# and passes it via NotificationCreatedEvent.OverrideTargetUserIds.
+    // ============================================================
+
+    private List<NotificationCreatedEvent> CaptureScheduledNotifications()
+    {
+        var captured = new List<NotificationCreatedEvent>();
+        _mockOutbox
+            .Setup(o => o.ScheduleAsync(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Callback<object, Guid, CancellationToken>((evt, _, _) =>
+            {
+                if (evt is NotificationCreatedEvent n)
+                    captured.Add(n);
+            })
+            .Returns(Task.CompletedTask);
+        return captured;
+    }
+
+    [Fact]
+    public async Task Handle_QcReviewersResolved_SetsOverrideTargetUserIds()
+    {
+        SetupHappyPath();
+        _mockDepartmentUserLookup
+            .Setup(l => l.GetActiveUserIdsByApprovalStepTargetTypeAsync(
+                MiscEnumEntity.ComplaintQcReviewerTargetType, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<int> { 379, 2443 });
+        var notifications = CaptureScheduledNotifications();
+
+        await CreateSut().Handle(new SubmitQCReviewCommand
+        {
+            ComplaintHeaderId = 1,
+            PhysicalVerificationId = 5,
+            Comments = "Review",
+            ExpectedResolutionDate = new DateOnly(2026, 3, 1)
+        }, CancellationToken.None);
+
+        var qcNotif = notifications.Single(n =>
+            n.ModuleName == MiscEnumEntity.NotifModuleQcReviewSubmitted);
+        qcNotif.OverrideTargetUserIds.Should().BeEquivalentTo(new[] { 379, 2443 });
+    }
+
+    [Fact]
+    public async Task Handle_NoQcReviewersResolved_OverrideTargetUserIdsIsNull()
+    {
+        SetupHappyPath(); // default: empty QC user list
+        var notifications = CaptureScheduledNotifications();
+
+        await CreateSut().Handle(new SubmitQCReviewCommand
+        {
+            ComplaintHeaderId = 1,
+            PhysicalVerificationId = 5,
+            Comments = "Review",
+            ExpectedResolutionDate = new DateOnly(2026, 3, 1)
+        }, CancellationToken.None);
+
+        var qcNotif = notifications.Single(n =>
+            n.ModuleName == MiscEnumEntity.NotifModuleQcReviewSubmitted);
+        qcNotif.OverrideTargetUserIds.Should().BeNull();
+    }
+
+    // ============================================================
+    // Phase 3 — 'Feedback Requested' fires one InApp per assignment
+    // ============================================================
+
+    [Fact]
+    public async Task Handle_WithAssignments_PublishesOneFeedbackRequestedPerAssignee()
+    {
+        SetupHappyPath();
+        var notifications = CaptureScheduledNotifications();
+
+        await CreateSut().Handle(new SubmitQCReviewCommand
+        {
+            ComplaintHeaderId = 7,
+            PhysicalVerificationId = 5,
+            Comments = "Review",
+            ExpectedResolutionDate = new DateOnly(2026, 3, 1),
+            Assignments = new List<SubmitAssignmentDto>
+            {
+                new() { RoleId = 1, ResponsiblePersonId = 101, IsMandatory = true },
+                new() { RoleId = 2, ResponsiblePersonId = 202, IsMandatory = false }
+            }
+        }, CancellationToken.None);
+
+        var feedbackEvents = notifications
+            .Where(n => n.ModuleName == MiscEnumEntity.NotifModuleFeedbackRequested)
+            .ToList();
+        feedbackEvents.Should().HaveCount(2);
+        feedbackEvents.SelectMany(e => e.OverrideTargetUserIds!)
+            .Should().BeEquivalentTo(new[] { 101, 202 });
+    }
+
+    [Fact]
+    public async Task Handle_WithoutAssignments_DoesNotPublishFeedbackRequested()
+    {
+        SetupHappyPath();
+        var notifications = CaptureScheduledNotifications();
+
+        await CreateSut().Handle(new SubmitQCReviewCommand
+        {
+            ComplaintHeaderId = 1,
+            PhysicalVerificationId = 5,
+            Comments = "Review",
+            ExpectedResolutionDate = new DateOnly(2026, 3, 1)
+        }, CancellationToken.None);
+
+        notifications.Should().NotContain(n =>
+            n.ModuleName == MiscEnumEntity.NotifModuleFeedbackRequested);
     }
 }
