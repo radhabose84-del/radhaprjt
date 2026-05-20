@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using FluentValidation.TestHelper;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
@@ -10,9 +11,10 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceRequest
     {
         private readonly Mock<IMaintenanceRequestQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IDepartmentLookup> _mockDeptLookup = new(MockBehavior.Loose);
+        private readonly Mock<ISupplierLookup> _mockSupplierLookup = new(MockBehavior.Loose);
 
         private CreateMaintenanceRequestCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockDeptLookup.Object);
+            new(_mockQueryRepo.Object, _mockDeptLookup.Object, _mockSupplierLookup.Object);
 
         [Fact]
         public void Constructor_WithValidRepo_DoesNotThrow()

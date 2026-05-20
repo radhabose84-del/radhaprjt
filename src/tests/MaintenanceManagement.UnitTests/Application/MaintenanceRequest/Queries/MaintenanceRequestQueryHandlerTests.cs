@@ -2,7 +2,6 @@ using AutoMapper;
 using Contracts.Common;
 using Contracts.Interfaces.Lookups.Users;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
-using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExistingVendorDetails;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExternalRequestById;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceDipatchMode;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceExternalRequest;
@@ -97,29 +96,6 @@ namespace MaintenanceManagement.UnitTests.Application.MaintenanceRequest.Queries
 
             try { await CreateSut().Handle(
                 new GetMaintenanceExternalRequestQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
-
-            } catch { /* handler threw due to loose mock — expected */ }
-        }
-    }
-
-    public sealed class GetExistingVendorDetailsQueryHandlerTests
-    {
-        private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
-        private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
-        private readonly Mock<IMaintenanceRequestQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
-
-        private GetExistingVendorDetailsQueryHandler CreateSut() =>
-            new(_mockMapper.Object, _mockMediator.Object, _mockQueryRepo.Object);
-
-        [Fact]
-        public async Task Handle_WithResults_ReturnsSuccess()
-        {
-            var entities = new List<MaintenanceManagement.Domain.Entities.ExistingVendorDetails> { new() };
-            _mockQueryRepo.Setup(r => r.GetVendorDetails(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(entities);
-
-            try { await CreateSut().Handle(
-                new GetExistingVendorDetailsQuery { OldUnitCode = "U01", VendorCode = "V01" }, CancellationToken.None);
 
             } catch { /* handler threw due to loose mock — expected */ }
         }

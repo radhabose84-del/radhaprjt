@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Party;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand;
 using FluentValidation;
@@ -7,14 +8,15 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceRequest
 {
     public class UpdateMaintenanceRequestCommandValidator : AbstractValidator<UpdateMaintenanceRequestCommand>
     {
-              private readonly List<ValidationRule> _validationRules;  
+              private readonly List<ValidationRule> _validationRules;
         private readonly IMaintenanceRequestQueryRepository  _maintenanceRequestQueryRepository;
-        
+        private readonly ISupplierLookup _supplierLookup;
 
 
-      public UpdateMaintenanceRequestCommandValidator(IMaintenanceRequestQueryRepository  maintenanceRequestQueryRepository)
+      public UpdateMaintenanceRequestCommandValidator(IMaintenanceRequestQueryRepository  maintenanceRequestQueryRepository, ISupplierLookup supplierLookup)
       {
          _maintenanceRequestQueryRepository = maintenanceRequestQueryRepository;
+         _supplierLookup = supplierLookup;
              // Load validation rules internally — no injection needed
              _validationRules = ValidationRuleLoader.LoadValidationRules();
 
@@ -77,6 +79,34 @@ namespace MaintenanceManagement.Presentation.Validation.MaintenanceRequest
                         break;
                 }
             }
+
+            // ── Vendor selection (External Service Request only) ──────────────
+            // BR-03: vendor is mandatory for External requests.
+            RuleFor(x => x.VendorId)
+                .MustAsync(async (cmd, vendorId, ct) =>
+                    !await IsExternalRequestAsync(cmd.RequestTypeId)
+                    || (vendorId.HasValue && vendorId.Value > 0))
+                .WithMessage("Please select a vendor.");
+
+            // BR-01 / BR-02: selected vendor must be an active supplier in Party Master.
+            RuleFor(x => x.VendorId)
+                .MustAsync(async (cmd, vendorId, ct) =>
+                {
+                    if (!await IsExternalRequestAsync(cmd.RequestTypeId))
+                        return true;
+                    if (!vendorId.HasValue || vendorId.Value <= 0)
+                        return true;
+                    var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(vendorId.Value, ct);
+                    return supplier != null;
+                })
+                .WithMessage("Selected vendor is not a valid active supplier.");
+      }
+
+      private async Task<bool> IsExternalRequestAsync(int requestTypeId)
+      {
+          var externalTypes = await _maintenanceRequestQueryRepository.GetMaintenanceExternalRequestTypeAsync();
+          var externalTypeId = externalTypes?.FirstOrDefault()?.Id;
+          return externalTypeId.HasValue && requestTypeId == externalTypeId.Value;
       }
 
     }
