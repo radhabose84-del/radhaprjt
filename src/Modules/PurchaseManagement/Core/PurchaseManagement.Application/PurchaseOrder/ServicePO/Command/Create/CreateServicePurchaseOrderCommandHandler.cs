@@ -123,7 +123,9 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create
             }
 
             // 3) Persist
-            var id = await _servicePurchaseOrderCommandRepository.CreateAsync(entity, ct);
+            // Pass transactionTypeId so the repo's atomic tx also advances
+            // Finance.DocumentSequence.DocNo for SPO (mirrors Local PO numbering).
+            var id = await _servicePurchaseOrderCommandRepository.CreateAsync(entity, ct, transactionTypeId);
             if (id <= 0) return id;
 
             // 4) Reload aggregate with real IDs for workflow packaging

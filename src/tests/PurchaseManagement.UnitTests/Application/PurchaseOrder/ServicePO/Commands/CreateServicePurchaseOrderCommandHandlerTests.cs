@@ -59,7 +59,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ServicePO.Comma
                 .ReturnsAsync(new List<string> { "PO-KNIT-Service-2627-01" });
 
             _mockServiceRepo
-                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader>(), It.IsAny<CancellationToken>(), It.IsAny<int?>()))
                 .ReturnsAsync(0); // returns 0 => no outbox scheduled
 
             var command = new CreateServicePoCommand { Data = new PurchaseManagement.Application.PurchaseOrder.Dtos.ServicePO.CreateServicePurchaseOrderDto() };
