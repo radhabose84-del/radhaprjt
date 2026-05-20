@@ -16,15 +16,12 @@ namespace GateEntryManagement.UnitTests.Application.GateInward.Commands
             var file = new Mock<IFormFile>().Object;
             _mockStorage
                 .Setup(s => s.SaveToStagingAsync(file, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new StagedGateInwardAttachment("TEMP_x.pdf", "lr.pdf", 555, "application/pdf"));
+                .ReturnsAsync(new StagedGateInwardAttachment("TEMP_x.pdf"));
 
             var result = await CreateSut().Handle(
                 new UploadGateInwardAttachmentCommand { File = file }, CancellationToken.None);
 
             result.FileName.Should().Be("TEMP_x.pdf");
-            result.OriginalFileName.Should().Be("lr.pdf");
-            result.FileSize.Should().Be(555);
-            result.FileType.Should().Be("application/pdf");
         }
 
         [Fact]
@@ -33,7 +30,7 @@ namespace GateEntryManagement.UnitTests.Application.GateInward.Commands
             var file = new Mock<IFormFile>().Object;
             _mockStorage
                 .Setup(s => s.SaveToStagingAsync(It.IsAny<IFormFile>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new StagedGateInwardAttachment("a", "b", 1, "t"));
+                .ReturnsAsync(new StagedGateInwardAttachment("a"));
 
             await CreateSut().Handle(new UploadGateInwardAttachmentCommand { File = file }, CancellationToken.None);
 

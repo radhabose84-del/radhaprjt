@@ -25,10 +25,7 @@ namespace GateEntryManagement.Domain.Entities
         // Single Gate Entry Document (optional). Stored filename only;
         // preview URL composed from Gate.MiscTypeMaster (ImagePath + GateEntryImage).
         public string? AttachmentFileName { get; set; }
-        public string? AttachmentOriginalFileName { get; set; }
         public string? AttachmentFilePath { get; set; }
-        public string? AttachmentFileType { get; set; }
-        public long? AttachmentFileSize { get; set; }
 
         // Navigation Properties
         public VehicleMovementRecord? VehicleMovementRecord { get; set; }

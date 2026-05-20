@@ -77,10 +77,7 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
                     request.Attachment.FileName, subFolder, entity.GateEntryNo!, cancellationToken);
 
                 entity.AttachmentFileName = Path.GetFileName(movedRelativePath);
-                entity.AttachmentOriginalFileName = request.Attachment.OriginalFileName;
                 entity.AttachmentFilePath = movedRelativePath;
-                entity.AttachmentFileType = request.Attachment.FileType;
-                entity.AttachmentFileSize = request.Attachment.FileSize;
             }
 
             int newId;

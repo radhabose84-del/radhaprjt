@@ -16,10 +16,7 @@ namespace GateEntryManagement.Application.Common.Mappings
                 .ForMember(dest => dest.GateInwardDetails, opt => opt.Ignore())
                 // Attachment is staged then set explicitly in the handler (not name-mapped)
                 .ForMember(dest => dest.AttachmentFileName, opt => opt.Ignore())
-                .ForMember(dest => dest.AttachmentOriginalFileName, opt => opt.Ignore())
-                .ForMember(dest => dest.AttachmentFilePath, opt => opt.Ignore())
-                .ForMember(dest => dest.AttachmentFileType, opt => opt.Ignore())
-                .ForMember(dest => dest.AttachmentFileSize, opt => opt.Ignore());
+                .ForMember(dest => dest.AttachmentFilePath, opt => opt.Ignore());
 
             CreateMap<CreateGateInwardDetailDto, GateInwardDtl>();
         }
