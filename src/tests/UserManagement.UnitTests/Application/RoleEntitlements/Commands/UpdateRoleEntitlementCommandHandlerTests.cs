@@ -12,13 +12,12 @@ namespace UserManagement.UnitTests.Application.RoleEntitlements.Commands
     public sealed class UpdateRoleEntitlementCommandHandlerTests
     {
         private readonly Mock<IRoleEntitlementCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
-        private readonly Mock<IRoleEntitlementQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<ILogger<UpdateRoleEntitlementCommandHandler>> _mockLogger = new(MockBehavior.Loose);
 
         private UpdateRoleEntitlementCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object, _mockLogger.Object);
+            new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object, _mockLogger.Object);
 
         private UpdateRoleEntitlementCommand BuildCommand(int roleId = 1) =>
             new()
@@ -38,7 +37,7 @@ namespace UserManagement.UnitTests.Application.RoleEntitlements.Commands
             _mockMapper.Setup(m => m.Map<RoleMenuPrivileges>(It.IsAny<RoleMenuPrivilegesDTO>())).Returns(new RoleMenuPrivileges());
 
             _mockCommandRepo
-                .Setup(r => r.UpdateRoleEntitlementsAsync(
+                .Setup(r => r.SaveRoleEntitlementsAsync(
                     It.IsAny<int>(),
                     It.IsAny<IList<RoleModule>>(),
                     It.IsAny<IList<RoleParent>>(),
@@ -64,7 +63,7 @@ namespace UserManagement.UnitTests.Application.RoleEntitlements.Commands
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_CallsUpdateOnce()
+        public async Task Handle_ValidCommand_CallsSaveRoleEntitlementsOnce()
         {
             var command = BuildCommand(roleId: 7);
             SetupHappyPath(true);
@@ -72,7 +71,7 @@ namespace UserManagement.UnitTests.Application.RoleEntitlements.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             _mockCommandRepo.Verify(
-                r => r.UpdateRoleEntitlementsAsync(
+                r => r.SaveRoleEntitlementsAsync(
                     7,
                     It.IsAny<IList<RoleModule>>(),
                     It.IsAny<IList<RoleParent>>(),

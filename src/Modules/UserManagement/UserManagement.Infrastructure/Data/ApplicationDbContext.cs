@@ -35,7 +35,6 @@ namespace UserManagement.Infrastructure.Data
         public DbSet<Division> Divisions { get; set; }
         public DbSet<Modules> Modules { get; set; }
         public DbSet<Menu> Menus { get; set; }
-        public DbSet<RoleEntitlement> RoleEntitlements { get; set; }
         public DbSet<Countries> Countries { get; set; }
         public DbSet<States> States { get; set; }
         public DbSet<Cities> Cities { get; set; }
@@ -78,7 +77,6 @@ namespace UserManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new UnitConfiguration());
             modelBuilder.ApplyConfiguration(new UnitAddressConfiguration());
             modelBuilder.ApplyConfiguration(new UnitContactsConfiguration());
-            modelBuilder.ApplyConfiguration(new RoleEntitlementConfigurations());
             modelBuilder.ApplyConfiguration(new MenuConfiguration());
             modelBuilder.ApplyConfiguration(new ModulesConfiguration());
             modelBuilder.ApplyConfiguration(new CountryConfiguration());
