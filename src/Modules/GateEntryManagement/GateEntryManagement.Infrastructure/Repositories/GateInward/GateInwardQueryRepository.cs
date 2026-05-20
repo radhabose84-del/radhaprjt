@@ -40,8 +40,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
-                    h.AttachmentFileName, h.AttachmentOriginalFileName, h.AttachmentFilePath,
-                    h.AttachmentFileType, h.AttachmentFileSize,
+                    h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
@@ -73,8 +72,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
-                    h.AttachmentFileName, h.AttachmentOriginalFileName, h.AttachmentFilePath,
-                    h.AttachmentFileType, h.AttachmentFileSize,
+                    h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP

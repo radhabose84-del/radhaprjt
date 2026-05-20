@@ -154,10 +154,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
                 QAInspectionRequired = false,
                 UnitId = 1,
                 AttachmentFileName = "abc.pdf",
-                AttachmentOriginalFileName = "lr-copy.pdf",
                 AttachmentFilePath = "GateEntry/abc.pdf",
-                AttachmentFileType = "application/pdf",
-                AttachmentFileSize = 2048,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };

@@ -105,7 +105,7 @@ namespace GateEntryManagement.UnitTests.Controllers
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<UploadGateInwardAttachmentCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new UploadGateInwardAttachmentResultDto("TEMP_a.pdf", "lr.pdf", 100, "application/pdf"));
+                .ReturnsAsync(new UploadGateInwardAttachmentResultDto("TEMP_a.pdf"));
 
             var result = await CreateSut().UploadAttachment(new UploadGateInwardAttachmentCommand());
 

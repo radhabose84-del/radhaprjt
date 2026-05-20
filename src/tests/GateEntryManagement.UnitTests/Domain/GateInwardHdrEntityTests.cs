@@ -77,17 +77,11 @@ namespace GateEntryManagement.UnitTests.Domain
             var entity = new GateInwardHdr
             {
                 AttachmentFileName = "abc.pdf",
-                AttachmentOriginalFileName = "lr-copy.pdf",
-                AttachmentFilePath = "GateEntry/abc.pdf",
-                AttachmentFileType = "application/pdf",
-                AttachmentFileSize = 2048
+                AttachmentFilePath = "GateEntry/abc.pdf"
             };
 
             entity.AttachmentFileName.Should().Be("abc.pdf");
-            entity.AttachmentOriginalFileName.Should().Be("lr-copy.pdf");
             entity.AttachmentFilePath.Should().Be("GateEntry/abc.pdf");
-            entity.AttachmentFileType.Should().Be("application/pdf");
-            entity.AttachmentFileSize.Should().Be(2048);
         }
 
         [Fact]
@@ -96,13 +90,11 @@ namespace GateEntryManagement.UnitTests.Domain
             var entity = new GateInwardHdr
             {
                 AttachmentFileName = null,
-                AttachmentFilePath = null,
-                AttachmentFileSize = null
+                AttachmentFilePath = null
             };
 
             entity.AttachmentFileName.Should().BeNull();
             entity.AttachmentFilePath.Should().BeNull();
-            entity.AttachmentFileSize.Should().BeNull();
         }
 
         [Fact]

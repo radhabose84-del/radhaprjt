@@ -94,10 +94,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
                 QAInspectionRequired = false,
                 UnitId = 1,
                 AttachmentFileName = "abc.pdf",
-                AttachmentOriginalFileName = "lr-copy.pdf",
                 AttachmentFilePath = "GateEntry/abc.pdf",
-                AttachmentFileType = "application/pdf",
-                AttachmentFileSize = 2048,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -123,7 +120,6 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             var reloaded = await ctx.GateInwardHdr.FirstAsync(x => x.Id == id);
             reloaded.AttachmentFileName.Should().BeNull();
             reloaded.AttachmentFilePath.Should().BeNull();
-            reloaded.AttachmentFileSize.Should().BeNull();
         }
 
         [Fact]

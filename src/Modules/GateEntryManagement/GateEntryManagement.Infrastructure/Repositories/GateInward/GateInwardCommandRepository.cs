@@ -75,10 +75,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             var oldPath = existing.AttachmentFilePath;
 
             existing.AttachmentFileName = null;
-            existing.AttachmentOriginalFileName = null;
             existing.AttachmentFilePath = null;
-            existing.AttachmentFileType = null;
-            existing.AttachmentFileSize = null;
 
             _applicationDbContext.GateInwardHdr.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);

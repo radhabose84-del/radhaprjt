@@ -32,11 +32,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
 
             _logger.LogInformation("GateInward attachment staged: {Original} -> {Staged}", file.FileName, stagedFileName);
 
-            return new StagedGateInwardAttachment(
-                FileName: stagedFileName,
-                OriginalFileName: file.FileName,
-                FileSize: file.Length,
-                FileType: file.ContentType);
+            return new StagedGateInwardAttachment(FileName: stagedFileName);
         }
 
         public Task<string> MoveStagedToPermanentAsync(

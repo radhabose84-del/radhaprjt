@@ -23,8 +23,5 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
     public class GateInwardAttachmentStageRef
     {
         public string FileName { get; set; } = string.Empty;
-        public string OriginalFileName { get; set; } = string.Empty;
-        public long FileSize { get; set; }
-        public string? FileType { get; set; }
     }
 }
