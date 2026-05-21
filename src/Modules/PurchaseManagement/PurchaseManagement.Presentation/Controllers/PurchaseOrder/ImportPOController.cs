@@ -1,6 +1,8 @@
 using PurchaseManagement.Application.PurchaseOrder.DeletePODocument;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Cancel;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPOAmendment;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImportPOPending;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetPOById;
@@ -113,7 +115,33 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
                 errors = ""
             });
         }
-           [HttpDelete("delete-document")]
+        [HttpPut("cancel/{id:int}")]
+        public async Task<IActionResult> Cancel([FromRoute] int id, CancellationToken ct)
+        {
+            var result = await Mediator.Send(new CancelImportPOCommand(id), ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Import PO cancelled successfully." : "Failed to cancel Import PO."
+            });
+        }
+
+        [HttpPut("foreclose/{id:int}")]
+        public async Task<IActionResult> Foreclose([FromRoute] int id, CancellationToken ct)
+        {
+            var result = await Mediator.Send(new ForecloseImportPOCommand(id), ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Import PO foreclosed successfully." : "Failed to foreclose Import PO."
+            });
+        }
+
+        [HttpDelete("delete-document")]
         public async Task<IActionResult> DeleteDocument([FromBody] DeletePODocumentCommand deleteFileCommand)
         {
             if (deleteFileCommand == null || string.IsNullOrWhiteSpace(deleteFileCommand.PODocumentPath))

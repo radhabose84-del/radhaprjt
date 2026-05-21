@@ -6,7 +6,7 @@ namespace FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster
     {
         Task<(List<TransactionTypeMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<TransactionTypeMasterDto?> GetByIdAsync(int id);
-        Task<IReadOnlyList<TransactionTypeMasterLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+        Task<IReadOnlyList<TransactionTypeMasterLookupDto>> AutocompleteAsync(string term, int? menuId, CancellationToken ct);
         Task<bool> TypeNameExistsAsync(string typeName, int unitId, int? id = null);
         Task<bool> ShortNameExistsAsync(string shortName, int unitId, int? id = null);
         Task<bool> NotFoundAsync(int id);
