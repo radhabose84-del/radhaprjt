@@ -1,5 +1,6 @@
  using Contracts.Events.Notifications;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder;
+using PurchaseManagement.Domain.Common;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -75,7 +76,7 @@ public sealed class QueuePoPdfEmailHandler(
                 param4 = "",
                 param10 = cmd.RowsJson,
                 ModuleTransactionId = 0,
-                ModuleTypeName = "Purchase Order",
+                ModuleTypeName = MiscEnumEntity.TransactionTypeLPO,
                 Attachments =
                 {
                     new NotificationCreatedEvent.NotificationAttachment

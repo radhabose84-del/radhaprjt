@@ -8,5 +8,6 @@ namespace Contracts.Commands.Workflow
         public string ModuleTypeName { get; set; } = default!;
         public int ModuleTransactionId { get; set; }
         public string Payload { get; set; } = default!;
+        public int? TransactionTypeId { get; set; }
     }
 }

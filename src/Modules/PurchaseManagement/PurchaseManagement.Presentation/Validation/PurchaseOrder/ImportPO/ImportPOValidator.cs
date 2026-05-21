@@ -35,7 +35,6 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Validation
     {
         public ImportPOCreateDtoValidator()
         {
-            RuleFor(x => x.UnitId).GreaterThan(0);
             RuleFor(x => x.VendorId).GreaterThan(0);
             RuleFor(x => x.CurrencyId).GreaterThan(0);
 

@@ -1,5 +1,5 @@
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.Entities.ContractPO;
+using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.GRN.GateEntry;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;

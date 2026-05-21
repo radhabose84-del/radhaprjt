@@ -8,7 +8,7 @@ public sealed class CreateCombinePODto
     public int POMethodId { get; set; }
     public PurchaseOrderCreateDto? Local { get; set; }
     public ImportPOCreateDto? Import { get; set; }
-    public ContractReleasePOCreateDto? Contract { get; set; }
+    public ContractPOCreateDto? Contract { get; set; }
 }
 
 public sealed class AmendCombinePODto
@@ -17,7 +17,7 @@ public sealed class AmendCombinePODto
     public int POMethodId { get; set; }
     public PurchaseOrderUpdateDto? Local { get; set; }
     public ImportPOUpdateDto? Import { get; set; }
-    public ContractReleasePOUpdateDto? Contract { get; set; }
+    public ContractPOUpdateDto? Contract { get; set; }
 }
 
 public sealed class GetCombinePOByIdVm
@@ -25,7 +25,7 @@ public sealed class GetCombinePOByIdVm
     public int POMethodId { get; set; }
     public PurchaseOrderDetailDto? Local { get; set; }
     public ImportPOFullVm? Import { get; set; }
-    public ContractReleasePODetailVm? Contract { get; set; }
+    public ContractPODetailVm? Contract { get; set; }
 }
 
 public sealed class UpdateCombinePODto
@@ -33,5 +33,5 @@ public sealed class UpdateCombinePODto
     public int POMethodId { get; set; }
     public PurchaseOrderUpdateDto? Local { get; set; }
     public ImportPOUpdateDto? Import { get; set; }
-    public ContractReleasePOUpdateDto? Contract { get; set; }
+    public ContractPOUpdateDto? Contract { get; set; }
 }
