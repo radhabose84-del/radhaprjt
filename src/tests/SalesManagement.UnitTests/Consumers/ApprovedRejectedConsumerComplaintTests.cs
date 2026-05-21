@@ -348,5 +348,33 @@ namespace SalesManagement.UnitTests.Consumers
                 n.ModuleName == MiscEnumEntity.NotifModuleResolutionRejected);
             rejection.OverrideTargetUserIds.Should().BeEquivalentTo(new[] { resolverUserId });
         }
+
+        [Fact]
+        public async Task Consume_ResolutionApproved_PublishesToComplaintCreator()
+        {
+            // End-of-loop: Resolution approved -> notify the original complaint creator.
+            const int complaintId = 93;
+            const int creatorUserId = 19;
+
+            _complaintQueryRepo.Setup(r => r.GetByIdAsync(complaintId))
+                .ReturnsAsync(new ComplaintHeaderDto { Id = complaintId, CreatedBy = creatorUserId });
+            _unitLookup.Setup(l => l.GetUserUnitAsync(creatorUserId))
+                .ReturnsAsync(new List<UnitLookupDto> { new() { UnitId = 7, UnitName = "Unit-B" } });
+
+            StubNotificationEventTypeFound();
+
+            var (ctx, captured) = BuildContext(
+                complaintId,
+                MiscEnumEntity.ComplaintApprovalApproved,
+                MiscEnumEntity.ComplaintResolutionModuleTypeName);
+
+            await CreateSut().Consume(ctx.Object);
+
+            var approval = captured.Single(n =>
+                n.ModuleName == MiscEnumEntity.NotifModuleResolutionApproved);
+            approval.OverrideTargetUserIds.Should().BeEquivalentTo(new[] { creatorUserId });
+            approval.ModuleTransactionId.Should().Be(complaintId);
+            approval.UnitId.Should().Be(7);
+        }
     }
 }
