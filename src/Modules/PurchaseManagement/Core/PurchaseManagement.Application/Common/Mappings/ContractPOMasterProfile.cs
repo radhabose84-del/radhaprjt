@@ -19,6 +19,7 @@ public sealed class ContractPOMasterProfile : Profile
             .ForMember(d => d.UtilizedValue, o => o.Ignore())
             .ForMember(d => d.BalanceValue, o => o.Ignore())
             .ForMember(d => d.ContractPODetails, o => o.Ignore())
+            .ForMember(d => d.StatusId, o => o.Ignore())
             .ForMember(d => d.ContractPOReleaseHistories, o => o.Ignore())
             .ForMember(d => d.MiscStatus, o => o.Ignore())
             .ForMember(d => d.CreatedDate, o => o.Ignore())

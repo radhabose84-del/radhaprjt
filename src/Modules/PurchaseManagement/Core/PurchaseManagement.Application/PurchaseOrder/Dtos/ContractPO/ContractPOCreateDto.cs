@@ -50,6 +50,7 @@ public class ContractPOCreateDto
 public class ContractPOUpdateDto : ContractPOCreateDto
 {
     public int Id { get; set; }
+    public int StatusId { get; set; }
     public int RevisionNo { get; set; }
     public string? AmendmentReason { get; set; }
 }
@@ -57,7 +58,7 @@ public class ContractPOUpdateDto : ContractPOCreateDto
 public sealed class ContractPODetailVm : ContractPOUpdateDto
 {
     public int UnitId { get; set; }
-    public int StatusId { get; set; }
+    public new int StatusId { get; set; }
     public string? PONumber { get; set; }
     public string? VendorName { get; set; }
     public string? CurrencyName { get; set; }
