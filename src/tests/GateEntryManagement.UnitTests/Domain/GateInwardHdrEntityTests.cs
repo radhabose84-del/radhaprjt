@@ -34,6 +34,7 @@ namespace GateEntryManagement.UnitTests.Domain
                 Id = 1,
                 GateEntryNo = "GE00001",
                 VehicleMovementRecordId = 5,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -46,6 +47,7 @@ namespace GateEntryManagement.UnitTests.Domain
             entity.Id.Should().Be(1);
             entity.GateEntryNo.Should().Be("GE00001");
             entity.VehicleMovementRecordId.Should().Be(5);
+            entity.PartyId.Should().Be(1099);
             entity.GrossWeight.Should().Be(1000);
             entity.TareWeight.Should().Be(200);
             entity.NetWeight.Should().Be(800);
@@ -59,6 +61,7 @@ namespace GateEntryManagement.UnitTests.Domain
             var entity = new GateInwardHdr
             {
                 GateEntryNo = null,
+                PartyId = null,
                 GrossWeight = null,
                 TareWeight = null,
                 NetWeight = null,
@@ -67,6 +70,7 @@ namespace GateEntryManagement.UnitTests.Domain
             };
 
             entity.GateEntryNo.Should().BeNull();
+            entity.PartyId.Should().BeNull();
             entity.GrossWeight.Should().BeNull();
             entity.QAStatusId.Should().BeNull();
         }

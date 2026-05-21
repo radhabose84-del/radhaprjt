@@ -14,6 +14,7 @@ namespace GateEntryManagement.UnitTests.TestData
             new CreateGateInwardCommand
             {
                 VehicleMovementRecordId = vehicleMovementRecordId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 QAInspectionRequired = false,
@@ -40,6 +41,8 @@ namespace GateEntryManagement.UnitTests.TestData
                 VehicleMovementId = "VMR00001",
                 VehicleNumber = "KA01AB1234",
                 DriverName = "John Doe",
+                PartyId = 1099,
+                PartyName = "Test Party",
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -99,6 +102,7 @@ namespace GateEntryManagement.UnitTests.TestData
                 Id = id,
                 GateEntryNo = "GE00001",
                 VehicleMovementRecordId = 1,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,

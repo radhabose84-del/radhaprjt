@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Party;
 using FluentValidation;
 using GateEntryManagement.Application.Common.Interfaces.IGateInward;
 using GateEntryManagement.Application.GateInward.Commands.CreateGateInward;
@@ -10,12 +11,15 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IGateInwardQueryRepository _queryRepository;
+        private readonly IPartyLookup _partyLookup;
 
         public CreateGateInwardCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IGateInwardQueryRepository queryRepository)
+            IGateInwardQueryRepository queryRepository,
+            IPartyLookup partyLookup)
         {
             _queryRepository = queryRepository;
+            _partyLookup = partyLookup;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.GateInwardHdr>("Remarks") ?? 250;
 
@@ -31,6 +35,10 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                         RuleFor(x => x.VehicleMovementRecordId)
                             .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}");
+
+                        RuleFor(x => x.PartyId)
+                            .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.PartyId)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.PartyId)} {rule.Error}");
 
                         RuleFor(x => x.UnitId)
                             .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.UnitId)} {rule.Error}")
@@ -53,6 +61,11 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                             .MustAsync(async (id, ct) => await _queryRepository.VehicleMovementRecordExistsAsync(id))
                             .WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}")
                             .When(x => x.VehicleMovementRecordId > 0);
+
+                        RuleFor(x => x.PartyId)
+                            .MustAsync(async (id, ct) => await _partyLookup.GetByIdAsync(id!.Value, ct) != null)
+                            .WithMessage($"{nameof(CreateGateInwardCommand.PartyId)} {rule.Error}")
+                            .When(x => x.PartyId.HasValue && x.PartyId > 0);
 
                         RuleFor(x => x.UnitId)
                             .MustAsync(async (id, ct) => await _queryRepository.UnitExistsAsync(id))

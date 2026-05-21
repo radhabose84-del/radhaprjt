@@ -3,6 +3,8 @@ using Dapper;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Dtos.Lookups.Party;
 using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Infrastructure.Repositories.GateInward;
 using GateEntryManagement.Infrastructure.Data;
@@ -19,12 +21,24 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
 
         private GateInwardQueryRepository CreateQueryRepo(
             Mock<IUnitLookup> unitLookup = null,
-            Mock<IIPAddressService> ipService = null)
+            Mock<IIPAddressService> ipService = null,
+            Mock<IPartyLookup> partyLookup = null)
         {
             unitLookup ??= BuildDefaultUnitLookup();
             ipService ??= BuildDefaultIpService();
+            partyLookup ??= BuildDefaultPartyLookup();
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new GateInwardQueryRepository(conn, unitLookup.Object, ipService.Object);
+            return new GateInwardQueryRepository(conn, unitLookup.Object, partyLookup.Object, ipService.Object);
+        }
+
+        private static Mock<IPartyLookup> BuildDefaultPartyLookup(int partyId = 1099, string partyName = "Test Party")
+        {
+            var mock = new Mock<IPartyLookup>(MockBehavior.Loose);
+            mock.Setup(p => p.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<PartyLookupDto> { new PartyLookupDto { Id = partyId, PartyName = partyName } });
+            mock.Setup(p => p.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PartyLookupDto { Id = partyId, PartyName = partyName });
+            return mock;
         }
 
         private static Mock<IUnitLookup> BuildDefaultUnitLookup(int unitId = 1, string unitName = "Test Unit")
@@ -101,6 +115,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = gateEntryNo,
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -148,6 +163,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = "GE-ATT-1",
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -176,6 +192,21 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
 
             dirs[MiscEnumEntity.ImagePath].Should().Be("http://192.168.1.126/Resources/");
             dirs[MiscEnumEntity.GateEntryImage].Should().Be("GateEntry");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_PartyId_And_PartyName_From_Lookup()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (_, vmrId) = await SeedPrerequisitesAsync(ctx);
+            var id = await SeedGateInwardAsync(ctx, vmrId);
+
+            var dto = await CreateQueryRepo(partyLookup: BuildDefaultPartyLookup(1099, "ABC Mills"))
+                .GetByIdAsync(id);
+
+            dto.Should().NotBeNull();
+            dto!.PartyId.Should().Be(1099);
+            dto.PartyName.Should().Be("ABC Mills");
         }
 
         [Fact]
