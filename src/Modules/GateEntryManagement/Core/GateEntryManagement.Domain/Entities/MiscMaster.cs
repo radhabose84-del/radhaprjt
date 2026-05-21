@@ -13,6 +13,7 @@ namespace GateEntryManagement.Domain.Entities
 
         // Reverse navigation (VehicleMovementRecord)
         public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsPurposeOfVisit { get; set; }
+        public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsReceivingType { get; set; }
         public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsReferenceDocType { get; set; }
         public ICollection<VehicleMovementRecord>? VehicleMovementRecordsAsStatus { get; set; }
 

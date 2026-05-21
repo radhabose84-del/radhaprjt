@@ -34,9 +34,13 @@ namespace GateEntryManagement.Presentation.Validation.VehicleMovementRecord
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
+                        // VehicleNumber is conditionally required: only when ReceivingType resolves to 'Vehicle'.
                         RuleFor(x => x.VehicleNumber)
                             .NotNull().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.VehicleNumber)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.VehicleNumber)} {rule.Error}");
+                            .NotEmpty().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.VehicleNumber)} {rule.Error}")
+                            .WhenAsync(async (cmd, ct) =>
+                                cmd.ReceivingTypeId.HasValue
+                                && await _queryRepository.IsVehicleReceivingTypeAsync(cmd.ReceivingTypeId.Value));
 
                         RuleFor(x => x.DriverName)
                             .NotNull().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.DriverName)} {rule.Error}")
@@ -49,6 +53,10 @@ namespace GateEntryManagement.Presentation.Validation.VehicleMovementRecord
                         RuleFor(x => x.PurposeOfVisitId)
                             .NotNull().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.PurposeOfVisitId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.PurposeOfVisitId)} {rule.Error}");
+
+                        RuleFor(x => x.ReceivingTypeId)
+                            .NotNull().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.ReceivingTypeId)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.ReceivingTypeId)} {rule.Error}");
                         break;
 
                     case "MaxLength":
@@ -95,6 +103,11 @@ namespace GateEntryManagement.Presentation.Validation.VehicleMovementRecord
                             .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id))
                             .WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.PurposeOfVisitId)} {rule.Error}")
                             .When(x => x.PurposeOfVisitId > 0);
+
+                        RuleFor(x => x.ReceivingTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(UpdateVehicleMovementRecordCommand.ReceivingTypeId)} {rule.Error}")
+                            .When(x => x.ReceivingTypeId.HasValue && x.ReceivingTypeId > 0);
 
                         RuleFor(x => x.ReferenceDocTypeId)
                             .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))

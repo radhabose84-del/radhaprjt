@@ -16,6 +16,7 @@ namespace GateEntryManagement.Application.VehicleMovementRecord.Commands.UpdateV
 
         // Basic Information
         public int PurposeOfVisitId { get; set; }
+        public int? ReceivingTypeId { get; set; }
         public int? ReferenceDocTypeId { get; set; }
         public string? ReferenceDocNo { get; set; }
 

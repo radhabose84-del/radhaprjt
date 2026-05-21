@@ -16,6 +16,7 @@ namespace GateEntryManagement.Domain.Entities
 
         // Basic Information
         public int PurposeOfVisitId { get; set; }         // Same-module FK → Gate.MiscMaster
+        public int? ReceivingTypeId { get; set; }         // Same-module FK → Gate.MiscMaster (Vehicle / Courier / Manual)
         public int? ReferenceDocTypeId { get; set; }      // Same-module FK → Gate.MiscMaster
         public string? ReferenceDocNo { get; set; }
 
@@ -32,6 +33,7 @@ namespace GateEntryManagement.Domain.Entities
 
         // Navigation Properties (Same-Module FKs only)
         public MiscMaster? PurposeOfVisit { get; set; }
+        public MiscMaster? ReceivingType { get; set; }
         public MiscMaster? ReferenceDocType { get; set; }
         public MiscMaster? StatusMisc { get; set; }
 

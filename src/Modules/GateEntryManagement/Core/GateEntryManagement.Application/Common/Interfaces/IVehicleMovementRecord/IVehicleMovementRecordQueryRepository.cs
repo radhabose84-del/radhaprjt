@@ -13,5 +13,9 @@ namespace GateEntryManagement.Application.Common.Interfaces.IVehicleMovementReco
         Task<bool> MiscMasterExistsAsync(int id);
         Task<bool> TransporterExistsAsync(int transporterId);
         Task<bool> UnitExistsAsync(int unitId);
+
+        // Returns true if the given MiscMaster Id resolves to ReceivingType='Vehicle'.
+        // Drives the conditional rule: VehicleNumber is required only when ReceivingType = Vehicle.
+        Task<bool> IsVehicleReceivingTypeAsync(int miscId);
     }
 }

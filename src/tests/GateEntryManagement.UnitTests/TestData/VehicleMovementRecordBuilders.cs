@@ -23,6 +23,7 @@ namespace GateEntryManagement.UnitTests.TestData
                 DriverMobileNo = driverMobileNo,
                 TransporterId = 1,
                 PurposeOfVisitId = purposeOfVisitId,
+                ReceivingTypeId = 9, // Vehicle
                 ReferenceDocTypeId = 1,
                 ReferenceDocNo = "REF001",
                 UnitId = unitId,
@@ -43,6 +44,7 @@ namespace GateEntryManagement.UnitTests.TestData
                 DriverMobileNo = "9876543210",
                 TransporterId = 1,
                 PurposeOfVisitId = 1,
+                ReceivingTypeId = 9, // Vehicle
                 ReferenceDocTypeId = 1,
                 ReferenceDocNo = "REF001",
                 Remarks = "Updated remarks",
@@ -64,6 +66,8 @@ namespace GateEntryManagement.UnitTests.TestData
                 TransporterName = "Test Transporter",
                 PurposeOfVisitId = 1,
                 PurposeOfVisitName = "Delivery",
+                ReceivingTypeId = 9,
+                ReceivingTypeName = "Vehicle",
                 ReferenceDocTypeId = 1,
                 ReferenceDocTypeName = "PO",
                 ReferenceDocNo = "REF001",
@@ -112,6 +116,7 @@ namespace GateEntryManagement.UnitTests.TestData
                 DriverMobileNo = "9876543210",
                 TransporterId = 1,
                 PurposeOfVisitId = 1,
+                ReceivingTypeId = 9,
                 ReferenceDocTypeId = 1,
                 ReferenceDocNo = "REF001",
                 GateInTime = DateTimeOffset.UtcNow,

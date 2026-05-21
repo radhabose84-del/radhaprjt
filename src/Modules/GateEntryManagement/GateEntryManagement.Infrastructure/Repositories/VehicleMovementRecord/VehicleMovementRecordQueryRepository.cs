@@ -43,6 +43,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
                 SELECT vmr.Id, vmr.VehicleMovementId, vmr.VehicleNumber, vmr.DriverName,
                     vmr.DriverLicenseNo, vmr.DriverMobileNo, vmr.TransporterId,
                     vmr.PurposeOfVisitId, pov.Description AS PurposeOfVisitName,
+                    vmr.ReceivingTypeId, rt.Description AS ReceivingTypeName,
                     vmr.ReferenceDocTypeId, rdt.Description AS ReferenceDocTypeName,
                     vmr.ReferenceDocNo,
                     vmr.GateInTime, vmr.GateInBy, vmr.GateOutTime, vmr.GateOutBy,
@@ -53,6 +54,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
                     vmr.ModifiedBy, vmr.ModifiedDate, vmr.ModifiedByName, vmr.ModifiedIP
                 FROM Gate.VehicleMovementRecord vmr
                 LEFT JOIN Gate.MiscMaster pov ON vmr.PurposeOfVisitId = pov.Id AND pov.IsDeleted = 0
+                LEFT JOIN Gate.MiscMaster rt ON vmr.ReceivingTypeId = rt.Id AND rt.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster rdt ON vmr.ReferenceDocTypeId = rdt.Id AND rdt.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster st ON vmr.StatusId = st.Id AND st.IsDeleted = 0
                 WHERE {whereClause}
@@ -79,6 +81,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
                 SELECT vmr.Id, vmr.VehicleMovementId, vmr.VehicleNumber, vmr.DriverName,
                     vmr.DriverLicenseNo, vmr.DriverMobileNo, vmr.TransporterId,
                     vmr.PurposeOfVisitId, pov.Description AS PurposeOfVisitName,
+                    vmr.ReceivingTypeId, rt.Description AS ReceivingTypeName,
                     vmr.ReferenceDocTypeId, rdt.Description AS ReferenceDocTypeName,
                     vmr.ReferenceDocNo,
                     vmr.GateInTime, vmr.GateInBy, vmr.GateOutTime, vmr.GateOutBy,
@@ -89,6 +92,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
                     vmr.ModifiedBy, vmr.ModifiedDate, vmr.ModifiedByName, vmr.ModifiedIP
                 FROM Gate.VehicleMovementRecord vmr
                 LEFT JOIN Gate.MiscMaster pov ON vmr.PurposeOfVisitId = pov.Id AND pov.IsDeleted = 0
+                LEFT JOIN Gate.MiscMaster rt ON vmr.ReceivingTypeId = rt.Id AND rt.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster rdt ON vmr.ReferenceDocTypeId = rdt.Id AND rdt.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster st ON vmr.StatusId = st.Id AND st.IsDeleted = 0
                 WHERE vmr.Id = @Id AND vmr.IsDeleted = 0";
@@ -179,6 +183,27 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
                 AND vmr.GateOutTime IS NULL";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { VehicleNumber = vehicleNumber.Trim() });
+            return count > 0;
+        }
+
+        public async Task<bool> IsVehicleReceivingTypeAsync(int miscId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Gate.MiscMaster mm
+                INNER JOIN Gate.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                WHERE mm.Id = @Id
+                  AND mt.MiscTypeCode = @MiscTypeCode
+                  AND mm.Description = @Description
+                  AND mm.IsDeleted = 0 AND mm.IsActive = 1
+                  AND mt.IsDeleted = 0 AND mt.IsActive = 1";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                Id = miscId,
+                MiscTypeCode = GateEntryManagement.Domain.Common.MiscEnumEntity.ReceivingType,
+                Description = GateEntryManagement.Domain.Common.MiscEnumEntity.ReceivingTypeVehicle
+            });
             return count > 0;
         }
 
