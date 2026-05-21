@@ -69,6 +69,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = "GE00001",
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -88,6 +89,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = "GE-ATT-1",
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,

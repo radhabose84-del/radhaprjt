@@ -9,6 +9,9 @@ namespace GateEntryManagement.Domain.Entities
         // Linked VMR
         public int VehicleMovementRecordId { get; set; }
 
+        // Cross-module FK (PartyManagement) — no DB FK constraint; validated via IPartyLookup
+        public int? PartyId { get; set; }
+
         // Weighbridge
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
