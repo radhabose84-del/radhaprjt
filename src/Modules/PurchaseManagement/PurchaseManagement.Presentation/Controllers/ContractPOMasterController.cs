@@ -90,9 +90,9 @@ namespace PurchaseManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> AutoCompleteAsync([FromQuery] string? term = null, CancellationToken ct = default)
+        public async Task<IActionResult> AutoCompleteAsync([FromQuery] string? term = null, [FromQuery] bool approved = true, [FromQuery] int? vendorId = null, CancellationToken ct = default)
         {
-            var data = await Mediator.Send(new GetContractPOMasterAutoCompleteQuery(term ?? string.Empty), ct);
+            var data = await Mediator.Send(new GetContractPOMasterAutoCompleteQuery(term ?? string.Empty, approved, vendorId), ct);
 
             return Ok(new
             {

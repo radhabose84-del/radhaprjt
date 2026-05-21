@@ -56,8 +56,7 @@ namespace PurchaseManagement.Domain.Common
         public const string TransactionTypeSPO = "Service Purchase Order";
         public const string TransactionTypeRFQ = "RFQ";
         public const string TransactionTypeDutyMaster = "Duty Master";
-		public const string TransactionTypeContract = "Purchase Contract";
-        public const string TransactionTypeSPO = "Service Purchase Order";
+		public const string TransactionTypeContract = "Purchase Contract";        
         public const string ModulePurchase = "Purchase";
     }
 }

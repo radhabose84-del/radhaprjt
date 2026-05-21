@@ -26,7 +26,7 @@ public sealed class GetContractPOMasterAutoCompleteQueryHandler
     public async Task<IReadOnlyList<ContractPOLookupDto>> Handle(
         GetContractPOMasterAutoCompleteQuery request, CancellationToken ct)
     {
-        var results = await _repo.AutocompleteAsync(request.Term ?? string.Empty, ct);
+        var results = await _repo.AutocompleteAsync(request.Term ?? string.Empty, request.ApprovedOnly, request.VendorId, ct);
         var items = results.ToList();
 
         // Enrich: Vendor names

@@ -8,7 +8,7 @@ public interface IContractPOMasterQueryRepository
     Task<ContractPOHeaderDto?> GetByIdAsync(int id, CancellationToken ct);
     Task<(IReadOnlyList<ContractPOHeaderDto> Items, int Total)> GetAllAsync(
         int page, int size, string? search, CancellationToken ct);
-    Task<IReadOnlyList<ContractPOLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+    Task<IReadOnlyList<ContractPOLookupDto>> AutocompleteAsync(string term, bool approvedOnly, int? vendorId, CancellationToken ct);
     Task<bool> NotFoundAsync(int id, CancellationToken ct);
     Task<bool> AlreadyExistsAsync(string contractPONumber, int? excludeId = null);
     Task<bool> HasReleaseHistoryAsync(int id);
