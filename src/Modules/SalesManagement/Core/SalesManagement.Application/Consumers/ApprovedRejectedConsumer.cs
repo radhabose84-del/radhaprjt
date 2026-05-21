@@ -322,7 +322,25 @@ namespace SalesManagement.Application.Consumers
                             "Complaint Resolution {Id} approval status updated to {Status} by user {UserId}",
                             msg.ModuleTransactionId, msg.Status, msg.ModifiedBy);
 
-                        if (msg.Status == MiscEnumEntity.ComplaintApprovalRejected)
+                        if (msg.Status == MiscEnumEntity.ComplaintApprovalApproved)
+                        {
+                            // Phase 4: end-of-loop bell — Resolution has been fully approved,
+                            // so the complaint cycle is closed. Bell goes to the complaint
+                            // creator (the user who originally lodged the complaint) so they
+                            // see the resolution outcome. Symmetric to Complaint Rejected.
+                            var complaint = await _complaintQueryRepo.GetByIdAsync(msg.ModuleTransactionId);
+                            var creatorIds = complaint != null && complaint.CreatedBy > 0
+                                ? new List<int> { complaint.CreatedBy }
+                                : null;
+                            await PublishComplaintInAppAsync(
+                                msg.ModuleTransactionId,
+                                MiscEnumEntity.NotifModuleResolutionApproved,
+                                MiscEnumEntity.ComplaintResolutionModuleTypeName,
+                                creatorIds,
+                                msg.ModifiedByName ?? string.Empty,
+                                context);
+                        }
+                        else if (msg.Status == MiscEnumEntity.ComplaintApprovalRejected)
                         {
                             // Phase 3: bell goes to the MO who submitted this resolution
                             // (ComplaintResolution.ResolvedBy) so they can revise + resubmit.

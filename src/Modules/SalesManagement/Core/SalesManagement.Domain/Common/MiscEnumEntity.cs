@@ -99,6 +99,7 @@ namespace SalesManagement.Domain.Common
         public const string NotifModuleQcReviewApproved    = "QC Review Approved";
         public const string NotifModuleFeedbackRequested   = "Feedback Requested";
         public const string NotifModuleResolutionSubmitted = "Resolution Submitted";
+        public const string NotifModuleResolutionApproved  = "Resolution Approved";
 
         // Rejection notifications (Phase 3 — symmetric "Rejected" counterparts to the
         // Approval module names above). Each fires when the workflow approver clicks

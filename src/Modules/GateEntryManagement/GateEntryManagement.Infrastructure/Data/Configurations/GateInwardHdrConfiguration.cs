@@ -35,6 +35,12 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            // Cross-module FK (PartyManagement) — no DB FK constraint
+            builder.Property(t => t.PartyId)
+                .HasColumnName("PartyId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Weighbridge
             builder.Property(t => t.GrossWeight)
                 .HasColumnName("GrossWeight")
@@ -106,6 +112,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.GateEntryNo).IsUnique();
             builder.HasIndex(t => t.VehicleMovementRecordId);
             builder.HasIndex(t => t.UnitId);
+            builder.HasIndex(t => t.PartyId);
 
             // Same-module FKs
             builder.HasOne(t => t.VehicleMovementRecord)

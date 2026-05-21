@@ -8,6 +8,8 @@ namespace GateEntryManagement.Application.GateInward.Dto
         public string? VehicleMovementId { get; set; }
         public string? VehicleNumber { get; set; }
         public string? DriverName { get; set; }
+        public int? PartyId { get; set; }
+        public string? PartyName { get; set; }
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
         public decimal? NetWeight { get; set; }
