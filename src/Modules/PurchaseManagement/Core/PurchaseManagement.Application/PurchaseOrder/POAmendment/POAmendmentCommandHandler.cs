@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using AutoMapper;
-using Contracts.Events.Workflow;
+using Contracts.Commands.Workflow;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
@@ -12,6 +13,7 @@ using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Application.PurchaseOrder.POAmendment;
 using PurchaseManagement.Domain.Common;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Amend;
@@ -27,6 +29,7 @@ public sealed class POAmendmentCommandHandler : IRequestHandler<POAmendmentComma
     private readonly ILogger<POAmendmentCommandHandler> _logger;
     private readonly IOutboxEventPublisher _outboxEventPublisher;
     private readonly IPODocumentQueryRepository _poDocs;
+    private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
     public POAmendmentCommandHandler(
         IPurchaseOrderCommandRepository cmd,
@@ -37,12 +40,14 @@ public sealed class POAmendmentCommandHandler : IRequestHandler<POAmendmentComma
         ITimeZoneService tz,
         ILogger<POAmendmentCommandHandler> logger,
         IOutboxEventPublisher outboxEventPublisher,
-        IPODocumentQueryRepository poDocs)
+        IPODocumentQueryRepository poDocs,
+        IDocumentSequenceLookup documentSequenceLookup)
     {
         _cmd = cmd; _qry = qry; _misc = misc; _mapper = mapper;
         _ip = ip; _tz = tz; _logger = logger;
         _outboxEventPublisher = outboxEventPublisher;
         _poDocs = poDocs;
+        _documentSequenceLookup = documentSequenceLookup;
     }
 
     public async Task<int> Handle(POAmendmentCommand request, CancellationToken ct)
@@ -99,33 +104,87 @@ public sealed class POAmendmentCommandHandler : IRequestHandler<POAmendmentComma
             }
         }
 
-        // Call repo with DTO (matches signature): delete old children/docs, soft-close old, insert revised + docs
-        var newId = await _cmd.AmendAsync(existing, dto, ct);
+        // Pre-compute approval workflow values (don't depend on amend result)
+        var unitId = _ip.GetUnitId()
+            ?? throw new InvalidOperationException("UnitId is not available for the current user.");
 
-        // Best-effort workflow publish via outbox
-        try
+        var poCategory = await _misc.GetByIdAsync(dto.POCategoryId);
+        var isEmergency = string.Equals(poCategory?.Description, MiscEnumEntity.EmergencyPO, StringComparison.OrdinalIgnoreCase);
+        var approvalTypeName = isEmergency
+            ? MiscEnumEntity.TransactionTypeEPO
+            : MiscEnumEntity.TransactionTypeLPO;
+
+        var approvalTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+            approvalTypeName, MiscEnumEntity.ModulePurchase, unitId);
+
+        // ════════════════════════════════════════════════════════════════════════
+        // ATOMIC TRANSACTION: Amend PO + Outbox Events
+        // ════════════════════════════════════════════════════════════════════════
+
+        var strategy = _cmd.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
         {
-            var agg = await _qry.GetByIdAsync(newId, ct);
-            if (agg is not null)
+            var (transaction, dbConn, dbTx) = await _cmd.BeginTransactionWithConnectionAsync(ct);
+            await using var _ = transaction;
+
+            try
             {
-                var payload = _mapper.Map<CreatePOLocalReverseDto>(agg);
-                var correlationId = Guid.NewGuid();
-                var evt = new TransactionCreatedEvent
-                {
-                    CorrelationId = correlationId,
-                    ModuleTypeName = MiscEnumEntity.POLocal,
-                    ModuleTransactionId = newId,
-                    Payload = JsonSerializer.Serialize(payload)
-                };
-                await _outboxEventPublisher.ScheduleAsync(evt, correlationId, ct);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Workflow publish failed for amended PO={NewId}", newId);
-        }
+                var newId = await _cmd.AmendWithoutTransactionAsync(existing, dto, ct);
 
-        return newId;
+                // ── Approval workflow (outbox — same transaction) ──────────────────
+                // Use EF Core GetAggregateAsync (same DbContext/transaction) to read
+                // the newly created PO header, including the repo-validated PONumber.
+                var newPo = await _cmd.GetAggregateAsync(newId, ct);
+                if (newPo is not null)
+                {
+                    var reversePayload = new CreatePOLocalReverseDto
+                    {
+                        Header = new POLocalWorkFlowDto
+                        {
+                            Id = newId,
+                            PONumber = newPo.PONumber,
+                            VendorId = newPo.VendorId,
+                            StatusId = newPo.StatusId,
+                            UnitId = unitId
+                        },
+                        Lines = new List<POLocalWorkFlowDto>
+                        {
+                            new POLocalWorkFlowDto
+                            {
+                                Id = newId,
+                                PONumber = newPo.PONumber,
+                                VendorId = newPo.VendorId,
+                                StatusId = newPo.StatusId,
+                                UnitId = unitId
+                            }
+                        }
+                    };
+
+                    var correlationId = Guid.NewGuid();
+                    var workflowCommand = new CreateApprovalRequestCommand
+                    {
+                        CorrelationId = correlationId,
+                        ModuleTypeName = MiscEnumEntity.POLocal,
+                        ModuleTransactionId = newId,
+                        Payload = JsonSerializer.Serialize(reversePayload),
+                        TransactionTypeId = approvalTypeId
+                    };
+
+                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
+                }
+
+                await _cmd.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+
+                return newId;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
+        });
     }
 
     private static string BuildNextRevisionCode(string oldCode, int nextRev)

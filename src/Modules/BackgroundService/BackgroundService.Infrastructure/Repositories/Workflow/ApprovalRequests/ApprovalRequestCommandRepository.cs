@@ -91,17 +91,28 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
             }
         }
 
-        public async Task<bool> CreateBulkAsync(string workflowType, int transactionId, string contextJson)
+        public async Task<bool> CreateBulkAsync(string workflowType, int transactionId, string contextJson, int? transactionTypeId = null)
         {
             try
             {
                 var menuId = await _lookupRepository.GetMenuIdByNameAsync(workflowType);
+
+                // Fallback: when multiple PO types share one menu (e.g. "Purchase Order"),
+                // the handler may pass a specific ModuleTypeName like "Contract Purchase Order"
+                // that has no matching MenuName. Resolve MenuId from TransactionTypeMaster instead.
+                if (menuId == null && transactionTypeId.HasValue)
+                {
+                    menuId = await _lookupRepository.GetMenuIdByTransactionTypeIdAsync(
+                        transactionTypeId.Value);
+                }
+
                 var procParams = new
                 {
                     MenuId = menuId,
                     WorkflowCode = workflowType,
                     TransactionId = transactionId,
-                    ContextJson = contextJson
+                    ContextJson = contextJson,
+                    TransactionTypeId = transactionTypeId
                 };
 
                 await _dbConnection.ExecuteAsync(

@@ -10,7 +10,7 @@ using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ServicePO;
 using PurchaseManagement.Domain.Entities.MRS;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
-using PurchaseManagement.Domain.Entities.ContractPO;
+using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.IssueReturn;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 namespace PurchaseManagement.Domain.Entities

@@ -28,5 +28,14 @@ namespace BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequ
             string workflowType,
             bool pending,
             int userId);
+
+        /// <summary>
+        /// Checks whether any ApprovalRequest rows exist for a given transaction.
+        /// Used to detect when sp_EvaluateApproval found no matching approval rules.
+        /// </summary>
+        Task<bool> HasApprovalRequestAsync(
+            int moduleTransactionId,
+            string workflowType,
+            CancellationToken ct = default);
     }
 }

@@ -1,151 +1,114 @@
-using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PurchaseManagement.Application.ContractPO.Commands.Create;
-using PurchaseManagement.Application.ContractPO.Commands.Delete;
-using PurchaseManagement.Application.ContractPO.Commands.Update;
-using PurchaseManagement.Application.ContractPO.Queries.AutoComplete;
-using PurchaseManagement.Application.ContractPO.Queries.GetAll;
-using PurchaseManagement.Application.ContractPO.Queries.GetById;
+using Microsoft.AspNetCore.Http;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.ContractPO;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Update;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Delete;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Amendment;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetById;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetContractPOPending;
 
-namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder;
-
-[Route("api/[controller]")]
-public class ContractPOController : ApiControllerBase
+namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
 {
-    private readonly IValidator<CreateContractPOCommand> _createValidator;
-    private readonly IValidator<UpdateContractPOCommand> _updateValidator;
-    private readonly IValidator<DeleteContractPOCommand> _deleteValidator;
-
-    public ContractPOController(
-        ISender mediator,
-        IValidator<CreateContractPOCommand> createValidator,
-        IValidator<UpdateContractPOCommand> updateValidator,
-        IValidator<DeleteContractPOCommand> deleteValidator
-    ) : base(mediator)
+    [Route("api/[controller]")]
+    public class ContractPOController : ApiControllerBase
     {
-        _createValidator = createValidator;
-        _updateValidator = updateValidator;
-        _deleteValidator = deleteValidator;
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetAll(
-        [FromQuery] int PageNumber,
-        [FromQuery] int PageSize,
-        [FromQuery] string? SearchTerm = null)
-    {
-        var result = await Mediator.Send(
-            new GetAllContractPOQuery(PageNumber, PageSize, SearchTerm));
-
-        return Ok(new
+        public ContractPOController(ISender mediator) : base(mediator)
         {
-            StatusCode = StatusCodes.Status200OK,
-            data = result.Items,
-            TotalCount = result.Total,
-            PageNumber,
-            PageSize
-        });
-    }
+        }
 
-    [HttpGet("{id}")]
-    [ActionName(nameof(GetByIdAsync))]
-    public async Task<IActionResult> GetByIdAsync(int id)
-    {
-        var data = await Mediator.Send(new GetContractPOByIdQuery(id));
-
-        return Ok(new
+        [HttpPost]
+        public async Task<IActionResult> CreateAsync([FromBody] ContractPOCreateDto dto, CancellationToken ct = default)
         {
-            StatusCode = StatusCodes.Status200OK,
-            data
-        });
-    }
+            var response = await Mediator.Send(new CreateContractPOCommand(dto), ct);
 
-    [HttpGet("by-name")]
-    public async Task<IActionResult> AutoComplete([FromQuery] string? name)
-    {
-        var data = await Mediator.Send(
-            new GetContractPOAutoCompleteQuery(name ?? string.Empty));
-
-        return Ok(new { StatusCode = StatusCodes.Status200OK, data });
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> CreateAsync(CreateContractPOCommand command)
-    {
-        var validationResult = await _createValidator.ValidateAsync(command);
-
-        if (!validationResult.IsValid)
-        {
-            return BadRequest(new
+            return Ok(new
             {
-                StatusCode = StatusCodes.Status400BadRequest,
-                message = "Validation failed",
-                errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray()
+                StatusCode = response.IsSuccess
+                    ? StatusCodes.Status201Created
+                    : StatusCodes.Status400BadRequest,
+                message = response.Message,
+                data = response.Data
             });
         }
 
-        var response = await Mediator.Send(command);
-
-        return Ok(new
+        [HttpPut]
+        public async Task<IActionResult> UpdateAsync([FromBody] ContractPOUpdateDto dto, CancellationToken ct = default)
         {
-            StatusCode = StatusCodes.Status201Created,
-            message = "Created Successfully",
-            errors = "",
-            data = response
-        });
-    }
+            var ok = await Mediator.Send(new UpdateContractPOCommand(dto), ct);
 
-    [HttpPut]
-    public async Task<IActionResult> Update(UpdateContractPOCommand command)
-    {
-        var validationResult = await _updateValidator.ValidateAsync(command);
-
-        if (!validationResult.IsValid)
-        {
-            return BadRequest(new
+            return Ok(new
             {
-                StatusCode = StatusCodes.Status400BadRequest,
-                message = "Validation failed",
-                errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray()
+                StatusCode = ok ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest,
+                message = ok ? "Updated successfully." : "Update failed.",
+                data = ok
             });
         }
 
-        var response = await Mediator.Send(command);
-
-        return Ok(new
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteAsync([FromRoute] int id, CancellationToken ct = default)
         {
-            StatusCode = StatusCodes.Status200OK,
-            message = "Updated Successfully",
-            errors = "",
-            data = response
-        });
-    }
+            var result = await Mediator.Send(new DeleteContractPOCommand(id), ct);
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var deleteCommand = new DeleteContractPOCommand(id);
-        var validationResult = await _deleteValidator.ValidateAsync(deleteCommand);
-
-        if (!validationResult.IsValid)
-        {
-            return BadRequest(new
+            return Ok(new
             {
-                StatusCode = StatusCodes.Status400BadRequest,
-                message = "Validation failed",
-                errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray()
+                StatusCode = StatusCodes.Status200OK,
+                message = result ? "Deleted successfully." : "Delete failed.",
+                data = result
             });
         }
 
-        await Mediator.Send(deleteCommand);
-
-        return Ok(new
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetByIdAsync([FromRoute] int id, CancellationToken ct = default)
         {
-            StatusCode = StatusCodes.Status200OK,
-            message = "Deleted successfully.",
-            errors = ""
-        });
+            var data = await Mediator.Send(new GetContractPOByIdQuery(id), ct);
+
+            return Ok(new
+            {
+                StatusCode = data is null ? StatusCodes.Status404NotFound : StatusCodes.Status200OK,
+                message = data is null ? "Not found" : "Fetched",
+                data
+            });
+        }
+
+        [HttpPost("amendment")]
+        public async Task<IActionResult> AmendAsync([FromBody] ContractPOUpdateDto dto, CancellationToken ct = default)
+        {
+            var newId = await Mediator.Send(new ContractPOAmendmentCommand { Data = dto }, ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                message = "Amendment created successfully.",
+                data = new { NewPurchaseOrderId = newId }
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingAsync(
+            [FromQuery] int? poId = null,
+            [FromQuery] int? pageNumber = 1,
+            [FromQuery] int? pageSize = 15,
+            [FromQuery] string? searchTerm = null,
+            CancellationToken ct = default)
+        {
+            var (items, total) = await Mediator.Send(new GetContractPOPendingQuery
+            {
+                PoId = poId,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm
+            }, ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = items,
+                TotalCount = total,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            });
+        }
     }
 }

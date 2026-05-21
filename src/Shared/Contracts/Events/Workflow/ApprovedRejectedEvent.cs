@@ -16,6 +16,8 @@ namespace Contracts.Events.Workflow
         public List<PartyRefDto> PartyContacts { get; set; } = new();
         public List<JsonElement> DynamicFields { get; set; } = new();
 
+        public int? TransactionTypeId { get; set; }
+
         // Approver audit info (flows from handler → dispatcher → module consumer)
         public int ModifiedBy { get; set; }
         public string? ModifiedByName { get; set; }

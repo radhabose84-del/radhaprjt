@@ -621,6 +621,253 @@ public async Task<int> AmendAsync(
 
 
 
+        /// <summary>
+        /// Same logic as AmendAsync but without managing its own transaction.
+        /// The caller must already have an active transaction on _db.Database.
+        /// </summary>
+        public async Task<int> AmendWithoutTransactionAsync(
+            PurchaseOrderHeader existing,
+            ImportPOUpdateDto dto,
+            PurchaseOrderHeader revisedAuditSeed,
+            CancellationToken ct)
+        {
+            // status -> Pending
+            var pending = await _misc
+                .GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+
+            // Build next unique PO number
+            var baseRoot = StripRevision(existing.PONumber);
+            var nextPoNumber = string.IsNullOrWhiteSpace(dto.PONumber) ? baseRoot : dto.PONumber;
+            var nextRevision = Math.Max(existing.RevisionNo, 0);
+
+            while (await _db.PurchaseOrderHeaders.AsNoTracking()
+                .AnyAsync(p => p.PONumber == nextPoNumber, ct))
+            {
+                nextRevision++;
+                nextPoNumber = $"{baseRoot}-R{nextRevision}";
+            }
+
+            // Impacted indents (old + new)
+            var oldImpacted = await GetImpactedIndentIdsFromDbAsync(existing.Id, ct);
+            var newImpacted = new HashSet<int>(
+                (dto.Headers ?? Enumerable.Empty<ImportPOHeaderDto>())
+                    .SelectMany(h => h.Details ?? Enumerable.Empty<ImportPODetailDto>())
+                    .Select(d => d.IndentId)
+                    .Where(i => i > 0)
+                    .Distinct());
+            var impacted = new HashSet<int>(oldImpacted);
+            impacted.UnionWith(newImpacted);
+
+            // Build REVISED root from DTO + audit seed
+            var revised = new PurchaseOrderHeader
+            {
+                UnitId        = existing.UnitId,
+                PONumber      = nextPoNumber,
+                PODate        = dto.PODate,
+                POCategoryId  = dto.POCategoryId,
+                POMethodId    = existing.POMethodId,
+                CurrencyId    = dto.CurrencyId,
+                VendorId      = dto.VendorId,
+                ItemTotal     = dto.ItemTotal,
+                DiscountTotal = dto.DiscountTotal,
+                PandFTotal    = dto.PandFTotal,
+                MiscCharges   = dto.MiscCharges,
+                GSTTotal      = dto.GSTTotal,
+                CGSTTotal     = dto.CGSTTotal,
+                SGSTTotal     = dto.SGSTTotal,
+                IGSTTotal     = dto.IGSTTotal,
+                FreightTotal  = dto.FreightTotal,
+                InsuranceTotal= dto.InsuranceTotal,
+                TDSTotal      = dto.TDSTotal,
+                AdvanceAmount = dto.AdvanceAmount,
+                PurchaseValue = dto.PurchaseValue,
+                StatusId      = pending.Id,
+                OldPOId       = revisedAuditSeed.OldPOId,
+                RevisionNo    = nextRevision,
+                AmendmentReason = dto.AmendmentReason?.Trim(),
+                CostCenterId  = dto.CostCenterId,
+                ProjectId     = dto.ProjectId,
+                CapitalTypeId = dto.CapitalTypeId,
+                PurchaseTypeId= dto.PurchaseTypeId,
+                BudgetGroupId = dto.BudgetGroupId,
+                BudgetRequestById = dto.BudgetRequestById,
+                BudgetDepartmentId  = dto.BudgetDepartmentId,
+                WBSId       = dto.WBSId,
+                BudgetMonthId = dto.BudgetMonthId,
+                FinancialYearId = dto.FinancialYearId,
+                CreatedBy     = revisedAuditSeed.CreatedBy,
+                CreatedByName = revisedAuditSeed.CreatedByName,
+                CreatedIP     = revisedAuditSeed.CreatedIP,
+                CreatedDate   = revisedAuditSeed.CreatedDate,
+                IsDeleted     = BaseEntity.IsDelete.NotDeleted
+            };
+
+            // Prebuild documents EXACTLY from payload
+            var incomingDocs = (dto.Documents ?? new List<DocumentDto>())
+                .Where(d => d.DocumentId > 0 && !string.IsNullOrWhiteSpace(d.FileName))
+                .Select(d => new PurchaseDocument
+                {
+                    DocumentId   = d.DocumentId,
+                    FileName     = d.FileName!,
+                    UploadedDate = d.UploadedDate == default ? DateTimeOffset.UtcNow : d.UploadedDate
+                })
+                .ToList();
+
+            // 1) DELETE old import children + payment terms + documents
+            var oldHeaders = await _db.ImportPOHeader
+                .Where(h => h.PurchaseOrderId == existing.Id)
+                .Include(h => h.ImportPODetails)
+                .ToListAsync(ct);
+
+            if (oldHeaders.Count > 0)
+            {
+                var oldDetails = oldHeaders.SelectMany(h => h.ImportPODetails).ToList();
+                if (oldDetails.Count > 0) _db.ImportPODetail.RemoveRange(oldDetails);
+                _db.ImportPOHeader.RemoveRange(oldHeaders);
+            }
+
+            var oldTerms = await _db.PurchasePaymentTerms
+                .Where(t => t.PurchaseOrderId == existing.Id)
+                .ToListAsync(ct);
+            if (oldTerms.Count > 0) _db.PurchasePaymentTerms.RemoveRange(oldTerms);
+
+            var oldDocs = await _db.PurchaseDocuments
+                .Where(d => d.PoId == existing.Id)
+                .ToListAsync(ct);
+            if (oldDocs.Count > 0) _db.PurchaseDocuments.RemoveRange(oldDocs);
+
+            await _db.SaveChangesAsync(ct);
+
+            // 2) SOFT-CLOSE existing header
+            var current = await _db.PurchaseOrderHeaders
+                .FirstOrDefaultAsync(h => h.Id == existing.Id, ct)
+                ?? throw new InvalidOperationException($"PO {existing.Id} not found.");
+            current.IsDeleted   = BaseEntity.IsDelete.Deleted;
+            current.ModifiedDate= DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync(ct);
+
+            // 3) INSERT revised header
+            _db.PurchaseOrderHeaders.Add(revised);
+            await _db.SaveChangesAsync(ct);
+
+            // 4) INSERT revised import children (headers → details) from DTO
+            foreach (var h in dto.Headers ?? Enumerable.Empty<ImportPOHeaderDto>())
+            {
+                var hEntity = new ImportPOHeader
+                {
+                    PurchaseOrderId     = revised.Id,
+                    TTExchangeRateId    = h.TTExchangeRateId,
+                    TTExchangeRate    = h.TTExchangeRate,
+                    IncotermId          = h.IncotermId,
+                    ShippingPortId      = h.ShippingPortId,
+                    DestinationPortId   = h.DestinationPortId,
+                    ModeOfTransportId   = h.ModeOfTransportId,
+                    ShippingModeId      = h.ShippingModeId,
+                    CustomsOfficeId     = h.CustomsOfficeId,
+                    OriginCountryId     = h.OriginCountryId,
+                    InsuranceProviderId = h.InsuranceProviderId,
+                    FreightForwarderId  = h.FreightForwarderId,
+                    FreeDaysAllowed     = h.FreeDaysAllowed,
+                    DemurrageTerms      = h.DemurrageTerms,
+                    BillOfLadingNumber  = h.BillOfLadingNumber,
+                    VesselName          = h.VesselName,
+                    ContainerNumber     = h.ContainerNumber,
+                    AirlineName         = h.AirlineName,
+                    AirWaybillNumber    = h.AirWaybillNumber,
+                    AirWaybillDate      = h.AirWaybillDate,
+                    FlightNumber        = h.FlightNumber,
+                    ExpectedTimeOfDeparture = h.ExpectedTimeOfDeparture,
+                    ExpectedTimeOfArrival   = h.ExpectedTimeOfArrival,
+                    CustomsHouseAgentId = h.CustomsHouseAgentId,
+                    BillOfEntryNumber   = h.BillOfEntryNumber,
+                    LCPaymentModeId     = h.LCPaymentModeId,
+                    LCPaymentStatusId   = h.LCPaymentStatusId,
+                    LCNumber            = h.LCNumber,
+                    LCCurrencyId        = h.LCCurrencyId,
+                    LCDate              = h.LCDate,
+                    LCExpiryDate        = h.LCExpiryDate,
+                    LCAmount            = h.LCAmount,
+                    LCIssueBankId       = h.LCIssueBankId,
+                    LCBeneficiaryBankId = h.LCBeneficiaryBankId,
+                    LCTypeId            = h.LCTypeId,
+                    LCRemarks           = h.LCRemarks,
+                    TTReferenceNumber   = h.TTReferenceNumber,
+                    TTTransferDate      = h.TTTransferDate,
+                    TTBankId            = h.TTBankId,
+                    TTCurrencyId        = h.TTCurrencyId,
+                    TTPaymentModeId     = h.TTPaymentModeId,
+                    TTPaymentStatusId   = h.TTPaymentStatusId,
+                    TTRemarks           = h.TTRemarks,
+                    LCSwiftCode         = h.LCSwiftCode,
+                    TTSwiftCode         = h.TTSwiftCode,
+                    IsPartialReceiptAllowed = h.IsPartialReceiptAllowed,
+                    ImportPODetails     = (h.Details ?? new List<ImportPODetailDto>()).Select(d => new ImportPODetail
+                    {
+                        IndentId              = d.IndentId,
+                        ItemId                = d.ItemId,
+                        ItemSno              = d.ItemSno,
+                        Quantity              = d.Quantity,
+                        UomId                 = d.UomId,
+                        UnitPrice             = d.UnitPrice,
+                        DutyMasterId          = d.DutyMasterId,
+                        FreightAmount         = d.FreightAmount,
+                        InsuranceAmount       = d.InsuranceAmount,
+                        CIFValue              = d.CIFValue,
+                        BasicCustomDuty       = d.BasicCustomDuty,
+                        SocialWelfareSurCharges = d.SocialWelfareSurCharges,
+                        IGST                  = d.IGST,
+                        IGSTPercentage        = d.IGSTPercentage,
+                        AgriInfraDevCess      = d.AgriInfraDevCess,
+                        AntiDumpingDuty       = d.AntiDumpingDuty,
+                        SafeguardDuty         = d.SafeguardDuty,
+                        HealthEducationCess   = d.HealthEducationCess,
+                        OtherCharges          = d.OtherCharges,
+                        TotalValue            = d.TotalValue,
+                        GRBasedIV             = d.GRBasedIV
+                    }).ToList()
+                };
+                _db.ImportPOHeader.Add(hEntity);
+            }
+
+            foreach (var t in dto.PaymentTerms ?? Enumerable.Empty<ImportPurchasePaymentTermDto>())
+            {
+                _db.PurchasePaymentTerms.Add(new PurchasePaymentTerm
+                {
+                    PurchaseOrderId = revised.Id,
+                    PaymentTermId   = t.PaymentTermId,
+                    AdvancePercent  = t.AdvancePercent,
+                    CreditDays      = t.CreditDays,
+                    PaymentModelId  = t.PaymentModelId,
+                    InsuranceId     = t.InsuranceId,
+                    InsurancePercent= t.InsurancePercent,
+                    InsuranceAmount = t.InsuranceAmount,
+                    AdvanceAmount   = t.AdvanceAmount,
+                    BalancePercent  = t.BalancePercent,
+                    BalanceAmount   = t.BalanceAmount
+                });
+            }
+
+            // 5) INSERT documents EXACTLY as payload
+            if (incomingDocs.Count > 0)
+            {
+                foreach (var d in incomingDocs)
+                {
+                    d.Id   = 0;
+                    d.PoId = revised.Id;
+                    if (d.UploadedDate == default) d.UploadedDate = DateTimeOffset.UtcNow;
+                }
+                _db.PurchaseDocuments.AddRange(incomingDocs);
+            }
+
+            await _db.SaveChangesAsync(ct);
+
+            // 6) Recompute impacted
+            if (impacted.Count > 0)
+                await RecomputeImportIndentPoQtyAsync(impacted, ct);
+
+            return revised.Id;
+        }
+
         /* ========================= Shared Transaction support ========================= */
 
         public IExecutionStrategy CreateExecutionStrategy() =>
@@ -966,8 +1213,8 @@ public async Task<int> AmendAsync(
         }
 
         public Task<PurchaseOrderHeader?> GetAggregateAsync(int id, CancellationToken ct) => _db.PurchaseOrderHeaders.Include(h => h.ImportPOHeader).ThenInclude(l => l.ImportPODetails).Include(h => h.PaymentTerms).FirstOrDefaultAsync(h => h.Id == id, ct);
-       
-       
+
+        public Task SaveChangesAsync(CancellationToken ct) => _db.SaveChangesAsync(ct);
     }
 }
 

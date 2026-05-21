@@ -11,5 +11,6 @@ namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.Appro
         public int ModuleTransactionId { get; set; }
         public string WorkflowType { get; set; }
         public string StatusCode { get; set; }
+        public int? TransactionTypeId { get; set; }
     }
 }

@@ -14,6 +14,7 @@ namespace Contracts.Commands.Purchase
         public ICollection<UpdateLineStatusDto> LineStatus { get; set; } = default!;
         public List<PartyRefDto> PartyContacts { get; set; } = new();
         public List<JsonElement> DynamicFields { get; set; } = new();
+        public int? TransactionTypeId { get; set; }
         public int ModifiedBy { get; set; }
         public string? ModifiedByName { get; set; }
         public string? ModifiedIP { get; set; }

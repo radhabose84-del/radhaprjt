@@ -39,7 +39,7 @@ public sealed class GetCombinePOByIdQueryHandler : IRequestHandler<GetCombinePOB
 
         if (await _lookup.IsContractAsync(request.POMethodId, ct))
         {
-            vm.Contract = await _mediator.Send(new GetContractReleasePOByIdQuery(request.Id), ct);
+            vm.Contract = await _mediator.Send(new GetContractPOByIdQuery(request.Id), ct);
             if (vm.Contract is null)
                 throw new KeyNotFoundException($"Contract Release PO {request.Id} not found.");
             return vm;

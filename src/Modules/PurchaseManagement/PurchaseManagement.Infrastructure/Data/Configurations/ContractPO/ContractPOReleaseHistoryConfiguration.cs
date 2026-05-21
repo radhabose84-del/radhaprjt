@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PurchaseManagement.Domain.Entities.ContractPO;
+using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using static PurchaseManagement.Domain.Common.BaseEntity;
 
 namespace PurchaseManagement.Infrastructure.Data.Configurations.ContractPO;

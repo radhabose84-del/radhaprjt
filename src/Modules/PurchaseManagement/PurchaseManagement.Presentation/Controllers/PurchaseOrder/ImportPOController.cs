@@ -57,8 +57,8 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
         }
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingImportPO(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 20,
+            [FromQuery] int? pageNumber = 1,
+            [FromQuery] int? pageSize = 20,
             [FromQuery] string? searchTerm = null,
             [FromQuery] int? poId = null,
             CancellationToken ct = default)
@@ -71,20 +71,13 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
                 SearchTerm = searchTerm
             }, ct);
 
-            if (items == null || items.Count == 0)
-            {
-                return NotFound(new
-                {
-                    StatusCode = StatusCodes.Status404NotFound,
-                    data = (object?)null,
-                    message = $"Pending PO data for PO ID {poId} not found"
-                });
-            }
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                data = new { Items = items, TotalCount = total },
-                message = $"Pending PO data for PO ID {poId} fetched successfully"
+                data = items,
+                TotalCount = total,
+                PageNumber = pageNumber,
+                PageSize = pageSize
             });
         }
         [HttpPost("amendment")]

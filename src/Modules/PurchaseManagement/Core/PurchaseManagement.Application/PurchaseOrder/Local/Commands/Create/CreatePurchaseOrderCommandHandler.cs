@@ -10,6 +10,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Contracts.Common;
 using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
@@ -40,6 +41,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
         private readonly IFinancialYearLookup _financialYearLookup;
         private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IMiscMasterQueryRepository _misc;
 
         public CreatePurchaseOrderCommandHandler(
             IPurchaseOrderCommandRepository repo,
@@ -54,7 +56,8 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             IBudgetAllocationLookup budgetAllocationLookup,
             IFinancialYearLookup financialYearLookup,
             IAppDataMiscMasterLookup appDataMiscLookup,
-            IDocumentSequenceLookup documentSequenceLookup)
+            IDocumentSequenceLookup documentSequenceLookup,
+            IMiscMasterQueryRepository misc)
         {
             _repo = repo;
             _mapper = mapper;
@@ -70,6 +73,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             _financialYearLookup = financialYearLookup;
             _appDataMiscLookup = appDataMiscLookup;
             _documentSequenceLookup = documentSequenceLookup;
+            _misc = misc;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreatePurchaseOrderCommand request, CancellationToken ct)
@@ -87,7 +91,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
 
             var requestDate = DateOnly.FromDateTime(request.Data.PODate.DateTime);
 
-            if (request.Data.FinancialYearId <= 0 || request.Data.FinancialYearId == null)
+          /*   if (request.Data.FinancialYearId <= 0 || request.Data.FinancialYearId == null)
             {
                 var financialYears = await _financialYearLookup
                     .GetAllFinancialYearAsync();
@@ -113,7 +117,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                     // Example if you have custom ValidationException
                     throw new ApplicationException(msg);
                 }
-            }
+            } */
 
             // -------------------------------------------------
             // BUDGET VALIDATION (Optimistic - read-only check)
@@ -172,11 +176,15 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             entity.UnitId = _ip.GetUnitId() ?? 0;
             
 
-            // Generate PONumber from DocumentSequence (same pattern as ContractReleasePO)
-            //var transactionTypeId = await _documentSequenceLookup
-            // .GetTransactionTypeIdAsync("CombinePO", "Purchase", entity.UnitId)
+            // Determine transaction type based on PO category (Emergency overrides default)
+            var poCategory = await _misc.GetByIdAsync(dto.POCategoryId);
+            var isEmergency = string.Equals(poCategory?.Description, MiscEnumEntity.EmergencyPO, StringComparison.OrdinalIgnoreCase);
+            var transactionTypeName = isEmergency
+                ? MiscEnumEntity.TransactionTypeEPO
+                : MiscEnumEntity.TransactionTypeLPO;
+
             var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
-                MiscEnumEntity.TransactionTypeLPO, MiscEnumEntity.ModulePurchase , entity.UnitId)
+                transactionTypeName, MiscEnumEntity.ModulePurchase, entity.UnitId)
                 ?? throw new InvalidOperationException("No transaction type configured for PO.");
             var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
 
@@ -270,10 +278,11 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                         CorrelationId = correlationId,
                         ModuleTypeName = MiscEnumEntity.POLocal,
                         ModuleTransactionId = result,
-                        Payload = serializedPayload
+                        Payload = serializedPayload,
+                        TransactionTypeId = transactionTypeId
                     };
 
-                    var notifEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                    /* var notifEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
                         NotificationEnum.NotificationEvent, NotificationEnum.Create);
 
                     var notificationEvent = new NotificationCreatedEvent
@@ -290,7 +299,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                         param5 = dto.VendorName,
                         ModuleTransactionId = result,
                         ModuleTypeName = MiscEnumEntity.POLocal
-                    };
+                    }; */
 
                     await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
                  //   await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, ct);

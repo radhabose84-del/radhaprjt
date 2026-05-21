@@ -1,17 +1,22 @@
+using System.Text.Json;
 using AutoMapper;
-using Contracts.Interfaces.Lookups.Budget;
-using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Commands.Workflow;
+using Contracts.Events.Notifications;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Budget;
+using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Finance;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.PurchaseOrder;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 
@@ -27,6 +32,8 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
     private readonly IImportPOQueryRepository _purchaseOrderQueryRepository;
     private readonly IBudgetAllocationLookup _budgetAllocationLookup;
     private readonly IDocumentSequenceLookup _documentSequenceLookup;
+    private readonly IOutboxEventPublisher _outboxEventPublisher;
+    private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
 
     public CreateImportPOCommandHandler(
         IImportPOCommandRepository repo,
@@ -38,13 +45,17 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
         IPODocumentQueryRepository poDocumentQueryRepository,
         IImportPOQueryRepository purchaseOrderQueryRepository,
         IBudgetAllocationLookup budgetAllocationLookup,
-        IDocumentSequenceLookup documentSequenceLookup)
+        IDocumentSequenceLookup documentSequenceLookup,
+        IOutboxEventPublisher outboxEventPublisher,
+        IAppDataMiscMasterLookup appDataMiscLookup)
     {
         _repo = repo; _mapper = mapper; _ip = ip; _tz = tz; _logger = logger;
         _misc = misc; _poDocumentQueryRepository = poDocumentQueryRepository;
         _purchaseOrderQueryRepository = purchaseOrderQueryRepository;
         _budgetAllocationLookup = budgetAllocationLookup ?? throw new ArgumentNullException(nameof(budgetAllocationLookup));
         _documentSequenceLookup = documentSequenceLookup;
+        _outboxEventPublisher = outboxEventPublisher;
+        _appDataMiscLookup = appDataMiscLookup;
     }
 
     public async Task<int> Handle(CreateImportPOCommand request, CancellationToken ct)
@@ -61,9 +72,15 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
 
         entity.UnitId = _ip.GetUnitId() ?? 0;
 
-        // Generate PONumber from DocumentSequence (same pattern as ContractReleasePO)
+        // Determine transaction type based on PO category (Emergency overrides default)
+        var poCategory = await _misc.GetByIdAsync(dto.POCategoryId);
+        var isEmergency = string.Equals(poCategory?.Description, MiscEnumEntity.EmergencyPO, StringComparison.OrdinalIgnoreCase);
+        var transactionTypeName = isEmergency
+            ? MiscEnumEntity.TransactionTypeEPO
+            : MiscEnumEntity.TransactionTypeIPO;
+
         var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
-            MiscEnumEntity.TransactionTypeIPO, MiscEnumEntity.ModulePurchase, entity.UnitId)
+            transactionTypeName, MiscEnumEntity.ModulePurchase, entity.UnitId)
             ?? throw new InvalidOperationException("No transaction type configured for PO.");
         var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
         entity.PONumber = sequences.Count > 0
@@ -74,7 +91,7 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
         entity.CreatedIP = _ip.GetSystemIPAddress();
         entity.CreatedDate = now;
 
-        // 🔐 Documents: filter + rename on disk, then attach to entity.PurchaseDocuments
+        // Documents: filter + rename on disk, then attach to entity.PurchaseDocuments
         if (dto.Documents != null && dto.Documents.Any())
         {
             dto.Documents = dto.Documents
@@ -83,7 +100,7 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
 
             if (dto.Documents.Any())
             {
-                var baseDirectory = MiscEnumEntity.DocumentPath; // or await _poDocumentQueryRepository.GetBaseDirectoryAsync();
+                var baseDirectory = MiscEnumEntity.DocumentPath;
                 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDirectory);
                 EnsureDirectoryExists(uploadPath);
 
@@ -101,8 +118,8 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
                         if (doc.UploadedDate == default) doc.UploadedDate = DateTimeOffset.UtcNow;
                     }
                 }
-                
-                // ✅ Attach to aggregate so EF saves with the graph
+
+                // Attach to aggregate so EF saves with the graph
                 entity.PurchaseDocumentTypes = dto.Documents.Select(d => new PurchaseDocument
                 {
                     DocumentId = d.DocumentId,
@@ -156,10 +173,74 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
                 }
             }
 
+            // ── Approval / Notification (outbox — same transaction) ──────────────
+            var correlationId = Guid.NewGuid();
+            var createdByName = entity.CreatedByName ?? string.Empty;
+
+            var reversePayload = new CreateImportPOReverseDto
+            {
+                Header = new ImportPOWorkFlowDto
+                {
+                    Id = poId,
+                    PONumber = entity.PONumber,
+                    VendorId = entity.VendorId,
+                    StatusId = entity.StatusId,
+                    UnitId = entity.UnitId
+                },
+                Lines = (entity.ImportPOHeader ?? new List<Domain.Entities.PurchaseOrder.ImportPO.ImportPOHeader>())
+                    .Select(h => new ImportPOWorkFlowDto
+                    {
+                        Id = poId,
+                        PONumber = entity.PONumber,
+                        VendorId = entity.VendorId,
+                        StatusId = entity.StatusId,
+                        UnitId = entity.UnitId
+                    }).ToList()
+            };
+            var serializedPayload = JsonSerializer.Serialize(reversePayload);
+
+            var workflowCommand = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.POLocal,
+                ModuleTransactionId = poId,
+                Payload = serializedPayload,
+                TransactionTypeId = transactionTypeId
+            };
+
+          /*   var notificationEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
+                NotificationEnum.NotificationEvent, NotificationEnum.Create);
+
+            var notificationEvent = new NotificationCreatedEvent
+            {
+                CorrelationId = correlationId,
+                CreatedByName = createdByName,
+                UnitId = entity.UnitId,
+                ModuleName = "Purchase Order",
+                EventTypeId = notificationEventMisc?.Id ?? 0,
+                param1 = entity.PONumber,
+                param2 = createdByName,
+                param3 = entity.PODate,
+                param4 = entity.PurchaseValue.ToString(),
+                param5 = dto.VendorId.ToString(),
+                ModuleTransactionId = poId,
+                ModuleTypeName = MiscEnumEntity.POImport
+            }; */
+
+            await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
+          //  await _outboxEventPublisher.ScheduleWithoutSaveAsync(notificationEvent, correlationId, ct);
+
+            await _repo.SaveChangesAsync(ct);
+
             // Increment DocNo via lookup — same connection + transaction
             await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConn, dbTx);
 
             await transaction.CommitAsync(ct);
+
+            _logger.LogInformation(
+                "Import PO {PoNumber} created with CorrelationId {CorrelationId}. Transaction committed. Events scheduled to outbox.",
+                entity.PONumber, correlationId);
+
             return poId;
         });
 

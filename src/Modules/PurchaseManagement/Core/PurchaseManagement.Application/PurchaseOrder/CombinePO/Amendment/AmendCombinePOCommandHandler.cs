@@ -34,7 +34,7 @@ public sealed class AmendCombinePOCommandHandler : IRequestHandler<AmendCombineP
         if (await _lookup.IsContractAsync(dto.POMethodId, ct))
         {
             if (dto.Contract is not null) dto.Contract.POMethodId = dto.POMethodId;
-            return await _mediator.Send(new ContractReleasePOAmendmentCommand { Data = dto.Contract! }, ct);
+            return await _mediator.Send(new ContractPOAmendmentCommand { Data = dto.Contract! }, ct);
         }
 
         throw new InvalidOperationException("Unsupported POMethodId.");
