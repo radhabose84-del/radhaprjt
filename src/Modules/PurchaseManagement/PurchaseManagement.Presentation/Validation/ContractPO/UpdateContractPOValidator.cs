@@ -31,9 +31,6 @@ public sealed class UpdateContractPOValidator : AbstractValidator<UpdateContract
             .GreaterThanOrEqualTo(x => x.ValidityFrom)
             .WithMessage("ValidityTo must be greater than or equal to ValidityFrom.");
 
-        RuleFor(x => x.StatusId)
-            .GreaterThan(0).WithMessage("StatusId is required.");
-
         RuleFor(x => x.IsActive)
             .InclusiveBetween(0, 1).WithMessage("IsActive must be either 0 or 1.");
 

@@ -10,7 +10,6 @@ public sealed class CreateContractPOMasterCommand : IRequest<ContractPOHeaderDto
     public int CurrencyId { get; set; }
     public DateTimeOffset ValidityFrom { get; set; }
     public DateTimeOffset ValidityTo { get; set; }
-    public int StatusId { get; set; }
     public string? Remarks { get; set; }
     public List<CreateContractPODetailItem> Details { get; set; } = new();
 }
