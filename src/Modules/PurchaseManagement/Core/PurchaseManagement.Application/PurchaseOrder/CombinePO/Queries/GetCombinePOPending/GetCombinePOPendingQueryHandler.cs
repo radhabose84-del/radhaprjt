@@ -1,0 +1,116 @@
+using MediatR;
+using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetContractPOPending;
+using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImportPOPending;
+
+namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOPending;
+
+public sealed class GetCombinePOPendingQueryHandler
+    : IRequestHandler<GetCombinePOPendingQuery, GetCombinePOPendingVm>
+{
+    private readonly IMediator _mediator;
+    private readonly IPoMethodLookup _lookup;
+
+    public GetCombinePOPendingQueryHandler(IMediator mediator, IPoMethodLookup lookup)
+    {
+        _mediator = mediator;
+        _lookup = lookup;
+    }
+
+    public async Task<GetCombinePOPendingVm> Handle(
+        GetCombinePOPendingQuery request, CancellationToken ct)
+    {
+        var vm = new GetCombinePOPendingVm { POMethodId = request.PoMethodId };
+
+        // If a specific POMethodId is provided, route to that handler only
+        if (request.PoMethodId.HasValue)
+        {
+            if (await _lookup.IsLocalAsync(request.PoMethodId.Value, ct))
+            {
+                var (items, total) = await _mediator.Send(new GetPOLocalPendingQuery
+                {
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    SearchTerm = request.SearchTerm,
+                    PoId = request.PoId,
+                    PoMethodId = request.PoMethodId
+                }, ct);
+                vm.LocalItems = items;
+                vm.LocalTotalCount = total;
+                return vm;
+            }
+
+            if (await _lookup.IsImportAsync(request.PoMethodId.Value, ct))
+            {
+                var (items, total) = await _mediator.Send(new GetImportPOsPendingQuery
+                {
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    SearchTerm = request.SearchTerm,
+                    PoId = request.PoId
+                }, ct);
+                vm.ImportItems = items;
+                vm.ImportTotalCount = total;
+                return vm;
+            }
+
+            if (await _lookup.IsContractAsync(request.PoMethodId.Value, ct))
+            {
+                var (items, total) = await _mediator.Send(new GetContractPOPendingQuery
+                {
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    SearchTerm = request.SearchTerm,
+                    PoId = request.PoId
+                }, ct);
+                vm.ContractItems = items;
+                vm.ContractTotalCount = total;
+                return vm;
+            }
+
+            throw new InvalidOperationException("Unsupported POMethodId.");
+        }
+
+        // No POMethodId → fetch all three in parallel
+        var localTask = _mediator.Send(new GetPOLocalPendingQuery
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            SearchTerm = request.SearchTerm,
+            PoId = request.PoId
+        }, ct);
+
+        var importTask = _mediator.Send(new GetImportPOsPendingQuery
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            SearchTerm = request.SearchTerm,
+            PoId = request.PoId
+        }, ct);
+
+        var contractTask = _mediator.Send(new GetContractPOPendingQuery
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            SearchTerm = request.SearchTerm,
+            PoId = request.PoId
+        }, ct);
+
+        await Task.WhenAll(localTask, importTask, contractTask);
+
+        var (localItems, localTotal) = await localTask;
+        vm.LocalItems = localItems;
+        vm.LocalTotalCount = localTotal;
+
+        var (importItems, importTotal) = await importTask;
+        vm.ImportItems = importItems;
+        vm.ImportTotalCount = importTotal;
+
+        var (contractItems, contractTotal) = await contractTask;
+        vm.ContractItems = contractItems;
+        vm.ContractTotalCount = contractTotal;
+
+        return vm;
+    }
+}

@@ -179,6 +179,23 @@ namespace BackgroundService.Infrastructure.Repositories.Common
             return menuId;
         }
 
+        public async Task<int?> GetMenuIdByTransactionTypeIdAsync(
+            int transactionTypeId,
+            CancellationToken cancellationToken = default)
+        {
+            const string sql = @"
+                SELECT TOP 1 MenuId
+                FROM Finance.TransactionTypeMaster
+                WHERE Id = @TransactionTypeId
+                  AND IsDeleted = 0
+                  AND MenuId IS NOT NULL";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<int?>(new CommandDefinition(
+                sql,
+                new { TransactionTypeId = transactionTypeId },
+                cancellationToken: cancellationToken));
+        }
+
         public async Task<UserSessionDto?> GetSessionByJwtIdAsync(
             string jwtId,
             CancellationToken cancellationToken = default)

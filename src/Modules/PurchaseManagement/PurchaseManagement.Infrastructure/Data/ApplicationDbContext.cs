@@ -38,7 +38,7 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
 using Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Persistence.Configurations;
-using PurchaseManagement.Domain.Entities.ContractPO;
+using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 using PurchaseManagement.Infrastructure.Data.Configurations.ContractPO;
 using PurchaseContractHeaderConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ContractPO.PurchaseContractHeaderConfiguration;

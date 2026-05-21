@@ -86,6 +86,7 @@ namespace BackgroundService.Infrastructure.Data.Notification
             return await base.SaveChangesAsync(cancellationToken);
         }
 
+
         private void UpdateIpFields()
         {
             string currentIp = _ipAddressService.GetSystemIPAddress();

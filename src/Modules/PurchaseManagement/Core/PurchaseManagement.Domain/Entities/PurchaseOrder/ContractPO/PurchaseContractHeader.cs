@@ -1,5 +1,5 @@
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.Entities.ContractPO;
+using PurchaseManagement.Domain.Entities.ContractPOMaster;
 
 namespace PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 

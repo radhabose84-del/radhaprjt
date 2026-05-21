@@ -127,6 +127,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(10,3)")
                         .HasColumnName("NetWeight");
 
+                    b.Property<int?>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
                     b.Property<bool>("QAInspectionRequired")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -158,6 +162,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
 
                     b.HasIndex("GateEntryNo")
                         .IsUnique();
+
+                    b.HasIndex("PartyId");
 
                     b.HasIndex("QAStatusId");
 

@@ -7,7 +7,6 @@ public class CreatePurchaseOrderValidator : AbstractValidator<PurchaseOrderCreat
 {
     public CreatePurchaseOrderValidator()
     {
-        RuleFor(x => x.UnitId).GreaterThan(0);
         RuleFor(x => x.PONumber).MaximumLength(30);
         RuleFor(x => x.PODate).LessThanOrEqualTo(DateTime.Today.AddDays(1));
         RuleFor(x => x.VendorId).GreaterThan(0);

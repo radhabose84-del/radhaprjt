@@ -57,10 +57,19 @@ using PurchaseManagement.Application.PurchaseOrder.BillEntry.Dto;
 using PurchaseManagement.Application.PurchaseOrder.BillEntry.Queries.GetAll;
 using PurchaseManagement.Application.IssueReturn.Command.CreateIssueReturn;
 using PurchaseManagement.Presentation.Validation.IssueReturn;
-using PurchaseManagement.Application.ContractPO.Commands.Create;
-using PurchaseManagement.Application.ContractPO.Commands.Update;
-using PurchaseManagement.Application.ContractPO.Commands.Delete;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Create;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Update;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Delete;
 using PurchaseManagement.Presentation.Validation.ContractPO;
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Cancel;
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Foreclose;
+using PurchaseManagement.Presentation.Validation.PurchaseOrder.Local;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Cancel;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Foreclose;
+using PurchaseManagement.Presentation.Validation.PurchaseOrder.ImportPO;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Cancel;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Foreclose;
+using PurchaseManagement.Presentation.Validation.PurchaseOrder.ContractPO;
 using Microsoft.Extensions.DependencyInjection;
 
 
@@ -128,9 +137,21 @@ namespace PurchaseManagement.Presentation.Validation.Common
             services.AddScoped<IValidator<GetAllPurchaseBillEntryQuery>, GetPurchaseBillEntryListQueryValidator>(); 
             services.AddScoped<IValidator<CreateIssueReturnEntryCommand>, CreateIssueReturnEntryCommandValidator>();
 
-            services.AddScoped<IValidator<CreateContractPOCommand>, CreateContractPOValidator>();
-            services.AddScoped<IValidator<UpdateContractPOCommand>, UpdateContractPOValidator>();
-            services.AddScoped<IValidator<DeleteContractPOCommand>, DeleteContractPOValidator>();
+            services.AddScoped<IValidator<CreateContractPOMasterCommand>, CreateContractPOValidator>();
+            services.AddScoped<IValidator<UpdateContractPOMasterCommand>, UpdateContractPOValidator>();
+            services.AddScoped<IValidator<DeleteContractPOMasterCommand>, DeleteContractPOValidator>();
+
+            // Local PO cancel/foreclose
+            services.AddScoped<IValidator<CancelPurchaseOrderCommand>, CancelPurchaseOrderCommandValidator>();
+            services.AddScoped<IValidator<ForeclosePurchaseOrderCommand>, ForeclosePurchaseOrderCommandValidator>();
+
+            // Import PO cancel/foreclose
+            services.AddScoped<IValidator<CancelImportPOCommand>, CancelImportPOCommandValidator>();
+            services.AddScoped<IValidator<ForecloseImportPOCommand>, ForecloseImportPOCommandValidator>();
+
+            // Contract PO cancel/foreclose
+            services.AddScoped<IValidator<CancelContractPOCommand>, CancelContractPOCommandValidator>();
+            services.AddScoped<IValidator<ForecloseContractPOCommand>, ForecloseContractPOCommandValidator>();
 
         }
     }

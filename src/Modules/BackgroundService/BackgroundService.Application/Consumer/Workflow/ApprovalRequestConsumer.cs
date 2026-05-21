@@ -1,18 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Application.Interfaces.IMiscMaster;
+using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequest;
 using BackgroundService.Application.Workflow.Common.Interfaces.IWorkflowType;
 using BackgroundService.Domain.Common;
-using BackgroundService.Domain.Entities.Workflow;
 using Contracts.Commands.Workflow;
+using Contracts.Dtos.Common;
+using Contracts.Dtos.Purchase;
+using Contracts.Events.Workflow;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-
 
 namespace BackgroundService.Application.Consumer.Workflow
 {
@@ -24,10 +22,16 @@ namespace BackgroundService.Application.Consumer.Workflow
         private readonly IMiscMasterQueryRepository _miscMasterQuery;
         private readonly ILogger<ApprovalRequestConsumer> _logger;
         private readonly IInboxRepository _inbox;
+        private readonly IEventPublisher _eventPublisher;
 
-        public ApprovalRequestConsumer(IWorkflowTypeQuery workflowTypeQuery, IApprovalRequestCommand approvalRequestCommand,
-        IApprovalRequestQuery approvalRequestQuery, IMiscMasterQueryRepository miscMasterQuery, ILogger<ApprovalRequestConsumer> logger,
-        IInboxRepository inbox)
+        public ApprovalRequestConsumer(
+            IWorkflowTypeQuery workflowTypeQuery,
+            IApprovalRequestCommand approvalRequestCommand,
+            IApprovalRequestQuery approvalRequestQuery,
+            IMiscMasterQueryRepository miscMasterQuery,
+            ILogger<ApprovalRequestConsumer> logger,
+            IInboxRepository inbox,
+            IEventPublisher eventPublisher)
         {
             _workflowTypeQuery = workflowTypeQuery;
             _approvalRequestCommand = approvalRequestCommand;
@@ -35,6 +39,7 @@ namespace BackgroundService.Application.Consumer.Workflow
             _miscMasterQuery = miscMasterQuery;
             _logger = logger;
             _inbox = inbox;
+            _eventPublisher = eventPublisher;
         }
 
         public async Task Consume(ConsumeContext<CreateApprovalRequestCommand> context)
@@ -50,16 +55,60 @@ namespace BackgroundService.Application.Consumer.Workflow
                 return;
             }
 
-            _logger.LogInformation("Transaction Created Request Consumer. ModuleTypeName : {ModuleTypeName},Request : {@Request}", context.Message.ModuleTypeName, context.Message);
+            _logger.LogInformation(
+                "Transaction Created Request Consumer. ModuleTypeName : {ModuleTypeName}, Request : {@Request}",
+                context.Message.ModuleTypeName, context.Message);
 
             try
             {
-                await _approvalRequestCommand.CreateBulkAsync(context.Message.ModuleTypeName, context.Message.ModuleTransactionId, context.Message.Payload);
-                await _inbox.MarkAsProcessedAsync(consumerName, messageId, context.Message.CorrelationId, context.CancellationToken);
+                await _approvalRequestCommand.CreateBulkAsync(
+                    context.Message.ModuleTypeName,
+                    context.Message.ModuleTransactionId,
+                    context.Message.Payload,
+                    context.Message.TransactionTypeId);
+
+                await _inbox.MarkAsProcessedAsync(
+                    consumerName, messageId,
+                    context.Message.CorrelationId, context.CancellationToken);
+
+                // ── Auto-approve if no approval rules were found ──────────────────
+                // sp_EvaluateApproval may return without creating any ApprovalRequest
+                // rows when no matching approval rules are configured (e.g. EmergencyPO).
+                // In that case, publish an ApprovedRejectedEvent so the module consumer
+                // updates the transaction status to Approved automatically.
+                var hasApproval = await _approvalRequestQuery.HasApprovalRequestAsync(
+                    context.Message.ModuleTransactionId,
+                    context.Message.ModuleTypeName,
+                    context.CancellationToken);
+
+                if (!hasApproval)
+                {
+                    _logger.LogInformation(
+                        "No approval rules found for {ModuleTypeName} TransactionId={TransactionId}. Auto-approving.",
+                        context.Message.ModuleTypeName,
+                        context.Message.ModuleTransactionId);
+
+                    var autoApproveEvent = new ApprovedRejectedEvent
+                    {
+                        CorrelationId       = context.Message.CorrelationId,
+                        ModuleTransactionId = context.Message.ModuleTransactionId,
+                        ModuleTypeName      = context.Message.ModuleTypeName,
+                        Status              = MiscEnumEntity.Approved,
+                        TransactionTypeId   = context.Message.TransactionTypeId,
+                        LineStatus          = new List<UpdateLineStatusDto>(),
+                        PartyContacts       = new List<PartyRefDto>(),
+                        DynamicFields       = new List<JsonElement>()
+                    };
+
+                    await _eventPublisher.SaveEventAsync(autoApproveEvent);
+                    await _eventPublisher.PublishPendingEventsAsync();
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Transaction Created Request Consumer. ModuleTypeName : {ModuleTypeName},Request : {@Request}", context.Message.ModuleTypeName, context.Message);
+                _logger.LogError(ex,
+                    "Transaction Created Request Consumer. ModuleTypeName : {ModuleTypeName}, Request : {@Request}",
+                    context.Message.ModuleTypeName, context.Message);
             }
         }
     }

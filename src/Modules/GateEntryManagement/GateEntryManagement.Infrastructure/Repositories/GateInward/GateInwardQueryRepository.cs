@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using GateEntryManagement.Application.Common.Interfaces.IGateInward;
 using GateEntryManagement.Application.GateInward.Dto;
@@ -12,12 +13,18 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
     {
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
+        private readonly IPartyLookup _partyLookup;
         private readonly IIPAddressService _ipAddressService;
 
-        public GateInwardQueryRepository(IDbConnection dbConnection, IUnitLookup unitLookup, IIPAddressService ipAddressService)
+        public GateInwardQueryRepository(
+            IDbConnection dbConnection,
+            IUnitLookup unitLookup,
+            IPartyLookup partyLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
+            _partyLookup = partyLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -37,6 +44,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
 
                 SELECT h.Id, h.GateEntryNo,
                     h.VehicleMovementRecordId, vmr.VehicleMovementId, vmr.VehicleNumber, vmr.DriverName,
+                    h.PartyId,
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
@@ -60,6 +68,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             var totalCount = await result.ReadFirstAsync<int>();
 
             await PopulateUnitNames(list);
+            await PopulatePartyNamesAsync(list);
             await ComposeAttachmentUrlsAsync(list);
             return (list, totalCount);
         }
@@ -69,6 +78,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             const string headerSql = @"
                 SELECT h.Id, h.GateEntryNo,
                     h.VehicleMovementRecordId, vmr.VehicleMovementId, vmr.VehicleNumber, vmr.DriverName,
+                    h.PartyId,
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
@@ -93,6 +103,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             header.GateInwardDetails = details;
 
             await PopulateUnitNames(new List<GateInwardHdrDto> { header });
+            await PopulatePartyNamesAsync(new List<GateInwardHdrDto> { header });
             await ComposeAttachmentUrlsAsync(new List<GateInwardHdrDto> { header });
             return header;
         }
@@ -169,6 +180,24 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
 
             foreach (var item in list)
                 item.AttachmentFilePath = $"{baseUrl}{folder}/{item.AttachmentFileName}";
+        }
+
+        private async Task PopulatePartyNamesAsync(List<GateInwardHdrDto> items)
+        {
+            var partyIds = items
+                .Where(x => x.PartyId.HasValue)
+                .Select(x => x.PartyId!.Value)
+                .Distinct()
+                .ToList();
+            if (partyIds.Count == 0) return;
+
+            var parties = await _partyLookup.GetByIdsAsync(partyIds);
+            var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+            foreach (var item in items)
+            {
+                if (item.PartyId.HasValue && partyDict.TryGetValue(item.PartyId.Value, out var name))
+                    item.PartyName = name;
+            }
         }
 
         private async Task PopulateUnitNames(List<GateInwardHdrDto> items)

@@ -10,6 +10,7 @@ namespace BackgroundService.Domain.Entities.Workflow
     {
         public int ModuleId { get; set; }
         public int MenuId { get; set; }
+        public int? TransactionTypeId { get; set; }
         public byte HasLine { get; set; }
         public byte IsMultiselect  { get; set; }
         public ICollection<ApprovalStepDetail> ApprovalStepDetails { get; set; }

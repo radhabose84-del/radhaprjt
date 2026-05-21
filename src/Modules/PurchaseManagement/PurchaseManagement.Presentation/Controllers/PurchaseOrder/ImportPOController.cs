@@ -1,6 +1,8 @@
 using PurchaseManagement.Application.PurchaseOrder.DeletePODocument;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Cancel;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPOAmendment;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImportPOPending;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetPOById;
@@ -57,8 +59,8 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
         }
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingImportPO(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 20,
+            [FromQuery] int? pageNumber = 1,
+            [FromQuery] int? pageSize = 20,
             [FromQuery] string? searchTerm = null,
             [FromQuery] int? poId = null,
             CancellationToken ct = default)
@@ -71,20 +73,13 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
                 SearchTerm = searchTerm
             }, ct);
 
-            if (items == null || items.Count == 0)
-            {
-                return NotFound(new
-                {
-                    StatusCode = StatusCodes.Status404NotFound,
-                    data = (object?)null,
-                    message = $"Pending PO data for PO ID {poId} not found"
-                });
-            }
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
-                data = new { Items = items, TotalCount = total },
-                message = $"Pending PO data for PO ID {poId} fetched successfully"
+                data = items,
+                TotalCount = total,
+                PageNumber = pageNumber,
+                PageSize = pageSize
             });
         }
         [HttpPost("amendment")]
@@ -120,7 +115,33 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
                 errors = ""
             });
         }
-           [HttpDelete("delete-document")]
+        [HttpPut("cancel/{id:int}")]
+        public async Task<IActionResult> Cancel([FromRoute] int id, CancellationToken ct)
+        {
+            var result = await Mediator.Send(new CancelImportPOCommand(id), ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Import PO cancelled successfully." : "Failed to cancel Import PO."
+            });
+        }
+
+        [HttpPut("foreclose/{id:int}")]
+        public async Task<IActionResult> Foreclose([FromRoute] int id, CancellationToken ct)
+        {
+            var result = await Mediator.Send(new ForecloseImportPOCommand(id), ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Import PO foreclosed successfully." : "Failed to foreclose Import PO."
+            });
+        }
+
+        [HttpDelete("delete-document")]
         public async Task<IActionResult> DeleteDocument([FromBody] DeletePODocumentCommand deleteFileCommand)
         {
             if (deleteFileCommand == null || string.IsNullOrWhiteSpace(deleteFileCommand.PODocumentPath))

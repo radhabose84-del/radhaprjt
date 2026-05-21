@@ -1,12 +1,12 @@
 using FluentValidation;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
-using PurchaseManagement.Application.ContractPO.Commands.Update;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Update;
 
 namespace PurchaseManagement.Presentation.Validation.ContractPO;
 
-public sealed class UpdateContractPOValidator : AbstractValidator<UpdateContractPOCommand>
+public sealed class UpdateContractPOValidator : AbstractValidator<UpdateContractPOMasterCommand>
 {
-    public UpdateContractPOValidator(IContractPOQueryRepository queryRepo)
+    public UpdateContractPOValidator(IContractPOMasterQueryRepository queryRepo)
     {
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("A valid Id is required.")

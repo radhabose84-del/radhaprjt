@@ -32,4 +32,14 @@ public interface IImportPOCommandRepository
 
     Task<int> CreateWithoutTransactionAsync(PurchaseOrderHeader aggregate, ImportPOCreateDto dto, CancellationToken ct);
     Task<int> UpdateWithoutTransactionAsync(PurchaseOrderHeader incoming, ImportPOUpdateDto dto, CancellationToken ct);
+    Task<int> AmendWithoutTransactionAsync(
+        PurchaseOrderHeader existing,
+        ImportPOUpdateDto dto,
+        PurchaseOrderHeader revisedAuditSeed,
+        CancellationToken ct);
+    Task SaveChangesAsync(CancellationToken ct);
+
+    // ── Cancel / Foreclose ───────────────────────────────────────────────────
+    Task<bool> CancelAsync(int id, CancellationToken ct);
+    Task<bool> ForecloseAsync(int id, CancellationToken ct);
 }

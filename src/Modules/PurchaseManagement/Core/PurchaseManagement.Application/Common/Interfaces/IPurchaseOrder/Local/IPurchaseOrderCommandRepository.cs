@@ -14,6 +14,7 @@ public interface IPurchaseOrderCommandRepository
         Task<string> GenerateNextCodeAsync(int POCategoryId, int? poMethodId, DateTimeOffset poDate, string unitCode, CancellationToken ct = default);
         Task<bool> UpdatePOApproveAsync(int id, int statusId, CancellationToken ct = default);
         Task<int> AmendAsync(PurchaseOrderHeader existing,  PurchaseOrderUpdateDto dto, CancellationToken ct);
+        Task<int> AmendWithoutTransactionAsync(PurchaseOrderHeader existing, PurchaseOrderUpdateDto dto, CancellationToken ct);
         Task<PurchaseOrderHeader?> GetAggregateAsync(int id, CancellationToken ct);
         Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct);
 

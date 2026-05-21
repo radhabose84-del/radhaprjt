@@ -99,7 +99,6 @@ public sealed class ImportPurchasePaymentTermDto
 public class ImportPOCreateDto
 {
     public int Id { get; set; }
-    public int UnitId { get; set; }
     public string PONumber { get; set; } = default!;
     public DateTimeOffset PODate { get; set; }
     public int POCategoryId { get; set; }
@@ -120,7 +119,6 @@ public class ImportPOCreateDto
     public decimal? TDSTotal { get; set; }
     public decimal? AdvanceAmount { get; set; }
     public decimal PurchaseValue { get; set; }
-    public int StatusId { get; set; }
     public int RevisionNo { get; set; }
     public string? AmendmentReason { get; set; }
     public int? CostCenterId { get; set; }
@@ -158,6 +156,10 @@ public sealed class ImportPOListItemDto
     public decimal PurchaseValue { get; set; }
     public int StatusId { get; set; }
 }
-public sealed class ImportPODetailVm : ImportPOUpdateDto { }
+public sealed class ImportPODetailVm : ImportPOUpdateDto
+{
+    public int UnitId { get; set; }
+    public int StatusId { get; set; }
+}
 public sealed class AutocompleteImportDto { public int Id { get; set; } public string Label { get; set; } = default!; }
 

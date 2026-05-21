@@ -93,7 +93,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Create
                 r.Contract.POMethodId = r.POMethodId;
 
                 var response = await _mediator.Send(
-                    new CreateContractReleasePOCommand(r.Contract), ct);
+                    new CreateContractPOCommand(r.Contract), ct);
 
                 return response;
             }

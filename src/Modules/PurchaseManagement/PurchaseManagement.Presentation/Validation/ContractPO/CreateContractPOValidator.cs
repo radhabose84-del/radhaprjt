@@ -1,15 +1,12 @@
 using FluentValidation;
-using PurchaseManagement.Application.ContractPO.Commands.Create;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Create;
 
 namespace PurchaseManagement.Presentation.Validation.ContractPO;
 
-public sealed class CreateContractPOValidator : AbstractValidator<CreateContractPOCommand>
+public sealed class CreateContractPOValidator : AbstractValidator<CreateContractPOMasterCommand>
 {
     public CreateContractPOValidator()
     {
-        RuleFor(x => x.UnitId)
-            .GreaterThan(0).WithMessage("UnitId is required.");
-
         RuleFor(x => x.ContractDate)
             .NotEmpty().WithMessage("ContractDate is required.");
 

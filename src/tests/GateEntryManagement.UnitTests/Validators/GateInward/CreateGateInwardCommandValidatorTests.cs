@@ -1,3 +1,5 @@
+using Contracts.Dtos.Lookups.Party;
+using Contracts.Interfaces.Lookups.Party;
 using FluentValidation.TestHelper;
 using GateEntryManagement.Application.Common.Interfaces.IGateInward;
 using GateEntryManagement.Application.GateInward.Commands.CreateGateInward;
@@ -10,14 +12,16 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
     public sealed class CreateGateInwardCommandValidatorTests
     {
         private readonly Mock<IGateInwardQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IPartyLookup> _mockPartyLookup = new(MockBehavior.Strict);
 
         private CreateGateInwardCommandValidator CreateValidator() =>
-            new(new MaxLengthProvider(null), _mockQueryRepo.Object);
+            new(new MaxLengthProvider(null), _mockQueryRepo.Object, _mockPartyLookup.Object);
 
         private static CreateGateInwardCommand ValidCommand() =>
             new()
             {
                 VehicleMovementRecordId = 1,
+                PartyId = 1099,
                 UnitId = 1,
                 GrossWeight = 100,
                 TareWeight = 50,
@@ -30,10 +34,13 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
                 }
             };
 
-        private void SetupAllAsyncMocks(int vmrId = 1, int unitId = 1)
+        private void SetupAllAsyncMocks(int vmrId = 1, int unitId = 1, int partyId = 1099)
         {
             _mockQueryRepo.Setup(r => r.VehicleMovementRecordExistsAsync(vmrId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(unitId)).ReturnsAsync(true);
+            _mockPartyLookup
+                .Setup(p => p.GetByIdAsync(partyId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PartyLookupDto { Id = partyId, PartyName = "Test Party" });
         }
 
         [Fact]
@@ -55,6 +62,9 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
             // VMR is 0 so FKColumnDelete .When(x => x.VehicleMovementRecordId > 0) skips
             // UnitId is 1 so FKColumnDelete .When(x => x.UnitId > 0) runs
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
+            _mockPartyLookup
+                .Setup(p => p.GetByIdAsync(1099, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PartyLookupDto { Id = 1099, PartyName = "Test Party" });
             // QAStatusId is null so .When() guard skips
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -82,6 +92,9 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
             // UnitId is 0 so FKColumnDelete .When(x => x.UnitId > 0) skips
             // VMR is 1 so FKColumnDelete .When(x => x.VehicleMovementRecordId > 0) runs
             _mockQueryRepo.Setup(r => r.VehicleMovementRecordExistsAsync(1)).ReturnsAsync(true);
+            _mockPartyLookup
+                .Setup(p => p.GetByIdAsync(1099, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PartyLookupDto { Id = 1099, PartyName = "Test Party" });
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -95,6 +108,9 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
             command.VehicleMovementRecordId = 999;
             _mockQueryRepo.Setup(r => r.VehicleMovementRecordExistsAsync(999)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
+            _mockPartyLookup
+                .Setup(p => p.GetByIdAsync(1099, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PartyLookupDto { Id = 1099, PartyName = "Test Party" });
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -108,10 +124,43 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
             command.UnitId = 999;
             _mockQueryRepo.Setup(r => r.VehicleMovementRecordExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(999)).ReturnsAsync(false);
+            _mockPartyLookup
+                .Setup(p => p.GetByIdAsync(1099, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PartyLookupDto { Id = 1099, PartyName = "Test Party" });
 
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.UnitId);
+        }
+
+        [Fact]
+        public async Task Validate_EmptyPartyId_FailsValidation()
+        {
+            var command = ValidCommand();
+            command.PartyId = null;
+            // PartyId is null so FKColumnDelete .When() guard skips; NotEmpty triggers.
+            _mockQueryRepo.Setup(r => r.VehicleMovementRecordExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.PartyId);
+        }
+
+        [Fact]
+        public async Task Validate_InvalidPartyId_FailsValidation()
+        {
+            var command = ValidCommand();
+            command.PartyId = 9999;
+            _mockQueryRepo.Setup(r => r.VehicleMovementRecordExistsAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
+            _mockPartyLookup
+                .Setup(p => p.GetByIdAsync(9999, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((PartyLookupDto?)null);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.PartyId);
         }
 
         [Fact]
