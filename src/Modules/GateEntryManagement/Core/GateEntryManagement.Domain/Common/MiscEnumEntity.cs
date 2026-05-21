@@ -3,6 +3,10 @@ namespace GateEntryManagement.Domain.Common
     public static class MiscEnumEntity
     {
         public const string GateEntryImage = "GateEntryImage";
+
+        // Server base URL for file preview (per-environment: 126 dev / 130 QA)
+        public const string ImagePath = "ImagePath";
+
         public const string Approved = "Approved";
 
         // VMR Status

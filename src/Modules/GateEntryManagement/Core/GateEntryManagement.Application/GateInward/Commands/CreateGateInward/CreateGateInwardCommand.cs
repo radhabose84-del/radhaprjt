@@ -15,5 +15,13 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
         public string? Remarks { get; set; }
 
         public List<CreateGateInwardDetailDto>? GateInwardDetails { get; set; }
+
+        // Single optional Gate Entry Document — staged via upload-attachment first
+        public GateInwardAttachmentStageRef? Attachment { get; set; }
+    }
+
+    public class GateInwardAttachmentStageRef
+    {
+        public string FileName { get; set; } = string.Empty;
     }
 }

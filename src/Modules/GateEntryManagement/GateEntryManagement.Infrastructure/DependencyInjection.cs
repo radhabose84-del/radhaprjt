@@ -114,6 +114,7 @@ namespace GateEntryManagement.Infrastructure
             // ── Gate Inward Repositories ──────────────────────────────────
             services.AddScoped<IGateInwardCommandRepository, GateInwardCommandRepository>();
             services.AddScoped<IGateInwardQueryRepository, GateInwardQueryRepository>();
+            services.AddScoped<IGateInwardAttachmentFileStorage, GateInwardAttachmentFileStorage>();
 
             return services;
         }

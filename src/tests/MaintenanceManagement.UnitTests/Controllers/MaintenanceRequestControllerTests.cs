@@ -5,8 +5,9 @@ using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestStatusCommand;
-using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExistingVendorDetails;
+using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetVendors;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExternalRequestById;
+using Contracts.Dtos.Lookups.Party;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceDipatchMode;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceExternalRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequest;
@@ -131,13 +132,30 @@ namespace MaintenanceManagement.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task GetExistingVendor_ReturnsOkResult()
+        public async Task GetVendors_ReturnsOkResult()
         {
-            _mockMediator.Setup(m => m.Send(It.IsAny<GetExistingVendorDetailsQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<List<GetExistingVendorDetailsDto>> { IsSuccess = true, Data = new() { new() } });
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetVendorsQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<List<SupplierLookupDto>>
+                {
+                    IsSuccess = true,
+                    Data = new() { new SupplierLookupDto { Id = 1, VendorCode = "V001", VendorName = "Acme" } }
+                });
 
-            var result = await CreateSut().GetExistingVendor("U001", "V001");
+            var result = await CreateSut().GetVendors("Acme");
             result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetVendors_CallsMediatorSend_Once()
+        {
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetVendorsQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<List<SupplierLookupDto>> { IsSuccess = true, Data = new() });
+
+            await CreateSut().GetVendors(null);
+
+            _mockMediator.Verify(
+                m => m.Send(It.IsAny<GetVendorsQuery>(), It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         // ── ESR linkage endpoints (Service PO consumer) ────────────────────────

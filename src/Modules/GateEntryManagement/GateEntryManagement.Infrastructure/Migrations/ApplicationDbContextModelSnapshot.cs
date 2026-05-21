@@ -64,6 +64,14 @@ namespace GateEntryManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AttachmentFileName")
+                        .HasColumnType("nvarchar(260)")
+                        .HasColumnName("AttachmentFileName");
+
+                    b.Property<string>("AttachmentFilePath")
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("AttachmentFilePath");
+
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
                         .HasColumnName("CreatedBy");

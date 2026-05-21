@@ -24,5 +24,13 @@ namespace SalesManagement.Application.Common.Interfaces.IComplaint
         // (QC Accepted or Closed). Used by UpdateComplaintCommandValidator to
         // block edits on records that should no longer be mutable.
         Task<bool> IsComplaintFinalizedAsync(int id);
+
+        // Resolves the distinct effective Agent id(s) for a complaint (Sales schema only):
+        // ComplaintHeader → ComplaintDetail → InvoiceHeader → DispatchAdviceHeader
+        // → SalesOrderHeader, agent = COALESCE(NULLIF(InvoiceHeader.AgentId,0),
+        // SalesOrderHeader.AgentId). Returns distinct agent ids > 0; empty if none.
+        // The Agent→Marketing-Officer→UserId resolution is done separately via the
+        // cross-module IOfficerAgentUserLookup (no cross-module SQL JOIN here).
+        Task<List<int>> GetComplaintAgentIdsAsync(int complaintId);
     }
 }

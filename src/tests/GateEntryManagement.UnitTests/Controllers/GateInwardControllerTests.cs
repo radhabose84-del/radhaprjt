@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using GateEntryManagement.Presentation.Controllers;
 using GateEntryManagement.Application.GateInward.Commands.CreateGateInward;
 using GateEntryManagement.Application.GateInward.Commands.DeleteGateInward;
+using GateEntryManagement.Application.GateInward.Commands.UploadGateInwardAttachment;
+using GateEntryManagement.Application.GateInward.Commands.DeleteGateInwardAttachment;
 using GateEntryManagement.Application.GateInward.Queries.GetAllGateInward;
 using GateEntryManagement.Application.GateInward.Queries.GetGateInwardById;
 using GateEntryManagement.Application.GateInward.Queries.GetGateInwardAutoComplete;
@@ -96,6 +98,44 @@ namespace GateEntryManagement.UnitTests.Controllers
             var result = await CreateSut().CreateGateInward(new CreateGateInwardCommand());
 
             result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task UploadAttachment_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<UploadGateInwardAttachmentCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UploadGateInwardAttachmentResultDto("TEMP_a.pdf"));
+
+            var result = await CreateSut().UploadAttachment(new UploadGateInwardAttachmentCommand());
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task DeleteAttachment_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<DeleteGateInwardAttachmentCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var result = await CreateSut().DeleteAttachment(1);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task DeleteAttachment_CallsMediatorSend_Once()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<DeleteGateInwardAttachmentCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            await CreateSut().DeleteAttachment(1);
+
+            _mockMediator.Verify(
+                m => m.Send(It.IsAny<DeleteGateInwardAttachmentCommand>(), It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]

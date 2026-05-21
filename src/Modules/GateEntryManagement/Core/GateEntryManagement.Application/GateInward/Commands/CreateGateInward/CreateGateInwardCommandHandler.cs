@@ -8,6 +8,7 @@ using GateEntryManagement.Domain.Common;
 using GateEntryManagement.Domain.Entities;
 using GateEntryManagement.Domain.Events;
 using MediatR;
+using System.IO;
 
 namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
 {
@@ -19,6 +20,7 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IGateInwardAttachmentFileStorage _attachmentStorage;
 
         public CreateGateInwardCommandHandler(
             IGateInwardCommandRepository commandRepository,
@@ -26,7 +28,8 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
             IDocumentSequenceLookup documentSequenceLookup,
             IMediator mediator,
             IMapper mapper,
-            IIPAddressService ipAddressService)
+            IIPAddressService ipAddressService,
+            IGateInwardAttachmentFileStorage attachmentStorage)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -34,6 +37,7 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
             _mediator = mediator;
             _mapper = mapper;
             _ipAddressService = ipAddressService;
+            _attachmentStorage = attachmentStorage;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateGateInwardCommand request, CancellationToken cancellationToken)
@@ -62,7 +66,34 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
                 entity.GateInwardDetails = _mapper.Map<List<GateInwardDtl>>(request.GateInwardDetails);
             }
 
-            var newId = await _commandRepository.CreateAsync(entity, typeId.Value);
+            // Single optional attachment: move staged file → permanent misc-configured folder
+            string? movedRelativePath = null;
+            if (request.Attachment != null && !string.IsNullOrWhiteSpace(request.Attachment.FileName))
+            {
+                var dirs = await _queryRepository.GetDocumentDirectoryPath();
+                var subFolder = dirs.GetValueOrDefault(MiscEnumEntity.GateEntryImage, string.Empty);
+
+                movedRelativePath = await _attachmentStorage.MoveStagedToPermanentAsync(
+                    request.Attachment.FileName, subFolder, entity.GateEntryNo!, cancellationToken);
+
+                entity.AttachmentFileName = Path.GetFileName(movedRelativePath);
+                entity.AttachmentFilePath = movedRelativePath;
+            }
+
+            int newId;
+            try
+            {
+                newId = await _commandRepository.CreateAsync(entity, typeId.Value);
+            }
+            catch
+            {
+                if (movedRelativePath != null)
+                {
+                    try { await _attachmentStorage.DeleteAsync(movedRelativePath, CancellationToken.None); }
+                    catch { /* best-effort cleanup */ }
+                }
+                throw;
+            }
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

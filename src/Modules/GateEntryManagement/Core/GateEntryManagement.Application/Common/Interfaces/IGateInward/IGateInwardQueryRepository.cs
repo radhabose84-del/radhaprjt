@@ -11,5 +11,9 @@ namespace GateEntryManagement.Application.Common.Interfaces.IGateInward
         Task<bool> VehicleMovementRecordExistsAsync(int vmrId);
         Task<bool> UnitExistsAsync(int unitId);
         Task<bool> MiscMasterExistsAsync(int id);
+
+        // Returns Gate.MiscTypeMaster Descriptions keyed by MiscTypeCode
+        // for ImagePath (server base URL) + GateEntryImage (sub-folder).
+        Task<Dictionary<string, string>> GetDocumentDirectoryPath();
     }
 }

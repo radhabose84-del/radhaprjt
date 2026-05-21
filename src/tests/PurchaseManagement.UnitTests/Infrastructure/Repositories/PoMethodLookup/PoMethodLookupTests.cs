@@ -31,7 +31,7 @@ namespace PurchaseManagement.UnitTests.Infrastructure.Repositories.PoMethodLooku
                 IsDeleted = IsDelete.NotDeleted
             };
 
-        private void SetupHappyPath(int localId = 11, int importId = 22)
+        private void SetupHappyPath(int localId = 11, int importId = 22, int contractId = 0)
         {
             _miscRepo
                 .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Local))
@@ -40,6 +40,10 @@ namespace PurchaseManagement.UnitTests.Infrastructure.Repositories.PoMethodLooku
             _miscRepo
                 .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Import))
                 .ReturnsAsync(Misc(importId, MiscEnumEntity.Import));
+
+            _miscRepo
+                .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Contract))
+                .ReturnsAsync(contractId > 0 ? Misc(contractId, MiscEnumEntity.Contract) : null!);
         }
 
         // ── GetLocalIdAsync / GetImportIdAsync ────────────────────────────────
@@ -171,6 +175,9 @@ namespace PurchaseManagement.UnitTests.Infrastructure.Repositories.PoMethodLooku
             _miscRepo
                 .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Import))
                 .ReturnsAsync(Misc(22, MiscEnumEntity.Import));
+            _miscRepo
+                .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Contract))
+                .ReturnsAsync((MiscMaster)null!);
 
             Func<Task> act = async () => await CreateSut().GetLocalIdAsync(CancellationToken.None);
 
@@ -187,6 +194,9 @@ namespace PurchaseManagement.UnitTests.Infrastructure.Repositories.PoMethodLooku
             _miscRepo
                 .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Import))
                 .ReturnsAsync(Misc(0, MiscEnumEntity.Import));   // Id = 0 is treated as "not configured"
+            _miscRepo
+                .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Contract))
+                .ReturnsAsync((MiscMaster)null!);
 
             Func<Task> act = async () => await CreateSut().GetImportIdAsync(CancellationToken.None);
 
@@ -202,6 +212,9 @@ namespace PurchaseManagement.UnitTests.Infrastructure.Repositories.PoMethodLooku
                 .ReturnsAsync((MiscMaster)null!);
             _miscRepo
                 .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Import))
+                .ReturnsAsync((MiscMaster)null!);
+            _miscRepo
+                .Setup(r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Contract))
                 .ReturnsAsync((MiscMaster)null!);
 
             Func<Task> act = async () => await CreateSut().IsValidAsync(1, CancellationToken.None);
@@ -221,12 +234,15 @@ namespace PurchaseManagement.UnitTests.Infrastructure.Repositories.PoMethodLooku
             await sut.GetImportIdAsync(CancellationToken.None);
             await sut.IsLocalAsync(11, CancellationToken.None);
 
-            // 3 calls × 2 misc lookups each = 6 total
+            // 3 calls × 3 misc lookups each = 9 total
             _miscRepo.Verify(
                 r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Local),
                 Times.Exactly(3));
             _miscRepo.Verify(
                 r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Import),
+                Times.Exactly(3));
+            _miscRepo.Verify(
+                r => r.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Contract),
                 Times.Exactly(3));
         }
     }

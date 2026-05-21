@@ -1,4 +1,5 @@
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using FluentValidation.TestHelper;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceRequest;
@@ -12,9 +13,10 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceRequest
     {
         private readonly Mock<IMaintenanceRequestQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IDepartmentLookup> _mockDeptLookup = new(MockBehavior.Loose);
+        private readonly Mock<ISupplierLookup> _mockSupplierLookup = new(MockBehavior.Loose);
 
         private CreateMaintenanceRequestCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockDeptLookup.Object);
+            new(_mockQueryRepo.Object, _mockDeptLookup.Object, _mockSupplierLookup.Object);
 
         // Sets up every async lookup to return a "found" result so only the rule under test fails.
         private void SetupAllLookupsAsValid()
@@ -118,11 +120,12 @@ namespace MaintenanceManagement.UnitTests.Validators.MaintenanceRequest
     public sealed class UpdateMaintenanceRequestCommandValidatorTests
     {
         private readonly Mock<IMaintenanceRequestQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<ISupplierLookup> _mockSupplierLookup = new(MockBehavior.Loose);
 
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
-            var validator = new UpdateMaintenanceRequestCommandValidator(_mockQueryRepo.Object);
+            var validator = new UpdateMaintenanceRequestCommandValidator(_mockQueryRepo.Object, _mockSupplierLookup.Object);
             var command = new UpdateMaintenanceRequestCommand { Id = 0 };
             var result = await validator.TestValidateAsync(command);
             result.Errors.Should().NotBeEmpty();

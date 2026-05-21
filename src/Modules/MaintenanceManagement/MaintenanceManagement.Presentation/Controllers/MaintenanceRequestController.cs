@@ -8,7 +8,7 @@ using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanc
 using Contracts.Common;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand;
-using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExistingVendorDetails;
+using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetVendors;
 using MaintenanceManagement.Application.Common.Interfaces.IMaintenanceCategory;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestStatusCommand;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceExternalRequest;
@@ -263,26 +263,19 @@ namespace MaintenanceManagement.Presentation.Controllers
             });
         } 
 
-        [HttpGet("GetExistingVendor/{oldUnitId}/{VendorCode}")]
-        public async Task<IActionResult> GetExistingVendor(string oldUnitId, string VendorCode)
+        // Searchable vendor dropdown for the External Service Request screen.
+        // Values come only from the ERP Party Master (active suppliers); legacy
+        // integrated-system vendor fetch has been removed.
+        [HttpGet("vendors")]
+        public async Task<IActionResult> GetVendors([FromQuery] string term = null)
         {
-            if (oldUnitId == null)
-            {
-                return BadRequest(new { StatusCode = StatusCodes.Status400BadRequest, Message = "Invalid OldUnitId" });
-            }
-            if (VendorCode =="0")
-            {
-                return BadRequest(new { StatusCode = StatusCodes.Status400BadRequest, Message = "Invalid VendorCode" });
-            }
+            var result = await Mediator.Send(new GetVendorsQuery { Term = term });
 
-            var result = await Mediator.Send(new GetExistingVendorDetailsQuery { OldUnitCode = oldUnitId,VendorCode = VendorCode });
-
-            if (result == null || !result.IsSuccess || result.Data == null)
+            return Ok(new
             {
-                return NotFound(new { StatusCode = StatusCodes.Status404NotFound, Message = "No Vendor details found" });
-            }
-
-            return Ok(new { StatusCode = StatusCodes.Status200OK, Data = result.Data });
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data
+            });
         }
 
 

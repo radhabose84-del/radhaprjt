@@ -921,5 +921,27 @@ namespace SalesManagement.Infrastructure.Repositories.Complaint
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
         }
+
+        public async Task<List<int>> GetComplaintAgentIdsAsync(int complaintId)
+        {
+            // Sales-schema only. Agent is usually 0 on the invoice; the real agent sits
+            // on the Sales Order reached via InvoiceHeader.DispatchAdviceId →
+            // DispatchAdviceHeader.SalesOrderId. COALESCE(NULLIF(ih.AgentId,0),
+            // so.AgentId) keeps invoices that already have a valid agent unchanged and
+            // only falls back to the order's agent otherwise. The Agent → MO → UserId
+            // hop is done by the cross-module IOfficerAgentUserLookup, not here.
+            const string sql = @"
+                SELECT DISTINCT COALESCE(NULLIF(ih.AgentId,0), so.AgentId) AS AgentId
+                FROM   Sales.ComplaintHeader      ch
+                INNER  JOIN Sales.ComplaintDetail cd  ON cd.ComplaintHeaderId = ch.Id AND cd.IsDeleted = 0
+                INNER  JOIN Sales.InvoiceHeader   ih  ON ih.Id = cd.InvoiceHeaderId   AND ih.IsDeleted = 0
+                LEFT   JOIN Sales.DispatchAdviceHeader dah ON dah.Id = ih.DispatchAdviceId AND dah.IsDeleted = 0
+                LEFT   JOIN Sales.SalesOrderHeader     so  ON so.Id = dah.SalesOrderId     AND so.IsDeleted = 0
+                WHERE  ch.Id = @ComplaintId AND ch.IsDeleted = 0
+                  AND  COALESCE(NULLIF(ih.AgentId,0), so.AgentId) > 0;";
+
+            var result = await _dbConnection.QueryAsync<int>(sql, new { ComplaintId = complaintId });
+            return result.ToList();
+        }
     }
 }

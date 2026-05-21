@@ -6,6 +6,7 @@ using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Infrastructure.Repositories.GateInward;
 using GateEntryManagement.Infrastructure.Data;
+using GateEntryManagement.Domain.Common;
 
 namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
 {
@@ -119,6 +120,77 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             var mockDocSeq = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
             var repo = new GateInwardCommandRepository(ctx, mockDocSeq.Object);
             await repo.SoftDeleteAsync(id, CancellationToken.None);
+        }
+
+        private async Task SeedDocumentPathMiscAsync(ApplicationDbContext ctx)
+        {
+            await ctx.MiscTypeMaster.AddRangeAsync(
+                new GateEntryManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = MiscEnumEntity.ImagePath,
+                    Description = "http://192.168.1.126/Resources/",
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                },
+                new GateEntryManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = MiscEnumEntity.GateEntryImage,
+                    Description = "GateEntry",
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                });
+            await ctx.SaveChangesAsync();
+        }
+
+        private async Task<int> SeedGateInwardWithAttachmentAsync(ApplicationDbContext ctx, int vmrId)
+        {
+            var entity = new GateEntryManagement.Domain.Entities.GateInwardHdr
+            {
+                GateEntryNo = "GE-ATT-1",
+                VehicleMovementRecordId = vmrId,
+                GrossWeight = 1000,
+                TareWeight = 200,
+                NetWeight = 800,
+                QAInspectionRequired = false,
+                UnitId = 1,
+                AttachmentFileName = "abc.pdf",
+                AttachmentFilePath = "GateEntry/abc.pdf",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.GateInwardHdr.AddAsync(entity);
+            await ctx.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        // --- ATTACHMENT / DOCUMENT PATH ---
+
+        [Fact]
+        public async Task GetDocumentDirectoryPath_Should_Return_Both_Misc_Descriptions()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await SeedPrerequisitesAsync(ctx);
+            await SeedDocumentPathMiscAsync(ctx);
+
+            var dirs = await CreateQueryRepo().GetDocumentDirectoryPath();
+
+            dirs[MiscEnumEntity.ImagePath].Should().Be("http://192.168.1.126/Resources/");
+            dirs[MiscEnumEntity.GateEntryImage].Should().Be("GateEntry");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Compose_Attachment_Preview_Url()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (_, vmrId) = await SeedPrerequisitesAsync(ctx);
+            await SeedDocumentPathMiscAsync(ctx);
+            var id = await SeedGateInwardWithAttachmentAsync(ctx, vmrId);
+
+            var dto = await CreateQueryRepo().GetByIdAsync(id);
+
+            dto.Should().NotBeNull();
+            dto!.AttachmentFileName.Should().Be("abc.pdf");
+            dto.AttachmentFilePath.Should().Be("http://192.168.1.126/Resources/GateEntry/abc.pdf");
         }
 
         // --- GET ALL ---

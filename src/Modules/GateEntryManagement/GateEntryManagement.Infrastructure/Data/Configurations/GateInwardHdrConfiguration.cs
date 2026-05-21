@@ -73,6 +73,17 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(250)")
                 .IsRequired(false);
 
+            // Single Gate Entry Document (optional)
+            builder.Property(t => t.AttachmentFileName)
+                .HasColumnName("AttachmentFileName")
+                .HasColumnType("nvarchar(260)")
+                .IsRequired(false);
+
+            builder.Property(t => t.AttachmentFilePath)
+                .HasColumnName("AttachmentFilePath")
+                .HasColumnType("nvarchar(500)")
+                .IsRequired(false);
+
             // Audit
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive").HasColumnType("bit")

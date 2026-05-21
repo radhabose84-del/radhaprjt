@@ -79,10 +79,10 @@ namespace UserManagement.IntegrationTests.Repositories.RoleEntitlements
             return module.Id;
         }
 
-        // --- ADD ROLE ENTITLEMENTS ---
+        // --- SAVE ROLE ENTITLEMENTS (create path) ---
 
         [Fact]
-        public async Task AddRoleEntitlementsAsync_Should_Return_True()
+        public async Task SaveRoleEntitlementsAsync_Should_Return_True()
         {
             await using var ctx = CreateDbContext();
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RE_Add");
@@ -95,7 +95,7 @@ namespace UserManagement.IntegrationTests.Repositories.RoleEntitlements
                 new RoleModule { RoleId = roleId, ModuleId = moduleId }
             };
 
-            var result = await repo.AddRoleEntitlementsAsync(
+            var result = await repo.SaveRoleEntitlementsAsync(
                 roleId,
                 roleModules,
                 new List<RoleParent>(),
@@ -107,7 +107,7 @@ namespace UserManagement.IntegrationTests.Repositories.RoleEntitlements
         }
 
         [Fact]
-        public async Task AddRoleEntitlementsAsync_Should_Remove_Existing_Before_Adding()
+        public async Task SaveRoleEntitlementsAsync_Should_Replace_Existing_Not_Duplicate()
         {
             await using var ctx = CreateDbContext();
             var roleId = await EnsureRoleAsync(ctx, "TestRole_RE_Replace");
@@ -115,25 +115,24 @@ namespace UserManagement.IntegrationTests.Repositories.RoleEntitlements
 
             var repo = CreateRepository(ctx);
 
-            // Add initial entitlements
             var initialModules = new List<RoleModule>
             {
                 new RoleModule { RoleId = roleId, ModuleId = moduleId }
             };
-            await repo.AddRoleEntitlementsAsync(
+            await repo.SaveRoleEntitlementsAsync(
                 roleId, initialModules, new List<RoleParent>(),
                 new List<RoleChild>(), new List<RoleMenuPrivileges>(), CancellationToken.None);
 
             ctx.ChangeTracker.Clear();
 
-            // Add again — should replace, not duplicate
+            // Save again — should replace, not duplicate
             await using var ctx2 = CreateDbContext();
             var repo2 = new RoleEntitlementCommandRepository(ctx2);
             var newModules = new List<RoleModule>
             {
                 new RoleModule { RoleId = roleId, ModuleId = moduleId }
             };
-            var result = await repo2.AddRoleEntitlementsAsync(
+            var result = await repo2.SaveRoleEntitlementsAsync(
                 roleId, newModules, new List<RoleParent>(),
                 new List<RoleChild>(), new List<RoleMenuPrivileges>(), CancellationToken.None);
 

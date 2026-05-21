@@ -1,7 +1,6 @@
 using AutoMapper;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest;
 using MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand;
-using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExistingVendorDetails;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetExternalRequestById;
 using MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMaintenanceRequest;
 
@@ -17,7 +16,6 @@ namespace MaintenanceManagement.Application.Common.Mappings
 
            CreateMap<UpdateMaintenanceRequestCommand, MaintenanceManagement.Domain.Entities.MaintenanceRequest>();
 
-            CreateMap<MaintenanceManagement.Domain.Entities.ExistingVendorDetails, GetExistingVendorDetailsDto>();
             CreateMap<MaintenanceManagement.Domain.Entities.MaintenanceRequest, MaintenanceManagement.Domain.Entities.WorkOrderMaster.WorkOrder>()
              .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.RequestId, opt => opt.MapFrom(src => src.Id))

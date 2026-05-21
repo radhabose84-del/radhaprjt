@@ -4,6 +4,7 @@ using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using GateEntryManagement.Application.Common.Interfaces.IGateInward;
 using GateEntryManagement.Application.GateInward.Dto;
+using GateEntryManagement.Domain.Common;
 
 namespace GateEntryManagement.Infrastructure.Repositories.GateInward
 {
@@ -39,6 +40,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
+                    h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
@@ -58,6 +60,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             var totalCount = await result.ReadFirstAsync<int>();
 
             await PopulateUnitNames(list);
+            await ComposeAttachmentUrlsAsync(list);
             return (list, totalCount);
         }
 
@@ -69,6 +72,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
+                    h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
@@ -89,6 +93,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             header.GateInwardDetails = details;
 
             await PopulateUnitNames(new List<GateInwardHdrDto> { header });
+            await ComposeAttachmentUrlsAsync(new List<GateInwardHdrDto> { header });
             return header;
         }
 
@@ -132,6 +137,38 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             const string sql = "SELECT COUNT(1) FROM Gate.MiscMaster WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
+        }
+
+        public async Task<Dictionary<string, string>> GetDocumentDirectoryPath()
+        {
+            const string sql = @"
+                SELECT MiscTypeCode, Description
+                FROM Gate.MiscTypeMaster
+                WHERE MiscTypeCode IN @MiscTypeCodes
+                  AND IsActive = 1 AND IsDeleted = 0;";
+
+            var miscCodes = new[] { MiscEnumEntity.ImagePath, MiscEnumEntity.GateEntryImage };
+
+            var result = await _dbConnection.QueryAsync<(string MiscTypeCode, string Description)>(
+                sql, new { MiscTypeCodes = miscCodes });
+
+            return result
+                .GroupBy(x => x.MiscTypeCode)
+                .ToDictionary(g => g.Key, g => g.First().Description);
+        }
+
+        // Composes the web preview URL: {ImagePath}{GateEntryImage}/{AttachmentFileName}
+        private async Task ComposeAttachmentUrlsAsync(IEnumerable<GateInwardHdrDto> items)
+        {
+            var list = items.Where(i => !string.IsNullOrWhiteSpace(i.AttachmentFileName)).ToList();
+            if (list.Count == 0) return;
+
+            var dirs = await GetDocumentDirectoryPath();
+            var baseUrl = dirs.GetValueOrDefault(MiscEnumEntity.ImagePath, string.Empty);
+            var folder = dirs.GetValueOrDefault(MiscEnumEntity.GateEntryImage, string.Empty);
+
+            foreach (var item in list)
+                item.AttachmentFilePath = $"{baseUrl}{folder}/{item.AttachmentFileName}";
         }
 
         private async Task PopulateUnitNames(List<GateInwardHdrDto> items)

@@ -2,10 +2,10 @@ using System.Text.Json;
 using AutoMapper;
 using Contracts.Commands.Workflow;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
@@ -24,13 +24,13 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create
         private readonly IServicePurchaseOrderQueryRepository _servicePurchaseOrderQueryRepository;
         private readonly IIPAddressService _ip;
         private readonly ITimeZoneService _timeZoneService;
-        private readonly IPurchaseOrderCommandRepository _repo;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IUnitLookup _unitLookup;
 
         private readonly ILogger<CreateServicePurchaseOrderCommandHandler> _logger;
 
-        public CreateServicePurchaseOrderCommandHandler(IMapper mapper, IServicePurchaseOrderCommandRepository servicePurchaseOrderCommandRepository, IIPAddressService ip, ITimeZoneService tz, IPurchaseOrderCommandRepository repo
+        public CreateServicePurchaseOrderCommandHandler(IMapper mapper, IServicePurchaseOrderCommandRepository servicePurchaseOrderCommandRepository, IIPAddressService ip, ITimeZoneService tz, IDocumentSequenceLookup documentSequenceLookup
           , IOutboxEventPublisher outboxEventPublisher, IServicePurchaseOrderQueryRepository poQuery, IUnitLookup unitLookup, ILogger<CreateServicePurchaseOrderCommandHandler> logger)
         {
 
@@ -38,7 +38,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create
             _servicePurchaseOrderCommandRepository = servicePurchaseOrderCommandRepository;
             _ip = ip;
             _timeZoneService = tz;
-            _repo = repo;
+            _documentSequenceLookup = documentSequenceLookup;
             _outboxEventPublisher = outboxEventPublisher;
             _servicePurchaseOrderQueryRepository = poQuery;
             _unitLookup = unitLookup;
@@ -56,7 +56,20 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create
             var units = await _unitLookup.GetAllUnitAsync();
             var unitLookupDict = units.ToDictionary(u => u.UnitId, u => (u.ShortName ?? string.Empty).Trim());
             unitLookupDict.TryGetValue(entity.UnitId, out var unitCode);
-            entity.PONumber = await _repo.GenerateNextCodeAsync(entity.POCategoryId, entity.POMethodId, entity.PODate, unitCode ?? string.Empty, ct);
+            // Generate PONumber from DocumentSequence — same pattern as Local/Import/Contract POs.
+            // Replaces the legacy MAX+1 generator which had an FY-collision bug (FY-scoped MAX vs
+            // FY-agnostic uniqueness check would re-issue an existing PONumber on the first create
+            // of each new FY). DocumentSequence is atomic, per-FY, and never collides.
+            var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeSPO, MiscEnumEntity.ModulePurchase, entity.UnitId)
+                ?? throw new InvalidOperationException(
+                    $"No '{MiscEnumEntity.TransactionTypeSPO}' transaction type configured for UnitId {entity.UnitId}.");
+
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
+            entity.PONumber = sequences.Count > 0
+                ? sequences[^1]
+                : throw new InvalidOperationException(
+                    $"No document sequence configured for '{MiscEnumEntity.TransactionTypeSPO}' (TransactionTypeId {transactionTypeId}).");
             entity.CreatedBy = _ip.GetUserId();
             entity.CreatedByName = _ip.GetUserName();
             entity.CreatedIP = _ip.GetSystemIPAddress();
@@ -110,7 +123,9 @@ namespace PurchaseManagement.Application.PurchaseOrder.ServicePO.Command.Create
             }
 
             // 3) Persist
-            var id = await _servicePurchaseOrderCommandRepository.CreateAsync(entity, ct);
+            // Pass transactionTypeId so the repo's atomic tx also advances
+            // Finance.DocumentSequence.DocNo for SPO (mirrors Local PO numbering).
+            var id = await _servicePurchaseOrderCommandRepository.CreateAsync(entity, ct, transactionTypeId);
             if (id <= 0) return id;
 
             // 4) Reload aggregate with real IDs for workflow packaging

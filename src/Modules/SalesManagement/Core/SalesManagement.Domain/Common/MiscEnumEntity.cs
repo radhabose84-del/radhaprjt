@@ -100,11 +100,25 @@ namespace SalesManagement.Domain.Common
         public const string NotifModuleFeedbackRequested   = "Feedback Requested";
         public const string NotifModuleResolutionSubmitted = "Resolution Submitted";
 
+        // Rejection notifications (Phase 3 — symmetric "Rejected" counterparts to the
+        // Approval module names above). Each fires when the workflow approver clicks
+        // Reject. Bell goes to the SUBMITTER of the rejected stage (complaint creator
+        // for Complaint, ReviewedBy for QC, ResolvedBy for Resolution).
+        public const string NotifModuleComplaintRejected   = "Complaint Rejected";
+        public const string NotifModuleQcReviewRejected    = "QC Review Rejected";
+        public const string NotifModuleResolutionRejected  = "Resolution Rejected";
+
         // Notification EventType lookup keys (resolved at runtime via IAppDataMiscMasterLookup
         // → AppData.MiscMaster). Codes are stable across environments; Ids are auto-generated and
         // must NEVER be hardcoded.
         public const string NotifEventTypeMiscType = "EventType";
         public const string NotifEventTypeCreate   = "Create";
+
+        // ApprovalStepDetail.TargetType code for the Complaint QC-Review step.
+        // Used to dynamically resolve QC-reviewer InApp recipients in C#
+        // (mirrors AppData.sp_EvaluateApproval Block 4) instead of the static
+        // WorkFlow_GetUserId / NotificationLevelHierarchy seed.
+        public const string ComplaintQcReviewerTargetType = "COMPLAINT_QC_REVIEWER_USER";
 
         // QC Review
         public const string PhysicalVerificationStatus = "PhysicalVerification";
