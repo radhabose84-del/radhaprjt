@@ -3,6 +3,7 @@ using Dapper;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
 using PurchaseManagement.Application.ContractPOMaster.Dto;
 using PurchaseManagement.Application.ContractPOMaster.Queries.GetPending;
+using PurchaseManagement.Domain.Common;
 
 namespace PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
 
@@ -121,9 +122,21 @@ public sealed class ContractPOMasterQueryRepository : IContractPOMasterQueryRepo
     }
 
     public async Task<IReadOnlyList<ContractPOLookupDto>> AutocompleteAsync(
-        string term, CancellationToken ct)
+        string term, bool approvedOnly, int? vendorId, CancellationToken ct)
     {
         const string sql = @"
+            DECLARE @ApprovedStatusId INT = NULL;
+            IF @ApprovedOnly = 1
+            BEGIN
+                SELECT TOP 1 @ApprovedStatusId = MM.Id
+                FROM Purchase.MiscMaster MM WITH (NOLOCK)
+                INNER JOIN Purchase.MiscTypeMaster MT WITH (NOLOCK)
+                    ON MT.Id = MM.MiscTypeId AND MT.IsDeleted = 0
+                WHERE MT.MiscTypeCode = @MiscTypeCode
+                  AND MM.Code = @StatusCode
+                  AND MM.IsDeleted = 0;
+            END
+
             SELECT
                 H.Id, H.ContractPONumber, H.VendorId,
                 H.ValidityFrom, H.ValidityTo,
@@ -133,9 +146,18 @@ public sealed class ContractPOMasterQueryRepository : IContractPOMasterQueryRepo
             LEFT JOIN Purchase.MiscMaster MM WITH (NOLOCK) ON MM.Id = H.StatusId AND MM.IsDeleted = 0
             WHERE H.IsDeleted = 0 AND H.IsActive = 1
               AND (H.ContractPONumber LIKE '%' + @term + '%')
+              AND (@ApprovedOnly = 0 OR (H.StatusId = @ApprovedStatusId AND H.BalanceValue > 0))
+              AND (@VendorId IS NULL OR H.VendorId = @VendorId)
             ORDER BY H.ContractPONumber";
 
-        var cmd = new CommandDefinition(sql, new { term }, cancellationToken: ct);
+        var cmd = new CommandDefinition(sql, new
+        {
+            term,
+            ApprovedOnly = approvedOnly,
+            VendorId = vendorId,
+            MiscTypeCode = MiscEnumEntity.ApprovalStatus,
+            StatusCode = MiscEnumEntity.Approved
+        }, cancellationToken: ct);
         var rows = await _db.QueryAsync<ContractPOLookupDto>(cmd);
         return rows.AsList();
     }
