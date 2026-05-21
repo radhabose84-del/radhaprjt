@@ -5,6 +5,7 @@ using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
@@ -27,6 +28,7 @@ public sealed class ContractPOAmendmentCommandHandler
     private readonly IMediator _mediator;
     private readonly IDocumentSequenceLookup _documentSequenceLookup;
     private readonly IIPAddressService _ipAddressService;
+    private readonly ITimeZoneService _tz;
     private readonly IOutboxEventPublisher _outboxEventPublisher;
     private readonly IMiscMasterQueryRepository _misc;
 
@@ -37,6 +39,7 @@ public sealed class ContractPOAmendmentCommandHandler
         IMediator mediator,
         IDocumentSequenceLookup documentSequenceLookup,
         IIPAddressService ipAddressService,
+        ITimeZoneService tz,
         IOutboxEventPublisher outboxEventPublisher,
         IMiscMasterQueryRepository misc)
     {
@@ -46,6 +49,7 @@ public sealed class ContractPOAmendmentCommandHandler
         _mediator = mediator;
         _documentSequenceLookup = documentSequenceLookup;
         _ipAddressService = ipAddressService;
+        _tz = tz;
         _outboxEventPublisher = outboxEventPublisher;
         _misc = misc;
     }
@@ -65,6 +69,22 @@ public sealed class ContractPOAmendmentCommandHandler
         // Ensure the contract is approved before allowing release PO amendment
         if (contract.StatusName != MiscEnumEntity.Approved)
             throw new ExceptionRules("This contract is not yet approved. Cannot amend Release PO.");
+
+        // GRN check — block amendment if GRN exists
+        if (await _releaseQueryRepo.HasAnyGrnAsync(r.Id, ct))
+            throw new InvalidOperationException("GRN exists for this PO. Amendment is not allowed.");
+
+        // Timezone
+        var tzId = _tz.GetSystemTimeZone();
+        if (string.IsNullOrWhiteSpace(tzId) || tzId.Equals("India Standard Time", StringComparison.OrdinalIgnoreCase))
+            tzId = "Asia/Kolkata";
+        TimeZoneInfo tzi; try { tzi = TimeZoneInfo.FindSystemTimeZoneById(tzId); } catch { tzi = TimeZoneInfo.Local; }
+        var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzi);
+
+        // Compute next PONumber & revision
+        var newRevisionNo = existing.RevisionNo + 1;
+        r.RevisionNo = newRevisionNo;
+        r.AmendmentReason = r.AmendmentReason?.Trim();
 
         // Validate balance: release quantity must not exceed contract balance
         // For amendment, add back old PO's quantities since they will be reversed
@@ -86,9 +106,37 @@ public sealed class ContractPOAmendmentCommandHandler
         if (balanceErrors.Count > 0)
             throw new ExceptionRules(string.Join(" ", balanceErrors));
 
-        // Generate new PONumber
         var unitId = _ipAddressService.GetUnitId()
             ?? throw new ExceptionRules("UnitId is not available for the current user.");
+
+        // Build revision-based PONumber from existing PONumber
+        var poNumber = BuildNextRevisionCode(existing.PONumber!, newRevisionNo);
+
+        // Normalize document filenames
+        if (r.Documents is { Count: > 0 })
+        {
+            var baseDir = "PoDocument";
+            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDir);
+            if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
+
+            foreach (var doc in r.Documents.Where(d => d.DocumentId > 0 && !string.IsNullOrWhiteSpace(d.FileName)))
+            {
+                var oldPath = Path.Combine(uploadDir, doc.FileName!);
+                if (File.Exists(oldPath))
+                {
+                    var finalName = $"{poNumber}_{doc.DocumentId}{Path.GetExtension(oldPath)}";
+                    var newPath = Path.Combine(uploadDir, finalName);
+                    if (!string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Move(oldPath, newPath, overwrite: true);
+                        doc.FileName = finalName;
+                    }
+                }
+
+                if (doc.UploadedDate == default)
+                    doc.UploadedDate = now;
+            }
+        }
 
         // Determine transaction type based on PO category (Emergency overrides default)
         var poCategory = await _misc.GetByIdAsync(r.POCategoryId);
@@ -101,17 +149,10 @@ public sealed class ContractPOAmendmentCommandHandler
             .GetTransactionTypeIdAsync(transactionTypeName, MiscEnumEntity.ModulePurchase, unitId)
             ?? throw new ExceptionRules("No transaction type configured for Contract PO.");
 
-        var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
-        var poNumber = sequences.Count > 0
-            ? sequences[^1]
-            : throw new ExceptionRules("No document sequence configured for Contract PO.");
-
         // Resolve Pending status from MiscMaster
         var pendingStatus = await _misc.GetMiscMasterByName(
             MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
         var pendingStatusId = pendingStatus.Id;
-
-        var newRevisionNo = existing.RevisionNo + 1;
 
         // Build new PurchaseOrderHeader
         var newPoHeader = new PurchaseOrderHeader
@@ -134,7 +175,13 @@ public sealed class ContractPOAmendmentCommandHandler
             FreightTotal = r.FreightTotal,
             PurchaseValue = r.PurchaseValue,
             StatusId = pendingStatusId,
-            RevisionNo = newRevisionNo
+            RevisionNo = newRevisionNo,
+            BudgetGroupId = r.BudgetGroupId,
+            BudgetMonthId = r.BudgetMonthId,
+            BudgetRequestById = r.BudgetRequestById,
+            ProjectId = r.ProjectId,
+            WBSId = r.WBSId,
+            FinancialYearId = r.FinancialYearId
         };
 
         // Build new PurchaseContractHeader
@@ -194,7 +241,7 @@ public sealed class ContractPOAmendmentCommandHandler
         }
 
         // ════════════════════════════════════════════════════════════════════════
-        // ATOMIC TRANSACTION: Amend PO + Outbox Events + DocNo Increment
+        // ATOMIC TRANSACTION: Amend PO + Outbox Events
         // ════════════════════════════════════════════════════════════════════════
 
         var strategy = _commandRepo.CreateExecutionStrategy();
@@ -244,9 +291,6 @@ public sealed class ContractPOAmendmentCommandHandler
 
                 await _commandRepo.SaveChangesAsync(ct);
 
-                // Increment DocNo via lookup — same connection + transaction
-                await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConn, dbTx);
-
                 await transaction.CommitAsync(ct);
 
                 // Audit (outside transaction — fire-and-forget to MongoDB)
@@ -267,5 +311,13 @@ public sealed class ContractPOAmendmentCommandHandler
                 throw;
             }
         });
+    }
+
+    private static string BuildNextRevisionCode(string oldCode, int nextRev)
+    {
+        var idx = oldCode.LastIndexOf("-R", StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0 && idx + 2 < oldCode.Length && int.TryParse(oldCode[(idx + 2)..], out _))
+            return oldCode[..idx] + $"-R{nextRev}";
+        return $"{oldCode}-R{nextRev}";
     }
 }

@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Contracts.Commands.Workflow;
 using Contracts.Common;
-using Contracts.Events.Notifications;
 using Contracts.Interfaces;
-using Contracts.Interfaces.Lookups.Common;
+using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
@@ -28,8 +28,9 @@ public sealed class CreateContractPOCommandHandler
     private readonly IMediator _mediator;
     private readonly IDocumentSequenceLookup _documentSequenceLookup;
     private readonly IIPAddressService _ipAddressService;
+    private readonly ITimeZoneService _tz;
     private readonly IOutboxEventPublisher _outboxEventPublisher;
-    private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
+    private readonly IBudgetAllocationLookup _budgetAllocationLookup;
     private readonly IMiscMasterQueryRepository _misc;
 
     public CreateContractPOCommandHandler(
@@ -39,8 +40,9 @@ public sealed class CreateContractPOCommandHandler
         IMediator mediator,
         IDocumentSequenceLookup documentSequenceLookup,
         IIPAddressService ipAddressService,
+        ITimeZoneService tz,
         IOutboxEventPublisher outboxEventPublisher,
-        IAppDataMiscMasterLookup appDataMiscLookup,
+        IBudgetAllocationLookup budgetAllocationLookup,
         IMiscMasterQueryRepository misc)
     {
         _commandRepo = commandRepo;
@@ -49,8 +51,9 @@ public sealed class CreateContractPOCommandHandler
         _mediator = mediator;
         _documentSequenceLookup = documentSequenceLookup;
         _ipAddressService = ipAddressService;
+        _tz = tz;
         _outboxEventPublisher = outboxEventPublisher;
-        _appDataMiscLookup = appDataMiscLookup;
+        _budgetAllocationLookup = budgetAllocationLookup;
         _misc = misc;
     }
 
@@ -101,6 +104,71 @@ public sealed class CreateContractPOCommandHandler
             ? sequences[^1]
             : throw new ExceptionRules("No document sequence configured for Contract PO.");
 
+        // -------------------------------------------------
+        // BUDGET VALIDATION (Optimistic - read-only check)
+        // -------------------------------------------------
+        if (r.BudgetGroupId.HasValue && r.BudgetGroupId.Value > 0)
+        {
+            DateOnly? budgetDate = null;
+            if (r.PODate != default)
+                budgetDate = DateOnly.FromDateTime(r.PODate.DateTime);
+
+            var remaining = await _budgetAllocationLookup.GetRemainingBalanceAsync(
+                budgetGroupId: r.BudgetGroupId.Value,
+                budgetDate: budgetDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                monthId: r.BudgetMonthId ?? 0,
+                requestById: r.BudgetRequestById ?? 0,
+                projectId: r.ProjectId,
+                wbsId: r.WBSId,
+                financialYearId: r.FinancialYearId,
+                ct: ct);
+
+            var currentRemaining = remaining?.CurrentRemainingBalance ?? 0m;
+
+            if (r.PurchaseValue > currentRemaining)
+            {
+                return new ApiResponseDTO<int>
+                {
+                    IsSuccess = false,
+                    Message = "Cannot create Contract Release PO. Budget amount less than PO value. Budget Balance: " + currentRemaining,
+                    Data = 0
+                };
+            }
+        }
+
+        // Timezone
+        var tzId = _tz.GetSystemTimeZone();
+        if (string.IsNullOrWhiteSpace(tzId) || tzId.Equals("India Standard Time", StringComparison.OrdinalIgnoreCase))
+            tzId = "Asia/Kolkata";
+        TimeZoneInfo tzi; try { tzi = TimeZoneInfo.FindSystemTimeZoneById(tzId); } catch { tzi = TimeZoneInfo.Local; }
+        var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzi);
+
+        // Normalize document filenames
+        if (r.Documents is { Count: > 0 })
+        {
+            var baseDir = "PoDocument";
+            var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDir);
+            if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
+
+            foreach (var doc in r.Documents.Where(d => d.DocumentId > 0 && !string.IsNullOrWhiteSpace(d.FileName)))
+            {
+                var oldPath = Path.Combine(uploadDir, doc.FileName!);
+                if (File.Exists(oldPath))
+                {
+                    var finalName = $"{poNumber}_{doc.DocumentId}{Path.GetExtension(oldPath)}";
+                    var newPath = Path.Combine(uploadDir, finalName);
+                    if (!string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Move(oldPath, newPath, overwrite: true);
+                        doc.FileName = finalName;
+                    }
+                }
+
+                if (doc.UploadedDate == default)
+                    doc.UploadedDate = now;
+            }
+        }
+
         // Resolve Pending status from MiscMaster
         var pendingStatus = await _misc.GetMiscMasterByName(
             MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
@@ -126,7 +194,13 @@ public sealed class CreateContractPOCommandHandler
             IGSTTotal = r.IGSTTotal,
             FreightTotal = r.FreightTotal,
             PurchaseValue = r.PurchaseValue,
-            StatusId = pendingStatusId
+            StatusId = pendingStatusId,
+            BudgetGroupId = r.BudgetGroupId,
+            BudgetMonthId = r.BudgetMonthId,
+            BudgetRequestById = r.BudgetRequestById,
+            ProjectId = r.ProjectId,
+            WBSId = r.WBSId,
+            FinancialYearId = r.FinancialYearId
         };
 
         // Build PurchaseContractHeader
@@ -200,6 +274,35 @@ public sealed class CreateContractPOCommandHandler
             {
                 var newPOId = await _commandRepo.CreateWithoutTransactionAsync(
                     poHeader, contractHeader, contractDetails, releaseHistories, ct);
+
+                // ── Budget allocation (same transaction) ─────────────────────────
+                if (poHeader.BudgetGroupId.HasValue && poHeader.BudgetGroupId.Value > 0 && poHeader.PurchaseValue > 0)
+                {
+                    var budgetMonthDate = new DateOnly(poHeader.PODate.Year, poHeader.PODate.Month, 1);
+                    var deltaApplied = await _budgetAllocationLookup.ApplyRemainingBalanceDeltaAsync(
+                        budgetGroupId: poHeader.BudgetGroupId.Value,
+                        budgetDate: budgetMonthDate,
+                        monthId: poHeader.BudgetMonthId ?? 0,
+                        requestById: poHeader.BudgetRequestById ?? 0,
+                        deltaAmount: -poHeader.PurchaseValue,
+                        projectId: poHeader.ProjectId,
+                        wbsId: poHeader.WBSId,
+                        financialYearId: poHeader.FinancialYearId,
+                        connection: dbConn,
+                        transaction: dbTx,
+                        ct: ct);
+
+                    if (!deltaApplied)
+                    {
+                        await transaction.RollbackAsync(ct);
+                        return new ApiResponseDTO<int>
+                        {
+                            IsSuccess = false,
+                            Message = "Budget allocation failed. Contract Release PO creation rolled back.",
+                            Data = 0
+                        };
+                    }
+                }
 
                 // ── Approval workflow (outbox — same transaction) ──────────────────
                 var correlationId = Guid.NewGuid();

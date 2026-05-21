@@ -118,20 +118,21 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
             return dto;
         }
 
-        public async Task<IReadOnlyList<TransactionTypeMasterLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<TransactionTypeMasterLookupDto>> AutocompleteAsync(string term, int? menuId, CancellationToken ct)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
-                SELECT TOP 20 Id, TypeName, ShortName
+                SELECT Id, TypeName, ShortName
                 FROM [Finance].[TransactionTypeMaster]
                 WHERE IsDeleted = 0 AND IsActive = 1 AND UnitId = @UnitId
                 AND (TypeName LIKE @Term OR ShortName LIKE @Term)
+                AND (@MenuId IS NULL OR MenuId = @MenuId)
                 ORDER BY TypeName ASC";
 
             var result = await _dbConnection.QueryAsync<TransactionTypeMasterLookupDto>(
                 new CommandDefinition(sql,
-                    new { Term = $"%{term}%", UnitId = unitId },
+                    new { Term = $"%{term}%", UnitId = unitId, MenuId = menuId },
                     cancellationToken: ct));
             return result.ToList();
         }

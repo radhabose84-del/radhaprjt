@@ -49,6 +49,13 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
         return await _db.ExecuteScalarAsync<decimal>(sql, new { Id = contractPODetailId });
     }
 
+    public async Task<bool> HasAnyGrnAsync(int poId, CancellationToken ct)
+    {
+        const string sql = @"SELECT TOP 1 1 FROM Purchase.GRNDetail g WHERE g.PoId = @poId;";
+        var exists = await _db.ExecuteScalarAsync<int?>(sql, new { poId });
+        return exists.HasValue;
+    }
+
     public async Task<ContractPODetailVm?> GetContractPOByIdAsync(int poId, CancellationToken ct)
     {
         const string headerSql = @"
@@ -291,5 +298,17 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
         }
 
         return (headers, total);
+    }
+
+    public async Task<bool> NotFoundAsync(int poId, CancellationToken ct)
+    {
+        const string sql = @"
+            SELECT CASE WHEN NOT EXISTS (
+                SELECT 1 FROM Purchase.PurchaseOrderHeader WITH (NOLOCK)
+                WHERE Id = @Id AND IsDeleted = 0
+            ) THEN 1 ELSE 0 END";
+
+        return await _db.ExecuteScalarAsync<bool>(
+            new CommandDefinition(sql, new { Id = poId }, cancellationToken: ct));
     }
 }

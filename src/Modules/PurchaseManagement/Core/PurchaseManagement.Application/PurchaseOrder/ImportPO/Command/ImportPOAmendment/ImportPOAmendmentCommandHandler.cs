@@ -70,14 +70,46 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPO
             TimeZoneInfo tzi; try { tzi = TimeZoneInfo.FindSystemTimeZoneById(tzId); } catch { tzi = TimeZoneInfo.Local; }
             var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tzi);
 
+            // Compute next PONumber & revision on DTO
+            var newRevisionNo = existing.RevisionNo + 1;
+            dto.RevisionNo = newRevisionNo;
+            dto.PONumber = BuildNextRevisionCode(existing.PONumber!, newRevisionNo);
+            dto.AmendmentReason = dto.AmendmentReason?.Trim();
+
+            // Normalize document filenames
+            if (dto.Documents is { Count: > 0 })
+            {
+                var baseDir = "PoDocument";
+                var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "Resources", baseDir);
+                if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
+
+                foreach (var doc in dto.Documents.Where(d => d.DocumentId > 0 && !string.IsNullOrWhiteSpace(d.FileName)))
+                {
+                    var oldPath = Path.Combine(uploadDir, doc.FileName!);
+                    if (File.Exists(oldPath))
+                    {
+                        var finalName = $"{dto.PONumber}_{doc.DocumentId}{Path.GetExtension(oldPath)}";
+                        var newPath = Path.Combine(uploadDir, finalName);
+                        if (!string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Move(oldPath, newPath, overwrite: true);
+                            doc.FileName = finalName;
+                        }
+                    }
+
+                    if (doc.UploadedDate == default)
+                        doc.UploadedDate = now;
+                }
+            }
+
             // Build REVISED (entity) just for audit fields here; the repo will map scalars & children from DTO
             var revisedForAudit = new PurchaseOrderHeader
             {
                 Id = 0,
                 UnitId = existing.UnitId,
                 OldPOId = existing.OldPOId ?? existing.Id,
-                RevisionNo = existing.RevisionNo + 1,
-                AmendmentReason = dto.AmendmentReason?.Trim(),
+                RevisionNo = newRevisionNo,
+                AmendmentReason = dto.AmendmentReason,
                 POMethodId = existing.POMethodId,
                 CreatedBy = _ip.GetUserId(),
                 CreatedByName = _ip.GetUserName(),
@@ -115,46 +147,40 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPO
                     var newId = await _cmd.AmendWithoutTransactionAsync(existing, dto, revisedForAudit, ct);
 
                     // ── Approval workflow (outbox — same transaction) ──────────────────
-                    // Use EF Core GetAggregateAsync (same DbContext/transaction) to read
-                    // the newly created PO header, including the generated PONumber.
-                    var newPo = await _cmd.GetAggregateAsync(newId, ct);
-                    if (newPo is not null)
+                    var correlationId = Guid.NewGuid();
+                    var reversePayload = new CreateImportPOReverseDto
                     {
-                        var reversePayload = new CreateImportPOReverseDto
+                        Header = new ImportPOWorkFlowDto
                         {
-                            Header = new ImportPOWorkFlowDto
+                            Id = newId,
+                            PONumber = dto.PONumber,
+                            VendorId = existing.VendorId,
+                            StatusId = existing.StatusId,
+                            UnitId = unitId
+                        },
+                        Lines = new List<ImportPOWorkFlowDto>
+                        {
+                            new ImportPOWorkFlowDto
                             {
                                 Id = newId,
-                                PONumber = newPo.PONumber,
-                                VendorId = newPo.VendorId,
-                                StatusId = newPo.StatusId,
+                                PONumber = dto.PONumber,
+                                VendorId = existing.VendorId,
+                                StatusId = existing.StatusId,
                                 UnitId = unitId
-                            },
-                            Lines = new List<ImportPOWorkFlowDto>
-                            {
-                                new ImportPOWorkFlowDto
-                                {
-                                    Id = newId,
-                                    PONumber = newPo.PONumber,
-                                    VendorId = newPo.VendorId,
-                                    StatusId = newPo.StatusId,
-                                    UnitId = unitId
-                                }
                             }
-                        };
+                        }
+                    };
 
-                        var correlationId = Guid.NewGuid();
-                        var workflowCommand = new CreateApprovalRequestCommand
-                        {
-                            CorrelationId = correlationId,
-                            ModuleTypeName = MiscEnumEntity.POLocal,
-                            ModuleTransactionId = newId,
-                            Payload = JsonSerializer.Serialize(reversePayload),
-                            TransactionTypeId = approvalTypeId
-                        };
+                    var workflowCommand = new CreateApprovalRequestCommand
+                    {
+                        CorrelationId = correlationId,
+                        ModuleTypeName = MiscEnumEntity.POLocal,
+                        ModuleTransactionId = newId,
+                        Payload = JsonSerializer.Serialize(reversePayload),
+                        TransactionTypeId = approvalTypeId
+                    };
 
-                        await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
-                    }
+                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
 
                     await _cmd.SaveChangesAsync(ct);
                     await transaction.CommitAsync(ct);
@@ -167,6 +193,14 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPO
                     throw;
                 }
             });
+        }
+
+        private static string BuildNextRevisionCode(string oldCode, int nextRev)
+        {
+            var idx = oldCode.LastIndexOf("-R", StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0 && idx + 2 < oldCode.Length && int.TryParse(oldCode[(idx + 2)..], out _))
+                return oldCode[..idx] + $"-R{nextRev}";
+            return $"{oldCode}-R{nextRev}";
         }
     }
 }
