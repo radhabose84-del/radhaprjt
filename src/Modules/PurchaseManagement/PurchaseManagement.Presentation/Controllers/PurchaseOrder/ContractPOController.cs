@@ -6,6 +6,8 @@ using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Update;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Delete;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Amendment;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Cancel;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetById;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetContractPOPending;
 
@@ -82,6 +84,32 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
                 StatusCode = StatusCodes.Status200OK,
                 message = "Amendment created successfully.",
                 data = new { NewPurchaseOrderId = newId }
+            });
+        }
+
+        [HttpPut("cancel/{id:int}")]
+        public async Task<IActionResult> Cancel([FromRoute] int id, CancellationToken ct)
+        {
+            var result = await Mediator.Send(new CancelContractPOCommand(id), ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Contract PO cancelled successfully." : "Failed to cancel Contract PO."
+            });
+        }
+
+        [HttpPut("foreclose/{id:int}")]
+        public async Task<IActionResult> Foreclose([FromRoute] int id, CancellationToken ct)
+        {
+            var result = await Mediator.Send(new ForecloseContractPOCommand(id), ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Contract PO foreclosed successfully." : "Failed to foreclose Contract PO."
             });
         }
 

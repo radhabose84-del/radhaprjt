@@ -32,8 +32,19 @@ public class ContractPOCreateDto
     public string? DeliveryAddress { get; set; }
     public string? BillingAddress { get; set; }
 
+    // Budget fields
+    public int? BudgetGroupId { get; set; }
+    public int? BudgetMonthId { get; set; }
+    public int? BudgetRequestById { get; set; }
+    public int? ProjectId { get; set; }
+    public int? WBSId { get; set; }
+    public int? FinancialYearId { get; set; }
+
     // Release details
     public List<ContractPODetailItem> Details { get; set; } = new();
+
+    // Documents
+    public List<ContractPODocumentDto>? Documents { get; set; }
 }
 
 public class ContractPOUpdateDto : ContractPOCreateDto
@@ -76,4 +87,11 @@ public sealed class ContractPODetailItem
     public decimal? IGST { get; set; }
     public DateTimeOffset? ScheduleDate { get; set; }
     public int? DepartmentId { get; set; }
+}
+
+public sealed class ContractPODocumentDto
+{
+    public int DocumentId { get; set; }
+    public string? FileName { get; set; }
+    public DateTimeOffset UploadedDate { get; set; }
 }

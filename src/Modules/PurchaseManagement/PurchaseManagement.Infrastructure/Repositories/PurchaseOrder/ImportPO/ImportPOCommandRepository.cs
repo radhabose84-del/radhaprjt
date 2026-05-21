@@ -1,7 +1,7 @@
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
-// using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
@@ -19,12 +19,18 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ImportPO
         private readonly ApplicationDbContext _db;
         private readonly IMiscMasterQueryRepository _misc;
         private readonly ILogger<ImportPOCommandRepository> _logger;
+        private readonly IIPAddressService _ipAddressService;
 
-        public ImportPOCommandRepository(ApplicationDbContext db, IMiscMasterQueryRepository misc, ILogger<ImportPOCommandRepository> logger  )
+        public ImportPOCommandRepository(
+            ApplicationDbContext db,
+            IMiscMasterQueryRepository misc,
+            ILogger<ImportPOCommandRepository> logger,
+            IIPAddressService ipAddressService)
         {
             _db = db;
             _misc = misc;
-            _logger     = logger;
+            _logger = logger;
+            _ipAddressService = ipAddressService;
         }
 
         /* ========================= CREATE ========================= */
@@ -1215,6 +1221,50 @@ public async Task<int> AmendAsync(
         public Task<PurchaseOrderHeader?> GetAggregateAsync(int id, CancellationToken ct) => _db.PurchaseOrderHeaders.Include(h => h.ImportPOHeader).ThenInclude(l => l.ImportPODetails).Include(h => h.PaymentTerms).FirstOrDefaultAsync(h => h.Id == id, ct);
 
         public Task SaveChangesAsync(CancellationToken ct) => _db.SaveChangesAsync(ct);
+
+        /* ========================= CANCEL ========================= */
+        public async Task<bool> CancelAsync(int id, CancellationToken ct)
+        {
+            var existing = await _db.PurchaseOrderHeaders
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == BaseEntity.IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            var cancelledStatus = await _misc.GetMiscMasterByName(
+                MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Cancelled);
+            existing.StatusId = cancelledStatus?.Id ?? existing.StatusId;
+
+            existing.CancelledDate = DateTimeOffset.UtcNow;
+            existing.CancelledByName = _ipAddressService.GetUserName();
+            existing.CancelledIP = _ipAddressService.GetUserIPAddress();
+
+            _db.PurchaseOrderHeaders.Update(existing);
+            await _db.SaveChangesAsync(ct);
+            return true;
+        }
+
+        /* ========================= FORECLOSE ========================= */
+        public async Task<bool> ForecloseAsync(int id, CancellationToken ct)
+        {
+            var existing = await _db.PurchaseOrderHeaders
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == BaseEntity.IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            var foreclosedStatus = await _misc.GetMiscMasterByName(
+                MiscEnumEntity.ApprovalStatus, MiscEnumEntity.ForeClosed);
+            existing.StatusId = foreclosedStatus?.Id ?? existing.StatusId;
+
+            existing.ForeClosedDate = DateTimeOffset.UtcNow;
+            existing.ForeClosedByName = _ipAddressService.GetUserName();
+            existing.ForeClosedIP = _ipAddressService.GetUserIPAddress();
+
+            _db.PurchaseOrderHeaders.Update(existing);
+            await _db.SaveChangesAsync(ct);
+            return true;
+        }
     }
 }
 

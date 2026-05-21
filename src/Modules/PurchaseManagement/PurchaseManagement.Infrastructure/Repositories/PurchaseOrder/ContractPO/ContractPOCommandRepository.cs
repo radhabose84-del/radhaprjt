@@ -1,10 +1,13 @@
 using System.Data.Common;
 using Contracts.Common;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
@@ -17,13 +20,19 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
 {
     private readonly ApplicationDbContext _db;
     private readonly IDocumentSequenceLookup _documentSequenceLookup;
+    private readonly IMiscMasterQueryRepository _misc;
+    private readonly IIPAddressService _ipAddressService;
 
     public ContractPOCommandRepository(
         ApplicationDbContext db,
-        IDocumentSequenceLookup documentSequenceLookup)
+        IDocumentSequenceLookup documentSequenceLookup,
+        IMiscMasterQueryRepository misc,
+        IIPAddressService ipAddressService)
     {
         _db = db;
         _documentSequenceLookup = documentSequenceLookup;
+        _misc = misc;
+        _ipAddressService = ipAddressService;
     }
 
     public async Task<int> CreateCombinePOAsync(
@@ -602,5 +611,49 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
             contractPOHeader.BalanceValue = contractPOHeader.TotalContractValue - contractPOHeader.UtilizedValue;
             await _db.SaveChangesAsync(ct);
         }
+    }
+
+    /* ========================= CANCEL ========================= */
+    public async Task<bool> CancelAsync(int id, CancellationToken ct)
+    {
+        var existing = await _db.PurchaseOrderHeaders
+            .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == BaseEntity.IsDelete.NotDeleted, ct);
+
+        if (existing == null)
+            return false;
+
+        var cancelledStatus = await _misc.GetMiscMasterByName(
+            MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Cancelled);
+        existing.StatusId = cancelledStatus?.Id ?? existing.StatusId;
+
+        existing.CancelledDate = DateTimeOffset.UtcNow;
+        existing.CancelledByName = _ipAddressService.GetUserName();
+        existing.CancelledIP = _ipAddressService.GetUserIPAddress();
+
+        _db.PurchaseOrderHeaders.Update(existing);
+        await _db.SaveChangesAsync(ct);
+        return true;
+    }
+
+    /* ========================= FORECLOSE ========================= */
+    public async Task<bool> ForecloseAsync(int id, CancellationToken ct)
+    {
+        var existing = await _db.PurchaseOrderHeaders
+            .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == BaseEntity.IsDelete.NotDeleted, ct);
+
+        if (existing == null)
+            return false;
+
+        var foreclosedStatus = await _misc.GetMiscMasterByName(
+            MiscEnumEntity.ApprovalStatus, MiscEnumEntity.ForeClosed);
+        existing.StatusId = foreclosedStatus?.Id ?? existing.StatusId;
+
+        existing.ForeClosedDate = DateTimeOffset.UtcNow;
+        existing.ForeClosedByName = _ipAddressService.GetUserName();
+        existing.ForeClosedIP = _ipAddressService.GetUserIPAddress();
+
+        _db.PurchaseOrderHeaders.Update(existing);
+        await _db.SaveChangesAsync(ct);
+        return true;
     }
 }

@@ -62,4 +62,8 @@ public interface IContractPOCommandRepository
         CancellationToken ct);
 
     Task SaveChangesAsync(CancellationToken ct);
+
+    // ── Cancel / Foreclose ───────────────────────────────────────────────────
+    Task<bool> CancelAsync(int id, CancellationToken ct);
+    Task<bool> ForecloseAsync(int id, CancellationToken ct);
 }
