@@ -32,6 +32,9 @@ public class ContractPOCreateDto
     public string? DeliveryAddress { get; set; }
     public string? BillingAddress { get; set; }
 
+    // Cost Centre
+    public int? CostCenterId { get; set; }
+
     // Budget fields
     public int? BudgetGroupId { get; set; }
     public int? BudgetMonthId { get; set; }

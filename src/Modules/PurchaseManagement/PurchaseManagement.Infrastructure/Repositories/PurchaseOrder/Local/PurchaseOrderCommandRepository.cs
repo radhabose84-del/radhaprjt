@@ -4,6 +4,7 @@ using Contracts.Interfaces;
 using Dapper;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
@@ -857,6 +858,22 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
         _db.PurchaseOrderHeaders.Update(existing);
         await _db.SaveChangesAsync(ct);
         return true;
+    }
+
+    public async Task<POLocalWorkFlowDto> GetByIdPOLocalWorkFlowAsync(int id)
+    {
+        var entity = await _db.Set<PurchaseOrderHeader>()
+            .Where(x => x.Id == id)
+            .Select(x => new POLocalWorkFlowDto
+            {
+                Id = x.Id,
+                PONumber = x.PONumber,
+                VendorId = x.VendorId,
+                StatusId = x.StatusId,
+                UnitId = x.UnitId
+            })
+            .FirstOrDefaultAsync();
+        return entity!;
     }
 
     public async Task<bool> ForecloseAsync(int id, CancellationToken ct)

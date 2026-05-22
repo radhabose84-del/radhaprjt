@@ -66,6 +66,7 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
                 H.RevisionNo,
                 H.VendorId,
                 H.CurrencyId,
+                H.CostCenterId,
                 CH.ContractPOHeaderId,
                 CH.IsPartialReceiptAllowed,
                 CH.IncotermsId,

@@ -2,6 +2,7 @@ using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
@@ -1242,6 +1243,23 @@ public async Task<int> AmendAsync(
             _db.PurchaseOrderHeaders.Update(existing);
             await _db.SaveChangesAsync(ct);
             return true;
+        }
+
+        /* ========================= WORKFLOW DTO ========================= */
+        public async Task<ImportPOWorkFlowDto> GetByIdImportPOWorkFlowAsync(int id)
+        {
+            var entity = await _db.Set<PurchaseOrderHeader>()
+                .Where(x => x.Id == id)
+                .Select(x => new ImportPOWorkFlowDto
+                {
+                    Id = x.Id,
+                    PONumber = x.PONumber,
+                    VendorId = x.VendorId,
+                    StatusId = x.StatusId,
+                    UnitId = x.UnitId
+                })
+                .FirstOrDefaultAsync();
+            return entity!;
         }
 
         /* ========================= FORECLOSE ========================= */

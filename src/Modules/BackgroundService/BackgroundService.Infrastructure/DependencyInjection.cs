@@ -277,6 +277,12 @@ namespace BackgroundService.Infrastructure
                         });
                         cfg.ReceiveEndpoint("approval-request-task-queue", e =>
                         {
+                            e.UseMessageRetry(r => r
+                                .Intervals(
+                                    TimeSpan.FromSeconds(5),
+                                    TimeSpan.FromSeconds(30),
+                                    TimeSpan.FromMinutes(2))
+                                .Handle<Exception>());
                             e.ConfigureConsumer<ApprovalRequestConsumer>(context);
                         });
 
