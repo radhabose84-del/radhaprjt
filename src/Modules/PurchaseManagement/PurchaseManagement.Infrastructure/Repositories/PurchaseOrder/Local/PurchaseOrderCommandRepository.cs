@@ -439,8 +439,8 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
         // 4) Build the REVISED root only with scalars; children will be inserted explicitly
         var revised = new PurchaseOrderHeader
         {
-            // Root scalars from DTO
-            UnitId        = dto.UnitId,
+            // UnitId from existing PO (not from DTO — resolved server-side)
+            UnitId        = existing.UnitId,
             PONumber      = nextPoNumber,
             PODate        = dto.PODate,
             POCategoryId  = dto.POCategoryId,
@@ -619,6 +619,210 @@ public class PurchaseOrderCommandRepository : IPurchaseOrderCommandRepository
                 throw;
             }
         });
+    }
+
+    /// <summary>
+    /// Same logic as AmendAsync but without opening its own transaction or execution strategy.
+    /// The caller must already have an active transaction on _db.Database.
+    /// </summary>
+    public async Task<int> AmendWithoutTransactionAsync(
+        PurchaseOrderHeader existing,
+        PurchaseOrderUpdateDto dto,
+        CancellationToken ct)
+    {
+        // 1) Resolve target status
+        var pending = await _miscMasterQueryRepository
+            .GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+
+        // 2) Build next unique PO number
+        var baseRoot = StripRevision(existing.PONumber);
+        var nextPoNumber = string.IsNullOrWhiteSpace(dto.PONumber) ? baseRoot : dto.PONumber;
+        var nextRevision = (existing.RevisionNo <= 0 ? 0 : existing.RevisionNo);
+
+        while (await _db.PurchaseOrderHeaders.AsNoTracking()
+            .AnyAsync(p => p.PONumber == nextPoNumber, ct))
+        {
+            nextRevision++;
+            nextPoNumber = $"{baseRoot}-R{nextRevision}";
+        }
+
+        // 3) Compute impacted indents (old + new)
+        var oldImpacted = await GetImpactedIndentIdsFromDbAsync(existing.Id, ct);
+        var newImpacted = new HashSet<int>(
+            (dto.Headers ?? Enumerable.Empty<PurchaseLocalHeaderDto>())
+                .SelectMany(h => h.Details ?? Enumerable.Empty<PurchaseLocalDetailDto>())
+                .Select(d => d.IndentId ?? 0)
+                .Where(i => i > 0)
+                .Distinct());
+        var impacted = new HashSet<int>(oldImpacted);
+        impacted.UnionWith(newImpacted);
+
+        // 4) Build the REVISED root only with scalars; children will be inserted explicitly
+        var revised = new PurchaseOrderHeader
+        {
+            UnitId = existing.UnitId,
+            PONumber = nextPoNumber,
+            PODate = dto.PODate,
+            POCategoryId = dto.POCategoryId,
+            POMethodId = dto.POMethodId,
+            CurrencyId = dto.CurrencyId,
+            VendorId = dto.VendorId,
+            ItemTotal = dto.ItemTotal,
+            DiscountTotal = dto.DiscountTotal,
+            PandFTotal = dto.PandFTotal,
+            MiscCharges = dto.MiscCharges,
+            GSTTotal = dto.GSTTotal,
+            CGSTTotal = dto.CGSTTotal,
+            SGSTTotal = dto.SGSTTotal,
+            IGSTTotal = dto.IGSTTotal,
+            FreightTotal = dto.FreightTotal,
+            InsuranceTotal = dto.InsuranceTotal,
+            TDSTotal = dto.TDSTotal,
+            AdvanceAmount = dto.AdvanceAmount,
+            PurchaseValue = dto.PurchaseValue,
+
+            StatusId = pending.Id,
+            OldPOId = existing.OldPOId ?? existing.Id,
+            RevisionNo = nextRevision,
+            AmendmentReason = dto.AmendmentReason?.Trim(),
+
+            CostCenterId = dto.CostCenterId,
+            ProjectId = dto.ProjectId,
+            WBSId = dto.WBSId,
+            CapitalTypeId = dto.CapitalTypeId,
+            PurchaseTypeId = dto.PurchaseTypeId,
+            BudgetGroupId = dto.BudgetGroupId,
+            IsDeleted = BaseEntity.IsDelete.NotDeleted,
+            CreatedDate = DateTimeOffset.UtcNow
+        };
+
+        var incomingDocs = (dto.Documents ?? new List<PurchaseDocumentDto>())
+            .Where(d => d.DocumentId > 0 && !string.IsNullOrWhiteSpace(d.FileName))
+            .Select(d => new PurchaseDocument
+            {
+                DocumentId = d.DocumentId,
+                FileName = d.FileName!,
+                UploadedDate = d.UploadedDate == default ? DateTimeOffset.UtcNow : d.UploadedDate
+            })
+            .ToList();
+
+        // 6) Delete OLD local children/terms/docs
+        var oldLocalHeaders = await _db.PurchaseLocalHeaders
+            .Where(h => h.PurchaseOrderId == existing.Id)
+            .Include(h => h.Details)
+            .ToListAsync(ct);
+
+        if (oldLocalHeaders.Count > 0)
+        {
+            var oldLocalDetails = oldLocalHeaders.SelectMany(h => h.Details).ToList();
+            if (oldLocalDetails.Count > 0) _db.PurchaseLocalDetails.RemoveRange(oldLocalDetails);
+            _db.PurchaseLocalHeaders.RemoveRange(oldLocalHeaders);
+        }
+
+        var oldTerms = await _db.PurchasePaymentTerms
+            .Where(t => t.PurchaseOrderId == existing.Id)
+            .ToListAsync(ct);
+        if (oldTerms.Count > 0) _db.PurchasePaymentTerms.RemoveRange(oldTerms);
+
+        var oldDocs = await _db.PurchaseDocuments
+            .Where(d => d.PoId == existing.Id)
+            .ToListAsync(ct);
+        if (oldDocs.Count > 0) _db.PurchaseDocuments.RemoveRange(oldDocs);
+
+        await _db.SaveChangesAsync(ct);
+
+        // 7) Soft-close OLD root
+        var current = await _db.PurchaseOrderHeaders
+            .FirstOrDefaultAsync(h => h.Id == existing.Id, ct)
+            ?? throw new InvalidOperationException($"PO {existing.Id} not found.");
+        current.IsDeleted = BaseEntity.IsDelete.Deleted;
+        current.ModifiedDate = DateTimeOffset.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        // 8) Insert REVISED root
+        _db.PurchaseOrderHeaders.Add(revised);
+        await _db.SaveChangesAsync(ct); // revised.Id available
+
+        // 9) Insert REVISED children from DTO (headers -> details)
+        foreach (var h in dto.Headers ?? Enumerable.Empty<PurchaseLocalHeaderDto>())
+        {
+            var hEntity = new PurchaseLocalHeader
+            {
+                PurchaseOrderId = revised.Id,
+                IsPartialReceiptAllowed = h.IsPartialReceiptAllowed,
+                IncotermsId = h.IncotermsId,
+                ModeOfDispatchId = h.ModeOfDispatchId,
+                FreightCharges = h.FreightCharges,
+                TermsId = h.TermsId,
+                TermDescription = h.TermDescription,
+                DeliveryAddress = h.DeliveryAddress,
+                BillingAddress = h.BillingAddress,
+                Details = (h.Details ?? new List<PurchaseLocalDetailDto>()).Select(d => new PurchaseLocalDetail
+                {
+                    IndentId = d.IndentId,
+                    ItemId = d.ItemId,
+                    ItemSno = d.ItemSno,
+                    UOMId = d.UOMId,
+                    Quantity = d.Quantity,
+                    UnitPrice = d.UnitPrice,
+                    LastPOPrice = d.LastPOPrice,
+                    DiscountTypeId = d.DiscountTypeId,
+                    DiscountValue = d.DiscountValue,
+                    PandFType = d.PandFType,
+                    PandFCharge = d.PandFCharge,
+                    OtherCharge = d.OtherCharge,
+                    GSTPercentage = d.GSTPercentage,
+                    CGST = d.CGST,
+                    SGST = d.SGST,
+                    IGST = d.IGST,
+                    CGSTPercentage = (d.IGST > 0) ? d.GSTPercentage / 2 : 0,
+                    SGSTPercentage = (d.IGST > 0) ? d.GSTPercentage / 2 : 0,
+                    IGSTPercentage = (d.IGST > 0) ? 0 : d.GSTPercentage,
+                    ScheduleDate = d.ScheduleDate,
+                    DepartmentId = d.DepartmentId,
+                    ItemValue = d.ItemValue
+                }).ToList()
+            };
+            _db.PurchaseLocalHeaders.Add(hEntity);
+        }
+
+        foreach (var t in dto.PaymentTerms ?? Enumerable.Empty<PurchasePaymentTermDto>())
+        {
+            _db.PurchasePaymentTerms.Add(new PurchasePaymentTerm
+            {
+                PurchaseOrderId = revised.Id,
+                PaymentTermId = t.PaymentTermId,
+                AdvancePercent = t.AdvancePercent,
+                CreditDays = t.CreditDays,
+                PaymentModelId = t.PaymentModelId,
+                InsuranceId = t.InsuranceId,
+                InsurancePercent = t.InsurancePercent,
+                InsuranceAmount = t.InsuranceAmount,
+                AdvanceAmount = t.AdvanceAmount,
+                BalancePercent = t.BalancePercent,
+                BalanceAmount = t.BalanceAmount
+            });
+        }
+
+        // 10) Insert REVISED documents EXACTLY as payload
+        if (incomingDocs.Count > 0)
+        {
+            foreach (var d in incomingDocs)
+            {
+                d.Id  = 0;
+                d.PoId= revised.Id;
+                if (d.UploadedDate == default) d.UploadedDate = DateTimeOffset.UtcNow;
+            }
+            _db.PurchaseDocuments.AddRange(incomingDocs);
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+        // 11) Recompute impacted indents
+        if (impacted.Count > 0)
+            await RecomputeIndentPoQtyAsync(impacted, ct);
+
+        return revised.Id;
     }
 
     private static string StripRevision(string code)

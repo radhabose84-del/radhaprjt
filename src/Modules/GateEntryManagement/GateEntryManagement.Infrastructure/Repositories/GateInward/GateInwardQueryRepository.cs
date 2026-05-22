@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using GateEntryManagement.Application.Common.Interfaces.IGateInward;
 using GateEntryManagement.Application.GateInward.Dto;
@@ -12,12 +13,18 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
     {
         private readonly IDbConnection _dbConnection;
         private readonly IUnitLookup _unitLookup;
+        private readonly IPartyLookup _partyLookup;
         private readonly IIPAddressService _ipAddressService;
 
-        public GateInwardQueryRepository(IDbConnection dbConnection, IUnitLookup unitLookup, IIPAddressService ipAddressService)
+        public GateInwardQueryRepository(
+            IDbConnection dbConnection,
+            IUnitLookup unitLookup,
+            IPartyLookup partyLookup,
+            IIPAddressService ipAddressService)
         {
             _dbConnection = dbConnection;
             _unitLookup = unitLookup;
+            _partyLookup = partyLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -37,17 +44,20 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
 
                 SELECT h.Id, h.GateEntryNo,
                     h.VehicleMovementRecordId, vmr.VehicleMovementId, vmr.VehicleNumber, vmr.DriverName,
+                    h.PartyId,
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
-                    h.AttachmentFileName, h.AttachmentOriginalFileName, h.AttachmentFilePath,
-                    h.AttachmentFileType, h.AttachmentFileSize,
+                    h.ReceivingTypeId, rt.Description AS ReceivingTypeName,
+                    h.CourierNumber,
+                    h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
                 FROM Gate.GateInwardHdr h
                 LEFT JOIN Gate.VehicleMovementRecord vmr ON h.VehicleMovementRecordId = vmr.Id AND vmr.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster qa ON h.QAStatusId = qa.Id AND qa.IsDeleted = 0
+                LEFT JOIN Gate.MiscMaster rt ON h.ReceivingTypeId = rt.Id AND rt.IsDeleted = 0
                 WHERE {whereClause}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -61,6 +71,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             var totalCount = await result.ReadFirstAsync<int>();
 
             await PopulateUnitNames(list);
+            await PopulatePartyNamesAsync(list);
             await ComposeAttachmentUrlsAsync(list);
             return (list, totalCount);
         }
@@ -70,17 +81,20 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             const string headerSql = @"
                 SELECT h.Id, h.GateEntryNo,
                     h.VehicleMovementRecordId, vmr.VehicleMovementId, vmr.VehicleNumber, vmr.DriverName,
+                    h.PartyId,
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
-                    h.AttachmentFileName, h.AttachmentOriginalFileName, h.AttachmentFilePath,
-                    h.AttachmentFileType, h.AttachmentFileSize,
+                    h.ReceivingTypeId, rt.Description AS ReceivingTypeName,
+                    h.CourierNumber,
+                    h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
                 FROM Gate.GateInwardHdr h
                 LEFT JOIN Gate.VehicleMovementRecord vmr ON h.VehicleMovementRecordId = vmr.Id AND vmr.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster qa ON h.QAStatusId = qa.Id AND qa.IsDeleted = 0
+                LEFT JOIN Gate.MiscMaster rt ON h.ReceivingTypeId = rt.Id AND rt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             const string detailSql = @"
@@ -95,6 +109,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             header.GateInwardDetails = details;
 
             await PopulateUnitNames(new List<GateInwardHdrDto> { header });
+            await PopulatePartyNamesAsync(new List<GateInwardHdrDto> { header });
             await ComposeAttachmentUrlsAsync(new List<GateInwardHdrDto> { header });
             return header;
         }
@@ -141,6 +156,27 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
             return count > 0;
         }
 
+        public async Task<bool> IsCourierReceivingTypeAsync(int miscId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Gate.MiscMaster mm
+                INNER JOIN Gate.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                WHERE mm.Id = @Id
+                  AND mt.MiscTypeCode = @MiscTypeCode
+                  AND mm.Description = @Description
+                  AND mm.IsDeleted = 0 AND mm.IsActive = 1
+                  AND mt.IsDeleted = 0 AND mt.IsActive = 1";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                Id = miscId,
+                MiscTypeCode = MiscEnumEntity.ReceivingType,
+                Description = MiscEnumEntity.ReceivingTypeCourier
+            });
+            return count > 0;
+        }
+
         public async Task<Dictionary<string, string>> GetDocumentDirectoryPath()
         {
             const string sql = @"
@@ -171,6 +207,24 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
 
             foreach (var item in list)
                 item.AttachmentFilePath = $"{baseUrl}{folder}/{item.AttachmentFileName}";
+        }
+
+        private async Task PopulatePartyNamesAsync(List<GateInwardHdrDto> items)
+        {
+            var partyIds = items
+                .Where(x => x.PartyId.HasValue)
+                .Select(x => x.PartyId!.Value)
+                .Distinct()
+                .ToList();
+            if (partyIds.Count == 0) return;
+
+            var parties = await _partyLookup.GetByIdsAsync(partyIds);
+            var partyDict = parties.ToDictionary(p => p.Id, p => p.PartyName);
+            foreach (var item in items)
+            {
+                if (item.PartyId.HasValue && partyDict.TryGetValue(item.PartyId.Value, out var name))
+                    item.PartyName = name;
+            }
         }
 
         private async Task PopulateUnitNames(List<GateInwardHdrDto> items)

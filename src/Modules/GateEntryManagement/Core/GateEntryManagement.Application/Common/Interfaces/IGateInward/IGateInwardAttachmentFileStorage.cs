@@ -15,9 +15,5 @@ namespace GateEntryManagement.Application.Common.Interfaces.IGateInward
         Task DeleteAsync(string? relativePath, CancellationToken ct);
     }
 
-    public sealed record StagedGateInwardAttachment(
-        string FileName,
-        string OriginalFileName,
-        long FileSize,
-        string? FileType);
+    public sealed record StagedGateInwardAttachment(string FileName);
 }

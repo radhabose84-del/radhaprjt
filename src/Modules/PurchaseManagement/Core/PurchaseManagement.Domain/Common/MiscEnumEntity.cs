@@ -52,8 +52,11 @@ namespace PurchaseManagement.Domain.Common
         public const string TransactionTypeLPO = "Local Purchase Order";
         public const string TransactionTypeCPO = "Contract Purchase Order";
         public const string TransactionTypeIPO = "Import Purchase Order";
+		public const string TransactionTypeEPO = "Emergency Purchase Order";
+        public const string TransactionTypeSPO = "Service Purchase Order";
         public const string TransactionTypeRFQ = "RFQ";
         public const string TransactionTypeDutyMaster = "Duty Master";
+		public const string TransactionTypeContract = "Purchase Contract";        
         public const string ModulePurchase = "Purchase";
     }
 }

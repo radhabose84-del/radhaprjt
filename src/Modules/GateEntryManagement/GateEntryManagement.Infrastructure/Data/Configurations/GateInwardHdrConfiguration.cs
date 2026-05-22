@@ -35,6 +35,22 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.ReceivingTypeId)
+                .HasColumnName("ReceivingTypeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.CourierNumber)
+                .HasColumnName("CourierNumber")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
+            // Cross-module FK (PartyManagement) — no DB FK constraint
+            builder.Property(t => t.PartyId)
+                .HasColumnName("PartyId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Weighbridge
             builder.Property(t => t.GrossWeight)
                 .HasColumnName("GrossWeight")
@@ -79,24 +95,9 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("nvarchar(260)")
                 .IsRequired(false);
 
-            builder.Property(t => t.AttachmentOriginalFileName)
-                .HasColumnName("AttachmentOriginalFileName")
-                .HasColumnType("nvarchar(260)")
-                .IsRequired(false);
-
             builder.Property(t => t.AttachmentFilePath)
                 .HasColumnName("AttachmentFilePath")
                 .HasColumnType("nvarchar(500)")
-                .IsRequired(false);
-
-            builder.Property(t => t.AttachmentFileType)
-                .HasColumnName("AttachmentFileType")
-                .HasColumnType("nvarchar(100)")
-                .IsRequired(false);
-
-            builder.Property(t => t.AttachmentFileSize)
-                .HasColumnName("AttachmentFileSize")
-                .HasColumnType("bigint")
                 .IsRequired(false);
 
             // Audit
@@ -121,6 +122,8 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.GateEntryNo).IsUnique();
             builder.HasIndex(t => t.VehicleMovementRecordId);
             builder.HasIndex(t => t.UnitId);
+            builder.HasIndex(t => t.PartyId);
+            builder.HasIndex(t => t.ReceivingTypeId);
 
             // Same-module FKs
             builder.HasOne(t => t.VehicleMovementRecord)
@@ -131,6 +134,11 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.QAStatusMisc)
                 .WithMany(m => m.GateInwardHdrsAsQAStatus)
                 .HasForeignKey(t => t.QAStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.ReceivingType)
+                .WithMany(m => m.GateInwardHdrsAsReceivingType)
+                .HasForeignKey(t => t.ReceivingTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

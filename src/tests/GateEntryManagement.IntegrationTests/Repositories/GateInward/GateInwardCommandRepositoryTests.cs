@@ -69,6 +69,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = "GE00001",
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -88,16 +89,14 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = "GE-ATT-1",
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
                 QAInspectionRequired = false,
                 UnitId = 1,
                 AttachmentFileName = "abc.pdf",
-                AttachmentOriginalFileName = "lr-copy.pdf",
                 AttachmentFilePath = "GateEntry/abc.pdf",
-                AttachmentFileType = "application/pdf",
-                AttachmentFileSize = 2048,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -123,7 +122,6 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             var reloaded = await ctx.GateInwardHdr.FirstAsync(x => x.Id == id);
             reloaded.AttachmentFileName.Should().BeNull();
             reloaded.AttachmentFilePath.Should().BeNull();
-            reloaded.AttachmentFileSize.Should().BeNull();
         }
 
         [Fact]

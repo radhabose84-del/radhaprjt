@@ -15,5 +15,9 @@ namespace GateEntryManagement.Application.Common.Interfaces.IGateInward
         // Returns Gate.MiscTypeMaster Descriptions keyed by MiscTypeCode
         // for ImagePath (server base URL) + GateEntryImage (sub-folder).
         Task<Dictionary<string, string>> GetDocumentDirectoryPath();
+
+        // Returns true if the given MiscMaster Id resolves to ReceivingType='Courier'.
+        // Drives the conditional rule: CourierNumber is required only when ReceivingType = Courier.
+        Task<bool> IsCourierReceivingTypeAsync(int miscId);
     }
 }

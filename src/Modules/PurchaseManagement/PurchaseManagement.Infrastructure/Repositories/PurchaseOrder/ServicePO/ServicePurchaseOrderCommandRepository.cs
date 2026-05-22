@@ -1,6 +1,8 @@
 #nullable disable
 using System.Data;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
+using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
@@ -20,16 +22,15 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
         private readonly IMiscMasterQueryRepository _misc;
         private readonly IIPAddressService _ip;
         private readonly IDbConnection _dbConnection;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-
-
-
-        public ServicePurchaseOrderCommandRepository(ApplicationDbContext db, IMiscMasterQueryRepository misc, IIPAddressService ip, IDbConnection dbConnection)
+        public ServicePurchaseOrderCommandRepository(ApplicationDbContext db, IMiscMasterQueryRepository misc, IIPAddressService ip, IDbConnection dbConnection, IDocumentSequenceLookup documentSequenceLookup)
         {
             _db = db;
             _misc = misc;
             _ip = ip;
             _dbConnection = dbConnection;
+            _documentSequenceLookup = documentSequenceLookup;
         }
         public async Task<PurchaseOrderHeader> GetAggregateAsync(int id, CancellationToken ct)
         {
@@ -212,7 +213,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
             }
         }
 
-        public async Task<int> CreateAsync(PurchaseOrderHeader aggregate, CancellationToken ct)
+        public async Task<int> CreateAsync(PurchaseOrderHeader aggregate, CancellationToken ct, int? transactionTypeId = null)
         {
             // 0) status = Pending
             var pending = await _misc.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
@@ -317,6 +318,18 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ServicePO
                 }
 
                 await _db.SaveChangesAsync(ct);
+
+                // Advance Finance.DocumentSequence.DocNo for this PO's TransactionType — same
+                // connection + transaction as the inserts above so the increment is atomic
+                // with the PO save (mirrors Local PO numbering). Skipped when caller doesn't
+                // use IDocumentSequenceLookup-based numbering (transactionTypeId == null).
+                if (transactionTypeId is > 0)
+                {
+                    var dbConn = _db.Database.GetDbConnection();
+                    var dbTx = tx.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId.Value, dbConn, dbTx);
+                }
+
                 await tx.CommitAsync(ct);
                 return poId;
             });

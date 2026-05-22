@@ -76,6 +76,11 @@ public static class CachingServiceExtensions
         // (new submissions, approvals, rejections). Caching causes pending approval lists
         // to show stale data — newly submitted items missing, already-approved items still appearing.
         "IWorkflowLookup",
+
+        // ISupplierLookup scopes results to the caller's current unit (resolved from
+        // IIPAddressService, not a method argument). The cache key is interface+method+args
+        // only, so caching would serve one unit's supplier list to users of another unit.
+        "ISupplierLookup",
     };
 
     // Populated by AddLookupCaching during discovery so CacheInvalidationBehavior knows

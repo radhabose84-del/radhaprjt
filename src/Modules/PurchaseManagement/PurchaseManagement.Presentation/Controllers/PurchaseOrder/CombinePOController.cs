@@ -7,6 +7,7 @@ using PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombineP
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Cancel;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Foreclose;
+using PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOPending;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
@@ -45,6 +46,32 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
                 data = new { NewPurchaseOrderId = newId }
             });
         }
+        [HttpGet("pending-po")]
+        public async Task<IActionResult> GetPendingPOAsync(
+            [FromQuery] int? poId = null,
+            [FromQuery] int? poMethodId = null,
+            [FromQuery] int? pageNumber = 1,
+            [FromQuery] int? pageSize = 15,
+            [FromQuery] string? searchTerm = null,
+            CancellationToken ct = default)
+        {
+            var result = await _mediator.Send(new GetCombinePOPendingQuery
+            {
+                PoId = poId,
+                PoMethodId = poMethodId,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm
+            }, ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result,
+                message = "Pending PO data fetched successfully"
+            });
+        }
+
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id, [FromQuery] int poMethodId, CancellationToken ct)
         {

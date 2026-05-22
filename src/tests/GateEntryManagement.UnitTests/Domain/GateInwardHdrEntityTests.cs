@@ -34,6 +34,7 @@ namespace GateEntryManagement.UnitTests.Domain
                 Id = 1,
                 GateEntryNo = "GE00001",
                 VehicleMovementRecordId = 5,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -46,6 +47,7 @@ namespace GateEntryManagement.UnitTests.Domain
             entity.Id.Should().Be(1);
             entity.GateEntryNo.Should().Be("GE00001");
             entity.VehicleMovementRecordId.Should().Be(5);
+            entity.PartyId.Should().Be(1099);
             entity.GrossWeight.Should().Be(1000);
             entity.TareWeight.Should().Be(200);
             entity.NetWeight.Should().Be(800);
@@ -59,6 +61,7 @@ namespace GateEntryManagement.UnitTests.Domain
             var entity = new GateInwardHdr
             {
                 GateEntryNo = null,
+                PartyId = null,
                 GrossWeight = null,
                 TareWeight = null,
                 NetWeight = null,
@@ -67,6 +70,7 @@ namespace GateEntryManagement.UnitTests.Domain
             };
 
             entity.GateEntryNo.Should().BeNull();
+            entity.PartyId.Should().BeNull();
             entity.GrossWeight.Should().BeNull();
             entity.QAStatusId.Should().BeNull();
         }
@@ -77,17 +81,37 @@ namespace GateEntryManagement.UnitTests.Domain
             var entity = new GateInwardHdr
             {
                 AttachmentFileName = "abc.pdf",
-                AttachmentOriginalFileName = "lr-copy.pdf",
-                AttachmentFilePath = "GateEntry/abc.pdf",
-                AttachmentFileType = "application/pdf",
-                AttachmentFileSize = 2048
+                AttachmentFilePath = "GateEntry/abc.pdf"
             };
 
             entity.AttachmentFileName.Should().Be("abc.pdf");
-            entity.AttachmentOriginalFileName.Should().Be("lr-copy.pdf");
             entity.AttachmentFilePath.Should().Be("GateEntry/abc.pdf");
-            entity.AttachmentFileType.Should().Be("application/pdf");
-            entity.AttachmentFileSize.Should().Be(2048);
+        }
+
+        [Fact]
+        public void GateInwardHdr_ReceivingTypeAndCourierNumber_ShouldBeAssignable()
+        {
+            var entity = new GateInwardHdr
+            {
+                ReceivingTypeId = 10,
+                CourierNumber = "DTDC-AWB-12345"
+            };
+
+            entity.ReceivingTypeId.Should().Be(10);
+            entity.CourierNumber.Should().Be("DTDC-AWB-12345");
+        }
+
+        [Fact]
+        public void GateInwardHdr_ReceivingTypeAndCourierNumber_ShouldAcceptNull()
+        {
+            var entity = new GateInwardHdr
+            {
+                ReceivingTypeId = null,
+                CourierNumber = null
+            };
+
+            entity.ReceivingTypeId.Should().BeNull();
+            entity.CourierNumber.Should().BeNull();
         }
 
         [Fact]
@@ -96,13 +120,11 @@ namespace GateEntryManagement.UnitTests.Domain
             var entity = new GateInwardHdr
             {
                 AttachmentFileName = null,
-                AttachmentFilePath = null,
-                AttachmentFileSize = null
+                AttachmentFilePath = null
             };
 
             entity.AttachmentFileName.Should().BeNull();
             entity.AttachmentFilePath.Should().BeNull();
-            entity.AttachmentFileSize.Should().BeNull();
         }
 
         [Fact]

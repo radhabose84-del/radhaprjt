@@ -1,12 +1,12 @@
 using FluentValidation;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
-using PurchaseManagement.Application.ContractPO.Commands.Delete;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Delete;
 
 namespace PurchaseManagement.Presentation.Validation.ContractPO;
 
-public sealed class DeleteContractPOValidator : AbstractValidator<DeleteContractPOCommand>
+public sealed class DeleteContractPOValidator : AbstractValidator<DeleteContractPOMasterCommand>
 {
-    public DeleteContractPOValidator(IContractPOQueryRepository queryRepo)
+    public DeleteContractPOValidator(IContractPOMasterQueryRepository queryRepo)
     {
         RuleFor(x => x.Id)
             .GreaterThan(0)

@@ -3,6 +3,8 @@ using Dapper;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Party;
+using Contracts.Dtos.Lookups.Party;
 using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Infrastructure.Repositories.GateInward;
 using GateEntryManagement.Infrastructure.Data;
@@ -19,12 +21,24 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
 
         private GateInwardQueryRepository CreateQueryRepo(
             Mock<IUnitLookup> unitLookup = null,
-            Mock<IIPAddressService> ipService = null)
+            Mock<IIPAddressService> ipService = null,
+            Mock<IPartyLookup> partyLookup = null)
         {
             unitLookup ??= BuildDefaultUnitLookup();
             ipService ??= BuildDefaultIpService();
+            partyLookup ??= BuildDefaultPartyLookup();
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new GateInwardQueryRepository(conn, unitLookup.Object, ipService.Object);
+            return new GateInwardQueryRepository(conn, unitLookup.Object, partyLookup.Object, ipService.Object);
+        }
+
+        private static Mock<IPartyLookup> BuildDefaultPartyLookup(int partyId = 1099, string partyName = "Test Party")
+        {
+            var mock = new Mock<IPartyLookup>(MockBehavior.Loose);
+            mock.Setup(p => p.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<PartyLookupDto> { new PartyLookupDto { Id = partyId, PartyName = partyName } });
+            mock.Setup(p => p.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PartyLookupDto { Id = partyId, PartyName = partyName });
+            return mock;
         }
 
         private static Mock<IUnitLookup> BuildDefaultUnitLookup(int unitId = 1, string unitName = "Test Unit")
@@ -101,6 +115,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = gateEntryNo,
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
@@ -148,16 +163,14 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             {
                 GateEntryNo = "GE-ATT-1",
                 VehicleMovementRecordId = vmrId,
+                PartyId = 1099,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,
                 QAInspectionRequired = false,
                 UnitId = 1,
                 AttachmentFileName = "abc.pdf",
-                AttachmentOriginalFileName = "lr-copy.pdf",
                 AttachmentFilePath = "GateEntry/abc.pdf",
-                AttachmentFileType = "application/pdf",
-                AttachmentFileSize = 2048,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -179,6 +192,21 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
 
             dirs[MiscEnumEntity.ImagePath].Should().Be("http://192.168.1.126/Resources/");
             dirs[MiscEnumEntity.GateEntryImage].Should().Be("GateEntry");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_PartyId_And_PartyName_From_Lookup()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (_, vmrId) = await SeedPrerequisitesAsync(ctx);
+            var id = await SeedGateInwardAsync(ctx, vmrId);
+
+            var dto = await CreateQueryRepo(partyLookup: BuildDefaultPartyLookup(1099, "ABC Mills"))
+                .GetByIdAsync(id);
+
+            dto.Should().NotBeNull();
+            dto!.PartyId.Should().Be(1099);
+            dto.PartyName.Should().Be("ABC Mills");
         }
 
         [Fact]
@@ -352,6 +380,72 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
             var exists = await CreateQueryRepo().MiscMasterExistsAsync(9999);
 
             exists.Should().BeFalse();
+        }
+
+        // --- IsCourierReceivingTypeAsync ---
+
+        private async Task<(int vehicleId, int courierId)> SeedReceivingTypeMiscAsync(ApplicationDbContext ctx)
+        {
+            await ctx.MiscTypeMaster.AddAsync(new GateEntryManagement.Domain.Entities.MiscTypeMaster
+            {
+                MiscTypeCode = "ReceivingType",
+                Description = "Receiving Type",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            });
+            await ctx.SaveChangesAsync();
+            var rtTypeId = (await ctx.MiscTypeMaster
+                .FirstAsync(x => x.MiscTypeCode == "ReceivingType")).Id;
+
+            var vehicle = new GateEntryManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = rtTypeId, Code = "VEHICLE", Description = "Vehicle", SortOrder = 1,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            var courier = new GateEntryManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = rtTypeId, Code = "COURIER", Description = "Courier", SortOrder = 2,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddRangeAsync(vehicle, courier);
+            await ctx.SaveChangesAsync();
+            return (vehicle.Id, courier.Id);
+        }
+
+        [Fact]
+        public async Task IsCourierReceivingTypeAsync_Should_Return_True_For_Courier()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await SeedPrerequisitesAsync(ctx);
+            var (_, courierId) = await SeedReceivingTypeMiscAsync(ctx);
+
+            var result = await CreateQueryRepo().IsCourierReceivingTypeAsync(courierId);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsCourierReceivingTypeAsync_Should_Return_False_For_Vehicle()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await SeedPrerequisitesAsync(ctx);
+            var (vehicleId, _) = await SeedReceivingTypeMiscAsync(ctx);
+
+            var result = await CreateQueryRepo().IsCourierReceivingTypeAsync(vehicleId);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsCourierReceivingTypeAsync_Should_Return_False_For_Unrelated_Misc()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (_, vmrStatusMiscId) = await SeedPrerequisitesAsync(ctx);
+            await SeedReceivingTypeMiscAsync(ctx);
+
+            var result = await CreateQueryRepo().IsCourierReceivingTypeAsync(vmrStatusMiscId);
+
+            result.Should().BeFalse();
         }
     }
 }

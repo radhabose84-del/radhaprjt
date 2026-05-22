@@ -8,7 +8,7 @@ namespace BackgroundService.Application.Workflow.Common.Interfaces.IApprovalRequ
 {
     public interface IApprovalRequestCommand
     {
-        Task<bool> CreateBulkAsync(string WorkflowType, int TransactionId, string ContextJson);
+        Task<bool> CreateBulkAsync(string WorkflowType, int TransactionId, string ContextJson, int? TransactionTypeId = null);
         Task<int> Approve(ApprovalRequest approvalRequest, string ApprovalRequestLines,CancellationToken ct);
         Task<bool> Approve(ApprovalRequest approvalRequest,CancellationToken ct);
         Task RevertStatusAsync(int approvalRequestHeaderId, int statusId, CancellationToken ct);

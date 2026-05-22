@@ -18,11 +18,7 @@ namespace GateEntryManagement.Application.GateInward.Commands.UploadGateInwardAt
         {
             var staged = await _storage.SaveToStagingAsync(request.File!, ct);
 
-            return new UploadGateInwardAttachmentResultDto(
-                FileName: staged.FileName,
-                OriginalFileName: staged.OriginalFileName,
-                FileSize: staged.FileSize,
-                FileType: staged.FileType);
+            return new UploadGateInwardAttachmentResultDto(FileName: staged.FileName);
         }
     }
 }

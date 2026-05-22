@@ -9,6 +9,15 @@ namespace GateEntryManagement.Domain.Entities
         // Linked VMR
         public int VehicleMovementRecordId { get; set; }
 
+        // Cross-module FK (PartyManagement) — no DB FK constraint; validated via IPartyLookup
+        public int? PartyId { get; set; }
+
+        // Receiving Type (Vehicle / Courier / Manual) — same-module FK to Gate.MiscMaster
+        public int? ReceivingTypeId { get; set; }
+
+        // Required only when ReceivingType = Courier (server-side conditional via IsCourierReceivingTypeAsync)
+        public string? CourierNumber { get; set; }
+
         // Weighbridge
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
@@ -25,14 +34,12 @@ namespace GateEntryManagement.Domain.Entities
         // Single Gate Entry Document (optional). Stored filename only;
         // preview URL composed from Gate.MiscTypeMaster (ImagePath + GateEntryImage).
         public string? AttachmentFileName { get; set; }
-        public string? AttachmentOriginalFileName { get; set; }
         public string? AttachmentFilePath { get; set; }
-        public string? AttachmentFileType { get; set; }
-        public long? AttachmentFileSize { get; set; }
 
         // Navigation Properties
         public VehicleMovementRecord? VehicleMovementRecord { get; set; }
         public MiscMaster? QAStatusMisc { get; set; }
+        public MiscMaster? ReceivingType { get; set; }
 
         // Child collection
         public ICollection<GateInwardDtl>? GateInwardDetails { get; set; }

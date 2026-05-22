@@ -1,4 +1,6 @@
-using PurchaseManagement.Domain.Entities.ContractPO;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore.Storage;
+using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 
@@ -6,10 +8,6 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContr
 
 public interface IContractPOCommandRepository
 {
-    Task<ContractPOHeader> CreateAsync(ContractPOHeader entity, int transactionTypeId, CancellationToken ct);
-    Task<ContractPOHeader> UpdateAsync(ContractPOHeader entity, List<ContractPODetail> details, CancellationToken ct);
-    Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
-
     Task<int> CreateCombinePOAsync(
         PurchaseOrderHeader poHeader,
         PurchaseContractHeader contractHeader,
@@ -18,21 +16,58 @@ public interface IContractPOCommandRepository
         int transactionTypeId,
         CancellationToken ct);
 
-    Task<int> UpdateContractReleasePOAsync(
+    Task<int> UpdateContractPOAsync(
         PurchaseOrderHeader poHeader,
         PurchaseContractHeader contractHeader,
         List<PurchaseContractDetail> contractDetails,
         List<ContractPOReleaseHistory> releaseHistories,
+        List<PurchasePaymentTerm> paymentTerms,
         CancellationToken ct);
 
-    Task<int> DeleteContractReleasePOAsync(int poId, CancellationToken ct);
+    Task<int> DeleteContractPOAsync(int poId, CancellationToken ct);
 
-    Task<int> AmendContractReleasePOAsync(
+    Task<int> AmendContractPOAsync(
         int existingPoId,
         PurchaseOrderHeader newPoHeader,
         PurchaseContractHeader newContractHeader,
         List<PurchaseContractDetail> newContractDetails,
         List<ContractPOReleaseHistory> newReleaseHistories,
+        List<PurchasePaymentTerm> newPaymentTerms,
         int transactionTypeId,
         CancellationToken ct);
+
+    // ── Shared Transaction overloads ─────────────────────────────────────────
+    // Use these when the caller manages the transaction (e.g. to enroll
+    // outbox events in the same SQL transaction).
+    IExecutionStrategy CreateExecutionStrategy();
+
+    /// <summary>
+    /// Opens a transaction and returns the EF Core transaction together with
+    /// the underlying ADO.NET connection and transaction so the caller can
+    /// enroll cross-module Dapper writes in the same SQL transaction.
+    /// </summary>
+    Task<(IDbContextTransaction EfTx, DbConnection Conn, DbTransaction DbTx)> BeginTransactionWithConnectionAsync(CancellationToken ct);
+
+    Task<int> CreateWithoutTransactionAsync(
+        PurchaseOrderHeader poHeader,
+        PurchaseContractHeader contractHeader,
+        List<PurchaseContractDetail> contractDetails,
+        List<ContractPOReleaseHistory> releaseHistories,
+        List<PurchasePaymentTerm> paymentTerms,
+        CancellationToken ct);
+
+    Task<int> AmendWithoutTransactionAsync(
+        int existingPoId,
+        PurchaseOrderHeader newPoHeader,
+        PurchaseContractHeader newContractHeader,
+        List<PurchaseContractDetail> newContractDetails,
+        List<ContractPOReleaseHistory> newReleaseHistories,
+        List<PurchasePaymentTerm> newPaymentTerms,
+        CancellationToken ct);
+
+    Task SaveChangesAsync(CancellationToken ct);
+
+    // ── Cancel / Foreclose ───────────────────────────────────────────────────
+    Task<bool> CancelAsync(int id, CancellationToken ct);
+    Task<bool> ForecloseAsync(int id, CancellationToken ct);
 }

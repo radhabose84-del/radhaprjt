@@ -31,6 +31,15 @@ namespace BackgroundService.Application.Notification.Common.Interfaces
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets the menu ID from Finance.TransactionTypeMaster by TransactionTypeId.
+        /// Fallback when MenuName does not match any menu (e.g. "Contract Purchase Order"
+        /// maps to MenuId 174 via TransactionTypeMaster).
+        /// </summary>
+        Task<int?> GetMenuIdByTransactionTypeIdAsync(
+            int transactionTypeId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets user session by JWT ID.
         /// </summary>
         Task<UserSessionDto?> GetSessionByJwtIdAsync(

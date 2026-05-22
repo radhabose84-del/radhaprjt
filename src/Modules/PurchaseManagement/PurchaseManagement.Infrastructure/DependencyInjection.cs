@@ -58,8 +58,7 @@ using PurchaseManagement.Infrastructure.Repositories.ExchangeRate;
 using PurchaseManagement.Application.Common.Interfaces.IExchangeRate;
 using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Infrastructure.Repositories.Port;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
-using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
@@ -89,6 +88,9 @@ using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.Lookups;
 using PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase;
+using PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
+using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
 
 
 
@@ -285,6 +287,8 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IPurchaseBillEntryCommandRepository, PurchaseBillEntryCommandRepository>();
             services.AddScoped<IPurchaseBillEntryQueryRepository, PurchaseBillEntryQueryRepository>();
 
+            services.AddScoped<IContractPOMasterCommandRepository, ContractPOMasterCommandRepository>();
+            services.AddScoped<IContractPOMasterQueryRepository, ContractPOMasterQueryRepository>();
             services.AddScoped<IContractPOCommandRepository, ContractPOCommandRepository>();
             services.AddScoped<IContractPOQueryRepository, ContractPOQueryRepository>();
 

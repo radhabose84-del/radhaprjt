@@ -1,12 +1,12 @@
 using FluentValidation;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
-using PurchaseManagement.Application.ContractPO.Commands.Update;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Update;
 
 namespace PurchaseManagement.Presentation.Validation.ContractPO;
 
-public sealed class UpdateContractPOValidator : AbstractValidator<UpdateContractPOCommand>
+public sealed class UpdateContractPOValidator : AbstractValidator<UpdateContractPOMasterCommand>
 {
-    public UpdateContractPOValidator(IContractPOQueryRepository queryRepo)
+    public UpdateContractPOValidator(IContractPOMasterQueryRepository queryRepo)
     {
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("A valid Id is required.")
@@ -31,8 +31,11 @@ public sealed class UpdateContractPOValidator : AbstractValidator<UpdateContract
             .GreaterThanOrEqualTo(x => x.ValidityFrom)
             .WithMessage("ValidityTo must be greater than or equal to ValidityFrom.");
 
-        RuleFor(x => x.StatusId)
-            .GreaterThan(0).WithMessage("StatusId is required.");
+        RuleFor(x => x)
+            .MustAsync(async (cmd, ct) =>
+                !await queryRepo.HasOverlappingContractAsync(cmd.VendorId, cmd.ValidityFrom, cmd.ValidityTo, cmd.Id, ct))
+            .WithMessage("A Contract PO already exists for this vendor with overlapping validity period.")
+            .When(x => x.VendorId > 0 && x.ValidityFrom != default && x.ValidityTo != default && x.Id > 0);
 
         RuleFor(x => x.IsActive)
             .InclusiveBetween(0, 1).WithMessage("IsActive must be either 0 or 1.");

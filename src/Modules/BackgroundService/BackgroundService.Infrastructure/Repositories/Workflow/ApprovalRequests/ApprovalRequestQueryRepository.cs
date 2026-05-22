@@ -377,7 +377,13 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
 
             const string query = @"
             Declare @WorkflowType varchar(100)
-            SET @WorkflowType =(SELECT TOP 1 WorkflowType FROM [AppData].[ApprovalRequest] WHERE ModuleTransactionId=@ModuleTransactionId AND Id=@Id)
+            Declare @TransactionTypeId int
+
+            SELECT TOP 1 @WorkflowType = AR.WorkflowType, @TransactionTypeId = WT.TransactionTypeId
+            FROM [AppData].[ApprovalRequest] AR
+            LEFT JOIN [AppData].[WorkflowType] WT ON WT.Id = AR.WorkflowTypeId
+            WHERE AR.ModuleTransactionId=@ModuleTransactionId AND AR.Id=@Id
+
             ;WITH LineRows AS (
                 SELECT
                     ARL.ModuleLineTransactionId,
@@ -437,8 +443,8 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
                     END AS Status
                 FROM HeaderRollup
             )
-            
-            SELECT ModuleTransactionId, Status AS StatusCode,@WorkflowType AS WorkflowType  FROM HeaderStatus;";
+
+            SELECT ModuleTransactionId, Status AS StatusCode, @WorkflowType AS WorkflowType, @TransactionTypeId AS TransactionTypeId FROM HeaderStatus;";
 
             var parameters = new
             {
@@ -529,8 +535,13 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
         {
             const string query = @"
             Declare @WorkflowType varchar(100)
-            SET @WorkflowType =(SELECT TOP 1 WorkflowType FROM [AppData].[ApprovalRequest] WHERE ModuleTransactionId=@ModuleTransactionId AND Id=@Id)
-           
+            Declare @TransactionTypeId int
+
+            SELECT TOP 1 @WorkflowType = AR.WorkflowType, @TransactionTypeId = WT.TransactionTypeId
+            FROM [AppData].[ApprovalRequest] AR
+            LEFT JOIN [AppData].[WorkflowType] WT ON WT.Id = AR.WorkflowTypeId
+            WHERE AR.ModuleTransactionId=@ModuleTransactionId AND AR.Id=@Id
+
 			;WITH HeaderRows AS (
                 SELECT
                     AR.ModuleTransactionId,
@@ -559,8 +570,8 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
                     END AS Status
                 FROM HeaderRollup
             )
-            
-            SELECT ModuleTransactionId, Status AS StatusCode,@WorkflowType AS WorkflowType  FROM HeaderStatus;";
+
+            SELECT ModuleTransactionId, Status AS StatusCode, @WorkflowType AS WorkflowType, @TransactionTypeId AS TransactionTypeId FROM HeaderStatus;";
 
             var parameters = new
             {
@@ -827,5 +838,21 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
         //     return lookup.Values.ToList();
         // }
 
+        public async Task<bool> HasApprovalRequestAsync(
+            int moduleTransactionId, string workflowType, CancellationToken ct = default)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [AppData].[ApprovalRequest]
+                    WHERE ModuleTransactionId = @ModuleTransactionId
+                      AND WorkflowType = @WorkflowType
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(
+                new CommandDefinition(
+                    sql,
+                    new { ModuleTransactionId = moduleTransactionId, WorkflowType = workflowType },
+                    cancellationToken: ct));
+        }
     }
 }

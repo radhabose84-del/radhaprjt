@@ -8,6 +8,11 @@ namespace GateEntryManagement.Application.GateInward.Dto
         public string? VehicleMovementId { get; set; }
         public string? VehicleNumber { get; set; }
         public string? DriverName { get; set; }
+        public int? PartyId { get; set; }
+        public string? PartyName { get; set; }
+        public int? ReceivingTypeId { get; set; }
+        public string? ReceivingTypeName { get; set; }
+        public string? CourierNumber { get; set; }
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
         public decimal? NetWeight { get; set; }
@@ -21,10 +26,7 @@ namespace GateEntryManagement.Application.GateInward.Dto
         // Single Gate Entry Document — AttachmentFilePath returns the composed
         // preview URL ({ImagePath}{GateEntryImage}/{AttachmentFileName})
         public string? AttachmentFileName { get; set; }
-        public string? AttachmentOriginalFileName { get; set; }
         public string? AttachmentFilePath { get; set; }
-        public string? AttachmentFileType { get; set; }
-        public long? AttachmentFileSize { get; set; }
 
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

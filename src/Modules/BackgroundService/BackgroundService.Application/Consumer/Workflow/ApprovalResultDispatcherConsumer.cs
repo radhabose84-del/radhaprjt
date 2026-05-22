@@ -32,8 +32,9 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 {
     private static readonly HashSet<string> PurchaseTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Purchase Indent", "Quotation Comparison", "Item Price Master", "Purchase Order",
-        "Material Request", "ServicePO", "Service Entry Sheet", "Issue Return"
+        "Purchase Indent", "Quotation Comparison", "Item Price Master",        
+        "Purchase Order", "Purchase Contract",
+        "Material Request", "ServicePO", "Service Entry Sheet", "Issue Return"        
     };
 
     private static readonly HashSet<string> BudgetTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -105,6 +106,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 LineStatus = msg.LineStatus,
                 PartyContacts = msg.PartyContacts,
                 DynamicFields = msg.DynamicFields,
+                TransactionTypeId = msg.TransactionTypeId,
                 ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP

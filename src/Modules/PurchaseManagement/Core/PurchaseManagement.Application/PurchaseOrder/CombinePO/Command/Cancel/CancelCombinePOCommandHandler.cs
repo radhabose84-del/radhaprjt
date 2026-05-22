@@ -1,5 +1,7 @@
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Cancel;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Cancel;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Cancel;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Cancel;
@@ -22,10 +24,10 @@ public sealed class CancelCombinePOCommandHandler
             return await _mediator.Send(new CancelPurchaseOrderCommand(request.Id), ct);
 
         if (await _lookup.IsImportAsync(request.POMethodId, ct))
-            return await _mediator.Send(new CancelPurchaseOrderCommand(request.Id), ct);
+            return await _mediator.Send(new CancelImportPOCommand(request.Id), ct);
 
         if (await _lookup.IsContractAsync(request.POMethodId, ct))
-            return await _mediator.Send(new CancelPurchaseOrderCommand(request.Id), ct);
+            return await _mediator.Send(new CancelContractPOCommand(request.Id), ct);
 
         throw new InvalidOperationException("Unsupported POMethodId for cancel.");
     }

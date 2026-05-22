@@ -79,7 +79,8 @@ public class PurchaseOrderLocalController : ApiControllerBase
     }
     [HttpGet("pending-po")]
     public async Task<IActionResult> GetPendingPOAsync(
-        [FromQuery] int? poId =null,[FromQuery] int? PoMethodId =null,
+        [FromQuery] int? poId = null,
+        [FromQuery] int? PoMethodId = null,
         [FromQuery] int? pageNumber = 1,
         [FromQuery] int? pageSize = 15,
         [FromQuery] string? searchTerm = null,
@@ -94,20 +95,13 @@ public class PurchaseOrderLocalController : ApiControllerBase
             SearchTerm = searchTerm
         }, cancellationToken);
 
-        if (items == null || items.Count == 0)
-        {
-            return NotFound(new
-            {
-                StatusCode = StatusCodes.Status404NotFound,
-                data = (object?)null,
-                message = $"Pending PO data for PO ID {poId} not found"
-            });
-        }
         return Ok(new
         {
             StatusCode = StatusCodes.Status200OK,
-            data = new { Items = items, TotalCount = total },
-            message = $"Pending PO data for PO ID {poId} fetched successfully"
+            data = items,
+            TotalCount = total,
+            PageNumber = pageNumber,
+            PageSize = pageSize
         });
     }   
     [HttpPost("amendment")]

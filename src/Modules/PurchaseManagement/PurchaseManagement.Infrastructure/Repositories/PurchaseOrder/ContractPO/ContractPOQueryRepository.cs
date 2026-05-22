@@ -1,212 +1,28 @@
 using System.Data;
+using Contracts.Interfaces;
 using Dapper;
+using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
-using PurchaseManagement.Application.ContractPO.Dto;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetContractPOPending;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ContractPO;
+using PurchaseManagement.Domain.Common;
 
 namespace PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
 
 public sealed class ContractPOQueryRepository : IContractPOQueryRepository
 {
     private readonly IDbConnection _db;
+    private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+    private readonly IIPAddressService _ipAddressService;
 
-    public ContractPOQueryRepository(IDbConnection db)
+    public ContractPOQueryRepository(
+        IDbConnection db,
+        IMiscMasterQueryRepository miscMasterQueryRepository,
+        IIPAddressService ipAddressService)
     {
         _db = db;
-    }
-
-    public async Task<ContractPOHeaderDto?> GetByIdAsync(int id, CancellationToken ct)
-    {
-        const string headerSql = @"
-            SELECT
-                H.Id, H.ContractPONumber, H.UnitId, H.ContractDate,
-                H.VendorId, H.CurrencyId,
-                H.ValidityFrom, H.ValidityTo,
-                H.TotalContractValue, H.UtilizedValue, H.BalanceValue,
-                H.StatusId, MM.Code AS StatusName,
-                H.Remarks,
-                CAST(H.IsActive AS int) AS IsActive,
-                CAST(H.IsDeleted AS int) AS IsDeleted,
-                H.CreatedBy, H.CreatedDate, H.CreatedByName, H.CreatedIP,
-                H.ModifiedBy, H.ModifiedDate, H.ModifiedByName, H.ModifiedIP
-            FROM Purchase.ContractPOHeader H WITH (NOLOCK)
-            LEFT JOIN Purchase.MiscMaster MM WITH (NOLOCK) ON MM.Id = H.StatusId AND MM.IsDeleted = 0
-            WHERE H.Id = @Id AND H.IsDeleted = 0";
-
-        const string detailSql = @"
-            SELECT
-                D.Id, D.ContractPOHeaderId, D.ItemSno,
-                D.ItemId, D.UOMId,
-                D.ContractQuantity, D.ContractRate, D.ContractValue,
-                D.UtilizedQuantity, D.BalanceQuantity,
-                D.UtilizedValue, D.BalanceValue,
-                D.HSNId, D.GSTPercentage
-            FROM Purchase.ContractPODetail D WITH (NOLOCK)
-            WHERE D.ContractPOHeaderId = @Id AND D.IsDeleted = 0
-            ORDER BY D.ItemSno";
-
-        const string historySql = @"
-            SELECT
-                RH.Id, RH.ContractPOHeaderId, RH.ContractPODetailId,
-                RH.ReleasePOId, RH.ReleaseDate,
-                RH.ReleasedQuantity, RH.ReleasedRate, RH.ReleasedValue,
-                POH.PONumber AS ReleasePONumber,
-                SM.Code AS StatusName
-            FROM Purchase.ContractPOReleaseHistory RH WITH (NOLOCK)
-            LEFT JOIN Purchase.PurchaseOrderHeader POH WITH (NOLOCK)
-                ON POH.Id = RH.ReleasePOId AND POH.IsDeleted = 0
-            LEFT JOIN Purchase.MiscMaster SM WITH (NOLOCK)
-                ON SM.Id = POH.StatusId AND SM.IsDeleted = 0
-            WHERE RH.ContractPOHeaderId = @Id AND RH.IsDeleted = 0
-            ORDER BY RH.ReleaseDate DESC";
-
-        var cmd = new CommandDefinition(headerSql, new { Id = id }, cancellationToken: ct);
-        var header = await _db.QueryFirstOrDefaultAsync<ContractPOHeaderDto>(cmd);
-        if (header is null) return null;
-
-        var detailCmd = new CommandDefinition(detailSql, new { Id = id }, cancellationToken: ct);
-        var details = (await _db.QueryAsync<ContractPODetailDto>(detailCmd)).AsList();
-        header.Details = details;
-
-        var historyCmd = new CommandDefinition(historySql, new { Id = id }, cancellationToken: ct);
-        var history = (await _db.QueryAsync<ContractPOReleaseHistoryDto>(historyCmd)).AsList();
-        header.ReleaseHistory = history;
-
-        return header;
-    }
-
-    public async Task<(IReadOnlyList<ContractPOHeaderDto> Items, int Total)> GetAllAsync(
-        int page, int size, string? search, CancellationToken ct)
-    {
-        page = page <= 0 ? 1 : page;
-        size = size <= 0 ? 10 : size;
-        var offset = (page - 1) * size;
-
-        const string sql = @"
-            DECLARE @SearchTerm NVARCHAR(200) = NULLIF(LTRIM(RTRIM(@search)), '');
-
-            -- Count
-            SELECT COUNT(1)
-            FROM Purchase.ContractPOHeader H WITH (NOLOCK)
-            WHERE H.IsDeleted = 0
-              AND (@SearchTerm IS NULL
-                   OR H.ContractPONumber LIKE '%' + @SearchTerm + '%');
-
-            -- Page
-            SELECT
-                H.Id, H.ContractPONumber, H.UnitId, H.ContractDate,
-                H.VendorId, H.CurrencyId,
-                H.ValidityFrom, H.ValidityTo,
-                H.TotalContractValue, H.UtilizedValue, H.BalanceValue,
-                H.StatusId, MM.Code AS StatusName,
-                H.Remarks,
-                CAST(H.IsActive AS int) AS IsActive,
-                CAST(H.IsDeleted AS int) AS IsDeleted,
-                H.CreatedBy, H.CreatedDate, H.CreatedByName, H.CreatedIP,
-                H.ModifiedBy, H.ModifiedDate, H.ModifiedByName, H.ModifiedIP
-            FROM Purchase.ContractPOHeader H WITH (NOLOCK)
-            LEFT JOIN Purchase.MiscMaster MM WITH (NOLOCK) ON MM.Id = H.StatusId AND MM.IsDeleted = 0
-            WHERE H.IsDeleted = 0
-              AND (@SearchTerm IS NULL
-                   OR H.ContractPONumber LIKE '%' + @SearchTerm + '%')
-            ORDER BY H.Id DESC
-            OFFSET @offset ROWS FETCH NEXT @size ROWS ONLY;";
-
-        var args = new { search, offset, size };
-        using var multi = await _db.QueryMultipleAsync(
-            new CommandDefinition(sql, args, cancellationToken: ct));
-
-        var total = await multi.ReadFirstAsync<int>();
-        var rows = (await multi.ReadAsync<ContractPOHeaderDto>()).AsList();
-
-        return (rows, total);
-    }
-
-    public async Task<IReadOnlyList<ContractPOLookupDto>> AutocompleteAsync(
-        string term, CancellationToken ct)
-    {
-        const string sql = @"
-            SELECT
-                H.Id, H.ContractPONumber, H.VendorId,
-                H.ValidityFrom, H.ValidityTo,
-                H.BalanceValue,
-                MM.Code AS StatusName
-            FROM Purchase.ContractPOHeader H WITH (NOLOCK)
-            LEFT JOIN Purchase.MiscMaster MM WITH (NOLOCK) ON MM.Id = H.StatusId AND MM.IsDeleted = 0
-            WHERE H.IsDeleted = 0 AND H.IsActive = 1
-              AND (H.ContractPONumber LIKE '%' + @term + '%')
-            ORDER BY H.ContractPONumber";
-
-        var cmd = new CommandDefinition(sql, new { term }, cancellationToken: ct);
-        var rows = await _db.QueryAsync<ContractPOLookupDto>(cmd);
-        return rows.AsList();
-    }
-
-    public async Task<bool> NotFoundAsync(int id, CancellationToken ct)
-    {
-        const string sql = @"
-            SELECT COUNT(1)
-            FROM Purchase.ContractPOHeader
-            WHERE Id = @Id AND IsDeleted = 0";
-
-        var count = await _db.ExecuteScalarAsync<int>(
-            new CommandDefinition(sql, new { Id = id }, cancellationToken: ct));
-        return count == 0;
-    }
-
-    public async Task<bool> AlreadyExistsAsync(string contractPONumber, int? excludeId = null)
-    {
-        const string sql = @"
-            SELECT COUNT(1)
-            FROM Purchase.ContractPOHeader
-            WHERE ContractPONumber = @ContractPONumber
-              AND IsDeleted = 0
-              AND (@ExcludeId IS NULL OR Id <> @ExcludeId)";
-
-        var count = await _db.ExecuteScalarAsync<int>(sql,
-            new { ContractPONumber = contractPONumber, ExcludeId = excludeId });
-        return count > 0;
-    }
-
-    public async Task<bool> HasReleaseHistoryAsync(int id)
-    {
-        const string sql = @"
-            SELECT CASE WHEN EXISTS (
-                SELECT 1 FROM Purchase.ContractPOReleaseHistory
-                WHERE ContractPOHeaderId = @Id AND IsDeleted = 0
-            ) THEN 1 ELSE 0 END";
-
-        var result = await _db.QueryFirstOrDefaultAsync<int>(sql, new { Id = id });
-        return result == 1;
-    }
-
-    public async Task<bool> SoftDeleteValidationAsync(int id)
-    {
-        const string sql = @"
-            SELECT CASE WHEN
-                EXISTS (SELECT 1 FROM Purchase.ContractPOReleaseHistory
-                        WHERE ContractPOHeaderId = @Id AND IsDeleted = 0)
-                OR
-                EXISTS (SELECT 1 FROM Purchase.PurchaseContractHeader
-                        WHERE ContractPOHeaderId = @Id AND IsDeleted = 0)
-            THEN 1 ELSE 0 END";
-
-        var result = await _db.QueryFirstOrDefaultAsync<int>(sql, new { Id = id });
-        return result == 1;
-    }
-
-    public async Task<bool> IsContractActiveAndValidAsync(int contractPOHeaderId)
-    {
-        const string sql = @"
-            SELECT CASE WHEN EXISTS (
-                SELECT 1 FROM Purchase.ContractPOHeader
-                WHERE Id = @Id
-                  AND IsDeleted = 0
-                  AND IsActive = 1
-                  AND ValidityTo >= GETUTCDATE()
-            ) THEN 1 ELSE 0 END";
-
-        return await _db.ExecuteScalarAsync<bool>(sql, new { Id = contractPOHeaderId });
+        _miscMasterQueryRepository = miscMasterQueryRepository;
+        _ipAddressService = ipAddressService;
     }
 
     public async Task<decimal> GetContractDetailBalanceAsync(int contractPODetailId)
@@ -219,7 +35,14 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
         return await _db.ExecuteScalarAsync<decimal>(sql, new { Id = contractPODetailId });
     }
 
-    public async Task<ContractReleasePODetailVm?> GetContractReleasePOByIdAsync(int poId, CancellationToken ct)
+    public async Task<bool> HasAnyGrnAsync(int poId, CancellationToken ct)
+    {
+        const string sql = @"SELECT TOP 1 1 FROM Purchase.GRNDetail g WHERE g.PoId = @poId;";
+        var exists = await _db.ExecuteScalarAsync<int?>(sql, new { poId });
+        return exists.HasValue;
+    }
+
+    public async Task<ContractPODetailVm?> GetContractPOByIdAsync(int poId, CancellationToken ct)
     {
         const string headerSql = @"
             SELECT
@@ -289,14 +112,210 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
             WHERE CH.PurchaseOrderId = @Id AND CD.IsDeleted = 0
             ORDER BY CD.ItemSno";
 
+        const string paymentTermSql = @"
+            SELECT
+                PT.Id,
+                PT.PurchaseOrderId,
+                PT.PaymentTermId,
+                PT.AdvancePercent,
+                PT.CreditDays,
+                PT.PaymentModelId,
+                PT.InsuranceId,
+                PT.InsurancePercent,
+                PT.InsuranceAmount,
+                PT.AdvanceAmount,
+                PT.BalancePercent,
+                PT.BalanceAmount
+            FROM Purchase.PurchasePaymentTerm PT WITH (NOLOCK)
+            WHERE PT.PurchaseOrderId = @Id AND PT.IsDeleted = 0";
+
         var headerCmd = new CommandDefinition(headerSql, new { Id = poId }, cancellationToken: ct);
-        var vm = await _db.QueryFirstOrDefaultAsync<ContractReleasePODetailVm>(headerCmd);
+        var vm = await _db.QueryFirstOrDefaultAsync<ContractPODetailVm>(headerCmd);
         if (vm is null) return null;
 
         var detailCmd = new CommandDefinition(detailSql, new { Id = poId }, cancellationToken: ct);
-        var details = (await _db.QueryAsync<ContractReleasePODetailItem>(detailCmd)).AsList();
+        var details = (await _db.QueryAsync<ContractPODetailItem>(detailCmd)).AsList();
         vm.Details = details;
 
+        var ptCmd = new CommandDefinition(paymentTermSql, new { Id = poId }, cancellationToken: ct);
+        var terms = (await _db.QueryAsync<ContractPOPaymentTermItem>(ptCmd)).AsList();
+        vm.PaymentTerms = terms;
+
         return vm;
+    }
+
+    public async Task<(List<GetContractPOPendingGroupDto> Rows, int Total)> GetContractPOPendingAsync(
+        int? page, int? size, string? search, int? poId, CancellationToken ct)
+    {
+        var p = (page.HasValue && page > 0) ? page.Value : 1;
+        var s = (size.HasValue && size > 0) ? size.Value : 15;
+        var off = (p - 1) * s;
+        var like = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+        // Only "Pending" status
+        var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
+            MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+
+        const string sql = @"
+            /* 1) Matching Contract Release PO ids */
+            CREATE TABLE #filtered (Id INT PRIMARY KEY);
+
+            INSERT INTO #filtered (Id)
+            SELECT DISTINCT h.Id
+            FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+            INNER JOIN Purchase.PurchaseContractHeader ch WITH (NOLOCK)
+                ON ch.PurchaseOrderId = h.Id AND ch.IsDeleted = 0
+            WHERE h.IsDeleted = 0
+              AND (@UnitId IS NULL OR h.UnitId = @UnitId)
+              AND h.StatusId = @StatusId
+              AND (@PoId IS NULL OR h.Id = @PoId)
+              AND (@LikeSearch IS NULL OR h.PONumber LIKE @LikeSearch);
+
+            /* 2) Paged ids */
+            CREATE TABLE #paged (Id INT PRIMARY KEY);
+            WITH numbered AS (
+                SELECT Id, ROW_NUMBER() OVER (ORDER BY Id DESC) rn
+                FROM #filtered
+            )
+            INSERT INTO #paged (Id)
+            SELECT Id FROM numbered WHERE rn BETWEEN (@off + 1) AND (@off + @size);
+
+            /* 3) Header groups */
+            SELECT
+                h.Id,
+                h.PONumber,
+                h.PODate,
+                h.VendorId,
+                h.PurchaseValue,
+                h.StatusId,
+                h.ItemTotal,
+                h.DiscountTotal,
+                h.PandFTotal,
+                h.MiscCharges,
+                h.GSTTotal,
+                h.CGSTTotal,
+                h.SGSTTotal,
+                h.IGSTTotal,
+                h.FreightTotal,
+                h.InsuranceTotal,
+                h.TDSTotal,
+                h.AdvanceAmount,
+                h.CreatedDate      AS createdDate,
+                h.CreatedByName    AS createdByName,
+                st.Code            AS StatusCode,
+                cat.Code           AS POCategoryCode,
+                mth.Code           AS POMethodCode,
+                mth.Id             AS POMethodId,
+                ch.ContractPOHeaderId,
+                cph.ContractPONumber
+            FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+            INNER JOIN Purchase.PurchaseContractHeader ch WITH (NOLOCK)
+                ON ch.PurchaseOrderId = h.Id AND ch.IsDeleted = 0
+            LEFT JOIN Purchase.ContractPOHeader cph WITH (NOLOCK)
+                ON cph.Id = ch.ContractPOHeaderId AND cph.IsDeleted = 0
+            LEFT JOIN Purchase.MiscMaster st  WITH (NOLOCK) ON st.Id  = h.StatusId
+            LEFT JOIN Purchase.MiscMaster cat WITH (NOLOCK) ON cat.Id = h.POCategoryId
+            LEFT JOIN Purchase.MiscMaster mth WITH (NOLOCK) ON mth.Id = h.POMethodId
+            WHERE h.Id IN (SELECT Id FROM #paged)
+            ORDER BY h.Id DESC;
+
+            /* 4) Contract details */
+            SELECT
+                cd.Id,
+                cd.PurchaseContractHeaderId,
+                cd.ContractPODetailId,
+                cd.ItemId,
+                cd.Quantity,
+                cd.UnitPrice,
+                cd.DiscountTypeId,
+                cd.DiscountValue,
+                cd.PandFType,
+                cd.PandFCharge,
+                cd.OtherCharge,
+                cd.GSTPercentage,
+                cd.CGSTPercentage,
+                cd.SGSTPercentage,
+                cd.IGSTPercentage,
+                cd.CGST,
+                cd.SGST,
+                cd.IGST,
+                cd.ScheduleDate,
+                cd.DepartmentId,
+                cd.ItemValue
+            FROM Purchase.PurchaseContractDetail cd WITH (NOLOCK)
+            INNER JOIN Purchase.PurchaseContractHeader ch WITH (NOLOCK)
+                ON ch.Id = cd.PurchaseContractHeaderId AND ch.IsDeleted = 0
+            WHERE cd.IsDeleted = 0
+              AND ch.PurchaseOrderId IN (SELECT Id FROM #paged)
+            ORDER BY cd.PurchaseContractHeaderId, cd.ItemSno;
+
+            /* 4b) Map PurchaseContractHeaderId -> PurchaseOrderId */
+            SELECT ch.Id AS PurchaseContractHeaderId, ch.PurchaseOrderId
+            FROM Purchase.PurchaseContractHeader ch WITH (NOLOCK)
+            WHERE ch.IsDeleted = 0
+              AND ch.PurchaseOrderId IN (SELECT Id FROM #paged);
+
+            /* 5) Total */
+            SELECT COUNT(1) FROM #filtered;
+
+            /* 6) Cleanup */
+            DROP TABLE #paged;
+            DROP TABLE #filtered;";
+
+        var param = new
+        {
+            UnitId = unitId,
+            StatusId = pending.Id,
+            PoId = poId,
+            LikeSearch = like,
+            off,
+            size = s
+        };
+
+        using var multi = await _db.QueryMultipleAsync(
+            new CommandDefinition(sql, param, cancellationToken: ct));
+
+        // 3) headers
+        var headers = (await multi.ReadAsync<GetContractPOPendingGroupDto>()).ToList();
+
+        // 4) details
+        var details = (await multi.ReadAsync<GetContractPOPendingDto>()).ToList();
+
+        // 4b) contract header -> PO id map
+        var mapRows = (await multi.ReadAsync<(int PurchaseContractHeaderId, int PurchaseOrderId)>()).ToList();
+        var poByContractHeaderId = mapRows
+            .GroupBy(x => x.PurchaseContractHeaderId)
+            .ToDictionary(g => g.Key, g => g.First().PurchaseOrderId);
+
+        // 5) total
+        var total = await multi.ReadFirstAsync<int>();
+
+        // Attach details to headers
+        var byPo = headers.ToDictionary(h => h.Id, h => h);
+        foreach (var g in headers) g.Lines ??= new List<GetContractPOPendingDto>();
+
+        foreach (var d in details)
+        {
+            if (poByContractHeaderId.TryGetValue(d.PurchaseContractHeaderId, out var poId2)
+                && byPo.TryGetValue(poId2, out var grp))
+            {
+                grp.Lines.Add(d);
+            }
+        }
+
+        return (headers, total);
+    }
+
+    public async Task<bool> NotFoundAsync(int poId, CancellationToken ct)
+    {
+        const string sql = @"
+            SELECT CASE WHEN NOT EXISTS (
+                SELECT 1 FROM Purchase.PurchaseOrderHeader WITH (NOLOCK)
+                WHERE Id = @Id AND IsDeleted = 0
+            ) THEN 1 ELSE 0 END";
+
+        return await _db.ExecuteScalarAsync<bool>(
+            new CommandDefinition(sql, new { Id = poId }, cancellationToken: ct));
     }
 }

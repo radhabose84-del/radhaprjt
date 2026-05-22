@@ -74,27 +74,29 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         }
 
         [Fact]
-        public async Task Validate_EmptyVehicleNumber_FailsValidation()
+        public async Task Validate_EmptyVehicleNumber_NowPassesValidation()
         {
+            // VehicleNumber is now OPTIONAL on Update.
             var command = ValidCommand();
-            command.VehicleNumber = "";
+            command.VehicleNumber = null;
             SetupAllAsyncMocks(command.Id, command.PurposeOfVisitId);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.VehicleNumber);
+            result.ShouldNotHaveValidationErrorFor(x => x.VehicleNumber);
         }
 
         [Fact]
-        public async Task Validate_EmptyDriverName_FailsValidation()
+        public async Task Validate_EmptyDriverName_NowPassesValidation()
         {
+            // DriverName is now OPTIONAL.
             var command = ValidCommand();
-            command.DriverName = "";
+            command.DriverName = null;
             SetupAllAsyncMocks(command.Id, command.PurposeOfVisitId);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.DriverName);
+            result.ShouldNotHaveValidationErrorFor(x => x.DriverName);
         }
 
         [Fact]
@@ -113,7 +115,7 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         [Theory]
         [InlineData("123")]
         [InlineData("abcdefghij")]
-        public async Task Validate_InvalidMobileNumber_FailsValidation(string mobileNo)
+        public async Task Validate_InvalidMobileNumberFormat_FailsValidation(string mobileNo)
         {
             var command = ValidCommand();
             command.DriverMobileNo = mobileNo;

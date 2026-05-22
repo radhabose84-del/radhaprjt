@@ -7,6 +7,9 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
     public class CreateGateInwardCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int VehicleMovementRecordId { get; set; }
+        public int? PartyId { get; set; }
+        public int? ReceivingTypeId { get; set; }
+        public string? CourierNumber { get; set; }
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
         public bool QAInspectionRequired { get; set; }
@@ -24,8 +27,5 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
     public class GateInwardAttachmentStageRef
     {
         public string FileName { get; set; } = string.Empty;
-        public string OriginalFileName { get; set; } = string.Empty;
-        public long FileSize { get; set; }
-        public string? FileType { get; set; }
     }
 }

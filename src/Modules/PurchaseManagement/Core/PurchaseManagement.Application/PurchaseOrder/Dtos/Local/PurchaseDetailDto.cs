@@ -69,7 +69,6 @@ public sealed class PurchasePaymentTermDto
 public class PurchaseOrderCreateDto
 {
     public int Id { get; set; }
-    public int UnitId { get; set; }
     public string PONumber { get; set; } = default!;
     public DateTimeOffset PODate { get; set; }
     public int POCategoryId { get; set; }
@@ -82,7 +81,7 @@ public class PurchaseOrderCreateDto
     public decimal DiscountTotal { get; set; }
     public decimal PandFTotal { get; set; }
     public decimal MiscCharges { get; set; }
-    public decimal GSTPercentage { get; set; }    
+    public decimal GSTPercentage { get; set; }
     public decimal GSTTotal { get; set; }
     public decimal? CGSTTotal { get; set; }
     public decimal? SGSTTotal { get; set; }
@@ -92,7 +91,6 @@ public class PurchaseOrderCreateDto
     public decimal TDSTotal { get; set; }
     public decimal AdvanceAmount { get; set; }
     public decimal PurchaseValue { get; set; }
-    public int StatusId { get; set; }
     public int RevisionNo { get; set; }
     public string? AmendmentReason { get; set; }
     public int Edit { get; set; }
@@ -165,6 +163,13 @@ public sealed class PurchaseOrderListItemDto
     public int? ItemCategoryId { get; set; }
     public string? ItemCategoryName { get; set; }
 
+    // GRN flag (like DAFlag in SalesOrder)
+    public string? GRNFlag { get; set; }
+
+    // Cancel / Foreclose status flags
+    public bool IsCancelled { get; set; }
+    public bool IsForeclosed { get; set; }
+
     // Cancel / Foreclose eligibility flags
     public bool CanCancel { get; set; }
     public bool CanForeclose { get; set; }
@@ -182,10 +187,12 @@ public sealed class PurchaseOrderListItemDto
 
 public sealed class PurchaseOrderDetailDto : PurchaseOrderUpdateDto
 {
+    public int UnitId { get; set; }
+    public int StatusId { get; set; }
     public new List<PurchaseLocalHeaderDto> Headers { get; set; } = new();
-    public new List<PurchasePaymentTermDto> PaymentTerms { get; set; } = new();    
+    public new List<PurchasePaymentTermDto> PaymentTerms { get; set; } = new();
     #pragma warning disable CS0109
-    public new List<LocalDocumentDto> DocumentsList { get; set; } = new();    
+    public new List<LocalDocumentDto> DocumentsList { get; set; } = new();
     #pragma warning restore CS0109
 }
 

@@ -72,17 +72,9 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("AttachmentFilePath");
 
-                    b.Property<long?>("AttachmentFileSize")
-                        .HasColumnType("bigint")
-                        .HasColumnName("AttachmentFileSize");
-
-                    b.Property<string>("AttachmentFileType")
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("AttachmentFileType");
-
-                    b.Property<string>("AttachmentOriginalFileName")
-                        .HasColumnType("nvarchar(260)")
-                        .HasColumnName("AttachmentOriginalFileName");
+                    b.Property<string>("CourierNumber")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CourierNumber");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
@@ -139,6 +131,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(10,3)")
                         .HasColumnName("NetWeight");
 
+                    b.Property<int?>("PartyId")
+                        .HasColumnType("int")
+                        .HasColumnName("PartyId");
+
                     b.Property<bool>("QAInspectionRequired")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -148,6 +144,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.Property<int?>("QAStatusId")
                         .HasColumnType("int")
                         .HasColumnName("QAStatusId");
+
+                    b.Property<int?>("ReceivingTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivingTypeId");
 
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(250)")
@@ -171,7 +171,11 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.HasIndex("GateEntryNo")
                         .IsUnique();
 
+                    b.HasIndex("PartyId");
+
                     b.HasIndex("QAStatusId");
+
+                    b.HasIndex("ReceivingTypeId");
 
                     b.HasIndex("UnitId");
 
@@ -526,12 +530,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnName("DriverLicenseNo");
 
                     b.Property<string>("DriverMobileNo")
-                        .IsRequired()
                         .HasColumnType("varchar(10)")
                         .HasColumnName("DriverMobileNo");
 
                     b.Property<string>("DriverName")
-                        .IsRequired()
                         .HasColumnType("varchar(50)")
                         .HasColumnName("DriverName");
 
@@ -610,7 +612,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnName("VehicleMovementId");
 
                     b.Property<string>("VehicleNumber")
-                        .IsRequired()
                         .HasColumnType("varchar(20)")
                         .HasColumnName("VehicleNumber");
 
@@ -650,6 +651,11 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasForeignKey("QAStatusId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "ReceivingType")
+                        .WithMany("GateInwardHdrsAsReceivingType")
+                        .HasForeignKey("ReceivingTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("GateEntryManagement.Domain.Entities.VehicleMovementRecord", "VehicleMovementRecord")
                         .WithMany("GateInwardHeaders")
                         .HasForeignKey("VehicleMovementRecordId")
@@ -657,6 +663,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("QAStatusMisc");
+
+                    b.Navigation("ReceivingType");
 
                     b.Navigation("VehicleMovementRecord");
                 });
@@ -733,6 +741,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
             modelBuilder.Entity("GateEntryManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("GateInwardHdrsAsQAStatus");
+
+                    b.Navigation("GateInwardHdrsAsReceivingType");
 
                     b.Navigation("VehicleMovementRecordsAsPurposeOfVisit");
 

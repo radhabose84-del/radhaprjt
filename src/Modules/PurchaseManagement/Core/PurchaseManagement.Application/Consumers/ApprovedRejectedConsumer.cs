@@ -13,6 +13,7 @@ using PurchaseManagement.Application.Common.Interfaces.PriceMaster;
 using PurchaseManagement.Application.Common.Interfaces.IMRS;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.GRN.StockLedger;
@@ -26,6 +27,7 @@ using System.Text.Json;
 using PurchaseManagement.Application.PurchaseOrder.Reports;
 using Contracts.Events.Purchase;
 using Contracts.Interfaces.Lookups.Budget;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Operations.MaintenanceManagement;
 
 namespace PurchaseManagement.Application.Consumers
@@ -49,6 +51,8 @@ namespace PurchaseManagement.Application.Consumers
         private readonly IIssueReturnEntryQueryRepository _issueReturnEntryQueryRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IBudgetAllocationLookup _budgetAllocationLookup;
+        private readonly IContractPOMasterCommandRepository _contractPOMasterCommandRepo;
+        private readonly ITransactionTypeLookup _transactionTypeLookup;
 
         public ApprovedRejectedConsumer(
             IPurchaseIndentCommand purchaseIndentCommand,
@@ -67,7 +71,9 @@ namespace PurchaseManagement.Application.Consumers
             IIssueReturnEntryCommandRepository issueReturnEntryCommandRepository,
             IIssueReturnEntryQueryRepository issueReturnEntryQueryRepository,
             IHttpContextAccessor httpContextAccessor,
-            IBudgetAllocationLookup budgetAllocationLookup)
+            IBudgetAllocationLookup budgetAllocationLookup,
+            IContractPOMasterCommandRepository contractPOMasterCommandRepo,
+            ITransactionTypeLookup transactionTypeLookup)
         {
             _purchaseIndentCommand = purchaseIndentCommand;
             _imapper = mapper;
@@ -86,6 +92,8 @@ namespace PurchaseManagement.Application.Consumers
             _issueReturnEntryQueryRepository = issueReturnEntryQueryRepository;
             _httpContextAccessor = httpContextAccessor;
             _budgetAllocationLookup = budgetAllocationLookup;
+            _contractPOMasterCommandRepo = contractPOMasterCommandRepo;
+            _transactionTypeLookup = transactionTypeLookup;
         }
 
         public async Task Consume(ConsumeContext<UpdateApprovedRejectedPurchaseCommand> context)
@@ -215,12 +223,26 @@ namespace PurchaseManagement.Application.Consumers
                 }
 
                 // -----------------------------
-                // PO LOCAL
+                // PURCHASE ORDER (all types: LPO, IPO, CPO, EPO)
+                // All PO handlers publish with ModuleTypeName = POLocal ("Purchase Order").
+                // TransactionTypeId differentiates the PO sub-type.
                 // -----------------------------
                 if (msg.ModuleTypeName == MiscEnumEntity.POLocal)
                 {
                     var status = msg.Status;
                     var poId = msg.ModuleTransactionId;
+
+                    // Resolve TransactionTypeId → TypeName to branch per PO sub-type
+                    string transactionTypeName = null;
+                    if (msg.TransactionTypeId.HasValue)
+                    {
+                        var txTypes = await _transactionTypeLookup.GetByIdsAsync(new[] { msg.TransactionTypeId.Value });
+                        transactionTypeName = txTypes.FirstOrDefault()?.TypeName;
+                    }
+
+                    _logger.LogInformation(
+                        "PO approval: PoId={PoId}, Status={Status}, TransactionTypeId={TxTypeId}, TransactionType={TxType}",
+                        poId, status, msg.TransactionTypeId, transactionTypeName ?? "Unknown");
 
                     if (status == MiscEnumEntity.Approved || status == MiscEnumEntity.Rejected)
                     {
@@ -228,11 +250,14 @@ namespace PurchaseManagement.Application.Consumers
                         var rejected = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Rejected);
                         var finalStatusId = status == MiscEnumEntity.Approved ? approved.Id : rejected.Id;
 
+                        // Status update — common for ALL PO types (LPO, IPO, CPO, EPO)
                         var updated = await _poLocalCommand.UpdatePOApproveAsync(poId, finalStatusId, context.CancellationToken);
                         if (!updated)
-                            throw new Exception($"PO approval update failed for PoId={poId}");
+                            throw new Exception($"PO approval update failed for PoId={poId}, TransactionTypeId={msg.TransactionTypeId}");
 
-                        if (status == MiscEnumEntity.Approved)
+                /*         // ── LPO-SPECIFIC: PDF email on approval ──
+                        if (status == MiscEnumEntity.Approved
+                            && string.Equals(transactionTypeName, MiscEnumEntity.TransactionTypeLPO, StringComparison.OrdinalIgnoreCase))
                         {
                             var unitId = partyContacts.FirstOrDefault()?.UnitId ?? 0;
 
@@ -242,13 +267,14 @@ namespace PurchaseManagement.Application.Consumers
                                 PartyContacts: partyContacts,
                                 RowsJson: null
                             ), context.CancellationToken);
-                        }
+                        } */
 
-                        // ── BUDGET REVERSAL ON REJECTION ──
-                        // When PO is rejected, add back the PurchaseValue to the
+                        // ── LPO-SPECIFIC: BUDGET REVERSAL ON REJECTION ──
+                        // When LPO is rejected, add back the PurchaseValue to the
                         // BudgetAllocation remaining balance (reverse the deduction
                         // that was made atomically during PO creation).
-                        if (status == MiscEnumEntity.Rejected)
+                        if (status == MiscEnumEntity.Rejected
+                            && string.Equals(transactionTypeName, MiscEnumEntity.TransactionTypeLPO, StringComparison.OrdinalIgnoreCase))
                         {
                             var poDetail = await _poLocalQuery.GetByIdAsync(poId, context.CancellationToken);
 
@@ -580,6 +606,32 @@ namespace PurchaseManagement.Application.Consumers
                     return;
                 }
 
+
+                // -----------------------------
+                // CONTRACT PO MASTER
+                // -----------------------------
+                if (msg.ModuleTypeName == MiscEnumEntity.TransactionTypeContract)
+                {
+                    var status = msg.Status;
+                    var contractPOId = msg.ModuleTransactionId;
+
+                    if (status == MiscEnumEntity.Approved || status == MiscEnumEntity.Rejected)
+                    {
+                        var approved = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Approved);
+                        var rejected = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Rejected);
+
+                        var finalStatusId = status == MiscEnumEntity.Approved ? approved.Id : rejected.Id;
+
+                        var updated = await _contractPOMasterCommandRepo.UpdateContractPOApproveAsync(
+                            contractPOId, finalStatusId, context.CancellationToken);
+
+                        if (!updated)
+                            throw new Exception($"Contract PO Master approval update failed for Id={contractPOId}");
+                    }
+
+                    await PublishCompletedAsync();
+                    return;
+                }
 
                 // ✅ If module not handled, still complete so saga doesn't hang
                 await PublishCompletedAsync();

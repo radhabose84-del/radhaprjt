@@ -44,6 +44,11 @@ namespace BackgroundService.Infrastructure.Data.Workflow.Configurations
             .HasColumnType("int")
             .IsRequired();
 
+            builder.Property(t => t.TransactionTypeId)
+            .HasColumnName("TransactionTypeId")
+            .HasColumnType("int")
+            .IsRequired(false);
+
             builder.Property(t => t.HasLine)
             .HasColumnName("HasLine")
             .IsRequired();
