@@ -12,6 +12,12 @@ namespace GateEntryManagement.Domain.Entities
         // Cross-module FK (PartyManagement) — no DB FK constraint; validated via IPartyLookup
         public int? PartyId { get; set; }
 
+        // Receiving Type (Vehicle / Courier / Manual) — same-module FK to Gate.MiscMaster
+        public int? ReceivingTypeId { get; set; }
+
+        // Required only when ReceivingType = Courier (server-side conditional via IsCourierReceivingTypeAsync)
+        public string? CourierNumber { get; set; }
+
         // Weighbridge
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
@@ -33,6 +39,7 @@ namespace GateEntryManagement.Domain.Entities
         // Navigation Properties
         public VehicleMovementRecord? VehicleMovementRecord { get; set; }
         public MiscMaster? QAStatusMisc { get; set; }
+        public MiscMaster? ReceivingType { get; set; }
 
         // Child collection
         public ICollection<GateInwardDtl>? GateInwardDetails { get; set; }

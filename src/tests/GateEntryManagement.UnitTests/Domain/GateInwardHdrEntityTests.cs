@@ -89,6 +89,32 @@ namespace GateEntryManagement.UnitTests.Domain
         }
 
         [Fact]
+        public void GateInwardHdr_ReceivingTypeAndCourierNumber_ShouldBeAssignable()
+        {
+            var entity = new GateInwardHdr
+            {
+                ReceivingTypeId = 10,
+                CourierNumber = "DTDC-AWB-12345"
+            };
+
+            entity.ReceivingTypeId.Should().Be(10);
+            entity.CourierNumber.Should().Be("DTDC-AWB-12345");
+        }
+
+        [Fact]
+        public void GateInwardHdr_ReceivingTypeAndCourierNumber_ShouldAcceptNull()
+        {
+            var entity = new GateInwardHdr
+            {
+                ReceivingTypeId = null,
+                CourierNumber = null
+            };
+
+            entity.ReceivingTypeId.Should().BeNull();
+            entity.CourierNumber.Should().BeNull();
+        }
+
+        [Fact]
         public void GateInwardHdr_AttachmentProperties_ShouldAcceptNull()
         {
             var entity = new GateInwardHdr

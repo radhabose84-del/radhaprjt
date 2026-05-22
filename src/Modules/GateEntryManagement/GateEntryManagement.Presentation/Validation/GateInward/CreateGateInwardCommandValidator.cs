@@ -22,6 +22,7 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
             _partyLookup = partyLookup;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.GateInwardHdr>("Remarks") ?? 250;
+            var maxLengthCourierNumber = maxLengthProvider.GetMaxLength<Domain.Entities.GateInwardHdr>("CourierNumber") ?? 50;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())
@@ -32,17 +33,26 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
+                        // PartyId is now OPTIONAL — frontend may send null (future-use field).
                         RuleFor(x => x.VehicleMovementRecordId)
                             .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}");
 
-                        RuleFor(x => x.PartyId)
-                            .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.PartyId)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.PartyId)} {rule.Error}");
-
                         RuleFor(x => x.UnitId)
                             .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.UnitId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.UnitId)} {rule.Error}");
+
+                        RuleFor(x => x.ReceivingTypeId)
+                            .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.ReceivingTypeId)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.ReceivingTypeId)} {rule.Error}");
+
+                        // CourierNumber is required only when ReceivingType resolves to 'Courier'
+                        RuleFor(x => x.CourierNumber)
+                            .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.CourierNumber)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.CourierNumber)} {rule.Error}")
+                            .WhenAsync(async (cmd, ct) =>
+                                cmd.ReceivingTypeId.HasValue
+                                && await _queryRepository.IsCourierReceivingTypeAsync(cmd.ReceivingTypeId.Value));
 
                         RuleFor(x => x.GateInwardDetails)
                             .NotNull().WithMessage($"GateInwardDetails {rule.Error}")
@@ -54,6 +64,11 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                             .MaximumLength(maxLengthRemarks)
                             .WithMessage($"{nameof(CreateGateInwardCommand.Remarks)} {rule.Error} {maxLengthRemarks} characters.")
                             .When(x => !string.IsNullOrWhiteSpace(x.Remarks));
+
+                        RuleFor(x => x.CourierNumber)
+                            .MaximumLength(maxLengthCourierNumber)
+                            .WithMessage($"{nameof(CreateGateInwardCommand.CourierNumber)} {rule.Error} {maxLengthCourierNumber} characters.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.CourierNumber));
                         break;
 
                     case "FKColumnDelete":
@@ -76,6 +91,11 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                             .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateGateInwardCommand.QAStatusId)} {rule.Error}")
                             .When(x => x.QAStatusId.HasValue && x.QAStatusId > 0);
+
+                        RuleFor(x => x.ReceivingTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateGateInwardCommand.ReceivingTypeId)} {rule.Error}")
+                            .When(x => x.ReceivingTypeId.HasValue && x.ReceivingTypeId > 0);
                         break;
 
                     case "GreaterThanOrEqualToZero":

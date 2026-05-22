@@ -14,6 +14,12 @@ namespace GateEntryManagement.Domain.Common
         public const string VMRStatusInsidePremises = "IN";
         public const string VMRStatusExited = "OUT";
 
+        // Receiving Type (Vehicle / Courier / Manual) — drives conditional VehicleNumber requirement
+        public const string ReceivingType = "ReceivingType";
+        public const string ReceivingTypeVehicle = "Vehicle";
+        public const string ReceivingTypeCourier = "Courier";
+        public const string ReceivingTypeManual = "Manual";
+
         // GatePass
         public const string TransactionTypeGatePass = "Gate Outward";
 

@@ -35,18 +35,8 @@ namespace GateEntryManagement.Presentation.Validation.VehicleMovementRecord
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.VehicleNumber)
-                            .NotNull().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.VehicleNumber)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.VehicleNumber)} {rule.Error}");
-
-                        RuleFor(x => x.DriverName)
-                            .NotNull().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.DriverName)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.DriverName)} {rule.Error}");
-
-                        RuleFor(x => x.DriverMobileNo)
-                            .NotNull().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.DriverMobileNo)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.DriverMobileNo)} {rule.Error}");
-
+                        // VehicleNumber, DriverName, DriverMobileNo are now optional —
+                        // user fills them only when receiving type = Vehicle (UI-driven).
                         RuleFor(x => x.PurposeOfVisitId)
                             .NotNull().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.PurposeOfVisitId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateVehicleMovementRecordCommand.PurposeOfVisitId)} {rule.Error}");

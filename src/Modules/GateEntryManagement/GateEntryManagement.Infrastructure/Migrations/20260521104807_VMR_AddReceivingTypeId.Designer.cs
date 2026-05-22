@@ -4,6 +4,7 @@ using GateEntryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GateEntryManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260521104807_VMR_AddReceivingTypeId")]
+    partial class VMR_AddReceivingTypeId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,10 +74,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.Property<string>("AttachmentFilePath")
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("AttachmentFilePath");
-
-                    b.Property<string>("CourierNumber")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CourierNumber");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
@@ -145,10 +144,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("QAStatusId");
 
-                    b.Property<int?>("ReceivingTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("ReceivingTypeId");
-
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(250)")
                         .HasColumnName("Remarks");
@@ -174,8 +169,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.HasIndex("PartyId");
 
                     b.HasIndex("QAStatusId");
-
-                    b.HasIndex("ReceivingTypeId");
 
                     b.HasIndex("UnitId");
 
@@ -530,10 +523,12 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnName("DriverLicenseNo");
 
                     b.Property<string>("DriverMobileNo")
+                        .IsRequired()
                         .HasColumnType("varchar(10)")
                         .HasColumnName("DriverMobileNo");
 
                     b.Property<string>("DriverName")
+                        .IsRequired()
                         .HasColumnType("varchar(50)")
                         .HasColumnName("DriverName");
 
@@ -582,6 +577,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PurposeOfVisitId");
 
+                    b.Property<int?>("ReceivingTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivingTypeId");
+
                     b.Property<string>("ReferenceDocNo")
                         .HasColumnType("varchar(20)")
                         .HasColumnName("ReferenceDocNo");
@@ -619,6 +618,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
 
                     b.HasIndex("PurposeOfVisitId");
 
+                    b.HasIndex("ReceivingTypeId");
+
                     b.HasIndex("ReferenceDocTypeId");
 
                     b.HasIndex("StatusId");
@@ -651,11 +652,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasForeignKey("QAStatusId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "ReceivingType")
-                        .WithMany("GateInwardHdrsAsReceivingType")
-                        .HasForeignKey("ReceivingTypeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("GateEntryManagement.Domain.Entities.VehicleMovementRecord", "VehicleMovementRecord")
                         .WithMany("GateInwardHeaders")
                         .HasForeignKey("VehicleMovementRecordId")
@@ -663,8 +659,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("QAStatusMisc");
-
-                    b.Navigation("ReceivingType");
 
                     b.Navigation("VehicleMovementRecord");
                 });
@@ -710,6 +704,11 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "ReceivingType")
+                        .WithMany("VehicleMovementRecordsAsReceivingType")
+                        .HasForeignKey("ReceivingTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("GateEntryManagement.Domain.Entities.MiscMaster", "ReferenceDocType")
                         .WithMany("VehicleMovementRecordsAsReferenceDocType")
                         .HasForeignKey("ReferenceDocTypeId")
@@ -722,6 +721,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PurposeOfVisit");
+
+                    b.Navigation("ReceivingType");
 
                     b.Navigation("ReferenceDocType");
 
@@ -742,9 +743,9 @@ namespace GateEntryManagement.Infrastructure.Migrations
                 {
                     b.Navigation("GateInwardHdrsAsQAStatus");
 
-                    b.Navigation("GateInwardHdrsAsReceivingType");
-
                     b.Navigation("VehicleMovementRecordsAsPurposeOfVisit");
+
+                    b.Navigation("VehicleMovementRecordsAsReceivingType");
 
                     b.Navigation("VehicleMovementRecordsAsReferenceDocType");
 

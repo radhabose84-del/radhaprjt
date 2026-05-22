@@ -433,5 +433,6 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
 
             result.Should().BeFalse();
         }
+
     }
 }

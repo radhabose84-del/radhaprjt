@@ -381,5 +381,71 @@ namespace GateEntryManagement.IntegrationTests.Repositories.GateInward
 
             exists.Should().BeFalse();
         }
+
+        // --- IsCourierReceivingTypeAsync ---
+
+        private async Task<(int vehicleId, int courierId)> SeedReceivingTypeMiscAsync(ApplicationDbContext ctx)
+        {
+            await ctx.MiscTypeMaster.AddAsync(new GateEntryManagement.Domain.Entities.MiscTypeMaster
+            {
+                MiscTypeCode = "ReceivingType",
+                Description = "Receiving Type",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            });
+            await ctx.SaveChangesAsync();
+            var rtTypeId = (await ctx.MiscTypeMaster
+                .FirstAsync(x => x.MiscTypeCode == "ReceivingType")).Id;
+
+            var vehicle = new GateEntryManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = rtTypeId, Code = "VEHICLE", Description = "Vehicle", SortOrder = 1,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            var courier = new GateEntryManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = rtTypeId, Code = "COURIER", Description = "Courier", SortOrder = 2,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddRangeAsync(vehicle, courier);
+            await ctx.SaveChangesAsync();
+            return (vehicle.Id, courier.Id);
+        }
+
+        [Fact]
+        public async Task IsCourierReceivingTypeAsync_Should_Return_True_For_Courier()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await SeedPrerequisitesAsync(ctx);
+            var (_, courierId) = await SeedReceivingTypeMiscAsync(ctx);
+
+            var result = await CreateQueryRepo().IsCourierReceivingTypeAsync(courierId);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsCourierReceivingTypeAsync_Should_Return_False_For_Vehicle()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await SeedPrerequisitesAsync(ctx);
+            var (vehicleId, _) = await SeedReceivingTypeMiscAsync(ctx);
+
+            var result = await CreateQueryRepo().IsCourierReceivingTypeAsync(vehicleId);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsCourierReceivingTypeAsync_Should_Return_False_For_Unrelated_Misc()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (_, vmrStatusMiscId) = await SeedPrerequisitesAsync(ctx);
+            await SeedReceivingTypeMiscAsync(ctx);
+
+            var result = await CreateQueryRepo().IsCourierReceivingTypeAsync(vmrStatusMiscId);
+
+            result.Should().BeFalse();
+        }
     }
 }

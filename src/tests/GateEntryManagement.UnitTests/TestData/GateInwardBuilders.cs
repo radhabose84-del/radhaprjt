@@ -15,6 +15,8 @@ namespace GateEntryManagement.UnitTests.TestData
             {
                 VehicleMovementRecordId = vehicleMovementRecordId,
                 PartyId = 1099,
+                ReceivingTypeId = 9, // Vehicle
+                CourierNumber = null,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 QAInspectionRequired = false,
@@ -43,6 +45,9 @@ namespace GateEntryManagement.UnitTests.TestData
                 DriverName = "John Doe",
                 PartyId = 1099,
                 PartyName = "Test Party",
+                ReceivingTypeId = 9,
+                ReceivingTypeName = "Vehicle",
+                CourierNumber = null,
                 GrossWeight = 1000,
                 TareWeight = 200,
                 NetWeight = 800,

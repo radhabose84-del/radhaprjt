@@ -38,12 +38,12 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.VehicleNumber)
                 .HasColumnName("VehicleNumber")
                 .HasColumnType("varchar(20)")
-                .IsRequired();
+                .IsRequired(false); // Conditional — required only when ReceivingType = Vehicle (enforced by validator)
 
             builder.Property(t => t.DriverName)
                 .HasColumnName("DriverName")
                 .HasColumnType("varchar(50)")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.DriverLicenseNo)
                 .HasColumnName("DriverLicenseNo")
@@ -53,7 +53,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.DriverMobileNo)
                 .HasColumnName("DriverMobileNo")
                 .HasColumnType("varchar(10)")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.TransporterId)
                 .HasColumnName("TransporterId")

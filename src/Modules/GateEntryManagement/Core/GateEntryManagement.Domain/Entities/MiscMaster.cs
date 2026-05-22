@@ -18,5 +18,6 @@ namespace GateEntryManagement.Domain.Entities
 
         // Reverse navigation (GateInward)
         public ICollection<GateInwardHdr>? GateInwardHdrsAsQAStatus { get; set; }
+        public ICollection<GateInwardHdr>? GateInwardHdrsAsReceivingType { get; set; }
     }
 }

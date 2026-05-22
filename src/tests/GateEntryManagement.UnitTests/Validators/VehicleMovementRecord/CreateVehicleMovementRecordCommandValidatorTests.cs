@@ -52,26 +52,52 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task Validate_EmptyVehicleNumber_FailsValidation(string? vehicleNumber)
+        public async Task Validate_EmptyVehicleNumber_NowPassesValidation(string? vehicleNumber)
         {
+            // VehicleNumber is now OPTIONAL — user fills it only when receiving type = Vehicle (UI-driven).
             var command = ValidCommand();
             command.VehicleNumber = vehicleNumber;
-            // FKColumnDelete: PurposeOfVisitId > 0 runs, UnitId > 0 runs
-            // ReferenceDocTypeId is null, TransporterId is null — .When() guards skip
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
-            // AlreadyExists .When(x => !string.IsNullOrWhiteSpace(x.VehicleNumber)) skips
+            // HasOpenVMRForVehicleAsync .When() guard skips when blank.
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.VehicleNumber);
+            result.ShouldNotHaveValidationErrorFor(x => x.VehicleNumber);
+        }
+
+        [Fact]
+        public async Task Validate_EmptyDriverName_NowPassesValidation()
+        {
+            // DriverName is now OPTIONAL.
+            var command = ValidCommand();
+            command.DriverName = null;
+            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.DriverName);
+        }
+
+        [Fact]
+        public async Task Validate_EmptyDriverMobileNo_NowPassesValidation()
+        {
+            // DriverMobileNo is now OPTIONAL.
+            var command = ValidCommand();
+            command.DriverMobileNo = null;
+            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.DriverMobileNo);
         }
 
         [Theory]
         [InlineData("123")]
         [InlineData("abcdefghij")]
-        public async Task Validate_InvalidMobileNumber_FailsValidation(string mobileNo)
+        public async Task Validate_InvalidMobileNumberFormat_FailsValidation(string mobileNo)
         {
+            // Format rule fires only when DriverMobileNo is non-empty (its own .When() guard).
             var command = ValidCommand();
             command.DriverMobileNo = mobileNo;
             SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
@@ -120,30 +146,6 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.UnitId);
-        }
-
-        [Fact]
-        public async Task Validate_EmptyDriverName_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.DriverName = "";
-            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.DriverName);
-        }
-
-        [Fact]
-        public async Task Validate_EmptyDriverMobileNo_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.DriverMobileNo = "";
-            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.DriverMobileNo);
         }
     }
 }
