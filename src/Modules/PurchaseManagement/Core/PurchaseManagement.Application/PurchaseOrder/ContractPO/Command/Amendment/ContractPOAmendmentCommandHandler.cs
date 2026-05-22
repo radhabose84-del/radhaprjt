@@ -198,6 +198,25 @@ public sealed class ContractPOAmendmentCommandHandler
             BillingAddress = r.BillingAddress
         };
 
+        // Build PaymentTerms
+        var newPaymentTerms = new List<PurchasePaymentTerm>();
+        foreach (var t in r.PaymentTerms)
+        {
+            newPaymentTerms.Add(new PurchasePaymentTerm
+            {
+                PaymentTermId = t.PaymentTermId,
+                AdvancePercent = t.AdvancePercent,
+                CreditDays = t.CreditDays,
+                PaymentModelId = t.PaymentModelId,
+                InsuranceId = t.InsuranceId,
+                InsurancePercent = t.InsurancePercent,
+                InsuranceAmount = t.InsuranceAmount,
+                AdvanceAmount = t.AdvanceAmount,
+                BalancePercent = t.BalancePercent,
+                BalanceAmount = t.BalanceAmount
+            });
+        }
+
         // Build detail + release history entries
         var newContractDetails = new List<PurchaseContractDetail>();
         var newReleaseHistories = new List<ContractPOReleaseHistory>();
@@ -254,7 +273,7 @@ public sealed class ContractPOAmendmentCommandHandler
             try
             {
                 var newPOId = await _commandRepo.AmendWithoutTransactionAsync(
-                    r.Id, newPoHeader, newContractHeader, newContractDetails, newReleaseHistories, ct);
+                    r.Id, newPoHeader, newContractHeader, newContractDetails, newReleaseHistories, newPaymentTerms, ct);
 
                 // ── Approval workflow (outbox — same transaction) ──────────────────
                 var correlationId = Guid.NewGuid();

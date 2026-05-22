@@ -4,8 +4,7 @@ using PurchaseManagement.Application.PurchaseOrder.Dtos.ContractPO;
 namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 
 public interface IContractPOQueryRepository
-{
-    Task<bool> IsContractActiveAndValidAsync(int contractPOHeaderId);
+{    
     Task<decimal> GetContractDetailBalanceAsync(int contractPODetailId);
     Task<ContractPODetailVm?> GetContractPOByIdAsync(int poId, CancellationToken ct);
     Task<bool> HasAnyGrnAsync(int poId, CancellationToken ct);

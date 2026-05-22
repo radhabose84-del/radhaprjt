@@ -17,5 +17,5 @@ public class PurchasePaymentTerm : BaseEntity, IActivityTracked
     public decimal? InsuranceAmount { get; set; }
     public decimal? AdvanceAmount { get; set; }
     public decimal? BalancePercent { get; set; }
-    public decimal? BalanceAmount { get; set; }    
+    public decimal? BalanceAmount { get; set; }
 }

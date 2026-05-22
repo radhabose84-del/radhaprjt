@@ -217,6 +217,25 @@ public sealed class CreateContractPOCommandHandler
             BillingAddress = r.BillingAddress
         };
 
+        // Build PaymentTerms (linked to PurchaseOrderHeader via PurchaseOrderId)
+        var paymentTerms = new List<PurchasePaymentTerm>();
+        foreach (var t in r.PaymentTerms)
+        {
+            paymentTerms.Add(new PurchasePaymentTerm
+            {
+                PaymentTermId = t.PaymentTermId,
+                AdvancePercent = t.AdvancePercent,
+                CreditDays = t.CreditDays,
+                PaymentModelId = t.PaymentModelId,
+                InsuranceId = t.InsuranceId,
+                InsurancePercent = t.InsurancePercent,
+                InsuranceAmount = t.InsuranceAmount,
+                AdvanceAmount = t.AdvanceAmount,
+                BalancePercent = t.BalancePercent,
+                BalanceAmount = t.BalanceAmount
+            });
+        }
+
         // Build PurchaseContractDetail + ContractPOReleaseHistory entries
         var contractDetails = new List<PurchaseContractDetail>();
         var releaseHistories = new List<ContractPOReleaseHistory>();
@@ -273,7 +292,7 @@ public sealed class CreateContractPOCommandHandler
             try
             {
                 var newPOId = await _commandRepo.CreateWithoutTransactionAsync(
-                    poHeader, contractHeader, contractDetails, releaseHistories, ct);
+                    poHeader, contractHeader, contractDetails, releaseHistories, paymentTerms, ct);
 
                 // ── Budget allocation (same transaction) ─────────────────────────
                 if (poHeader.BudgetGroupId.HasValue && poHeader.BudgetGroupId.Value > 0 && poHeader.PurchaseValue > 0)

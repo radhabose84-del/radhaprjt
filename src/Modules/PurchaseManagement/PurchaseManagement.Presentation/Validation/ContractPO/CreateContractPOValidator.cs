@@ -1,11 +1,12 @@
 using FluentValidation;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
 using PurchaseManagement.Application.ContractPOMaster.Commands.Create;
 
 namespace PurchaseManagement.Presentation.Validation.ContractPO;
 
 public sealed class CreateContractPOValidator : AbstractValidator<CreateContractPOMasterCommand>
 {
-    public CreateContractPOValidator()
+    public CreateContractPOValidator(IContractPOMasterQueryRepository queryRepo)
     {
         RuleFor(x => x.ContractDate)
             .NotEmpty().WithMessage("ContractDate is required.");
@@ -23,6 +24,12 @@ public sealed class CreateContractPOValidator : AbstractValidator<CreateContract
             .NotEmpty().WithMessage("ValidityTo is required.")
             .GreaterThanOrEqualTo(x => x.ValidityFrom)
             .WithMessage("ValidityTo must be greater than or equal to ValidityFrom.");
+
+        RuleFor(x => x)
+            .MustAsync(async (cmd, ct) =>
+                !await queryRepo.HasOverlappingContractAsync(cmd.VendorId, cmd.ValidityFrom, cmd.ValidityTo, null, ct))
+            .WithMessage("A Contract PO already exists for this vendor with overlapping validity period.")
+            .When(x => x.VendorId > 0 && x.ValidityFrom != default && x.ValidityTo != default);
 
         RuleFor(x => x.Details)
             .NotNull().WithMessage("Details are required.")

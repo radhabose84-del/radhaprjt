@@ -21,6 +21,7 @@ public interface IContractPOCommandRepository
         PurchaseContractHeader contractHeader,
         List<PurchaseContractDetail> contractDetails,
         List<ContractPOReleaseHistory> releaseHistories,
+        List<PurchasePaymentTerm> paymentTerms,
         CancellationToken ct);
 
     Task<int> DeleteContractPOAsync(int poId, CancellationToken ct);
@@ -31,6 +32,7 @@ public interface IContractPOCommandRepository
         PurchaseContractHeader newContractHeader,
         List<PurchaseContractDetail> newContractDetails,
         List<ContractPOReleaseHistory> newReleaseHistories,
+        List<PurchasePaymentTerm> newPaymentTerms,
         int transactionTypeId,
         CancellationToken ct);
 
@@ -51,6 +53,7 @@ public interface IContractPOCommandRepository
         PurchaseContractHeader contractHeader,
         List<PurchaseContractDetail> contractDetails,
         List<ContractPOReleaseHistory> releaseHistories,
+        List<PurchasePaymentTerm> paymentTerms,
         CancellationToken ct);
 
     Task<int> AmendWithoutTransactionAsync(
@@ -59,6 +62,7 @@ public interface IContractPOCommandRepository
         PurchaseContractHeader newContractHeader,
         List<PurchaseContractDetail> newContractDetails,
         List<ContractPOReleaseHistory> newReleaseHistories,
+        List<PurchasePaymentTerm> newPaymentTerms,
         CancellationToken ct);
 
     Task SaveChangesAsync(CancellationToken ct);

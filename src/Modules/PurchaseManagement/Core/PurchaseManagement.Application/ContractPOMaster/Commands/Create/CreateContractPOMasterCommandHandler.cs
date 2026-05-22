@@ -130,7 +130,8 @@ public sealed class CreateContractPOMasterCommandHandler
             CorrelationId = correlationId,
             ModuleTypeName = MiscEnumEntity.TransactionTypeContract,
             ModuleTransactionId = created.Id,
-            Payload = serializedPayload,            
+            Payload = serializedPayload,
+            TransactionTypeId = transactionTypeId
         };
 
         var notificationEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
