@@ -163,6 +163,13 @@ public sealed class PurchaseOrderListItemDto
     public int? ItemCategoryId { get; set; }
     public string? ItemCategoryName { get; set; }
 
+    // GRN flag (like DAFlag in SalesOrder)
+    public string? GRNFlag { get; set; }
+
+    // Cancel / Foreclose status flags
+    public bool IsCancelled { get; set; }
+    public bool IsForeclosed { get; set; }
+
     // Cancel / Foreclose eligibility flags
     public bool CanCancel { get; set; }
     public bool CanForeclose { get; set; }

@@ -25,20 +25,6 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
         _ipAddressService = ipAddressService;
     }
 
-    public async Task<bool> IsContractActiveAndValidAsync(int contractPOHeaderId)
-    {
-        const string sql = @"
-            SELECT CASE WHEN EXISTS (
-                SELECT 1 FROM Purchase.ContractPOHeader
-                WHERE Id = @Id
-                  AND IsDeleted = 0
-                  AND IsActive = 1
-                  AND ValidityTo >= GETUTCDATE()
-            ) THEN 1 ELSE 0 END";
-
-        return await _db.ExecuteScalarAsync<bool>(sql, new { Id = contractPOHeaderId });
-    }
-
     public async Task<decimal> GetContractDetailBalanceAsync(int contractPODetailId)
     {
         const string sql = @"
@@ -126,6 +112,23 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
             WHERE CH.PurchaseOrderId = @Id AND CD.IsDeleted = 0
             ORDER BY CD.ItemSno";
 
+        const string paymentTermSql = @"
+            SELECT
+                PT.Id,
+                PT.PurchaseOrderId,
+                PT.PaymentTermId,
+                PT.AdvancePercent,
+                PT.CreditDays,
+                PT.PaymentModelId,
+                PT.InsuranceId,
+                PT.InsurancePercent,
+                PT.InsuranceAmount,
+                PT.AdvanceAmount,
+                PT.BalancePercent,
+                PT.BalanceAmount
+            FROM Purchase.PurchasePaymentTerm PT WITH (NOLOCK)
+            WHERE PT.PurchaseOrderId = @Id AND PT.IsDeleted = 0";
+
         var headerCmd = new CommandDefinition(headerSql, new { Id = poId }, cancellationToken: ct);
         var vm = await _db.QueryFirstOrDefaultAsync<ContractPODetailVm>(headerCmd);
         if (vm is null) return null;
@@ -133,6 +136,10 @@ public sealed class ContractPOQueryRepository : IContractPOQueryRepository
         var detailCmd = new CommandDefinition(detailSql, new { Id = poId }, cancellationToken: ct);
         var details = (await _db.QueryAsync<ContractPODetailItem>(detailCmd)).AsList();
         vm.Details = details;
+
+        var ptCmd = new CommandDefinition(paymentTermSql, new { Id = poId }, cancellationToken: ct);
+        var terms = (await _db.QueryAsync<ContractPOPaymentTermItem>(ptCmd)).AsList();
+        vm.PaymentTerms = terms;
 
         return vm;
     }

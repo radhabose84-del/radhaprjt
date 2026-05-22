@@ -43,6 +43,9 @@ public class ContractPOCreateDto
     // Release details
     public List<ContractPODetailItem> Details { get; set; } = new();
 
+    // Payment terms (reuses existing PurchasePaymentTermDto from Local PO)
+    public List<ContractPOPaymentTermItem> PaymentTerms { get; set; } = new();
+
     // Documents
     public List<ContractPODocumentDto>? Documents { get; set; }
 }
@@ -88,6 +91,20 @@ public sealed class ContractPODetailItem
     public decimal? IGST { get; set; }
     public DateTimeOffset? ScheduleDate { get; set; }
     public int? DepartmentId { get; set; }
+}
+
+public sealed class ContractPOPaymentTermItem
+{
+    public int PaymentTermId { get; set; }
+    public decimal? AdvancePercent { get; set; }
+    public int? CreditDays { get; set; }
+    public int? PaymentModelId { get; set; }
+    public int? InsuranceId { get; set; }
+    public int? InsurancePercent { get; set; }
+    public decimal? InsuranceAmount { get; set; }
+    public decimal? AdvanceAmount { get; set; }
+    public decimal? BalancePercent { get; set; }
+    public decimal? BalanceAmount { get; set; }
 }
 
 public sealed class ContractPODocumentDto

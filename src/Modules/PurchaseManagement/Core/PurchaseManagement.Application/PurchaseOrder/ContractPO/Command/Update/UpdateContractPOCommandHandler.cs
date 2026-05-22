@@ -182,6 +182,25 @@ public sealed class UpdateContractPOCommandHandler
             BillingAddress = r.BillingAddress
         };
 
+        // Build PaymentTerms (linked to PurchaseOrderHeader via PurchaseOrderId)
+        var paymentTerms = new List<PurchasePaymentTerm>();
+        foreach (var t in r.PaymentTerms)
+        {
+            paymentTerms.Add(new PurchasePaymentTerm
+            {
+                PaymentTermId = t.PaymentTermId,
+                AdvancePercent = t.AdvancePercent,
+                CreditDays = t.CreditDays,
+                PaymentModelId = t.PaymentModelId,
+                InsuranceId = t.InsuranceId,
+                InsurancePercent = t.InsurancePercent,
+                InsuranceAmount = t.InsuranceAmount,
+                AdvanceAmount = t.AdvanceAmount,
+                BalancePercent = t.BalancePercent,
+                BalanceAmount = t.BalanceAmount
+            });
+        }
+
         // Build detail + release history entries
         var contractDetails = new List<PurchaseContractDetail>();
         var releaseHistories = new List<ContractPOReleaseHistory>();
@@ -225,7 +244,7 @@ public sealed class UpdateContractPOCommandHandler
         }
 
         var updatedId = await _commandRepo.UpdateContractPOAsync(
-            poHeader, contractHeader, contractDetails, releaseHistories, ct);
+            poHeader, contractHeader, contractDetails, releaseHistories, paymentTerms, ct);
 
         // Audit
         var ev = new AuditLogsDomainEvent(
