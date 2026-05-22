@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace WarehouseManagement.Application.BinMaster.Command.CreateBinMaster
 {
-    public class CreateBinMasterCommand    :   IRequest<int>
+    public class CreateBinMasterCommand    :   IRequest<int>, IRequirePermission
     {
      //   public string BinCode { get; set; } = string.Empty;
         public string BinName { get; set; } = string.Empty;
@@ -14,5 +15,6 @@ namespace WarehouseManagement.Application.BinMaster.Command.CreateBinMaster
         public decimal BinCapacity { get; set; }
          
         public int CapacityUOMId { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

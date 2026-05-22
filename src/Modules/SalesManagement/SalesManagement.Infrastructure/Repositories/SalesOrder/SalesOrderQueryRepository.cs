@@ -63,7 +63,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _divisionLookup = divisionLookup;
         }
 
-        public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null, int? salesOrderTypeMasterId = null)
+        public async Task<(List<SalesOrderHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateOnly? orderDateFrom = null, DateOnly? orderDateTo = null, string? partyName = null, string? statusName = null, int? salesOrderTypeMasterId = null, IReadOnlyList<int>? allowedSalesOrderTypeIds = null)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
@@ -89,6 +89,13 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             if (!string.IsNullOrWhiteSpace(statusName)) param.Add("@StatusName", $"%{statusName}%");
             if (salesOrderTypeMasterId.HasValue) param.Add("@SalesOrderTypeMasterId", salesOrderTypeMasterId.Value);
 
+            var allowedTypeIdsFilter = "";
+            if (allowedSalesOrderTypeIds != null && allowedSalesOrderTypeIds.Count > 0)
+            {
+                allowedTypeIdsFilter = "AND h.SalesOrderTypeMasterId IN @AllowedSalesOrderTypeIds";
+                param.Add("AllowedSalesOrderTypeIds", allowedSalesOrderTypeIds.ToArray());
+            }
+
             if (await _accessFilter.ShouldApplyFilterAsync())
             {
                 var agentIds = await _accessFilter.GetAccessibleAgentIdsAsync();
@@ -106,7 +113,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 SELECT @TotalCount = COUNT(*)
                 FROM Sales.SalesOrderHeader h
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {typeFilter} {moFilter};
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {typeFilter} {allowedTypeIdsFilter} {moFilter};
 
                 SELECT h.Id, h.SalesOrderNo, h.OrderDate,
                     h.SalesQuotationHeaderId,
@@ -212,7 +219,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 ) amd_latest ON amd_latest.SalesOrderHeaderId = h.Id
                     AND LOWER(st.Code) = LOWER('Approved')
                 LEFT JOIN Sales.MiscMaster amd_mm ON amd_latest.StatusId = amd_mm.Id AND amd_mm.IsDeleted = 0
-                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {typeFilter} {moFilter}
+                WHERE h.IsDeleted = 0 AND h.OrderUnitId = @UnitId {searchFilter} {dateFromFilter} {dateToFilter} {statusFilter} {typeFilter} {allowedTypeIdsFilter} {moFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 

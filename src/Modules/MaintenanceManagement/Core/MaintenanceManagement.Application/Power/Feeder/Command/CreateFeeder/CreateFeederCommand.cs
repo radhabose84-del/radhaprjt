@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace MaintenanceManagement.Application.Power.Feeder.Command.CreateFeeder
 {
-    public class CreateFeederCommand : IRequest<int>
+    public class CreateFeederCommand : IRequest<int>, IRequirePermission
     {
         public string? FeederCode { get; set; }
         public string? FeederName { get; set; }
@@ -21,5 +22,6 @@ namespace MaintenanceManagement.Application.Power.Feeder.Command.CreateFeeder
         public byte HighPriority { get; set; } 
         public decimal? Target { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

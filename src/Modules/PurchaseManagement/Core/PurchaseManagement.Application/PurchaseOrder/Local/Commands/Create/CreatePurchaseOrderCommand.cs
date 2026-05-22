@@ -6,7 +6,8 @@ using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 
 namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 
-public record CreatePurchaseOrderCommand : IRequest<ApiResponseDTO<int>>
+public record CreatePurchaseOrderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
 {
     public required PurchaseOrderCreateDto Data { get; init; } 
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
 }

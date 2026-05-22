@@ -1,9 +1,10 @@
 using MediatR;
 using static FAM.Domain.Common.BaseEntity;
+using Contracts.Common;
 
 namespace FAM.Application.DepreciationGroup.Commands.UpdateDepreciationGroup
 {
-    public class UpdateDepreciationGroupCommand : IRequest<bool>
+    public class UpdateDepreciationGroupCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }       
         public string? Code { get; set; }
@@ -15,5 +16,6 @@ namespace FAM.Application.DepreciationGroup.Commands.UpdateDepreciationGroup
         public int? ResidualValue { get; set; }
         public int SortOrder { get; set; }
         public Status IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

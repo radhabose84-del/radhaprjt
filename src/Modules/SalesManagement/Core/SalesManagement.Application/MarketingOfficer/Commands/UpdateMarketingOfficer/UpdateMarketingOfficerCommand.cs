@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.MarketingOfficer.Commands.UpdateMarketingOfficer
 {
-    public class UpdateMarketingOfficerCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateMarketingOfficerCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? EmployeeName { get; set; }
@@ -15,5 +15,6 @@ namespace SalesManagement.Application.MarketingOfficer.Commands.UpdateMarketingO
         public int SalesOfficeId { get; set; }
         public int IsActive { get; set; }
         public List<UpdateOfficerSalesGroupDto> SalesGroups { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

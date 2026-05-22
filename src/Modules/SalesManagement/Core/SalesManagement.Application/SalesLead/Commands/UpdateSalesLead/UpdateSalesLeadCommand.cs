@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesLead.Commands.UpdateSalesLead
 {
-    public class UpdateSalesLeadCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateSalesLeadCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int? PartyId { get; set; }
@@ -23,5 +23,6 @@ namespace SalesManagement.Application.SalesLead.Commands.UpdateSalesLead
         public int MarketingOfficerId { get; set; }
         public DateTimeOffset InteractionDate { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

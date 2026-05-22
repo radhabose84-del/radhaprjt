@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.Menu.Commands.UpdateMenu
 {
-    public class UpdateMenuCommand : IRequest<bool>
+    public class UpdateMenuCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public string MenuName { get; set; } = default!;
@@ -13,5 +14,6 @@ namespace UserManagement.Application.Menu.Commands.UpdateMenu
         public int SortOrder { get; set; }
         public string? Type { get; set; }
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

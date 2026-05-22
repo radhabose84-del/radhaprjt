@@ -4,5 +4,7 @@ using PurchaseManagement.Application.PurchaseOrder.Dtos.ContractPO;
 
 namespace PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
 
-public sealed record CreateContractReleasePOCommand(ContractReleasePOCreateDto Data)
-    : IRequest<ApiResponseDTO<int>>;
+public sealed record CreateContractReleasePOCommand(ContractReleasePOCreateDto Data) : IRequest<ApiResponseDTO<int>>, IRequirePermission
+{
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
+}

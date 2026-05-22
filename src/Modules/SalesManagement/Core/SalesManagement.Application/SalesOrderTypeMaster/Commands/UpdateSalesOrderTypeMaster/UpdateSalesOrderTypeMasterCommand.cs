@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesOrderTypeMaster.Commands.UpdateSalesOrderTypeMaster
 {
-    public class UpdateSalesOrderTypeMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateSalesOrderTypeMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
 
@@ -29,5 +29,6 @@ namespace SalesManagement.Application.SalesOrderTypeMaster.Commands.UpdateSalesO
         public int? DefaultCurrencyId { get; set; }
 
         public int IsActive { get; set; }   // 1 = Active, 0 = Inactive
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

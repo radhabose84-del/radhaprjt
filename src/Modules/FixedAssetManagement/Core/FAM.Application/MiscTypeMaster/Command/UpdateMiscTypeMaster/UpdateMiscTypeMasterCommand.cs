@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster
 {
-    public class UpdateMiscTypeMasterCommand  : IRequest<bool>
+    public class UpdateMiscTypeMasterCommand  : IRequest<bool>, IRequirePermission
     {
 
         public int Id { get; set; }
@@ -10,5 +11,6 @@ namespace FAM.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster
         public string? Description { get; set; }
         public byte IsActive { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

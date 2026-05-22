@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FinanceManagement.Application.EWaybillHeader.Commands.CreateEWaybillHeader
 {
-    public class CreateEWaybillHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateEWaybillHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int? EInvoiceHeaderId { get; set; }
         public int UnitId { get; set; }
@@ -41,5 +41,6 @@ namespace FinanceManagement.Application.EWaybillHeader.Commands.CreateEWaybillHe
         /// Each entry becomes one Finance.EWaybillDetail row inserted in the same save.
         /// </summary>
         public List<CreateEWaybillDetailDto> Details { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

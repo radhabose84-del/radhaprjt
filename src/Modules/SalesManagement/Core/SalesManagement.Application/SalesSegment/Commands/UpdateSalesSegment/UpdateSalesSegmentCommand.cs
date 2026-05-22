@@ -4,7 +4,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment
 {
-    public class UpdateSalesSegmentCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateSalesSegmentCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
 
@@ -16,5 +16,6 @@ namespace SalesManagement.Application.SalesSegment.Commands.UpdateSalesSegment
         public DateTime? ValidFrom { get; set; }
         public string? SegmentName { get; set; }
         public int IsActive { get; set; }  // 1=Active, 0=Inactive
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

@@ -3,9 +3,10 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.MachineSpecification.Command.UpdateMachineSpecfication
 {
-    public class UpdateMachineSpecficationCommand : IRequest<ApiResponseDTO<bool>>
+    public class UpdateMachineSpecficationCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
         public List<MachineSpecificationUpdateDto>? Specifications { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
     public class MachineSpecificationUpdateDto
     {

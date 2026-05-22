@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace ProjectManagement.Application.ProjectMaster.Command.DeleteProjectMaster
 {
-    public class DeleteProjectMasterCommand : IRequest<bool>
+    public class DeleteProjectMasterCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
 
@@ -11,5 +12,6 @@ namespace ProjectManagement.Application.ProjectMaster.Command.DeleteProjectMaste
             Id = id;
         }
 
+        public PermissionType RequiredPermission => PermissionType.CanDelete;
     }
 }

@@ -1,9 +1,10 @@
 using MediatR;
 using PurchaseManagement.Application.ContractPO.Dto;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.ContractPO.Commands.Update;
 
-public sealed class UpdateContractPOCommand : IRequest<ContractPOHeaderDto>
+public sealed class UpdateContractPOCommand : IRequest<ContractPOHeaderDto>, IRequirePermission
 {
     public int Id { get; set; }
     public int VendorId { get; set; }
@@ -14,6 +15,7 @@ public sealed class UpdateContractPOCommand : IRequest<ContractPOHeaderDto>
     public string? Remarks { get; set; }
     public int IsActive { get; set; }
     public List<UpdateContractPODetailItem> Details { get; set; } = new();
+    public PermissionType RequiredPermission => PermissionType.CanUpdate;
 }
 
 public sealed class UpdateContractPODetailItem

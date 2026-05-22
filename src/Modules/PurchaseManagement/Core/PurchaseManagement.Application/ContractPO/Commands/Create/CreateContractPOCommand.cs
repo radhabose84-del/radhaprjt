@@ -1,9 +1,10 @@
 using MediatR;
 using PurchaseManagement.Application.ContractPO.Dto;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.ContractPO.Commands.Create;
 
-public sealed class CreateContractPOCommand : IRequest<ContractPOHeaderDto>
+public sealed class CreateContractPOCommand : IRequest<ContractPOHeaderDto>, IRequirePermission
 {
     public int UnitId { get; set; }
     public DateTimeOffset ContractDate { get; set; }
@@ -14,6 +15,7 @@ public sealed class CreateContractPOCommand : IRequest<ContractPOHeaderDto>
     public int StatusId { get; set; }
     public string? Remarks { get; set; }
     public List<CreateContractPODetailItem> Details { get; set; } = new();
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
 }
 
 public sealed class CreateContractPODetailItem

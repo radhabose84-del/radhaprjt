@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.CustomFields.Commands.CreateCustomField
 {
-    public class CreateCustomFieldCommand : IRequest<int>
+    public class CreateCustomFieldCommand : IRequest<int>, IRequirePermission
     {
         public string? LabelName { get; set; }
         public int Length { get; set; }
@@ -12,5 +13,6 @@ namespace UserManagement.Application.CustomFields.Commands.CreateCustomField
         public List<CustomFieldMenuDto>? Menu { get; set; }
         public List<CustomFieldUnitDto>? Unit { get; set; }
         public List<CustomFieldOptionalValueDto>? OptionalValues { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

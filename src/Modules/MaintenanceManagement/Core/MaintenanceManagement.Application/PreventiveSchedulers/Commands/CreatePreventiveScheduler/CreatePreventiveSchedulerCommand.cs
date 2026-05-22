@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.CreatePreventiveScheduler
 {
-    public class CreatePreventiveSchedulerCommand : IRequest<int>
+    public class CreatePreventiveSchedulerCommand : IRequest<int>, IRequirePermission
     {
         public string PreventiveSchedulerName { get; set; } = default!;
         public int MachineGroupId { get; set; }
@@ -21,5 +22,6 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Create
         public List<PreventiveSchedulerActivityDto>? Activity { get; set; }
         public List<PreventiveSchedulerItemsDto>? Items { get; set; }
         // public List<PreventiveSchedulerDtlDto>? Machines { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

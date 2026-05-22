@@ -1,4 +1,5 @@
 using PartyManagement.Domain.Common;
+using Contracts.Common;
 using MediatR;
 
 namespace PartyManagement.Application.BankAccount.Command.UpdateBankAccount;
@@ -15,4 +16,7 @@ public record UpdateBankAccountCommand(
     bool IsPrimaryAccount,
     string? IBan,
     BaseEntity.Status IsActive
-) : IRequest<bool>;
+) : IRequest<bool>, IRequirePermission
+{
+    public PermissionType RequiredPermission => PermissionType.CanUpdate;
+}

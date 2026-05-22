@@ -4,7 +4,7 @@ using SalesManagement.Application.CustomerVisit.Dto;
 
 namespace SalesManagement.Application.CustomerVisit.Commands.CreateCustomerVisit
 {
-    public class CreateCustomerVisitCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateCustomerVisitCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int CustomerId { get; set; }
         public int VisitTypeId { get; set; }
@@ -17,5 +17,6 @@ namespace SalesManagement.Application.CustomerVisit.Commands.CreateCustomerVisit
 
         // Detail list
         public List<CreateCustomerVisitProductDto>? Products { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

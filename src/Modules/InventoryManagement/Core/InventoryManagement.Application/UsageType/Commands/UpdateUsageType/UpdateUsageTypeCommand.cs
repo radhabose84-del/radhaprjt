@@ -3,12 +3,13 @@ using MediatR;
 
 namespace InventoryManagement.Application.UsageType.Commands.UpdateUsageType
 {
-    public class UpdateUsageTypeCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateUsageTypeCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? UsageTypeName { get; set; }
         public string? Description { get; set; }
         public int ModuleId { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

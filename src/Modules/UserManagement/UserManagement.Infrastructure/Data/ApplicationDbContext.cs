@@ -69,6 +69,8 @@ namespace UserManagement.Infrastructure.Data
         public DbSet<RoleItemGroupMapping> RoleItemGroupMapping { get; set; }
         public DbSet<UserFavoriteMenu> UserFavoriteMenus { get; set; }
         public DbSet<UserSignature> UserSignature { get; set; }
+        public DbSet<AccessPolicy> AccessPolicies { get; set; }
+        public DbSet<RoleAccessPolicy> RoleAccessPolicies { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -122,6 +124,8 @@ namespace UserManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new RoleItemGroupMappingConfiguration());
             modelBuilder.ApplyConfiguration(new UserFavoriteMenuConfiguration());
             modelBuilder.ApplyConfiguration(new UserSignatureConfiguration());
+            modelBuilder.ApplyConfiguration(new AccessPolicyConfiguration());
+            modelBuilder.ApplyConfiguration(new RoleAccessPolicyConfiguration());
 
 
 

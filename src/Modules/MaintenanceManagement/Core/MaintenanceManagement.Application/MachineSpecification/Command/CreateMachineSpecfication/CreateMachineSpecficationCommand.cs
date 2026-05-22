@@ -3,9 +3,10 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.MachineSpecification.Command.CreateMachineSpecfication
 {
-    public class CreateMachineSpecficationCommand : IRequest<ApiResponseDTO<List<int>>>
+    public class CreateMachineSpecficationCommand : IRequest<ApiResponseDTO<List<int>>>, IRequirePermission
     {
     public List<MachineSpecificationCreateDto>? Specifications { get; set; }
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
     public class MachineSpecificationCreateDto
     {

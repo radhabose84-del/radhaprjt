@@ -1,9 +1,10 @@
 using PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPaymentTermMaster;
 using MediatR;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.PaymentTermMaster.Command.CreatePaymentTermMaster
 {
-    public class CreatePaymentTermMasterCommand : IRequest<int>
+    public class CreatePaymentTermMasterCommand : IRequest<int>, IRequirePermission
     {
         public string Code { get; set; } = default!;
         public string Description { get; set; } = default!;
@@ -16,5 +17,6 @@ namespace PurchaseManagement.Application.PaymentTermMaster.Command.CreatePayment
         public decimal AdditionalValue { get; set; }
         public bool ApplicableForPortal { get; set; }
         public List<PaymentTermInstallmentDto>? Installments { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

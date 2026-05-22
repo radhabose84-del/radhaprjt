@@ -1,9 +1,10 @@
 using MediatR;
 using SalesManagement.Application.SalesQuotation.Dto;
+using Contracts.Common;
 
 namespace SalesManagement.Application.SalesQuotation.Commands.UpdateSalesQuotation
 {
-    public class UpdateSalesQuotationCommand : IRequest<int>
+    public class UpdateSalesQuotationCommand : IRequest<int>, IRequirePermission
     {
         public int Id { get; set; }
         public int CustomerId { get; set; }
@@ -24,5 +25,6 @@ namespace SalesManagement.Application.SalesQuotation.Commands.UpdateSalesQuotati
         public int? StatusId { get; set; }
         public int IsActive { get; set; }
         public List<UpdateSalesQuotationDetailDto>? SalesQuotationDetails { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

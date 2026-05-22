@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace WarehouseManagement.Application.RackMaster.Command.UpdateRackMaster
 {
-    public class UpdateRackMasterCommand  : IRequest<int>
+    public class UpdateRackMasterCommand  : IRequest<int>, IRequirePermission
     {
         public int Id { get; set; }
         public int WarehouseId { get; set; }
@@ -17,5 +18,6 @@ namespace WarehouseManagement.Application.RackMaster.Command.UpdateRackMaster
         public int? DimensionUOMId { get; set; }        
         public byte IsActive { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

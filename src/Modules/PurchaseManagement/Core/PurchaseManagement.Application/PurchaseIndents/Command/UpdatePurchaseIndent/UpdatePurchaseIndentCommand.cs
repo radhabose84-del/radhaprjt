@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseIndent
 {
-    public class UpdatePurchaseIndentCommand : IRequest<bool>
+    public class UpdatePurchaseIndentCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public DateOnly IndentDate { get; set; }
@@ -16,5 +17,6 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseI
         // Drives the one-time OldQuantityRequired capture. Normal creator edits send false.
         public bool IsApprovalEdit { get; set; }
         public ICollection<IndentDetailUpdateDto> IndentDetails { get; set; } = default!;
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

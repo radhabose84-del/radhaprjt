@@ -1,9 +1,10 @@
 using MediatR;
+using Contracts.Common;
 
 
 namespace UserManagement.Application.Entity.Commands.UpdateEntity
 {
-    public class UpdateEntityCommand : IRequest<int>
+    public class UpdateEntityCommand : IRequest<int>, IRequirePermission
     {
     public int Id { get; set; }
     public string? EntityName { get; set; }
@@ -13,5 +14,6 @@ namespace UserManagement.Application.Entity.Commands.UpdateEntity
     public string? Email { get; set; }
     public byte IsActive { get; set; } 
        
+    public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

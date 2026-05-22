@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesGroup.Commands.UpdateSalesGroup
 {
-    public class UpdateSalesGroupCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateSalesGroupCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? SalesGroupName { get; set; }
@@ -12,5 +12,6 @@ namespace SalesManagement.Application.SalesGroup.Commands.UpdateSalesGroup
         public int? ProductCategoryId { get; set; }
         public string? RegionTerritory { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

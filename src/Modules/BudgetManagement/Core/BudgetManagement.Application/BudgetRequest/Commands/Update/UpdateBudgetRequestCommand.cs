@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace BudgetManagement.Application.BudgetRequest.Commands.Update;
 
-public class UpdateBudgetRequestCommand : IRequest
+public class UpdateBudgetRequestCommand : IRequest, IRequirePermission
 {
     public int Id { get; set; }
     public int UnitId { get; set; }
@@ -20,5 +21,6 @@ public class UpdateBudgetRequestCommand : IRequest
     public string? ImagePath { get; set; }
     public int EditFlag { get; set; }    
     public int FinancialYearId { get; set; }
+    public PermissionType RequiredPermission => PermissionType.CanUpdate;
 }
 

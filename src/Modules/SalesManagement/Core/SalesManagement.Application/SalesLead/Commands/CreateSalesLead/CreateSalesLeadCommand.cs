@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
 {
-    public class CreateSalesLeadCommand : IRequest<ApiResponseDTO<CreateSalesLeadResponseDto>>
+    public class CreateSalesLeadCommand : IRequest<ApiResponseDTO<CreateSalesLeadResponseDto>>, IRequirePermission
     {
         public int? PartyId { get; set; }
         public string? ProspectCompanyName { get; set; }
@@ -21,5 +21,6 @@ namespace SalesManagement.Application.SalesLead.Commands.CreateSalesLead
         public int? LeadSourceId { get; set; }
         public int MarketingOfficerId { get; set; }
         public DateTimeOffset InteractionDate { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

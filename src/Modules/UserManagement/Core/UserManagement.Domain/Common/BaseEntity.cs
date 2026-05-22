@@ -4,7 +4,7 @@ namespace UserManagement.Domain.Common
 {
     public abstract class BaseEntity
     {
-        public Status  IsActive { get; set; }
+        public Status IsActive { get; set; }
         public int CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; }
       
@@ -17,6 +17,6 @@ namespace UserManagement.Domain.Common
         public string? ModifiedByName { get; set; }
        
         public string? ModifiedIP { get; set; }
-        public IsDelete IsDeleted { get; set; } 
+        public IsDelete IsDeleted { get; set; }
     }
 }

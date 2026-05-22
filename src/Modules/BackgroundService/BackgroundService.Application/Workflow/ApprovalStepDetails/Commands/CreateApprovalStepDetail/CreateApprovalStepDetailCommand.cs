@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
+using Contracts.Common;
 
 namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Commands.CreateApprovalStepDetail
 {
-    public class CreateApprovalStepDetailCommand : IRequest<int>
+    public class CreateApprovalStepDetailCommand : IRequest<int>, IRequirePermission
     {
         public int WorkFlowTypeId { get; set; }
         public int StepOrder { get; set; }
@@ -20,5 +21,6 @@ namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Commands.Cr
         // public List<ApprovalRuleDto> ApprovalRules { get; set; }
         public List<ApprovalStepDepartmentMappingDto>? ApprovalStepDepartmentMappings { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

@@ -1,3 +1,4 @@
+using Contracts.Common;
 using MediatR;
 
 
@@ -13,4 +14,7 @@ public record CreateBankAccountCommand(
         bool IsDefaultAccount,
         bool IsPrimaryAccount,
         string? IBan
-) : IRequest<int>; // returns new Id
+) : IRequest<int>, IRequirePermission
+{
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
+} // returns new Id

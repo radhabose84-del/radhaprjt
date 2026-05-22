@@ -1,14 +1,29 @@
 using UserManagement.Domain.Common;
 using UserManagement.Domain.Entities;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.UnitTests.Domain
 {
     public class RoleMenuPrivilegesEntityTests
     {
         [Fact]
-        public void RoleMenuPrivileges_ShouldNotInheritFromBaseEntity()
+        public void RoleMenuPrivileges_ShouldInheritFromBaseEntity()
         {
-            typeof(BaseEntity).IsAssignableFrom(typeof(RoleMenuPrivileges)).Should().BeFalse();
+            typeof(BaseEntity).IsAssignableFrom(typeof(RoleMenuPrivileges)).Should().BeTrue();
+        }
+
+        [Fact]
+        public void RoleMenuPrivileges_DefaultIsActive_ShouldBeActive()
+        {
+            var entity = new RoleMenuPrivileges();
+            entity.IsActive.Should().Be(Status.Active);
+        }
+
+        [Fact]
+        public void RoleMenuPrivileges_DefaultIsDeleted_ShouldBeNotDeleted()
+        {
+            var entity = new RoleMenuPrivileges();
+            entity.IsDeleted.Should().Be(IsDelete.NotDeleted);
         }
 
         [Fact]

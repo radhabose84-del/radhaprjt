@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgentCommissionConfig
 {
-    public class CreateAgentCommissionConfigCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateAgentCommissionConfigCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int AgentId { get; set; }
         public int CommissionTypeId { get; set; }
@@ -18,6 +18,7 @@ namespace SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgent
         public List<int>? SalesGroupIds { get; set; }
         public List<int>? PaymentTermIds { get; set; }
         public List<AgentCommissionSlabItem>? Slabs { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
     public class AgentCommissionSlabItem

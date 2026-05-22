@@ -4,7 +4,7 @@ using SalesManagement.Application.Complaint.Dto;
 
 namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
 {
-    public class CreateComplaintCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateComplaintCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly ComplaintDate { get; set; }
         public int CustomerId { get; set; }
@@ -25,5 +25,6 @@ namespace SalesManagement.Application.Complaint.Commands.CreateComplaint
 
         public string? Remarks { get; set; }
         public List<CreateComplaintDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

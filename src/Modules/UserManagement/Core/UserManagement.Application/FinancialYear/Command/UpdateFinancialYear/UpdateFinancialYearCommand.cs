@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.FinancialYear.Command.UpdateFinancialYear
 {
-    public class UpdateFinancialYearCommand : IRequest<int>
+    public class UpdateFinancialYearCommand : IRequest<int>, IRequirePermission
     {
 
          public int Id { get; set; }
@@ -18,5 +19,6 @@ namespace UserManagement.Application.FinancialYear.Command.UpdateFinancialYear
        
        
         
+         public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

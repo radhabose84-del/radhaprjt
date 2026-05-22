@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace MaintenanceManagement.Application.CostCenter.Command.CreateCostCenter
 {
-    public class CreateCostCenterCommand :IRequest<int>
+    public class CreateCostCenterCommand :IRequest<int>, IRequirePermission
     {
         public string? CostCenterCode { get; set; }
         public string? CostCenterName { get; set; }
@@ -13,5 +14,6 @@ namespace MaintenanceManagement.Application.CostCenter.Command.CreateCostCenter
         public decimal? BudgetAllocated { get; set; }
         public string? Remarks { get; set; }
 
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

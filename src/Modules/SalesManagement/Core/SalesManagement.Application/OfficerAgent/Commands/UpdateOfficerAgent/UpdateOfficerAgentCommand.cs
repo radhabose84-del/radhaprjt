@@ -3,10 +3,11 @@ using MediatR;
 
 namespace SalesManagement.Application.OfficerAgent.Commands.UpdateOfficerAgent
 {
-    public class UpdateOfficerAgentCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateOfficerAgentCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int MarketingOfficerId { get; set; }
         public List<OfficerAgentUpdateItem> Agents { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 
     public class OfficerAgentUpdateItem

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FinanceManagement.Application.TransactionTypeMaster.Commands.UpdateTransactionTypeMaster
 {
-    public class UpdateTransactionTypeMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateTransactionTypeMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int ModuleId { get; set; }
@@ -12,5 +12,6 @@ namespace FinanceManagement.Application.TransactionTypeMaster.Commands.UpdateTra
         public string? ShortName { get; set; }
         public string? Description { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

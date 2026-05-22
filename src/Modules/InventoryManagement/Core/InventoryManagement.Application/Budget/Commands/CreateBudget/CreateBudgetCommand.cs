@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace InventoryManagement.Application.Budget.Commands.CreateBudget
 {
-    public class CreateBudgetCommand : IRequest<int>
+    public class CreateBudgetCommand : IRequest<int>, IRequirePermission
     {        
         public int BudgetGroupId { get; set; }
         public int FiscalYear { get; set; }
@@ -11,6 +12,7 @@ namespace InventoryManagement.Application.Budget.Commands.CreateBudget
         public byte? Is_POApplicable { get; set; }
         public byte? Is_ServiceApplicable { get; set; }
         public List<BudgetDetailDto> BudgetDetails { get; set; } = new();        
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
     public class BudgetDetailDto

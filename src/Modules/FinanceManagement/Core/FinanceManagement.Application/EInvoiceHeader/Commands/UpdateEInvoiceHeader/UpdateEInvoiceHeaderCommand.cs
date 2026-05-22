@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FinanceManagement.Application.EInvoiceHeader.Commands.UpdateEInvoiceHeader
 {
-    public class UpdateEInvoiceHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateEInvoiceHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int UnitId { get; set; }
@@ -37,5 +37,6 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.UpdateEInvoiceHe
         public int? StatusId { get; set; }
         public bool EWaybillCreated { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

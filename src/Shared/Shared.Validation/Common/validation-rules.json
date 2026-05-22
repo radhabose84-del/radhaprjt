@@ -250,5 +250,9 @@
     {
         "rule": "GrnRequired",
         "error": "Purchase Order cannot be foreclosed without a GRN. Use Cancel instead."
+    },
+    {
+        "rule": "AccessPolicy",
+        "error": "You are not authorised to use this value."
     }
 ]

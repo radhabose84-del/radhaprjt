@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace MaintenanceManagement.Application.Power.Feeder.Command.UpdateFeeder
 {
-    public class UpdateFeederCommand : IRequest<bool>
+    public class UpdateFeederCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public string? FeederCode { get; set; }
@@ -21,5 +22,6 @@ namespace MaintenanceManagement.Application.Power.Feeder.Command.UpdateFeeder
         public byte   HighPriority { get; set; } 
         public decimal? Target { get; set; }
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

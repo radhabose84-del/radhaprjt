@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.Entity.Commands.CreateEntity
 {
-    public class CreateEntityCommand :IRequest<int>
+    public class CreateEntityCommand :IRequest<int>, IRequirePermission
     {
 
     public string? EntityName { get; set; }
@@ -11,5 +12,6 @@ namespace UserManagement.Application.Entity.Commands.CreateEntity
     public string? Phone  { get; set; }
     public string? Email { get; set; }
    
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

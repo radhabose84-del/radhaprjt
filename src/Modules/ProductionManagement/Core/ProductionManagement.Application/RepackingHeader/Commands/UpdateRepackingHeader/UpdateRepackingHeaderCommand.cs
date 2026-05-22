@@ -4,7 +4,7 @@ using ProductionManagement.Application.RepackingHeader.Commands.CreateRepackingH
 
 namespace ProductionManagement.Application.RepackingHeader.Commands.UpdateRepackingHeader
 {
-    public class UpdateRepackingHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateRepackingHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public DateOnly RepackDate { get; set; }
@@ -41,5 +41,6 @@ namespace ProductionManagement.Application.RepackingHeader.Commands.UpdateRepack
 
         // Details
         public List<CreateRepackingDetailItem> Details { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

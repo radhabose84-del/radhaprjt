@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.MiscMaster.Command.UpdateMiscMaster
 {
-    public class UpdateMiscMasterCommand : IRequest<bool>
+    public class UpdateMiscMasterCommand : IRequest<bool>, IRequirePermission
     {
         
          
@@ -12,5 +13,6 @@ namespace FAM.Application.MiscMaster.Command.UpdateMiscMaster
         public string? Description { get; set;}
         public int SortOrder  { get; set;}
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

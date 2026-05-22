@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FinanceManagement.Application.EWaybillHeader.Commands.UpdateEWaybillHeader
 {
-    public class UpdateEWaybillHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateEWaybillHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? SupplyType { get; set; }
@@ -28,5 +28,6 @@ namespace FinanceManagement.Application.EWaybillHeader.Commands.UpdateEWaybillHe
         public string? EwbStatus { get; set; }
         public string? CancelReason { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

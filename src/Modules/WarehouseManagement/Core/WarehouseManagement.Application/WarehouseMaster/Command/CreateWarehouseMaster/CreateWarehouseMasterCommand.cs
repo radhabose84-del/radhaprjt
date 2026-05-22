@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace WarehouseManagement.Application.WarehouseMaster.Command.CreateWarehouseMaster
 {
-    public class CreateWarehouseMasterCommand : IRequest<int> // returning new warehouse ID
+    public class CreateWarehouseMasterCommand : IRequest<int>, IRequirePermission // returning new warehouse ID
     {
         public string WarehouseName { get; set; } = null!;
         public int UnitId { get; set; }
@@ -36,5 +37,6 @@ namespace WarehouseManagement.Application.WarehouseMaster.Command.CreateWarehous
         public bool IsDefaultStockEntry { get; set; }
         public List<int> AllowedItemGroupIds { get; set; } = new();
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

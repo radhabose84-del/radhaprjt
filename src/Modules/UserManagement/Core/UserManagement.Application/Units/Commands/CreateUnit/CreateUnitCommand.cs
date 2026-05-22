@@ -1,10 +1,11 @@
 using UserManagement.Application.Units.Queries.GetUnits;
 using MediatR;
+using Contracts.Common;
 
 
 namespace UserManagement.Application.Units.Commands.CreateUnit
 {
-    public class CreateUnitCommand : IRequest<int>
+    public class CreateUnitCommand : IRequest<int>, IRequirePermission
     {
     public string? UnitName { get; set; }
     public string? ShortName { get; set; }
@@ -18,6 +19,7 @@ namespace UserManagement.Application.Units.Commands.CreateUnit
     public int UnitTypeId { get; set; }
     public UnitAddressDto? UnitAddressDto { get; set; }
     public UnitContactsDto? UnitContactsDto { get; set;}
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
 

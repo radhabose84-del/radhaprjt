@@ -57,7 +57,7 @@ namespace BackgroundService.Infrastructure.Repositories.Common
             _memoryCache.Set(
                 DepartmentCacheKey,
                 departmentLookup,
-                new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheDuration });
+                new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheDuration, Size = 1 });
 
             return departmentLookup;
         }
@@ -89,7 +89,7 @@ namespace BackgroundService.Infrastructure.Repositories.Common
             _memoryCache.Set(
                 UnitCacheKey,
                 unitLookup,
-                new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheDuration });
+                new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = CacheDuration, Size = 1 });
 
             return unitLookup;
         }

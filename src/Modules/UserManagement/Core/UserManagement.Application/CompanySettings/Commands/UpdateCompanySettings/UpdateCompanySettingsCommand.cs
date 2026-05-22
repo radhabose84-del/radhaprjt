@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.CompanySettings.Commands.UpdateCompanySettings
 {
-    public class UpdateCompanySettingsCommand : IRequest<bool>
+    public class UpdateCompanySettingsCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public int CompanyId { get; set; }
@@ -21,5 +22,6 @@ namespace UserManagement.Application.CompanySettings.Commands.UpdateCompanySetti
         public int TimeZone { get; set; }
         public int FinancialYear { get; set; }
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

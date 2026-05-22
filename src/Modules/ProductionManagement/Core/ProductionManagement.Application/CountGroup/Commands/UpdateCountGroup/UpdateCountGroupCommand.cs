@@ -3,11 +3,12 @@ using MediatR;
 
 namespace ProductionManagement.Application.CountGroup.Commands.UpdateCountGroup
 {
-    public class UpdateCountGroupCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateCountGroupCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? CountGroupName { get; set; }
         public string? Description { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

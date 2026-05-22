@@ -4,7 +4,7 @@ using MediatR;
 
 namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
 {
-    public class CreateGateInwardCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateGateInwardCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int VehicleMovementRecordId { get; set; }
         public decimal? GrossWeight { get; set; }
@@ -18,6 +18,7 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
 
         // Single optional Gate Entry Document — staged via upload-attachment first
         public GateInwardAttachmentStageRef? Attachment { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
     public class GateInwardAttachmentStageRef

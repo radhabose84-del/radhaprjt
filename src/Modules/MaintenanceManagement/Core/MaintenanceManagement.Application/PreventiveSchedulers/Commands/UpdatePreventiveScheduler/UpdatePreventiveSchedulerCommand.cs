@@ -3,7 +3,7 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.UpdatePreventiveScheduler
 {
-    public class UpdatePreventiveSchedulerCommand : IRequest<ApiResponseDTO<bool>>
+    public class UpdatePreventiveSchedulerCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
         public string PreventiveSchedulerName { get; set; } = default!;
         public int Id { get; set; }
@@ -23,5 +23,6 @@ namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.Update
         // public byte IsActive { get; set; }
         public List<PreventiveSchedulerActivityUpdateDto>? Activity { get; set; }
         public List<PreventiveSchedulerItemUpdateDto>? Items { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

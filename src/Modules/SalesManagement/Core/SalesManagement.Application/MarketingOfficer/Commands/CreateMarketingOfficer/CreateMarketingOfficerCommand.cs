@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.MarketingOfficer.Commands.CreateMarketingOfficer
 {
-    public class CreateMarketingOfficerCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateMarketingOfficerCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public string? EmployeeNo { get; set; }
         public string? EmployeeName { get; set; }
@@ -14,5 +14,6 @@ namespace SalesManagement.Application.MarketingOfficer.Commands.CreateMarketingO
         public string? Designation { get; set; }
         public int SalesOfficeId { get; set; }
         public List<CreateOfficerSalesGroupDto> SalesGroups { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

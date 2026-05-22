@@ -4,7 +4,7 @@ using SalesManagement.Application.Invoice.Dto;
 
 namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
 {
-    public class CreateInvoiceCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateInvoiceCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly InvoiceDate { get; set; }
         public int DispatchAdviceId { get; set; }
@@ -42,5 +42,6 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
         public string? Remarks { get; set; }
 
         public List<CreateInvoiceDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

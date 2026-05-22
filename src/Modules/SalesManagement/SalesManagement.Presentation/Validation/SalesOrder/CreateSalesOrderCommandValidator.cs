@@ -1,3 +1,4 @@
+using Contracts;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Workflow;
 using FluentValidation;
@@ -17,18 +18,21 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
         private readonly IWorkflowLookup _workflowLookup;
         private readonly IIPAddressService _ipAddressService;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
+        private readonly IAccessPolicyService _accessPolicyService;
 
         public CreateSalesOrderCommandValidator(
             MaxLengthProvider maxLengthProvider,
             ISalesOrderQueryRepository queryRepository,
             IWorkflowLookup workflowLookup,
             IIPAddressService ipAddressService,
-            IMarketingOfficerAccessFilter accessFilter)
+            IMarketingOfficerAccessFilter accessFilter,
+            IAccessPolicyService accessPolicyService)
         {
             _queryRepository = queryRepository;
             _workflowLookup = workflowLookup;
             _ipAddressService = ipAddressService;
             _accessFilter = accessFilter;
+            _accessPolicyService = accessPolicyService;
 
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.SalesOrderHeader>("Remarks") ?? 500;
 
@@ -245,6 +249,18 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .MustAsync(async (id, ct) => await _accessFilter.CanAccessAgentAsync(id!.Value, ct))
                             .WithMessage($"SubAgentId {rule.Error}")
                             .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.SubAgentId.HasValue && x.SalesOrderDetails.SubAgentId > 0);
+                        break;
+
+                    case "AccessPolicy":
+                        RuleFor(x => x.SalesOrderDetails!.SalesOrderTypeId)
+                            .MustAsync(async (typeId, ct) =>
+                            {
+                                var allowed = await _accessPolicyService.GetAllowedValueIdsAsync(
+                                    AccessPolicyCodes.SalesOrderType, ct);
+                                return allowed == null || allowed.Contains(typeId!.Value);
+                            })
+                            .WithMessage($"SalesOrderTypeId {rule.Error}")
+                            .When(x => x.SalesOrderDetails != null && x.SalesOrderDetails.SalesOrderTypeId > 0);
                         break;
 
                     case "Workflow":

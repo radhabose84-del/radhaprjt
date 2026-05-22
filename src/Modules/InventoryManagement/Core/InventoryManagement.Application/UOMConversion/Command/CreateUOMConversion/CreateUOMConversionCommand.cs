@@ -4,10 +4,11 @@ using MediatR;
 
 namespace InventoryManagement.Application.UOMConversion.Command.CreateUOMConversion
 {
-    public class CreateUOMConversionCommand : IRequest<ApiResponseDTO<UOMConversionDto>>
+    public class CreateUOMConversionCommand : IRequest<ApiResponseDTO<UOMConversionDto>>, IRequirePermission
     {
         public int FromUOMId { get; set; }
         public int ToUOMId { get; set; }
         public decimal ConversionValue { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

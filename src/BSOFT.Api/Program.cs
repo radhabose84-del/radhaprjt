@@ -44,8 +44,9 @@ builder.Services.AddSharedInfrastructureServices();
 builder.Services.AddBsoftResilience(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ MediatR pipeline behaviors
+// ✅ MediatR pipeline behaviors (order: PermissionBehavior runs first, then ValidationBehavior)
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Shared.Infrastructure.Behaviors.PermissionBehavior<,>));
 
 // ✅ Shared validation provider
 builder.Services.AddSingleton<IValidationRuleProvider, JsonValidationRuleProvider>();

@@ -94,7 +94,13 @@ internal sealed class IPAddressService : IIPAddressService
 
     public string GetUserName()
     {
-        var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+        var ctx = _httpContextAccessor.HttpContext;
+        // context.Items["UserName"] is set by TokenValidationMiddleware after JWT validation
+        if (ctx?.Items["UserName"] is string name && !string.IsNullOrEmpty(name))
+            return name;
+
+        var userName = ctx?.User?.Identity?.Name
+                    ?? ctx?.User?.FindFirst(ClaimTypes.Name)?.Value;
         return string.IsNullOrEmpty(userName) ? "Anonymous" : userName;
     }
 

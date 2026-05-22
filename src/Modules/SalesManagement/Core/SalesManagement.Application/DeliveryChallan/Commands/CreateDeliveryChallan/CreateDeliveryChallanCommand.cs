@@ -4,7 +4,7 @@ using SalesManagement.Application.DeliveryChallan.Dto;
 
 namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryChallan
 {
-    public class CreateDeliveryChallanCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateDeliveryChallanCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly DeliveryDate { get; set; }
         public int StoHeaderId { get; set; }
@@ -25,5 +25,6 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
 
         public string? Remarks { get; set; }
         public List<CreateDeliveryChallanDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

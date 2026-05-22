@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.ComplaintResolution.Commands.UpdateResolution
 {
-    public class UpdateResolutionCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateResolutionCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int ResolutionTypeId { get; set; }
@@ -30,5 +30,6 @@ namespace SalesManagement.Application.ComplaintResolution.Commands.UpdateResolut
         public string? ClosureRemarks { get; set; }
 
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

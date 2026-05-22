@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace PartyManagement.Application.PartyGroup.Command.UpdatePartyGroup
 {
-    public class UpdatePartyGroupCommand : IRequest<bool>
+    public class UpdatePartyGroupCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public string? PartyGroupName { get; set; }
@@ -12,5 +13,6 @@ namespace PartyManagement.Application.PartyGroup.Command.UpdatePartyGroup
         public int GlCategoryId { get; set; }
         public byte IsGroup { get; set; }
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

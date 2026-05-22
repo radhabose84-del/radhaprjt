@@ -4,7 +4,7 @@ using SalesManagement.Application.SalesAgreement.Dto;
 
 namespace SalesManagement.Application.SalesAgreement.Commands.CreateSalesAgreement
 {
-    public class CreateSalesAgreementCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateSalesAgreementCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly ValidFrom { get; set; }
         public DateOnly ValidTo { get; set; }
@@ -15,5 +15,6 @@ namespace SalesManagement.Application.SalesAgreement.Commands.CreateSalesAgreeme
         public string? CustomerPoRefno { get; set; }
         public string? AgentPOAttachment { get; set; }
         public List<CreateSalesAgreementDetailDto>? SalesAgreementDetails { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

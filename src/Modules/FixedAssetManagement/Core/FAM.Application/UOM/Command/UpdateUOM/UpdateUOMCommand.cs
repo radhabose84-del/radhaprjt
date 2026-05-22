@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.UOM.Command.UpdateUOM
 {
-    public class UpdateUOMCommand : IRequest<bool>
+    public class UpdateUOMCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public string? Code { get; set; }
@@ -10,5 +11,6 @@ namespace FAM.Application.UOM.Command.UpdateUOM
         public int SortOrder { get; set; }
         public int UOMTypeId { get; set; }
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }
