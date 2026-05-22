@@ -268,8 +268,12 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
                         }
                     }
 
-                    var detailDto = _mapper.Map<LocalDtos.PurchaseOrderDetailDto>(entity);
-                    var reversePayload = _mapper.Map<CreatePOLocalReverseDto>(detailDto);
+                    var workFlowEntity = await _repo.GetByIdPOLocalWorkFlowAsync(result);
+                    var reversePayload = new CreatePOLocalReverseDto
+                    {
+                        Header = workFlowEntity,
+                        Lines = null
+                    };
                     var serializedPayload = JsonSerializer.Serialize(reversePayload);
                     var correlationId = Guid.NewGuid();
 

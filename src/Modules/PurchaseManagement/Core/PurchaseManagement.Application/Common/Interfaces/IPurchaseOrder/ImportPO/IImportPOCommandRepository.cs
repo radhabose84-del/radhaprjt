@@ -1,12 +1,15 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 
 namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 
 public interface IImportPOCommandRepository
 {
+    Task<ImportPOWorkFlowDto> GetByIdImportPOWorkFlowAsync(int id);
+
     // ── Original methods (self-contained transactions) ───────────────────────
     Task<int> CreateAsync(PurchaseOrderHeader aggregate, ImportPOCreateDto dto, CancellationToken ct);
     Task<int> UpdateAsync(PurchaseOrderHeader incoming, ImportPOUpdateDto dto, CancellationToken ct);

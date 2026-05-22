@@ -2,12 +2,14 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 
 namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 
 public interface IPurchaseOrderCommandRepository
 {
+        Task<POLocalWorkFlowDto> GetByIdPOLocalWorkFlowAsync(int id);
         Task<int> CreateWithoutTransactionAsync(PurchaseOrderHeader aggregate, CancellationToken ct);
         Task<int> UpdateAsync(PurchaseOrderHeader incoming, PurchaseOrderUpdateDto dto, CancellationToken ct);
         Task<int> SoftDeleteAsync(int id, CancellationToken ct);

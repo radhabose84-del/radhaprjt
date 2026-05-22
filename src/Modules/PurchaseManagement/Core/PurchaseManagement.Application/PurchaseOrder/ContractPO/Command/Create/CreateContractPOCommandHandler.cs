@@ -195,6 +195,7 @@ public sealed class CreateContractPOCommandHandler
             FreightTotal = r.FreightTotal,
             PurchaseValue = r.PurchaseValue,
             StatusId = pendingStatusId,
+            CostCenterId = r.CostCenterId,
             BudgetGroupId = r.BudgetGroupId,
             BudgetMonthId = r.BudgetMonthId,
             BudgetRequestById = r.BudgetRequestById,
@@ -326,24 +327,11 @@ public sealed class CreateContractPOCommandHandler
                 // ── Approval workflow (outbox — same transaction) ──────────────────
                 var correlationId = Guid.NewGuid();
 
+                var workFlowEntity = await _commandRepo.GetByIdContractPOWorkFlowAsync(newPOId);
                 var reversePayload = new CreateContractPOReverseDto
                 {
-                    Header = new ContractPOWorkFlowDto
-                    {
-                        Id = newPOId,
-                        PONumber = poNumber,
-                        VendorId = contract.VendorId,
-                        StatusId = pendingStatusId,
-                        UnitId = unitId
-                    },
-                    Lines = contractDetails.Select(d => new ContractPOWorkFlowDto
-                    {
-                        Id = newPOId,
-                        PONumber = poNumber,
-                        VendorId = contract.VendorId,
-                        StatusId = pendingStatusId,
-                        UnitId = unitId
-                    }).ToList()
+                    Header = workFlowEntity,
+                    Lines = null
                 };
 
                 var workflowCommand = new CreateApprovalRequestCommand

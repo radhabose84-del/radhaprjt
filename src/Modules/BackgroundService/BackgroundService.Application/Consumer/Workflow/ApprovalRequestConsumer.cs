@@ -107,8 +107,9 @@ namespace BackgroundService.Application.Consumer.Workflow
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Transaction Created Request Consumer. ModuleTypeName : {ModuleTypeName}, Request : {@Request}",
-                    context.Message.ModuleTypeName, context.Message);
+                    "Transaction Created Request Consumer failed. ModuleTypeName : {ModuleTypeName}, TransactionId : {TransactionId}",
+                    context.Message.ModuleTypeName, context.Message.ModuleTransactionId);
+                throw; // Re-throw so MassTransit can retry or move to error queue
             }
         }
     }
