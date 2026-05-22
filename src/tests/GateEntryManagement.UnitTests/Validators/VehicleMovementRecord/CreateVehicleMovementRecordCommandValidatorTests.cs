@@ -21,7 +21,6 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
                 DriverMobileNo = "9876543210",
                 DriverLicenseNo = "DL12345",
                 PurposeOfVisitId = 1,
-                ReceivingTypeId = 9, // Vehicle
                 ReferenceDocTypeId = null,
                 ReferenceDocNo = null,
                 TransporterId = null,
@@ -32,15 +31,11 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         private void SetupAllAsyncMocks(
             int purposeOfVisitId = 1,
             int unitId = 1,
-            string vehicleNumber = "KA01AB1234",
-            int receivingTypeId = 9,
-            bool isVehicleReceivingType = true)
+            string vehicleNumber = "KA01AB1234")
         {
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(purposeOfVisitId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(receivingTypeId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(unitId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.HasOpenVMRForVehicleAsync(vehicleNumber)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(receivingTypeId)).ReturnsAsync(isVehicleReceivingType);
         }
 
         [Fact]
@@ -57,28 +52,52 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task Validate_EmptyVehicleNumber_FailsValidation(string? vehicleNumber)
+        public async Task Validate_EmptyVehicleNumber_NowPassesValidation(string? vehicleNumber)
         {
+            // VehicleNumber is now OPTIONAL — user fills it only when receiving type = Vehicle (UI-driven).
             var command = ValidCommand();
             command.VehicleNumber = vehicleNumber;
-            // FKColumnDelete: PurposeOfVisitId > 0 runs, UnitId > 0 runs, ReceivingTypeId = 9 runs
-            // ReferenceDocTypeId is null, TransporterId is null — .When() guards skip
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9)).ReturnsAsync(true);
-            // AlreadyExists .When(x => !string.IsNullOrWhiteSpace(x.VehicleNumber)) skips
+            // HasOpenVMRForVehicleAsync .When() guard skips when blank.
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.VehicleNumber);
+            result.ShouldNotHaveValidationErrorFor(x => x.VehicleNumber);
+        }
+
+        [Fact]
+        public async Task Validate_EmptyDriverName_NowPassesValidation()
+        {
+            // DriverName is now OPTIONAL.
+            var command = ValidCommand();
+            command.DriverName = null;
+            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.DriverName);
+        }
+
+        [Fact]
+        public async Task Validate_EmptyDriverMobileNo_NowPassesValidation()
+        {
+            // DriverMobileNo is now OPTIONAL.
+            var command = ValidCommand();
+            command.DriverMobileNo = null;
+            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.DriverMobileNo);
         }
 
         [Theory]
         [InlineData("123")]
         [InlineData("abcdefghij")]
-        public async Task Validate_InvalidMobileNumber_FailsValidation(string mobileNo)
+        public async Task Validate_InvalidMobileNumberFormat_FailsValidation(string mobileNo)
         {
+            // Format rule fires only when DriverMobileNo is non-empty (its own .When() guard).
             var command = ValidCommand();
             command.DriverMobileNo = mobileNo;
             SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
@@ -93,9 +112,7 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         {
             var command = ValidCommand();
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.HasOpenVMRForVehicleAsync(command.VehicleNumber!)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -109,9 +126,7 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
             var command = ValidCommand();
             command.PurposeOfVisitId = 999;
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.HasOpenVMRForVehicleAsync(command.VehicleNumber!)).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -125,89 +140,12 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
             var command = ValidCommand();
             command.UnitId = 999;
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.HasOpenVMRForVehicleAsync(command.VehicleNumber!)).ReturnsAsync(false);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.UnitId);
-        }
-
-        [Fact]
-        public async Task Validate_EmptyReceivingTypeId_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.ReceivingTypeId = null;
-            // FK rule .When() skips when null. Conditional VehicleNumber .WhenAsync() skips when null.
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.HasOpenVMRForVehicleAsync(command.VehicleNumber!)).ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ReceivingTypeId);
-        }
-
-        [Fact]
-        public async Task Validate_InvalidReceivingTypeId_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.ReceivingTypeId = 9999;
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.HasOpenVMRForVehicleAsync(command.VehicleNumber!)).ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ReceivingTypeId);
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task Validate_ReceivingTypeCourier_VehicleNumberOptional_Passes(string? vehicleNumber)
-        {
-            var command = ValidCommand();
-            command.ReceivingTypeId = 10; // Courier
-            command.VehicleNumber = vehicleNumber; // empty is OK for non-Vehicle
-            // FK ok, conditional VehicleNumber rule skipped (IsVehicleReceivingType=false)
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(10)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(10)).ReturnsAsync(false);
-            // HasOpenVMRForVehicleAsync .When() skips when VehicleNumber blank
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldNotHaveValidationErrorFor(x => x.VehicleNumber);
-        }
-
-        [Fact]
-        public async Task Validate_EmptyDriverName_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.DriverName = "";
-            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.DriverName);
-        }
-
-        [Fact]
-        public async Task Validate_EmptyDriverMobileNo_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.DriverMobileNo = "";
-            SetupAllAsyncMocks(command.PurposeOfVisitId, command.UnitId, command.VehicleNumber!);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.DriverMobileNo);
         }
     }
 }

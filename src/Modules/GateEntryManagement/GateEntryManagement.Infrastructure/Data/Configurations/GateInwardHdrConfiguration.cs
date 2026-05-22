@@ -35,6 +35,16 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.ReceivingTypeId)
+                .HasColumnName("ReceivingTypeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.CourierNumber)
+                .HasColumnName("CourierNumber")
+                .HasColumnType("varchar(50)")
+                .IsRequired(false);
+
             // Cross-module FK (PartyManagement) — no DB FK constraint
             builder.Property(t => t.PartyId)
                 .HasColumnName("PartyId")
@@ -113,6 +123,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.VehicleMovementRecordId);
             builder.HasIndex(t => t.UnitId);
             builder.HasIndex(t => t.PartyId);
+            builder.HasIndex(t => t.ReceivingTypeId);
 
             // Same-module FKs
             builder.HasOne(t => t.VehicleMovementRecord)
@@ -123,6 +134,11 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.QAStatusMisc)
                 .WithMany(m => m.GateInwardHdrsAsQAStatus)
                 .HasForeignKey(t => t.QAStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.ReceivingType)
+                .WithMany(m => m.GateInwardHdrsAsReceivingType)
+                .HasForeignKey(t => t.ReceivingTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

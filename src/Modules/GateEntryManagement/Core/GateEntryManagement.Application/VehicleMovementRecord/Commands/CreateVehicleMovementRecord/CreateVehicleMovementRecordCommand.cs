@@ -14,7 +14,6 @@ namespace GateEntryManagement.Application.VehicleMovementRecord.Commands.CreateV
 
         // Basic Information
         public int PurposeOfVisitId { get; set; }
-        public int? ReceivingTypeId { get; set; }
         public int? ReferenceDocTypeId { get; set; }
         public string? ReferenceDocNo { get; set; }
 

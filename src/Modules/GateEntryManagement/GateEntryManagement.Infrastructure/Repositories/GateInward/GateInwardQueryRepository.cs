@@ -48,6 +48,8 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
+                    h.ReceivingTypeId, rt.Description AS ReceivingTypeName,
+                    h.CourierNumber,
                     h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
@@ -55,6 +57,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                 FROM Gate.GateInwardHdr h
                 LEFT JOIN Gate.VehicleMovementRecord vmr ON h.VehicleMovementRecordId = vmr.Id AND vmr.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster qa ON h.QAStatusId = qa.Id AND qa.IsDeleted = 0
+                LEFT JOIN Gate.MiscMaster rt ON h.ReceivingTypeId = rt.Id AND rt.IsDeleted = 0
                 WHERE {whereClause}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -82,6 +85,8 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                     h.GrossWeight, h.TareWeight, h.NetWeight,
                     h.QAInspectionRequired, h.QAStatusId, qa.Description AS QAStatusName,
                     h.UnitId, h.Remarks,
+                    h.ReceivingTypeId, rt.Description AS ReceivingTypeName,
+                    h.CourierNumber,
                     h.AttachmentFileName, h.AttachmentFilePath,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
@@ -89,6 +94,7 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                 FROM Gate.GateInwardHdr h
                 LEFT JOIN Gate.VehicleMovementRecord vmr ON h.VehicleMovementRecordId = vmr.Id AND vmr.IsDeleted = 0
                 LEFT JOIN Gate.MiscMaster qa ON h.QAStatusId = qa.Id AND qa.IsDeleted = 0
+                LEFT JOIN Gate.MiscMaster rt ON h.ReceivingTypeId = rt.Id AND rt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             const string detailSql = @"
@@ -147,6 +153,27 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
         {
             const string sql = "SELECT COUNT(1) FROM Gate.MiscMaster WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> IsCourierReceivingTypeAsync(int miscId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Gate.MiscMaster mm
+                INNER JOIN Gate.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                WHERE mm.Id = @Id
+                  AND mt.MiscTypeCode = @MiscTypeCode
+                  AND mm.Description = @Description
+                  AND mm.IsDeleted = 0 AND mm.IsActive = 1
+                  AND mt.IsDeleted = 0 AND mt.IsActive = 1";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
+            {
+                Id = miscId,
+                MiscTypeCode = MiscEnumEntity.ReceivingType,
+                Description = MiscEnumEntity.ReceivingTypeCourier
+            });
             return count > 0;
         }
 

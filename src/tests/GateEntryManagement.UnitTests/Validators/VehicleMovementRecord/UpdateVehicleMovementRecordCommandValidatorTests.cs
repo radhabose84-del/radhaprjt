@@ -22,7 +22,6 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
                 DriverMobileNo = "9876543210",
                 DriverLicenseNo = "DL12345",
                 PurposeOfVisitId = 1,
-                ReceivingTypeId = 9, // Vehicle
                 ReferenceDocTypeId = null,
                 ReferenceDocNo = null,
                 TransporterId = null,
@@ -30,12 +29,10 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
                 IsActive = 1
             };
 
-        private void SetupAllAsyncMocks(int id = 1, int purposeOfVisitId = 1, int receivingTypeId = 9, bool isVehicleReceivingType = true)
+        private void SetupAllAsyncMocks(int id = 1, int purposeOfVisitId = 1)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(purposeOfVisitId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(receivingTypeId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(receivingTypeId)).ReturnsAsync(isVehicleReceivingType);
         }
 
         [Fact]
@@ -56,8 +53,6 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
             command.Id = 999;
             _mockQueryRepo.Setup(r => r.NotFoundAsync(999)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -79,27 +74,29 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         }
 
         [Fact]
-        public async Task Validate_EmptyVehicleNumber_FailsValidation()
+        public async Task Validate_EmptyVehicleNumber_NowPassesValidation()
         {
+            // VehicleNumber is now OPTIONAL on Update.
             var command = ValidCommand();
-            command.VehicleNumber = "";
+            command.VehicleNumber = null;
             SetupAllAsyncMocks(command.Id, command.PurposeOfVisitId);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.VehicleNumber);
+            result.ShouldNotHaveValidationErrorFor(x => x.VehicleNumber);
         }
 
         [Fact]
-        public async Task Validate_EmptyDriverName_FailsValidation()
+        public async Task Validate_EmptyDriverName_NowPassesValidation()
         {
+            // DriverName is now OPTIONAL.
             var command = ValidCommand();
-            command.DriverName = "";
+            command.DriverName = null;
             SetupAllAsyncMocks(command.Id, command.PurposeOfVisitId);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.DriverName);
+            result.ShouldNotHaveValidationErrorFor(x => x.DriverName);
         }
 
         [Fact]
@@ -109,8 +106,6 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
             command.PurposeOfVisitId = 999;
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -120,7 +115,7 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
         [Theory]
         [InlineData("123")]
         [InlineData("abcdefghij")]
-        public async Task Validate_InvalidMobileNumber_FailsValidation(string mobileNo)
+        public async Task Validate_InvalidMobileNumberFormat_FailsValidation(string mobileNo)
         {
             var command = ValidCommand();
             command.DriverMobileNo = mobileNo;
@@ -129,52 +124,6 @@ namespace GateEntryManagement.UnitTests.Validators.VehicleMovementRecord
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.DriverMobileNo);
-        }
-
-        [Fact]
-        public async Task Validate_EmptyReceivingTypeId_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.ReceivingTypeId = null;
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ReceivingTypeId);
-        }
-
-        [Fact]
-        public async Task Validate_InvalidReceivingTypeId_FailsValidation()
-        {
-            var command = ValidCommand();
-            command.ReceivingTypeId = 9999;
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(9999)).ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldHaveValidationErrorFor(x => x.ReceivingTypeId);
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public async Task Validate_ReceivingTypeCourier_VehicleNumberOptional_Passes(string? vehicleNumber)
-        {
-            var command = ValidCommand();
-            command.ReceivingTypeId = 10; // Courier
-            command.VehicleNumber = vehicleNumber;
-            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(10)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.IsVehicleReceivingTypeAsync(10)).ReturnsAsync(false);
-
-            var result = await CreateValidator().TestValidateAsync(command);
-
-            result.ShouldNotHaveValidationErrorFor(x => x.VehicleNumber);
         }
     }
 }

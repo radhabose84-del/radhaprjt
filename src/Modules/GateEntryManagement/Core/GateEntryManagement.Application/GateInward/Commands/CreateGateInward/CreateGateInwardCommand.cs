@@ -8,6 +8,8 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
     {
         public int VehicleMovementRecordId { get; set; }
         public int? PartyId { get; set; }
+        public int? ReceivingTypeId { get; set; }
+        public string? CourierNumber { get; set; }
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
         public bool QAInspectionRequired { get; set; }

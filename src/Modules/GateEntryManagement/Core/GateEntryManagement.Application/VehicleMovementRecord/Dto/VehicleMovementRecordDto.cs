@@ -12,8 +12,6 @@ namespace GateEntryManagement.Application.VehicleMovementRecord.Dto
         public string? TransporterName { get; set; }
         public int PurposeOfVisitId { get; set; }
         public string? PurposeOfVisitName { get; set; }
-        public int? ReceivingTypeId { get; set; }
-        public string? ReceivingTypeName { get; set; }
         public int? ReferenceDocTypeId { get; set; }
         public string? ReferenceDocTypeName { get; set; }
         public string? ReferenceDocNo { get; set; }

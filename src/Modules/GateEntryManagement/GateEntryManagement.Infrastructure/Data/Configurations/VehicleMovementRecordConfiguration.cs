@@ -43,7 +43,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.DriverName)
                 .HasColumnName("DriverName")
                 .HasColumnType("varchar(50)")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.DriverLicenseNo)
                 .HasColumnName("DriverLicenseNo")
@@ -53,7 +53,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.DriverMobileNo)
                 .HasColumnName("DriverMobileNo")
                 .HasColumnType("varchar(10)")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.TransporterId)
                 .HasColumnName("TransporterId")
@@ -65,11 +65,6 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnName("PurposeOfVisitId")
                 .HasColumnType("int")
                 .IsRequired();
-
-            builder.Property(t => t.ReceivingTypeId)
-                .HasColumnName("ReceivingTypeId")
-                .HasColumnType("int")
-                .IsRequired(false);
 
             builder.Property(t => t.ReferenceDocTypeId)
                 .HasColumnName("ReferenceDocTypeId")
@@ -141,7 +136,6 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.VehicleMovementId).IsUnique();
             builder.HasIndex(t => t.VehicleNumber);
             builder.HasIndex(t => t.PurposeOfVisitId);
-            builder.HasIndex(t => t.ReceivingTypeId);
             builder.HasIndex(t => t.StatusId);
             builder.HasIndex(t => t.UnitId);
 
@@ -149,11 +143,6 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.PurposeOfVisit)
                 .WithMany(m => m.VehicleMovementRecordsAsPurposeOfVisit)
                 .HasForeignKey(t => t.PurposeOfVisitId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(t => t.ReceivingType)
-                .WithMany(m => m.VehicleMovementRecordsAsReceivingType)
-                .HasForeignKey(t => t.ReceivingTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(t => t.ReferenceDocType)

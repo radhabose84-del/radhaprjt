@@ -10,6 +10,9 @@ namespace GateEntryManagement.Application.GateInward.Dto
         public string? DriverName { get; set; }
         public int? PartyId { get; set; }
         public string? PartyName { get; set; }
+        public int? ReceivingTypeId { get; set; }
+        public string? ReceivingTypeName { get; set; }
+        public string? CourierNumber { get; set; }
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
         public decimal? NetWeight { get; set; }
