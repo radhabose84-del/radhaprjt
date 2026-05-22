@@ -31,6 +31,12 @@ public sealed class UpdateContractPOValidator : AbstractValidator<UpdateContract
             .GreaterThanOrEqualTo(x => x.ValidityFrom)
             .WithMessage("ValidityTo must be greater than or equal to ValidityFrom.");
 
+        RuleFor(x => x)
+            .MustAsync(async (cmd, ct) =>
+                !await queryRepo.HasOverlappingContractAsync(cmd.VendorId, cmd.ValidityFrom, cmd.ValidityTo, cmd.Id, ct))
+            .WithMessage("A Contract PO already exists for this vendor with overlapping validity period.")
+            .When(x => x.VendorId > 0 && x.ValidityFrom != default && x.ValidityTo != default && x.Id > 0);
+
         RuleFor(x => x.IsActive)
             .InclusiveBetween(0, 1).WithMessage("IsActive must be either 0 or 1.");
 

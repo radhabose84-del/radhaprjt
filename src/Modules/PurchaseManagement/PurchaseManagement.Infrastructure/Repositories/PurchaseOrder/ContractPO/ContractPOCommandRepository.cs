@@ -129,6 +129,7 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
         PurchaseContractHeader contractHeader,
         List<PurchaseContractDetail> contractDetails,
         List<ContractPOReleaseHistory> releaseHistories,
+        List<PurchasePaymentTerm> paymentTerms,
         CancellationToken ct)
     {
         var strategy = _db.Database.CreateExecutionStrategy();
@@ -203,6 +204,20 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
                 existingContractHeader.TermDescription = contractHeader.TermDescription;
                 existingContractHeader.DeliveryAddress = contractHeader.DeliveryAddress;
                 existingContractHeader.BillingAddress = contractHeader.BillingAddress;
+
+                // 6b) Delete-and-reinsert PaymentTerms (same pattern as Local PO)
+                var existingPaymentTerms = await _db.Set<PurchasePaymentTerm>()
+                    .Where(x => x.PurchaseOrderId == poHeader.Id)
+                    .ToListAsync(ct);
+                if (existingPaymentTerms.Count > 0)
+                    _db.Set<PurchasePaymentTerm>().RemoveRange(existingPaymentTerms);
+
+                foreach (var t in paymentTerms)
+                {
+                    t.PurchaseOrderId = existingPO.Id;
+                    _db.Set<PurchasePaymentTerm>().Add(t);
+                }
+
                 await _db.SaveChangesAsync(ct);
 
                 // 7) Insert new contract details + release histories
@@ -309,6 +324,7 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
         PurchaseContractHeader newContractHeader,
         List<PurchaseContractDetail> newContractDetails,
         List<ContractPOReleaseHistory> newReleaseHistories,
+        List<PurchasePaymentTerm> newPaymentTerms,
         int transactionTypeId,
         CancellationToken ct)
     {
@@ -359,6 +375,14 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
                 oldContractHeader.IsActive = Status.Inactive;
                 oldPO.IsDeleted = IsDelete.Deleted;
                 oldPO.IsActive = Status.Inactive;
+
+                // 4b) Remove old payment terms
+                var oldPaymentTerms = await _db.Set<PurchasePaymentTerm>()
+                    .Where(x => x.PurchaseOrderId == existingPoId)
+                    .ToListAsync(ct);
+                if (oldPaymentTerms.Count > 0)
+                    _db.Set<PurchasePaymentTerm>().RemoveRange(oldPaymentTerms);
+
                 await _db.SaveChangesAsync(ct);
 
                 // ---- CREATE NEW PO (same as CreateCombinePOAsync) ----
@@ -384,6 +408,15 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
                     _db.Set<ContractPOReleaseHistory>().Add(history);
                 }
                 await _db.SaveChangesAsync(ct);
+
+                // 7b) Insert new PaymentTerms
+                foreach (var t in newPaymentTerms)
+                {
+                    t.PurchaseOrderId = newPoHeader.Id;
+                    _db.Set<PurchasePaymentTerm>().Add(t);
+                }
+                if (newPaymentTerms.Count > 0)
+                    await _db.SaveChangesAsync(ct);
 
                 // 8) Apply new utilization
                 await ApplyUtilizationAsync(newContractDetails, newContractHeader.ContractPOHeaderId, ct);
@@ -436,6 +469,7 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
         PurchaseContractHeader contractHeader,
         List<PurchaseContractDetail> contractDetails,
         List<ContractPOReleaseHistory> releaseHistories,
+        List<PurchasePaymentTerm> paymentTerms,
         CancellationToken ct)
     {
         // 1) Insert PurchaseOrderHeader
@@ -460,6 +494,15 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
         }
         await _db.SaveChangesAsync(ct);
 
+        // 3b) Insert PaymentTerms linked to PurchaseOrderHeader
+        foreach (var t in paymentTerms)
+        {
+            t.PurchaseOrderId = poHeader.Id;
+            _db.Set<PurchasePaymentTerm>().Add(t);
+        }
+        if (paymentTerms.Count > 0)
+            await _db.SaveChangesAsync(ct);
+
         // 4) Update ContractPODetail balances
         await ApplyUtilizationAsync(contractDetails, contractHeader.ContractPOHeaderId, ct);
 
@@ -476,6 +519,7 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
         PurchaseContractHeader newContractHeader,
         List<PurchaseContractDetail> newContractDetails,
         List<ContractPOReleaseHistory> newReleaseHistories,
+        List<PurchasePaymentTerm> newPaymentTerms,
         CancellationToken ct)
     {
         // ---- CLOSE OLD PO ----
@@ -516,6 +560,14 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
         oldContractHeader.IsActive = Status.Inactive;
         oldPO.IsDeleted = IsDelete.Deleted;
         oldPO.IsActive = Status.Inactive;
+
+        // 4b) Remove old payment terms
+        var oldPaymentTerms = await _db.Set<PurchasePaymentTerm>()
+            .Where(x => x.PurchaseOrderId == existingPoId)
+            .ToListAsync(ct);
+        if (oldPaymentTerms.Count > 0)
+            _db.Set<PurchasePaymentTerm>().RemoveRange(oldPaymentTerms);
+
         await _db.SaveChangesAsync(ct);
 
         // ---- CREATE NEW PO ----
@@ -541,6 +593,15 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
             _db.Set<ContractPOReleaseHistory>().Add(history);
         }
         await _db.SaveChangesAsync(ct);
+
+        // 7b) Insert new PaymentTerms
+        foreach (var t in newPaymentTerms)
+        {
+            t.PurchaseOrderId = newPoHeader.Id;
+            _db.Set<PurchasePaymentTerm>().Add(t);
+        }
+        if (newPaymentTerms.Count > 0)
+            await _db.SaveChangesAsync(ct);
 
         // 8) Apply new utilization
         await ApplyUtilizationAsync(newContractDetails, newContractHeader.ContractPOHeaderId, ct);

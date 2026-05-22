@@ -122,7 +122,7 @@ public sealed class ContractPOMasterQueryRepository : IContractPOMasterQueryRepo
     }
 
     public async Task<IReadOnlyList<ContractPOLookupDto>> AutocompleteAsync(
-        string term, bool approvedOnly, int? vendorId, CancellationToken ct)
+        string term, bool approvedOnly, int? vendorId, DateTimeOffset? poDate, CancellationToken ct)
     {
         const string sql = @"
             DECLARE @ApprovedStatusId INT = NULL;
@@ -148,6 +148,7 @@ public sealed class ContractPOMasterQueryRepository : IContractPOMasterQueryRepo
               AND (H.ContractPONumber LIKE '%' + @term + '%')
               AND (@ApprovedOnly = 0 OR (H.StatusId = @ApprovedStatusId AND H.BalanceValue > 0))
               AND (@VendorId IS NULL OR H.VendorId = @VendorId)
+              AND (@PODate IS NULL OR CAST(@PODate AS DATE) BETWEEN CAST(H.ValidityFrom AS DATE) AND CAST(H.ValidityTo AS DATE))
             ORDER BY H.ContractPONumber";
 
         var cmd = new CommandDefinition(sql, new
@@ -155,6 +156,7 @@ public sealed class ContractPOMasterQueryRepository : IContractPOMasterQueryRepo
             term,
             ApprovedOnly = approvedOnly,
             VendorId = vendorId,
+            PODate = poDate,
             MiscTypeCode = MiscEnumEntity.ApprovalStatus,
             StatusCode = MiscEnumEntity.Approved
         }, cancellationToken: ct);
@@ -307,6 +309,24 @@ public sealed class ContractPOMasterQueryRepository : IContractPOMasterQueryRepo
         }
 
         return (headers, total);
+    }
+
+    public async Task<bool> HasOverlappingContractAsync(
+        int vendorId, DateTimeOffset validityFrom, DateTimeOffset validityTo, int? excludeId, CancellationToken ct)
+    {
+        const string sql = @"
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM Purchase.ContractPOHeader WITH (NOLOCK)
+                WHERE VendorId = @VendorId
+                  AND IsDeleted = 0
+                  AND CAST(ValidityFrom AS DATE) <= CAST(@ValidityTo AS DATE)
+                  AND CAST(ValidityTo AS DATE) >= CAST(@ValidityFrom AS DATE)
+                  AND (@ExcludeId IS NULL OR Id <> @ExcludeId)
+            ) THEN 1 ELSE 0 END";
+
+        var result = await _db.QueryFirstOrDefaultAsync<int>(
+            new CommandDefinition(sql, new { VendorId = vendorId, ValidityFrom = validityFrom, ValidityTo = validityTo, ExcludeId = excludeId }, cancellationToken: ct));
+        return result == 1;
     }
 
     // Internal row class for Dapper detail mapping

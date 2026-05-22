@@ -78,6 +78,13 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             END AS EditReason,
             h.RevisionNo,
             h.AmendmentReason,
+            CASE
+                WHEN LOWER(mStatus.Code) = LOWER(@Approved)
+                THEN CASE WHEN x.HasGRN = 1 THEN 'Y' ELSE 'N' END
+                ELSE NULL
+            END AS GRNFlag,
+            CAST(CASE WHEN mStatus.Code = @Cancelled THEN 1 ELSE 0 END AS BIT) AS IsCancelled,
+            CAST(CASE WHEN mStatus.Code = @ForeClosed THEN 1 ELSE 0 END AS BIT) AS IsForeclosed,
             CAST(CASE WHEN x.HasGRN = 0 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanCancel,
             CAST(CASE WHEN x.HasGRN = 1 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanForeclose,
             h.CancelledDate,
@@ -115,8 +122,10 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             BudgetGroupId = budgetGroupId,
             off = Math.Max(0, (page - 1) * size),
             size,
-             Pending = MiscEnumEntity.Pending,
-        Approved = MiscEnumEntity.Approved,
+            Pending = MiscEnumEntity.Pending,
+            Approved = MiscEnumEntity.Approved,
+            Cancelled = MiscEnumEntity.Cancelled,
+            ForeClosed = MiscEnumEntity.ForeClosed,
             StatusId = statusId
         });
 
