@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
+using PurchaseManagement.Application.ContractPOMaster.Commands.Create;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Infrastructure.Data;
 using static PurchaseManagement.Domain.Common.BaseEntity;
@@ -183,5 +184,22 @@ public sealed class ContractPOMasterCommandRepository : IContractPOMasterCommand
         existing.StatusId = statusId;
         await _db.SaveChangesAsync(ct);
         return true;
+    }
+
+    public async Task<ContractPOMasterWorkFlowDto> GetByIdContractPOWorkFlowAsync(int id)
+    {
+        var entity = await _db.Set<ContractPOHeader>()
+            .Where(x => x.Id == id)
+            .Select(x => new ContractPOMasterWorkFlowDto
+            {
+                Id = x.Id,
+                ContractPONumber = x.ContractPONumber,
+                VendorId = x.VendorId,
+                StatusId = x.StatusId,
+                UnitId = x.UnitId
+            })
+            .FirstOrDefaultAsync();
+
+        return entity!;
     }
 }

@@ -2,9 +2,7 @@ using System.Text.Json;
 using AutoMapper;
 using Contracts.Commands.Workflow;
 using Contracts.Common;
-using Contracts.Events.Notifications;
 using Contracts.Interfaces;
-using Contracts.Interfaces.Lookups.Common;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
@@ -27,7 +25,6 @@ public sealed class CreateContractPOMasterCommandHandler
     private readonly IDocumentSequenceLookup _documentSequenceLookup;
     private readonly IIPAddressService _ipAddressService;
     private readonly IOutboxEventPublisher _outboxEventPublisher;
-    private readonly IAppDataMiscMasterLookup _appDataMiscLookup;
     private readonly IMiscMasterQueryRepository _misc;
 
     public CreateContractPOMasterCommandHandler(
@@ -38,7 +35,6 @@ public sealed class CreateContractPOMasterCommandHandler
         IDocumentSequenceLookup documentSequenceLookup,
         IIPAddressService ipAddressService,
         IOutboxEventPublisher outboxEventPublisher,
-        IAppDataMiscMasterLookup appDataMiscLookup,
         IMiscMasterQueryRepository misc)
     {
         _commandRepo = commandRepo;
@@ -48,7 +44,6 @@ public sealed class CreateContractPOMasterCommandHandler
         _documentSequenceLookup = documentSequenceLookup;
         _ipAddressService = ipAddressService;
         _outboxEventPublisher = outboxEventPublisher;
-        _appDataMiscLookup = appDataMiscLookup;
         _misc = misc;
     }
 
@@ -104,24 +99,11 @@ public sealed class CreateContractPOMasterCommandHandler
         // ── Approval / Notification (outbox) ─────────────────────────────────────
         var correlationId = Guid.NewGuid();
 
+        var workFlowEntity = await _commandRepo.GetByIdContractPOWorkFlowAsync(created.Id);
         var reversePayload = new CreateContractPOMasterReverseDto
         {
-            Header = new ContractPOMasterWorkFlowDto
-            {
-                Id = created.Id,
-                ContractPONumber = dto.ContractPONumber,
-                VendorId = dto.VendorId,
-                StatusId = dto.StatusId,
-                UnitId = unitId
-            },
-            Lines = request.Details.Select(_ => new ContractPOMasterWorkFlowDto
-            {
-                Id = created.Id,
-                ContractPONumber = dto.ContractPONumber,
-                VendorId = dto.VendorId,
-                StatusId = dto.StatusId,
-                UnitId = unitId
-            }).ToList()
+            Header = workFlowEntity,
+            Lines = null
         };
         var serializedPayload = JsonSerializer.Serialize(reversePayload);
 
@@ -134,30 +116,8 @@ public sealed class CreateContractPOMasterCommandHandler
             TransactionTypeId = transactionTypeId
         };
 
-        var notificationEventMisc = await _appDataMiscLookup.GetMiscMasterByNameAsync(
-            NotificationEnum.NotificationEvent, NotificationEnum.Create);
-
-        var createdByName = _ipAddressService.GetUserName() ?? string.Empty;
-
-        var notificationEvent = new NotificationCreatedEvent
-        {
-            CorrelationId = correlationId,
-            CreatedByName = createdByName,
-            UnitId = unitId,
-            ModuleName = "Purchase Contract",
-            EventTypeId = notificationEventMisc?.Id ?? 0,
-            param1 = dto.ContractPONumber ?? string.Empty,
-            param2 = createdByName,
-            param3 = request.ContractDate,
-            param4 = header.TotalContractValue.ToString(),
-            param5 = dto.VendorName ?? string.Empty,
-            ModuleTransactionId = created.Id,
-            ModuleTypeName = MiscEnumEntity.TransactionTypeContract
-        };
-
         // CreateAsync manages its own transaction, so use ScheduleAsync (separate save)
         await _outboxEventPublisher.ScheduleAsync(workflowCommand, correlationId, ct);
-        //await _outboxEventPublisher.ScheduleAsync(notificationEvent, correlationId, ct);
 
         // Audit
         var ev = new AuditLogsDomainEvent(

@@ -133,46 +133,24 @@ public sealed class POAmendmentCommandHandler : IRequestHandler<POAmendmentComma
                 var newId = await _cmd.AmendWithoutTransactionAsync(existing, dto, ct);
 
                 // ── Approval workflow (outbox — same transaction) ──────────────────
-                // Use EF Core GetAggregateAsync (same DbContext/transaction) to read
-                // the newly created PO header, including the repo-validated PONumber.
-                var newPo = await _cmd.GetAggregateAsync(newId, ct);
-                if (newPo is not null)
+                var workFlowEntity = await _cmd.GetByIdPOLocalWorkFlowAsync(newId);
+                var reversePayload = new CreatePOLocalReverseDto
                 {
-                    var reversePayload = new CreatePOLocalReverseDto
-                    {
-                        Header = new POLocalWorkFlowDto
-                        {
-                            Id = newId,
-                            PONumber = newPo.PONumber,
-                            VendorId = newPo.VendorId,
-                            StatusId = newPo.StatusId,
-                            UnitId = unitId
-                        },
-                        Lines = new List<POLocalWorkFlowDto>
-                        {
-                            new POLocalWorkFlowDto
-                            {
-                                Id = newId,
-                                PONumber = newPo.PONumber,
-                                VendorId = newPo.VendorId,
-                                StatusId = newPo.StatusId,
-                                UnitId = unitId
-                            }
-                        }
-                    };
+                    Header = workFlowEntity,
+                    Lines = null
+                };
 
-                    var correlationId = Guid.NewGuid();
-                    var workflowCommand = new CreateApprovalRequestCommand
-                    {
-                        CorrelationId = correlationId,
-                        ModuleTypeName = MiscEnumEntity.POLocal,
-                        ModuleTransactionId = newId,
-                        Payload = JsonSerializer.Serialize(reversePayload),
-                        TransactionTypeId = approvalTypeId
-                    };
+                var correlationId = Guid.NewGuid();
+                var workflowCommand = new CreateApprovalRequestCommand
+                {
+                    CorrelationId = correlationId,
+                    ModuleTypeName = MiscEnumEntity.POLocal,
+                    ModuleTransactionId = newId,
+                    Payload = JsonSerializer.Serialize(reversePayload),
+                    TransactionTypeId = approvalTypeId
+                };
 
-                    await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
-                }
+                await _outboxEventPublisher.ScheduleWithoutSaveAsync(workflowCommand, correlationId, ct);
 
                 await _cmd.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);

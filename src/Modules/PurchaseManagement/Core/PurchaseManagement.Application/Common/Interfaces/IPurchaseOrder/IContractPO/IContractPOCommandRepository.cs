@@ -1,5 +1,6 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Storage;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
@@ -8,6 +9,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContr
 
 public interface IContractPOCommandRepository
 {
+    Task<ContractPOWorkFlowDto> GetByIdContractPOWorkFlowAsync(int id);
     Task<int> CreateCombinePOAsync(
         PurchaseOrderHeader poHeader,
         PurchaseContractHeader contractHeader,
