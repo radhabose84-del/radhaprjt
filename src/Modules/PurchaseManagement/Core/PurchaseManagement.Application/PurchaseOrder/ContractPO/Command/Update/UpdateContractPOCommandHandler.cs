@@ -3,7 +3,6 @@ using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Budget;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces;
-using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
 using PurchaseManagement.Domain.Common;
@@ -23,7 +22,6 @@ public sealed class UpdateContractPOCommandHandler
     private readonly IMediator _mediator;
     private readonly IIPAddressService _ipAddressService;
     private readonly ITimeZoneService _tz;
-    private readonly IMiscMasterQueryRepository _misc;
     private readonly IBudgetAllocationLookup _budgetAllocationLookup;
 
     public UpdateContractPOCommandHandler(
@@ -33,7 +31,6 @@ public sealed class UpdateContractPOCommandHandler
         IMediator mediator,
         IIPAddressService ipAddressService,
         ITimeZoneService tz,
-        IMiscMasterQueryRepository misc,
         IBudgetAllocationLookup budgetAllocationLookup)
     {
         _commandRepo = commandRepo;
@@ -42,7 +39,6 @@ public sealed class UpdateContractPOCommandHandler
         _mediator = mediator;
         _ipAddressService = ipAddressService;
         _tz = tz;
-        _misc = misc;
         _budgetAllocationLookup = budgetAllocationLookup;
     }
 
@@ -106,12 +102,9 @@ public sealed class UpdateContractPOCommandHandler
                 throw new ExceptionRules("Cannot update Contract Release PO. Budget amount less than PO value. Budget Balance: " + currentRemaining);
         }
 
-        // Resolve UnitId from logged-in user and Pending status from MiscMaster
+        // Resolve UnitId from logged-in user
         var unitId = _ipAddressService.GetUnitId()
             ?? throw new ExceptionRules("UnitId is not available for the current user.");
-        var pendingStatus = await _misc.GetMiscMasterByName(
-            MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
-        var pendingStatusId = pendingStatus.Id;
 
         // Timezone
         var tzId = _tz.GetSystemTimeZone();
@@ -166,7 +159,7 @@ public sealed class UpdateContractPOCommandHandler
             IGSTTotal = r.IGSTTotal,
             FreightTotal = r.FreightTotal,
             PurchaseValue = r.PurchaseValue,
-            StatusId = pendingStatusId,
+            StatusId = r.StatusId,
             BudgetGroupId = r.BudgetGroupId,
             BudgetMonthId = r.BudgetMonthId,
             BudgetRequestById = r.BudgetRequestById,
