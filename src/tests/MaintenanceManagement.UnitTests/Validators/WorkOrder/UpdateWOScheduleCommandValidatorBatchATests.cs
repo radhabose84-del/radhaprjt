@@ -9,8 +9,9 @@ namespace MaintenanceManagement.UnitTests.Validators.WorkOrder
     public sealed class UpdateWOScheduleCommandValidatorBatchATests
     {
         private readonly Mock<IWorkOrderCommandRepository> _mockRepo = new(MockBehavior.Loose);
+        private readonly Mock<IWorkOrderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
-        private UpdateWOScheduleCommandValidator CreateValidator() => new(_mockRepo.Object);
+        private UpdateWOScheduleCommandValidator CreateValidator() => new(_mockRepo.Object, _mockQueryRepo.Object);
 
         [Fact]
         public void Constructor_WithValidRepo_DoesNotThrow()

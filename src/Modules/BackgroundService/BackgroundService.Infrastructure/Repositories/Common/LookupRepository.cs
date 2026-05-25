@@ -179,6 +179,32 @@ namespace BackgroundService.Infrastructure.Repositories.Common
             return menuId;
         }
 
+        public async Task<IReadOnlyDictionary<int, string>> GetTransactionTypeNamesAsync(
+            IEnumerable<int> transactionTypeIds,
+            CancellationToken cancellationToken = default)
+        {
+            var ids = transactionTypeIds?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            if (ids.Count == 0)
+                return new Dictionary<int, string>();
+
+            const string sql = @"
+                SELECT Id AS TransactionTypeId, TypeName AS TransactionTypeName
+                FROM Finance.TransactionTypeMaster
+                WHERE Id IN @Ids
+                  AND IsDeleted = 0
+                  AND TypeName IS NOT NULL
+                  AND TypeName <> ''";
+
+            var rows = await _dbConnection.QueryAsync<(int TransactionTypeId, string TransactionTypeName)>(
+                new CommandDefinition(sql, new { Ids = ids }, cancellationToken: cancellationToken));
+
+            return rows.ToDictionary(r => r.TransactionTypeId, r => r.TransactionTypeName);
+        }
+
         public async Task<int?> GetMenuIdByTransactionTypeIdAsync(
             int transactionTypeId,
             CancellationToken cancellationToken = default)
@@ -243,6 +269,30 @@ namespace BackgroundService.Infrastructure.Repositories.Common
                 cancellationToken: cancellationToken));
 
             return rowsAffected > 0;
+        }
+
+        public async Task<HashSet<int>> GetUserAccessibleMenuIdsAsync(
+            int userId,
+            CancellationToken cancellationToken = default)
+        {
+            if (userId <= 0)
+                return new HashSet<int>();
+
+            const string sql = @"
+                SELECT DISTINCT PM.MenuId
+                FROM (
+                    SELECT RoleId, MenuId FROM [AppSecurity].[RoleParent]
+                    UNION
+                    SELECT RoleId, MenuId FROM [AppSecurity].[RoleChild]
+                ) PM
+                INNER JOIN [AppSecurity].[UserRoleAllocation] URA
+                    ON URA.UserRoleId = PM.RoleId AND URA.IsActive = 1
+                WHERE URA.UserId = @UserId";
+
+            var menuIds = await _dbConnection.QueryAsync<int>(
+                new CommandDefinition(sql, new { UserId = userId }, cancellationToken: cancellationToken));
+
+            return new HashSet<int>(menuIds);
         }
 
         private sealed class LookupRow

@@ -24,7 +24,7 @@ internal sealed class MaintenanceRequestValidationRepository : IMaintenanceReque
                   AND mr.IsDeleted = 0
                   AND mr.IsActive = 1
                   AND rt.Code = 'External'
-                  AND rs.Code IN ('Open', 'In-Progress', 'PartiallyConverted')
+                  AND rs.Code IN ('Open', 'InProgress', 'PartiallyConverted')
             ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END";
 
         return await _dbConnection.ExecuteScalarAsync<bool>(

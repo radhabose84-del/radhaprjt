@@ -9,7 +9,7 @@ namespace Contracts.Interfaces.Validations.MaintenanceManagement
     public interface IMaintenanceRequestValidation
     {
         /// <summary>True if the request exists, is External, IsActive=1, IsDeleted=0,
-        /// and current status IN (Open, In-Progress, PartiallyConverted).</summary>
+        /// and current status IN (Open, InProgress, PartiallyConverted).</summary>
         Task<bool> IsAvailableForServicePoAsync(int requestId, CancellationToken ct = default);
 
         /// <summary>Minimal projection used for cross-line consistency checks (e.g. vendor match).</summary>

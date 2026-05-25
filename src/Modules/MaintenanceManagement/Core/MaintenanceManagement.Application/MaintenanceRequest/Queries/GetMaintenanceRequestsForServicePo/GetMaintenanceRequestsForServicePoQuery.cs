@@ -6,7 +6,7 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Queries.GetMainte
 {
     /// <summary>
     /// Lists External Maintenance Requests eligible for linking from a Service PO.
-    /// Status filter: Open, In-Progress, PartiallyConverted.
+    /// Status filter: Open, InProgress, PartiallyConverted.
     /// </summary>
     public sealed class GetMaintenanceRequestsForServicePoQuery
         : IRequest<ApiResponseDTO<List<MaintenanceRequestLookupDto>>>
