@@ -74,6 +74,7 @@ namespace SalesManagement.Domain.Common
         public const string TransactionTypeSalesQuotationAmendment = "Sales Quotation Amendment";
         public const string TransactionTypeDispatchAdvice = "Dispatch Advice";
         public const string TransactionTypeInvoice = "Invoice";
+        public const string TransactionTypeDInvoice = "Draft Invoice";
         public const string TransactionTypePriceMaster = "PriceMaster";
         public const string TransactionTypePackMaster = "PackMaster";
         public const string TransactionTypeSto = "Stock Transfer Order";
