@@ -34,9 +34,10 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
         private readonly IPurchaseItemValidation _purchaseItemValidation;
         private readonly IMaintenanceItemValidation _maintenanceItemValidation;
         private readonly IProductionItemValidation _productionItemValidation;
+        private readonly IPackTypeLookup _packTypeLookup;
 
         public ItemQueryRepository(IDbConnection dbConnection, ApplicationDbContext db, IIPAddressService ipAddressService, IUnitLookup unitLookup, ICountMasterLookup countMasterLookup, IRawMaterialTypeLookup rawMaterialTypeLookup, ISalesGroupLookup salesGroupLookup, IDataAccessFilter dataAccessFilter,
-            ISalesItemValidation salesItemValidation, IPurchaseItemValidation purchaseItemValidation, IMaintenanceItemValidation maintenanceItemValidation, IProductionItemValidation productionItemValidation)
+            ISalesItemValidation salesItemValidation, IPurchaseItemValidation purchaseItemValidation, IMaintenanceItemValidation maintenanceItemValidation, IProductionItemValidation productionItemValidation, IPackTypeLookup packTypeLookup)
         {
             _db = db;
             _dbConnection = dbConnection;
@@ -50,6 +51,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             _purchaseItemValidation = purchaseItemValidation;
             _maintenanceItemValidation = maintenanceItemValidation;
             _productionItemValidation = productionItemValidation;
+            _packTypeLookup = packTypeLookup;
         }
         public async Task<(List<ItemListDto> Items, int TotalCount)> GetAllAsync(
             int? page, int? size, string search, bool onlyActive,
@@ -262,7 +264,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                         SafetyStock = i.Inventory.SafetyStock,
                         AllowNegativeStock = i.Inventory.AllowNegativeStock,
                         BatchManagement = i.Inventory.BatchManagement,
-                        ApplyBatchNumber = i.Inventory.ApplyBatchNumber
+                        ApplyBatchNumber = i.Inventory.ApplyBatchNumber,
+                        DefaultPackTypeId = i.Inventory.DefaultPackTypeId
                     },
                     Quality = i.Quality == null ? null : new ItemQualityDto
                     {
@@ -417,6 +420,14 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 var salesGroup = salesGroups.FirstOrDefault(sg => sg.Id == salesGroupId);
                 if (salesGroup != null)
                     dto.Sale.SalesGroupName = salesGroup.SalesGroupName;
+            }
+
+            // Populate DefaultPackTypeName from cross-module lookup (ProductionManagement)
+            if (dto?.Inventory?.DefaultPackTypeId is { } packTypeId)
+            {
+                var packTypes = await _packTypeLookup.GetByIdsAsync([packTypeId], ct);
+                if (packTypes.Count > 0)
+                    dto.Inventory.DefaultPackTypeName = packTypes[0].PackTypeName;
             }
 
             return dto;

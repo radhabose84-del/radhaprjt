@@ -127,14 +127,6 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         });
                     }
 
-                    // Mark previous date entries as stock-closed (date-level, not item/lot specific)
-                    var prevEntries = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == entity.UnitId
-                            && l.DocDate < entity.PackDate && !l.StockClosing)
-                        .ToListAsync();
-                    foreach (var prev in prevEntries)
-                        prev.StockClosing = true;
-
                     await _applicationDbContext.SaveChangesAsync();
 
                     var dbConnection  = _applicationDbContext.Database.GetDbConnection();
@@ -314,14 +306,6 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                         });
                     }
 
-                    // Mark previous date entries as stock-closed (date-level, not item/lot specific)
-                    var prevEntries = await _applicationDbContext.ProductionStockLedger
-                        .Where(l => l.UnitId == existingEntity.UnitId
-                            && l.DocDate < existingEntity.PackDate && !l.StockClosing)
-                        .ToListAsync();
-                    foreach (var prev in prevEntries)
-                        prev.StockClosing = true;
-
                     await _applicationDbContext.SaveChangesAsync();
 
                     await transaction.CommitAsync();
@@ -333,6 +317,24 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                     throw;
                 }
             });
+        }
+
+        public async Task<int> StockCloseAsync(DateOnly closingDate, int unitId, CancellationToken ct)
+        {
+            var entries = await _applicationDbContext.ProductionStockLedger
+                .Where(l => l.UnitId == unitId
+                    && l.DocDate <= closingDate
+                    && !l.StockClosing)
+                .ToListAsync(ct);
+
+            if (entries.Count == 0)
+                return 0;
+
+            foreach (var entry in entries)
+                entry.StockClosing = true;
+
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return entries.Count;
         }
     }
 }
