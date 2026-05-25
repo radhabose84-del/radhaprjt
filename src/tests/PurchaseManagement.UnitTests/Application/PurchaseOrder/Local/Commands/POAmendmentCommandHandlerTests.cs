@@ -1,7 +1,10 @@
+using System.Data.Common;
 using AutoMapper;
 using Contracts.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Contracts.Interfaces.Lookups.Finance;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
@@ -11,6 +14,7 @@ using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Amend;
 using PurchaseManagement.Application.PurchaseOrder.POAmendment;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
+using PurchaseManagement.UnitTests.TestData;
 
 namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Commands
 {
@@ -25,10 +29,11 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Commands
         private readonly Mock<ILogger<POAmendmentCommandHandler>> _mockLogger = new(MockBehavior.Loose);
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IPODocumentQueryRepository> _mockPoDocs = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeq = new(MockBehavior.Loose);
 
         private POAmendmentCommandHandler CreateSut() =>
             new(_mockCmd.Object, _mockQry.Object, _mockMisc.Object, _mockMapper.Object,
-                _mockIp.Object, _mockTz.Object, _mockLogger.Object, _mockOutbox.Object, _mockPoDocs.Object);
+                _mockIp.Object, _mockTz.Object, _mockLogger.Object, _mockOutbox.Object, _mockPoDocs.Object, _mockDocSeq.Object);
 
         [Fact]
         public async Task Handle_NullData_ThrowsValidationException()
@@ -112,7 +117,19 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Commands
             _mockQry.Setup(r => r.HasAnyGrnAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
             _mockTz.Setup(t => t.GetSystemTimeZone()).Returns("Asia/Kolkata");
-            _mockCmd.Setup(r => r.AmendAsync(It.IsAny<PurchaseOrderHeader>(), It.IsAny<PurchaseOrderUpdateDto>(), It.IsAny<CancellationToken>()))
+            _mockIp.Setup(i => i.GetUnitId()).Returns(1);
+            _mockIp.Setup(i => i.GetUserId()).Returns(1);
+            _mockIp.Setup(i => i.GetUserName()).Returns("test-user");
+            _mockIp.Setup(i => i.GetSystemIPAddress()).Returns("127.0.0.1");
+            _mockDocSeq.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockCmd.Setup(r => r.CreateExecutionStrategy()).Returns(new ImmediateExecutionStrategy());
+            var mockEfTx = new Mock<IDbContextTransaction>(MockBehavior.Loose);
+            var mockConn = new Mock<DbConnection>(MockBehavior.Loose);
+            var mockDbTx = new Mock<DbTransaction>(MockBehavior.Loose);
+            _mockCmd.Setup(r => r.BeginTransactionWithConnectionAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((mockEfTx.Object, mockConn.Object, mockDbTx.Object));
+            _mockCmd.Setup(r => r.AmendWithoutTransactionAsync(It.IsAny<PurchaseOrderHeader>(), It.IsAny<PurchaseOrderUpdateDto>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(42);
 
             var result = await CreateSut().Handle(command, CancellationToken.None);
@@ -133,12 +150,24 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Commands
             _mockQry.Setup(r => r.HasAnyGrnAsync(1, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
             _mockTz.Setup(t => t.GetSystemTimeZone()).Returns("Asia/Kolkata");
-            _mockCmd.Setup(r => r.AmendAsync(It.IsAny<PurchaseOrderHeader>(), It.IsAny<PurchaseOrderUpdateDto>(), It.IsAny<CancellationToken>()))
+            _mockIp.Setup(i => i.GetUnitId()).Returns(1);
+            _mockIp.Setup(i => i.GetUserId()).Returns(1);
+            _mockIp.Setup(i => i.GetUserName()).Returns("test-user");
+            _mockIp.Setup(i => i.GetSystemIPAddress()).Returns("127.0.0.1");
+            _mockDocSeq.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockCmd.Setup(r => r.CreateExecutionStrategy()).Returns(new ImmediateExecutionStrategy());
+            var mockEfTx2 = new Mock<IDbContextTransaction>(MockBehavior.Loose);
+            var mockConn2 = new Mock<DbConnection>(MockBehavior.Loose);
+            var mockDbTx2 = new Mock<DbTransaction>(MockBehavior.Loose);
+            _mockCmd.Setup(r => r.BeginTransactionWithConnectionAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync((mockEfTx2.Object, mockConn2.Object, mockDbTx2.Object));
+            _mockCmd.Setup(r => r.AmendWithoutTransactionAsync(It.IsAny<PurchaseOrderHeader>(), It.IsAny<PurchaseOrderUpdateDto>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(42);
 
             await CreateSut().Handle(command, CancellationToken.None);
 
-            _mockCmd.Verify(r => r.AmendAsync(It.IsAny<PurchaseOrderHeader>(), It.IsAny<PurchaseOrderUpdateDto>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockCmd.Verify(r => r.AmendWithoutTransactionAsync(It.IsAny<PurchaseOrderHeader>(), It.IsAny<PurchaseOrderUpdateDto>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

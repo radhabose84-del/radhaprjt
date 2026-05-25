@@ -1,33 +1,39 @@
 using AutoMapper;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
-using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Application.DutyMaster;
 using PurchaseManagement.Application.Purchase.DutyMaster.Create;
 using PurchaseManagement.UnitTests.TestData;
+using Contracts.Interfaces;
 
 namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
 {
     public sealed class CreateDutyMasterCommandHandlerTests
     {
         private readonly Mock<IDutyMasterCommandRepository> _mockWriteRepo = new(MockBehavior.Loose);
-        private readonly Mock<IDutyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeq = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
 
         private CreateDutyMasterCommandHandler CreateSut() =>
-            new(_mockWriteRepo.Object, _mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object);
+            new(_mockWriteRepo.Object, _mockMapper.Object, _mockMediator.Object, _mockDocSeq.Object, _mockIp.Object);
 
-        private void SetupHappyPath(int newId = 1)
+        private void SetupHappyPath(int newId = 1, string generatedCode = "DC001")
         {
-            _mockQueryRepo
-                .Setup(r => r.GenerateDutyCodeAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync("DC001");
+            _mockIp.Setup(i => i.GetUnitId()).Returns(1);
+            _mockDocSeq
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockDocSeq
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { generatedCode });
             _mockMapper
                 .Setup(m => m.Map<PurchaseManagement.Domain.Entities.DutyMaster>(It.IsAny<object>()))
                 .Returns(DutyMasterBuilders.ValidEntity(newId));
             _mockWriteRepo
-                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.DutyMaster>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.DutyMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(newId);
             _mockMediator
                 .Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
@@ -54,20 +60,20 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
             await CreateSut().Handle(command, CancellationToken.None);
 
             _mockWriteRepo.Verify(
-                r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.DutyMaster>(), It.IsAny<CancellationToken>()),
+                r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.DutyMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_GeneratesDutyCode()
+        public async Task Handle_ValidCommand_GeneratesDocumentNumber()
         {
             SetupHappyPath();
             var command = DutyMasterBuilders.ValidCreateCommand();
 
             await CreateSut().Handle(command, CancellationToken.None);
 
-            _mockQueryRepo.Verify(
-                r => r.GenerateDutyCodeAsync(It.IsAny<CancellationToken>()),
+            _mockDocSeq.Verify(
+                d => d.GenerateDocumentNumber(It.IsAny<int>()),
                 Times.Once);
         }
 
@@ -88,15 +94,19 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
         public async Task Handle_ValidCommand_SetsDutyCodeOnEntity()
         {
             PurchaseManagement.Domain.Entities.DutyMaster? capturedEntity = null;
-            _mockQueryRepo
-                .Setup(r => r.GenerateDutyCodeAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync("DC-GENERATED");
+            _mockIp.Setup(i => i.GetUnitId()).Returns(1);
+            _mockDocSeq
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockDocSeq
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "DC-GENERATED" });
             _mockMapper
                 .Setup(m => m.Map<PurchaseManagement.Domain.Entities.DutyMaster>(It.IsAny<object>()))
                 .Returns(new PurchaseManagement.Domain.Entities.DutyMaster { TariffNumber = "1234.56.78" });
             _mockWriteRepo
-                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.DutyMaster>(), It.IsAny<CancellationToken>()))
-                .Callback<PurchaseManagement.Domain.Entities.DutyMaster, CancellationToken>((e, _) => capturedEntity = e)
+                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.DutyMaster>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .Callback<PurchaseManagement.Domain.Entities.DutyMaster, int, CancellationToken>((e, _, _) => capturedEntity = e)
                 .ReturnsAsync(1);
             _mockMediator
                 .Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
