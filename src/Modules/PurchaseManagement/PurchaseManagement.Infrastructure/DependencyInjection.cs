@@ -91,6 +91,7 @@ using PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
+using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Print;
 
 
 
@@ -291,6 +292,9 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IContractPOMasterQueryRepository, ContractPOMasterQueryRepository>();
             services.AddScoped<IContractPOCommandRepository, ContractPOCommandRepository>();
             services.AddScoped<IContractPOQueryRepository, ContractPOQueryRepository>();
+
+            // PO Print
+            services.AddScoped<IPurchaseOrderPrintQueryRepository, PurchaseOrderPrintQueryRepository>();
 
             // // AutoMapper profiles
             // services.AddAutoMapper(
