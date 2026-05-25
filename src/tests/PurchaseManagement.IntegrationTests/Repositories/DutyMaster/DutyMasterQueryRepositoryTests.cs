@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Application.DutyMaster;
@@ -15,13 +16,15 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
     {
         private readonly DbFixture _fixture;
 
+        private readonly Mock<IDocumentSequenceLookup> _docSeqMock = new(MockBehavior.Loose);
+
         public DutyMasterQueryRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
         private DutyMasterQueryRepository CreateQueryRepo(ApplicationDbContext ctx) =>
             new(ctx, new SqlConnection(_fixture.ConnectionString));
 
         private DutyMasterCommandRepository CreateCommandRepo(ApplicationDbContext ctx) =>
-            new(ctx, _fixture.IpMock.Object);
+            new(ctx, _fixture.IpMock.Object, _docSeqMock.Object);
 
         private static PurchaseManagement.Domain.Entities.DutyMaster BuildEntity(
             int dutyCategoryId,
@@ -76,7 +79,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             string tariffNumber = "84.71")
         {
             return await CreateCommandRepo(ctx).CreateAsync(
-                BuildEntity(miscId, miscId, dutyCode, tariffNumber), CancellationToken.None);
+                BuildEntity(miscId, miscId, dutyCode, tariffNumber), 0, CancellationToken.None);
         }
 
         // --- GET ALL ---
@@ -204,7 +207,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             await using var ctx = _fixture.CreateFreshDbContext();
             var (_, miscId) = await SeedPrerequisitesAsync(ctx);
             var entity = BuildEntity(miscId, miscId, "DUT-020", "91.01");
-            await CreateCommandRepo(ctx).CreateAsync(entity, CancellationToken.None);
+            await CreateCommandRepo(ctx).CreateAsync(entity, 0, CancellationToken.None);
 
             var exists = await CreateQueryRepo(ctx).ExistsAsync(
                 "DUT-020", "91.01", entity.EffectiveFrom, CancellationToken.None);
@@ -269,32 +272,5 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             results.Should().BeEmpty();
         }
 
-        // --- GENERATE DUTY CODE ---
-
-        [Fact]
-        public async Task GenerateDutyCodeAsync_Should_Return_Code_With_DUT_Prefix()
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            await _fixture.ClearAllTablesAsync();
-
-            var code = await CreateQueryRepo(ctx).GenerateDutyCodeAsync(CancellationToken.None);
-
-            code.Should().StartWith("DUT-");
-        }
-
-        [Fact]
-        public async Task GenerateDutyCodeAsync_Should_Increment_When_Records_Exist()
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var (_, miscId) = await SeedPrerequisitesAsync(ctx);
-
-            // Seed a duty with code DUT-001 manually (not using the generator — just verify next is DUT-002)
-            await CreateCommandRepo(ctx).CreateAsync(
-                BuildEntity(miscId, miscId, "DUT-001", "84.71"), CancellationToken.None);
-
-            var code = await CreateQueryRepo(ctx).GenerateDutyCodeAsync(CancellationToken.None);
-
-            code.Should().Be("DUT-002");
-        }
     }
 }

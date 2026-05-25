@@ -26,7 +26,7 @@ namespace PurchaseManagement.UnitTests.Validators.PurchaseOrder.Local
         public async Task Validate_NotFoundId_FailsValidation()
         {
             _mockRepo.Setup(r => r.ExistsAsync(99, It.IsAny<CancellationToken>())).ReturnsAsync(false);
-            var dto = new PurchaseOrderUpdateDto { Id = 99, UnitId = 1, VendorId = 1, CurrencyId = 1 };
+            var dto = new PurchaseOrderUpdateDto { Id = 99, VendorId = 1, CurrencyId = 1 };
 
             var result = await CreateValidator().TestValidateAsync(dto);
 

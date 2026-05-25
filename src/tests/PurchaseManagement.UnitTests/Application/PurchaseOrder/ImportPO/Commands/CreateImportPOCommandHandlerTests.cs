@@ -6,8 +6,10 @@ using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Contracts.Interfaces.Lookups.Common;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
+using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
@@ -29,13 +31,15 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
         private readonly Mock<IImportPOQueryRepository> _mockImportQuery = new(MockBehavior.Loose);
         private readonly Mock<IBudgetAllocationLookup> _mockBudgetLookup = new(MockBehavior.Loose);
         private readonly Mock<IDocumentSequenceLookup> _mockDocSequence = new(MockBehavior.Loose);
+        private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
+        private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMisc = new(MockBehavior.Loose);
 
         private CreateImportPOCommandHandler CreateSut() =>
             new(
                 _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
                 _mockLogger.Object, _mockMisc.Object, _mockPoDocs.Object,
                 _mockImportQuery.Object, _mockBudgetLookup.Object,
-                _mockDocSequence.Object);
+                _mockDocSequence.Object, _mockOutbox.Object, _mockAppDataMisc.Object);
 
         [Fact]
         public async Task Handle_NullData_ThrowsNullReferenceException()
@@ -53,7 +57,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
             var act = () => new CreateImportPOCommandHandler(
                 _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
                 _mockLogger.Object, _mockMisc.Object, _mockPoDocs.Object,
-                _mockImportQuery.Object, null!, _mockDocSequence.Object);
+                _mockImportQuery.Object, null!, _mockDocSequence.Object, _mockOutbox.Object, _mockAppDataMisc.Object);
 
             act.Should().Throw<ArgumentNullException>().WithParameterName("budgetAllocationLookup");
         }
@@ -71,7 +75,6 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
 
             var dto = new ImportPOCreateDto
             {
-                UnitId = unitId,
                 PODate = new DateTimeOffset(2026, 4, 15, 0, 0, 0, TimeSpan.Zero),
                 BudgetGroupId = budgetGroupId,
                 PurchaseValue = purchaseValue,

@@ -40,7 +40,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PurchaseOrder.ImportP
                     IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                 });
             var logger = new Mock<ILogger<ImportPOCommandRepository>>(MockBehavior.Loose);
-            return new ImportPOCommandRepository(ctx, miscMock.Object, logger.Object);
+            return new ImportPOCommandRepository(ctx, miscMock.Object, logger.Object, _fixture.IpMock.Object);
         }
 
         [Fact]

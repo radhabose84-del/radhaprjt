@@ -232,3 +232,101 @@ return new ApiResponseDTO<List<AuditLogDto>> { IsSuccess = false, Message = "No 
 > ❌ **NEVER return `List<string>` from AuditLog handlers** — always `ApiResponseDTO<List<AuditLogDto>>`
 > ❌ **NEVER add `searchTerm` to `GetAuditLogQuery`** — the main GET endpoint has no parameters
 > ❌ **NEVER wrap in extra anonymous object** `Ok(new { StatusCode, data = result })` — return `Ok(result)` directly when result is already `ApiResponseDTO`
+
+---
+
+## Step 6 — Create Test Projects (mandatory for every new module)
+
+Every new module MUST have both test projects created **at the same time as the module scaffold**. Tests are not optional and must not be deferred.
+
+### 6a — Create project files
+
+| Project | Location |
+|---|---|
+| `{ModuleName}.UnitTests.csproj` | `src/tests/{ModuleName}.UnitTests/` |
+| `{ModuleName}.IntegrationTests.csproj` | `src/tests/{ModuleName}.IntegrationTests/` |
+
+Copy `.csproj` from `FinanceManagement.UnitTests` / `FinanceManagement.IntegrationTests` and replace the namespace prefix only.
+
+**UnitTests `.csproj` — key references:**
+```xml
+<PackageReference Include="xunit" Version="2.9.2" />
+<PackageReference Include="Moq" Version="4.20.70" />
+<PackageReference Include="FluentAssertions" Version="6.12.0" />
+<PackageReference Include="FluentValidation" Version="11.11.0" />
+<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
+<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+<FrameworkReference Include="Microsoft.AspNetCore.App" />
+<ProjectReference ...Application />, ...Domain />, ...Infrastructure />, ...Presentation />, Contracts />
+<Content Include="..\..\Shared\Shared.Validation\Common\validation-rules.json" ... />
+```
+
+**IntegrationTests `.csproj` — key references:**
+```xml
+<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+<PackageReference Include="Dapper" Version="2.1.44" />
+<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+<ProjectReference ...Application />, ...Domain />, ...Infrastructure />, Contracts />, Shared.TestInfrastructure />
+```
+
+### 6b — Common files to create (same for every module, namespace prefix changes)
+
+**UnitTests minimum common files:**
+
+| File | Purpose |
+|---|---|
+| `Usings.cs` | Global usings: xunit, FluentAssertions, Moq, MediatR, AutoMapper, Contracts.Common, `{Module}.Domain.Events`, `{Module}.Domain.Common` |
+| `TestHelpers/TestMaxLengthProviderFactory.cs` | InMemory `ApplicationDbContext` → `MaxLengthProvider` factory (used by validator tests) |
+| `Domain/AuditLogsEntityTests.cs` | `AuditLogs` entity property tests (MongoDB entity — no BaseEntity) |
+| `Domain/JwtSettingsEntityTests.cs` | `JwtSettings` entity property tests |
+| `Domain/BaseEntityAuditFieldsTests.cs` | Placeholder — add real tests as EF Core entities are created |
+| `Application/AuditLog/Queries/GetAuditLogQueryHandlerTests.cs` | Constructor builds handler; `GetCollection` called once |
+| `Application/AuditLog/Queries/GetAuditLogAutoCompleteQueryHandlerTests.cs` | Constructor builds handler; `GetCollection` called once |
+| `Controllers/AuditLogControllerTests.cs` | Each action returns `OkObjectResult`; mediator called once |
+
+**IntegrationTests minimum common files:**
+
+| File | Purpose |
+|---|---|
+| `Usings.cs` | Global usings: xunit, FluentAssertions, Moq, System.Threading, etc. |
+| `Common/DbFixture.cs` | `DatabaseCollection` + `DbFixture` — recreate DB, create `{Module}` schema, expose `IpMock`, `TzMock`, `CreateFreshDbContext()`, `ClearAllTablesAsync()` |
+| `Repositories/AuditLog/AuditLogMongoRepositoryPlaceholderTests.cs` | Placeholder — MongoDB tests require a live Mongo instance; contains a single always-passing test |
+
+### 6c — Add both projects to BSOFT.sln
+
+In the `BSOFT.sln` file, make three additions:
+
+**1. Project entries** (add alongside other test project entries):
+```
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "{ModuleName}.UnitTests", "src\tests\{ModuleName}.UnitTests\{ModuleName}.UnitTests.csproj", "{<NEW-GUID-1>}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "{ModuleName}.IntegrationTests", "src\tests\{ModuleName}.IntegrationTests\{ModuleName}.IntegrationTests.csproj", "{<NEW-GUID-2>}"
+EndProject
+```
+
+**2. ProjectConfigurationPlatforms** (inside `GlobalSection(ProjectConfigurationPlatforms)`):
+```
+{<NEW-GUID-1>}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+{<NEW-GUID-1>}.Debug|Any CPU.Build.0 = Debug|Any CPU
+{<NEW-GUID-1>}.Release|Any CPU.ActiveCfg = Release|Any CPU
+{<NEW-GUID-1>}.Release|Any CPU.Build.0 = Release|Any CPU
+{<NEW-GUID-2>}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+{<NEW-GUID-2>}.Debug|Any CPU.Build.0 = Debug|Any CPU
+{<NEW-GUID-2>}.Release|Any CPU.ActiveCfg = Release|Any CPU
+{<NEW-GUID-2>}.Release|Any CPU.Build.0 = Release|Any CPU
+```
+
+**3. NestedProjects** (inside `GlobalSection(NestedProjects)` — nest both under `{CEA09484-30F6-4D44-02F6-822E06DBC57C}` which is the `tests` solution folder):
+```
+{<NEW-GUID-1>} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+{<NEW-GUID-2>} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+```
+
+### 6d — Verify build
+
+```bash
+dotnet build src/tests/{ModuleName}.UnitTests/{ModuleName}.UnitTests.csproj --no-restore
+dotnet build src/tests/{ModuleName}.IntegrationTests/{ModuleName}.IntegrationTests.csproj --no-restore
+```
+
+**Expected:** `0 Warning(s), 0 Error(s)` on both projects before marking the module as complete.
