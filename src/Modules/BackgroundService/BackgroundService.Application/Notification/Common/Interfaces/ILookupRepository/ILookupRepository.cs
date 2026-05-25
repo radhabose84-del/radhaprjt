@@ -30,6 +30,10 @@ namespace BackgroundService.Application.Notification.Common.Interfaces
             string menuName,
             CancellationToken cancellationToken = default);
 
+        Task<IReadOnlyDictionary<int, string>> GetTransactionTypeNamesAsync(
+            IEnumerable<int> transactionTypeIds,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Gets the menu ID from Finance.TransactionTypeMaster by TransactionTypeId.
         /// Fallback when MenuName does not match any menu (e.g. "Contract Purchase Order"
@@ -52,6 +56,13 @@ namespace BackgroundService.Application.Notification.Common.Interfaces
         Task<bool> UpdateSessionLastActivityAsync(
             string jwtId,
             DateTimeOffset lastActivity,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the set of MenuIds accessible to a user based on their role-based menu privileges (CanView).
+        /// </summary>
+        Task<HashSet<int>> GetUserAccessibleMenuIdsAsync(
+            int userId,
             CancellationToken cancellationToken = default);
     }
 }
