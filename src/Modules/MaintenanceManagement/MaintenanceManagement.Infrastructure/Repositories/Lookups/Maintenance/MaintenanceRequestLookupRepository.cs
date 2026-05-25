@@ -57,7 +57,7 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Lookups.Maintenance
                 WHERE mr.IsDeleted = 0
                   AND mr.IsActive = 1
                   AND rt.Code = 'External'
-                  AND rs.Code IN ('Open', 'In-Progress', 'PartiallyConverted')
+                  AND rs.Code IN ('Open', 'InProgress', 'PartiallyConverted')
                   {searchFilter}
                 ORDER BY mr.Id DESC;";
 

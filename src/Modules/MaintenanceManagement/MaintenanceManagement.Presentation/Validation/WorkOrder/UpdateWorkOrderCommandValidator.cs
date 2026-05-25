@@ -11,10 +11,12 @@ namespace MaintenanceManagement.Presentation.Validation.WorkOrder
     public class UpdateWorkOrderCommandValidator  : AbstractValidator<UpdateWorkOrderCommand>
     {
         private readonly IWorkOrderCommandRepository _workOrderRepository;
+        private readonly IWorkOrderQueryRepository _workOrderQueryRepository;
 
-        public UpdateWorkOrderCommandValidator(MaxLengthProvider maxLengthProvider,IWorkOrderCommandRepository workOrderRepository)
+        public UpdateWorkOrderCommandValidator(MaxLengthProvider maxLengthProvider, IWorkOrderCommandRepository workOrderRepository, IWorkOrderQueryRepository workOrderQueryRepository)
         {
             _workOrderRepository = workOrderRepository;
+            _workOrderQueryRepository = workOrderQueryRepository;
 
             RuleFor(x => x.WorkOrder).NotNull().WithMessage("WorkOrder cannot be null.");
             RuleFor(x => x.WorkOrder.Id)
@@ -28,6 +30,36 @@ namespace MaintenanceManagement.Presentation.Validation.WorkOrder
                 ApplyMaxLengthRules(maxLengthProvider);
                 ApplyNumericOnlyRules();
             });
+
+            WhenAsync(IsClosingTransitionAsync, () =>
+            {
+                RuleFor(x => x.WorkOrder.DownTimeStart)
+                    .NotNull()
+                    .WithMessage("Down Time Start is required when closing the Work Order.");
+
+                RuleFor(x => x.WorkOrder.DownTimeEnd)
+                    .NotNull()
+                    .WithMessage("Down Time End is required when closing the Work Order.");
+
+                RuleFor(x => x.WorkOrder)
+                    .Must(wo => !wo.DownTimeStart.HasValue
+                             || !wo.DownTimeEnd.HasValue
+                             || wo.DownTimeStart.Value < wo.DownTimeEnd.Value)
+                    .WithMessage("Down Time Start must be earlier than Down Time End.");
+            });
+        }
+
+        private async Task<bool> IsClosingTransitionAsync(UpdateWorkOrderCommand cmd, CancellationToken ct)
+        {
+            if (cmd.WorkOrder?.StatusId == null) return false;
+            var closedId = await GetClosedStatusIdAsync();
+            return closedId.HasValue && cmd.WorkOrder.StatusId.Value == closedId.Value;
+        }
+
+        private async Task<int?> GetClosedStatusIdAsync()
+        {
+            var statuses = await _workOrderQueryRepository.GetWOStatusDescAsync();
+            return statuses?.FirstOrDefault(s => string.Equals(s.Code, "Closed", System.StringComparison.OrdinalIgnoreCase))?.Id;
         }
 
         private void ApplyIdExclusivityRule()
