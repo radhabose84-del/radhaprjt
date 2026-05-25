@@ -64,7 +64,8 @@ namespace InventoryManagement.Application.Common.Mappings.Item.ItemDetail
                 .ForMember(d => d.DimensionUOM, o => o.Ignore())
                 .ForMember(d => d.MiscDefaultMaterialRequestType, o => o.Ignore())
                 .ForMember(d => d.MiscValuationMethod, o => o.Ignore())
-                .ForMember(d => d.MiscRequestType, o => o.Ignore());
+                .ForMember(d => d.MiscRequestType, o => o.Ignore())
+                .ForSourceMember(s => s.DefaultPackTypeName, o => o.DoNotValidate());
 
             CreateMap<ItemQualityDto, ItemQuality>()
                 .ForMember(d => d.Id, o => o.Ignore())

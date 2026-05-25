@@ -481,14 +481,19 @@ namespace SalesManagement.Application.Consumers
             List<JsonElement> dynamicFields,
             CancellationToken ct)
         {
-            // 1. Always update Invoice approval status
-            await _invoiceCommandRepo.UpdateApprovalStatusAsync(
+            // 1. Update approval status (+ generate final invoice number atomically on Approval)
+            var newInvoiceNo = await _invoiceCommandRepo.UpdateApprovalStatusAsync(
                 msg.ModuleTransactionId, msg.Status,
                 msg.ModifiedBy, msg.ModifiedByName, msg.ModifiedIP, ct);
 
             // 2. Only proceed with EInvoice on Approval (not Rejection)
             if (msg.Status != MiscEnumEntity.InvoiceStatusApproved)
                 return;
+
+            if (newInvoiceNo != null)
+                _logger.LogInformation(
+                    "Invoice {Id} approved. Final invoice number: {InvoiceNo}",
+                    msg.ModuleTransactionId, newInvoiceNo);
 
             // 3. Parse DynamicFields for withInvoice / withEwaybill flags
             bool withInvoice = ReadBool(dynamicFields, "withInvoice");
