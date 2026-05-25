@@ -13,6 +13,7 @@ namespace BackgroundService.Application.Workflow.WorkflowTypes.Commands.UpdateWo
         public int MenuId { get; set; }
         public byte HasLine { get; set; }
         public byte IsMultiselect { get; set; }
+        public int? TransactionTypeId { get; set; }
         public byte IsActive { get; set; }
     }
 }

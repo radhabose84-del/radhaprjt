@@ -40,10 +40,11 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.WorkflowTypes
               WHERE IsDeleted = 0
             {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (MenuId LIKE @Search)")}};
 
-                SELECT 
-                Id, 
+                SELECT
+                Id,
                 ModuleId,
                 MenuId,
+                TransactionTypeId,
                 HasLine,
                 IsMultiselect,
                 IsActive,CreatedDate,CreatedBy,CreatedByName,ModifiedBy,ModifiedDate,ModifiedByName

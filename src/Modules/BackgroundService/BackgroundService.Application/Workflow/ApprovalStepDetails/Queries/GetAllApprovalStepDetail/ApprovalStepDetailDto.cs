@@ -17,6 +17,8 @@ namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Queries.Get
         public string ApprovalStepName { get; set; }
         public byte StopOnFirstMatch { get; set; }
          public  byte IsEdit { get; set; }
+        public int? TransactionTypeId { get; set; }
+        public string? TransactionTypeName { get; set; }
         public byte IsActive { get; set; }
         public int CreatedBy { get; set; }
         public DateTimeOffset CreatedDate { get; set; }
@@ -27,6 +29,6 @@ namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Queries.Get
         public WorkflowTypeApprovalStepDto WorkflowType { get; set; }
         public ApprovalStepDto ApprovalStep { get; set; }
 
-       
+
     }
 }

@@ -22,6 +22,8 @@ namespace BackgroundService.Application.Workflow.Common.Mappings
       CreateMap<ApprovalStepDetail, ApprovalStepDetailDto>()
       .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == Status.Active ? 1 : 0))
       .ForMember(dest => dest.MenuId, opt => opt.MapFrom(src => src.WorkflowType.MenuId))
+      .ForMember(dest => dest.TransactionTypeId, opt => opt.MapFrom(src => src.WorkflowType.TransactionTypeId))
+      .ForMember(dest => dest.TransactionTypeName, opt => opt.Ignore())
       .ForMember(dest => dest.ApprovalStepName, opt => opt.MapFrom(src => src.ApprovalStep.Code))
       .ForMember(dest => dest.TargetType, opt => opt.MapFrom(src => src.TargetType.Code));
 
