@@ -8,6 +8,7 @@ using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PurchaseManagement.Application.Common.Interfaces;
+using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
@@ -30,13 +31,15 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Commands
         private readonly Mock<IFinancialYearLookup> _mockFyLookup = new(MockBehavior.Loose);
         private readonly Mock<IAppDataMiscMasterLookup> _mockAppDataMisc = new(MockBehavior.Loose);
         private readonly Mock<IDocumentSequenceLookup> _mockDocSequence = new(MockBehavior.Loose);
+        private readonly Mock<IMiscMasterQueryRepository> _mockMisc = new(MockBehavior.Loose);
 
         private CreatePurchaseOrderCommandHandler CreateSut() =>
             new(
                 _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
                 _mockLogger.Object, _mockOutbox.Object, _mockPoDocs.Object,
                 _mockUnitLookup.Object, _mockCompanyLookup.Object, _mockBudgetLookup.Object,
-                _mockFyLookup.Object, _mockAppDataMisc.Object, _mockDocSequence.Object);
+                _mockFyLookup.Object, _mockAppDataMisc.Object, _mockDocSequence.Object,
+                _mockMisc.Object);
 
         [Fact]
         public async Task Handle_NullData_ReturnsFailure()

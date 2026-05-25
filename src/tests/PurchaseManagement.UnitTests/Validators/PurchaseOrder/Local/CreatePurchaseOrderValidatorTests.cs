@@ -9,19 +9,9 @@ namespace PurchaseManagement.UnitTests.Validators.PurchaseOrder.Local
         private CreatePurchaseOrderValidator CreateValidator() => new();
 
         [Fact]
-        public async Task Validate_ZeroUnitId_FailsValidation()
-        {
-            var dto = new PurchaseOrderCreateDto { UnitId = 0, VendorId = 1, CurrencyId = 1 };
-
-            var result = await CreateValidator().TestValidateAsync(dto);
-
-            result.ShouldHaveValidationErrorFor(x => x.UnitId);
-        }
-
-        [Fact]
         public async Task Validate_ZeroVendorId_FailsValidation()
         {
-            var dto = new PurchaseOrderCreateDto { UnitId = 1, VendorId = 0, CurrencyId = 1 };
+            var dto = new PurchaseOrderCreateDto { VendorId = 0, CurrencyId = 1 };
 
             var result = await CreateValidator().TestValidateAsync(dto);
 
@@ -35,7 +25,6 @@ namespace PurchaseManagement.UnitTests.Validators.PurchaseOrder.Local
             // .Must(h => h!.Count > 0) throws NullReferenceException on null.
             var dto = new PurchaseOrderCreateDto
             {
-                UnitId = 1,
                 VendorId = 1,
                 CurrencyId = 1,
                 Headers = new List<PurchaseLocalHeaderDto>()

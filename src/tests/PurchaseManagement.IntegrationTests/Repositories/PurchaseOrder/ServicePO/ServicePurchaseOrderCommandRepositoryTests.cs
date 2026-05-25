@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.Data.SqlClient;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Domain.Common;
@@ -40,7 +41,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PurchaseOrder.Service
                     IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                 });
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new ServicePurchaseOrderCommandRepository(ctx, miscMock.Object, _fixture.IpMock.Object, conn);
+            var docSeq = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
+            return new ServicePurchaseOrderCommandRepository(ctx, miscMock.Object, _fixture.IpMock.Object, conn, docSeq.Object);
         }
 
         [Fact]

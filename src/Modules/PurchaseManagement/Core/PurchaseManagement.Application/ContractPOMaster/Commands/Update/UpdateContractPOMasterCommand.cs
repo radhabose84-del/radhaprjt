@@ -1,10 +1,10 @@
 using MediatR;
-using PurchaseManagement.Application.ContractPO.Dto;
+using PurchaseManagement.Application.ContractPOMaster.Dto;
 using Contracts.Common;
 
-namespace PurchaseManagement.Application.ContractPO.Commands.Update;
+namespace PurchaseManagement.Application.ContractPOMaster.Commands.Update;
 
-public sealed class UpdateContractPOCommand : IRequest<ContractPOHeaderDto>, IRequirePermission
+public sealed class UpdateContractPOMasterCommand : IRequest<ContractPOHeaderDto>, IRequirePermission
 {
     public int Id { get; set; }
     public int VendorId { get; set; }

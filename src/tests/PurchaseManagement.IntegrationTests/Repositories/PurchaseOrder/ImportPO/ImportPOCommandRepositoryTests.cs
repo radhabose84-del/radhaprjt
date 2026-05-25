@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Domain.Common;
@@ -40,7 +41,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PurchaseOrder.ImportP
                     IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                 });
             var logger = new Mock<ILogger<ImportPOCommandRepository>>(MockBehavior.Loose);
-            return new ImportPOCommandRepository(ctx, miscMock.Object, logger.Object);
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            return new ImportPOCommandRepository(ctx, miscMock.Object, logger.Object, ip.Object);
         }
 
         [Fact]
