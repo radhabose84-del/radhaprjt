@@ -86,8 +86,8 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.WorkflowTypes
         public async Task<List<WorkflowType>> GetWorkflowTypeAutoComplete(string searchPattern)
         {
               const string query = @"
-                SELECT Id, MenuId ,IsMultiselect
-                FROM [AppData].[WorkflowType] 
+                SELECT Id, MenuId, TransactionTypeId, IsMultiselect
+                FROM [AppData].[WorkflowType]
                 WHERE IsDeleted = 0 AND IsActive=1 AND MenuId LIKE @SearchPattern";
                 
             var WorkflowType = await _dbConnection.QueryAsync<WorkflowType>(query, new { SearchPattern = $"%{searchPattern}%" });
