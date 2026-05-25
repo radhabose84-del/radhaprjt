@@ -35,6 +35,10 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
             if (docSeq == null)
             {
                 docSeq = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
+                docSeq.Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                    .ReturnsAsync(99);
+                docSeq.Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                    .ReturnsAsync((IReadOnlyList<string>)["INV/TEST/001"]);
                 docSeq.Setup(d => d.IncrementDocNoAsync(It.IsAny<int>(), It.IsAny<IDbConnection>(), It.IsAny<IDbTransaction>()))
                     .Returns(Task.CompletedTask);
             }

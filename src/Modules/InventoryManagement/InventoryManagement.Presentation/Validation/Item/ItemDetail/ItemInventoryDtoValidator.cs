@@ -18,6 +18,7 @@ namespace InventoryManagement.Presentation.Validation.Item.ItemDetail
             RuleFor(x => x.DimensionUomId).GreaterThan(0).When(x => x.DimensionUomId.HasValue);
             RuleFor(x => x.DefaultMaterialRequestTypeId).GreaterThan(0).When(x => x.DefaultMaterialRequestTypeId.HasValue);
             RuleFor(x => x.ValuationMethodId).GreaterThan(0).When(x => x.ValuationMethodId.HasValue);
+            RuleFor(x => x.DefaultPackTypeId).GreaterThan(0).When(x => x.DefaultPackTypeId.HasValue);
 
             RuleFor(x => x.ShelfLife).InclusiveBetween(0, 3650).When(x => x.ShelfLife.HasValue);
             RuleFor(x => x.UpperTolerance).GreaterThanOrEqualTo(0).When(x => x.UpperTolerance.HasValue);

@@ -92,6 +92,8 @@
             public bool AllowNegativeStock { get; set; }
             public bool BatchManagement { get; set; }
             public bool ApplyBatchNumber { get; set; }
+            public int? DefaultPackTypeId { get; set; } = null;
+            public string? DefaultPackTypeName { get; set; } = null;
             public string? DefaultMaterialRequestType { get; set; }
             public string? ValuationMethod { get; set; }
             public string? RequestType { get; set; }

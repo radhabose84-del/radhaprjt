@@ -71,13 +71,15 @@ namespace InventoryManagement.IntegrationTests.Repositories.Item
             var countLookup = new Mock<ICountMasterLookup>(MockBehavior.Loose);
             var rawLookup = new Mock<IRawMaterialTypeLookup>(MockBehavior.Loose);
             var salesGrpLookup = new Mock<ISalesGroupLookup>(MockBehavior.Loose);
+            var packTypeLookup = new Mock<IPackTypeLookup>(MockBehavior.Loose);
 
             var conn = new SqlConnection(_fixture.ConnectionString);
             var dbCtx = _fixture.CreateFreshDbContext();
             return new ItemQueryRepository(conn, dbCtx, _fixture.IpMock.Object,
                 unitLookup.Object, countLookup.Object, rawLookup.Object, salesGrpLookup.Object,
                 dataAccess.Object,
-                sales.Object, purchase.Object, maintenance.Object, production.Object);
+                sales.Object, purchase.Object, maintenance.Object, production.Object,
+                packTypeLookup.Object);
         }
 
         private async Task<int> SeedItemAsync(

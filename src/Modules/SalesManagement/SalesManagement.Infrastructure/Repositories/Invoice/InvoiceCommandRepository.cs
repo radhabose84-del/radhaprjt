@@ -1,3 +1,4 @@
+using Contracts.Common;
 using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -202,7 +203,7 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             });
         }
 
-        public async Task UpdateApprovalStatusAsync(int id, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
+        public async Task<string?> UpdateApprovalStatusAsync(int id, string status, int modifiedBy, string? modifiedByName, string? modifiedIP, CancellationToken ct)
         {
             // Resolve the MiscMaster Id scoped to ApprovalStatus type
             var statusMisc = await _dbContext.MiscMaster
@@ -211,8 +212,68 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     && m.MiscTypeMaster!.MiscTypeCode == "ApprovalStatus"
                     && m.IsDeleted == IsDelete.NotDeleted, ct);
 
-            if (statusMisc == null) return;
+            if (statusMisc == null) return null;
 
+            // On Approval: generate final invoice number + update status in one transaction
+            if (status == SalesManagement.Domain.Common.MiscEnumEntity.InvoiceStatusApproved)
+            {
+                var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+                return await strategy.ExecuteAsync(async () =>
+                {
+                    using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
+                    try
+                    {
+                        // Get UnitId from the invoice record — use anonymous type to detect not-found
+                        var invoiceRow = await _dbContext.InvoiceHeader
+                            .Where(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted)
+                            .Select(x => new { x.UnitId })
+                            .FirstOrDefaultAsync(ct);
+
+                        if (invoiceRow == null)
+                            return null; // Invoice not found — no-op
+
+                        // Resolve "Invoice" transaction type for the unit
+                        var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                            SalesManagement.Domain.Common.MiscEnumEntity.TransactionTypeInvoice,
+                            SalesManagement.Domain.Common.MiscEnumEntity.ModuleSales, invoiceRow.UnitId);
+
+                        if (!typeId.HasValue)
+                            throw new ExceptionRules("Transaction Type 'Invoice' not found for Sales module.");
+
+                        var sequences = await _documentSequenceLookup.GenerateDocumentNumber(typeId.Value);
+                        var invoiceNo = sequences.Count > 0 ? sequences[^1] : null;
+                        if (invoiceNo == null)
+                            throw new ExceptionRules("No document sequence configured for Invoice.");
+
+                        // Update StatusId + InvoiceNo in one SQL statement
+                        await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                            UPDATE Sales.InvoiceHeader
+                            SET StatusId       = {statusMisc.Id},
+                                InvoiceNo      = {invoiceNo},
+                                ModifiedBy     = {modifiedBy},
+                                ModifiedByName = {modifiedByName},
+                                ModifiedIP     = {modifiedIP},
+                                ModifiedDate   = SYSDATETIMEOFFSET()
+                            WHERE Id = {id} AND IsDeleted = 0", ct);
+
+                        // Increment the Invoice document sequence
+                        var dbConnection = _dbContext.Database.GetDbConnection();
+                        var dbTransaction = transaction.GetDbTransaction();
+                        await _documentSequenceLookup.IncrementDocNoAsync(typeId.Value, dbConnection, dbTransaction);
+
+                        await transaction.CommitAsync(ct);
+                        return invoiceNo;
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync(ct);
+                        throw;
+                    }
+                });
+            }
+
+            // Non-approval (Pending/Rejected): just update StatusId
             // Raw SQL bypasses ApplicationDbContext.UpdateIpFields() which would otherwise
             // overwrite ModifiedBy/Name/IP with consumer-context defaults (0/Anonymous).
             await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
@@ -223,6 +284,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     ModifiedIP     = {modifiedIP},
                     ModifiedDate   = SYSDATETIMEOFFSET()
                 WHERE Id = {id} AND IsDeleted = 0", ct);
+
+            return null;
         }
 
         public async Task UpdateInvoiceStatusIdAsync(int id, int statusId, CancellationToken ct)

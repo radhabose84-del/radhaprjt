@@ -148,7 +148,12 @@ namespace InventoryManagement.Infrastructure.Data.Configurations.Item.ItemDetail
             b.Property(x => x.ApplyBatchNumber)
              .HasColumnName("ApplyBatchNumber")
              .HasColumnType("bit")
-             .IsRequired();          
+             .IsRequired();
+
+            b.Property(x => x.DefaultPackTypeId)
+             .HasColumnName("DefaultPackTypeId")
+             .HasColumnType("int")
+             .IsRequired(false);
         }
     }
 }

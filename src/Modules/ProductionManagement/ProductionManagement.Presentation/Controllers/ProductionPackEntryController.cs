@@ -9,6 +9,7 @@ using ProductionManagement.Application.ProductionPack.Queries.GetLastEndPackNo;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionById;
 using ProductionManagement.Application.ProductionPack.Queries.GetPreviousDateClosing;
 using ProductionManagement.Application.ProductionPack.Queries.GetProductionStockRegister;
+using ProductionManagement.Application.ProductionPack.Commands.StockClose;
 using ProductionManagement.Application.ProductionPack.Queries.GetLastStockLedgerDate;
 
 namespace ProductionManagement.Presentation.Controllers
@@ -157,6 +158,23 @@ namespace ProductionManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 data = result.Data,
                 TotalCount = result.TotalCount
+            });
+        }
+
+        [HttpPost("stock-close")]
+        public async Task<IActionResult> StockCloseAsync([FromQuery] DateOnly closingDate)
+        {
+            var result = await Mediator.Send(new StockCloseCommand
+            {
+                ClosingDate = closingDate
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
     }

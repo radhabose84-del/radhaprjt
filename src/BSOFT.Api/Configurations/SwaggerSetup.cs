@@ -35,7 +35,8 @@ namespace BSOFT.Api.Configurations
             new SwaggerModuleInfo("GateEntryManagement", "Gate Entry Management API", "v1", "GateEntryManagement.Presentation.Controllers"),
             new SwaggerModuleInfo("FinanceManagement", "Finance Management API", "v1", "FinanceManagement.Presentation.Controllers"),
             new SwaggerModuleInfo("ProductionManagement", "Production Management API", "v1", "ProductionManagement.Presentation.Controllers"),
-            new SwaggerModuleInfo("LogisticsManagement", "Logistics Management API", "v1", "LogisticsManagement.Presentation.Controllers")
+            new SwaggerModuleInfo("LogisticsManagement", "Logistics Management API", "v1", "LogisticsManagement.Presentation.Controllers"),
+            new SwaggerModuleInfo("QCManagement", "QC Management API", "v1", "QCManagement.Presentation.Controllers")
         };
 
         // ✅ Expose for Program.cs SwaggerUI dropdown

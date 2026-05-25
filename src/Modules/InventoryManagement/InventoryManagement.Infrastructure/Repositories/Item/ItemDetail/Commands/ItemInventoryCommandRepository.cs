@@ -48,6 +48,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Comman
             existing.AllowNegativeStock             = updated.AllowNegativeStock;
             existing.BatchManagement                = updated.BatchManagement;
             existing.ApplyBatchNumber               = updated.ApplyBatchNumber;
+            existing.DefaultPackTypeId              = updated.DefaultPackTypeId;
 
             var entry = _db.Entry(existing);
             // make extra sure keys aren’t flagged as modified

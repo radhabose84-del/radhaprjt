@@ -1,0 +1,110 @@
+using QCManagement.Application.Common.Interfaces;
+using QCManagement.Domain.Entities;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace QCManagement.Infrastructure.Services
+{
+    public class JwtTokenHelper : IJwtTokenHelper
+    {
+        private readonly JwtSettings _jwtSettings;
+        private readonly ITimeZoneService _timeZoneService;
+
+        public JwtTokenHelper(IOptions<JwtSettings> jwtSettings, ITimeZoneService timeZoneService)
+        {
+            if (jwtSettings == null || jwtSettings.Value == null)
+                throw new ArgumentNullException(nameof(jwtSettings), "JWT settings are not configured.");
+
+            _jwtSettings = jwtSettings.Value;
+            _timeZoneService = timeZoneService;
+
+            if (string.IsNullOrWhiteSpace(_jwtSettings.SecretKey))
+                throw new ArgumentException("JWT SecretKey must be configured.", nameof(_jwtSettings.SecretKey));
+
+            if (string.IsNullOrWhiteSpace(_jwtSettings.EncryptionKey))
+                throw new ArgumentException("JWT EncryptionKey must be configured.", nameof(_jwtSettings.EncryptionKey));
+
+            if (Encoding.UTF8.GetBytes(_jwtSettings.SecretKey).Length < 32)
+                throw new ArgumentException("JWT SecretKey must be at least 32 bytes long.", nameof(_jwtSettings.SecretKey));
+
+            var encryptionKeyBytes = Convert.FromBase64String(_jwtSettings.EncryptionKey);
+            if (encryptionKeyBytes.Length != 32)
+                throw new ArgumentException("JWT EncryptionKey must be exactly 32 bytes long.", nameof(_jwtSettings.EncryptionKey));
+        }
+
+        public string GenerateToken(string? username, int userid, string Mobile, string EmailId, string IsFirstTimeUser, int EntityId, string GroupCode, int CompanyId, int DivisionId, int UnitId, string OldUnitId, out string jti)
+        {
+            jti = Guid.NewGuid().ToString();
+            var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
+            DateTimeOffset currentTime = _timeZoneService.GetCurrentTime(systemTimeZoneId);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, username ?? string.Empty),
+                new Claim(JwtRegisteredClaimNames.NameId, userid.ToString()),
+                new Claim("Mobile", Mobile),
+                new Claim("EmailId", EmailId),
+                new Claim("CompanyId", CompanyId.ToString()),
+                new Claim("DivisionId", DivisionId.ToString()),
+                new Claim("UnitId", UnitId.ToString()),
+                new Claim("IsFirstTimeUser", IsFirstTimeUser),
+                new Claim("EntityId", EntityId.ToString()),
+                new Claim("GroupCode", GroupCode),
+                new Claim("OldUnitId", OldUnitId),
+                new Claim(JwtRegisteredClaimNames.Jti, jti),
+                new Claim(JwtRegisteredClaimNames.Iat, currentTime.ToString(), ClaimValueTypes.Integer64)
+            };
+
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey!));
+            var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = currentTime.UtcDateTime.AddMinutes(_jwtSettings.ExpiryMinutes),
+                SigningCredentials = signingCredentials,
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audience
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        public ClaimsPrincipal ValidateToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey!));
+            var encryptionKey = new SymmetricSecurityKey(Convert.FromBase64String(_jwtSettings.EncryptionKey!));
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = signingKey,
+                TokenDecryptionKey = encryptionKey,
+                ValidateIssuer = true,
+                ValidIssuer = _jwtSettings.Issuer,
+                ValidateAudience = true,
+                ValidAudience = _jwtSettings.Audience,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+                var jti = principal.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+                if (string.IsNullOrEmpty(jti))
+                    throw new SecurityTokenException("Missing or invalid JWT ID.");
+                return principal;
+            }
+            catch (Exception ex)
+            {
+                throw new SecurityTokenException("Invalid token.", ex);
+            }
+        }
+    }
+}

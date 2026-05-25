@@ -650,6 +650,10 @@ namespace InventoryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DefaultMaterialRequestTypeId");
 
+                    b.Property<int?>("DefaultPackTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DefaultPackTypeId");
+
                     b.Property<int?>("DimensionUomId")
                         .HasColumnType("int")
                         .HasColumnName("DimensionUomId");
