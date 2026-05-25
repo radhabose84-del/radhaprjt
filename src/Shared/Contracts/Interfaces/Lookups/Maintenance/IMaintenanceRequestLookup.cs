@@ -9,7 +9,7 @@ namespace Contracts.Interfaces.Lookups.Maintenance
     {
         /// <summary>
         /// Returns External requests selectable for Service PO linkage —
-        /// status IN (Open, In-Progress, PartiallyConverted), excluding Closed/FullyConverted.
+        /// status IN (Open, InProgress, PartiallyConverted), excluding Closed/FullyConverted.
         /// </summary>
         Task<IReadOnlyList<MaintenanceRequestLookupDto>> GetAvailableForServicePoAsync(
             string? searchTerm, CancellationToken ct = default);

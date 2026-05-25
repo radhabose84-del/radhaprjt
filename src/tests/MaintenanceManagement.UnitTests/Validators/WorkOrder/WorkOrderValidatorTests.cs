@@ -28,11 +28,12 @@ namespace MaintenanceManagement.UnitTests.Validators.WorkOrder
     {
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
         private readonly Mock<IWorkOrderCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IWorkOrderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         [Fact]
         public async Task Validate_ZeroId_FailsValidation()
         {
-            var validator = new UpdateWorkOrderCommandValidator(_mockMaxLength.Object, _mockCommandRepo.Object);
+            var validator = new UpdateWorkOrderCommandValidator(_mockMaxLength.Object, _mockCommandRepo.Object, _mockQueryRepo.Object);
             var command = new UpdateWorkOrderCommand { WorkOrder = new WorkOrderUpdateDto() };
             var result = await validator.TestValidateAsync(command);
             result.Errors.Should().NotBeEmpty();

@@ -40,7 +40,7 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.MaintenanceRequest
             RequestTypeInternalId = await InsertMiscMasterAsync(conn, RequestTypeMiscTypeId, "Internal", "Internal");
 
             StatusOpenId = await InsertMiscMasterAsync(conn, StatusMiscTypeId, "Open", "Open");
-            StatusInProgressId = await InsertMiscMasterAsync(conn, StatusMiscTypeId, "In-Progress", "In-Progress");
+            StatusInProgressId = await InsertMiscMasterAsync(conn, StatusMiscTypeId, "InProgress", "InProgress");
             StatusClosedId = await InsertMiscMasterAsync(conn, StatusMiscTypeId, "Closed", "Closed");
             StatusPartiallyConvertedId = await InsertMiscMasterAsync(conn, StatusMiscTypeId, "PartiallyConverted", "Partially Converted");
             StatusFullyConvertedId = await InsertMiscMasterAsync(conn, StatusMiscTypeId, "FullyConverted", "Fully Converted");

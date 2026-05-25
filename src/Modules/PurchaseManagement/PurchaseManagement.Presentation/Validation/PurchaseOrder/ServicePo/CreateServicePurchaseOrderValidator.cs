@@ -80,7 +80,7 @@ namespace PurchaseManagement.Presentation.Validation.PurchaseOrder.ServicePo
                     {
                         ctx.AddFailure(
                             $"MaintenanceRequest {rid} is not available for Service PO linkage " +
-                            "(must be External, Active, and in status Open, In-Progress or PartiallyConverted).");
+                            "(must be External, Active, and in status Open, InProgress or PartiallyConverted).");
                     }
                 }
 
