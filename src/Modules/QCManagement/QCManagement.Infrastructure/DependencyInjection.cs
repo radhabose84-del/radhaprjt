@@ -7,9 +7,13 @@ using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using QCManagement.Application.Common.Interfaces;
 using QCManagement.Application.Common.Interfaces.AuditLog;
+using QCManagement.Application.Common.Interfaces.IMiscMaster;
+using QCManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using QCManagement.Infrastructure.Data;
 using QCManagement.Infrastructure.Persistence;
 using QCManagement.Infrastructure.Repositories.AuditLog;
+using QCManagement.Infrastructure.Repositories.MiscMaster;
+using QCManagement.Infrastructure.Repositories.MiscTypeMaster;
 using QCManagement.Infrastructure.Services;
 using Serilog;
 
@@ -84,6 +88,14 @@ namespace QCManagement.Infrastructure
             services.AddSingleton<ITimeZoneService, TimeZoneService>();
             services.AddTransient<IJwtTokenHelper, JwtTokenHelper>();
             services.AddScoped<ILogQueryService, LogQueryService>();
+
+            // ── MiscTypeMaster ───────────────────────────────────────────────
+            services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
+            services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
+
+            // ── MiscMaster ───────────────────────────────────────────────────
+            services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
             return services;
         }
