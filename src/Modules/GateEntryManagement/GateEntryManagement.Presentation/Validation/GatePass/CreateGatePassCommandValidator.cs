@@ -86,6 +86,23 @@ namespace GateEntryManagement.Presentation.Validation.GatePass
                             .When(x => x.GatePassDetails != null && x.GatePassDetails.Any());
                         break;
 
+                    case "GreaterThanOrEqualToZero":
+                        RuleFor(x => x.GrossWeight!.Value)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateGatePassCommand.GrossWeight)} {rule.Error}")
+                            .When(x => x.GrossWeight.HasValue);
+
+                        RuleFor(x => x.TareWeight!.Value)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateGatePassCommand.TareWeight)} {rule.Error}")
+                            .When(x => x.TareWeight.HasValue);
+
+                        RuleFor(x => x.NetWeight!.Value)
+                            .GreaterThanOrEqualTo(0)
+                            .WithMessage($"{nameof(CreateGatePassCommand.NetWeight)} {rule.Error}")
+                            .When(x => x.NetWeight.HasValue);
+                        break;
+
                     default:
                         break;
                 }
