@@ -7,7 +7,6 @@ using BudgetManagement.Application.BudgetRequest.Commands.Update;
 using BudgetManagement.Application.BudgetRequest.Queries.GetAll;
 using BudgetManagement.Application.BudgetRequest.Queries.GetBudgetRequestPending;
 using BudgetManagement.Application.BudgetRequest.Queries.GetById;
-using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -87,16 +86,11 @@ public class BudgetRequestController : ApiControllerBase
 
         return Ok(new
         {
-            StatusCode = StatusCodes.Status200OK,
-            message = "Fetched successfully.",
-            errors = string.Empty,
-            data = new
-            {
-                items,
-                total,
-                pageNumber,
-                pageSize
-            }
+            statusCode = StatusCodes.Status200OK,
+            data = items,
+            totalCount = total,
+            pageNumber,
+            pageSize
         });
     }
 
@@ -165,17 +159,13 @@ public class BudgetRequestController : ApiControllerBase
     {
         var (items, total) = await _mediator.Send(query, ct);
 
-        return Ok(new ApiResponseDTO<object>
+        return Ok(new
         {
-            StatusCode = 200,
-            Message    = "Fetched pending Budget Requests successfully.",
-            Data = new
-            {
-                items,
-                total,
-                pageNumber = query.PageNumber ?? 1,
-                pageSize   = query.PageSize ?? 15
-            }
+            statusCode = StatusCodes.Status200OK,
+            data = items,
+            totalCount = total,
+            pageNumber = query.PageNumber ?? 1,
+            pageSize = query.PageSize ?? 15
         });
     }
 }

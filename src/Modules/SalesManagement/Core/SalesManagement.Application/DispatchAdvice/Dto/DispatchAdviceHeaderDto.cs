@@ -22,6 +22,8 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public decimal? FreightRate { get; set; }
         public int? TransporterId { get; set; }
         public string? TransporterName { get; set; }
+        public int? TransportMode { get; set; }
+        public string? TransportModeName { get; set; }
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
         public string? LRNo { get; set; }

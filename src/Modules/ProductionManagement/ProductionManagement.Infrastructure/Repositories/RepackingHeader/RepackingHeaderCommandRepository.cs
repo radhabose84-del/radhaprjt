@@ -722,10 +722,12 @@ namespace ProductionManagement.Infrastructure.Repositories.RepackingHeader
                             // Has PACK data — clear REPACK fields and restore ClosingLooseKgs to PACK-only value
                             ledgerEntry.BagsRepacked = 0;
                             ledgerEntry.RepackKgs = 0;
-                            var packDetail = await _applicationDbContext.ProductionPackEntry
-                                .Where(p => p.UnitId == existing.UnitId && p.ItemId == existing.OldItemId
-                                    && p.LotId == lotId && p.PackDate == existing.RepackDate
-                                    && p.IsDeleted == IsDelete.NotDeleted)
+                            var packDetail = await _applicationDbContext.ProductionPackEntryDetail
+                                .Where(d => d.ProductionPackEntry.UnitId == existing.UnitId
+                                    && d.ProductionPackEntry.ItemId == existing.OldItemId
+                                    && d.LotId == lotId
+                                    && d.ProductionPackEntry.PackDate == existing.RepackDate
+                                    && d.ProductionPackEntry.IsDeleted == IsDelete.NotDeleted)
                                 .FirstOrDefaultAsync(ct);
                             ledgerEntry.ClosingLooseKgs = packDetail?.LooseConeKgs ?? 0;
                         }

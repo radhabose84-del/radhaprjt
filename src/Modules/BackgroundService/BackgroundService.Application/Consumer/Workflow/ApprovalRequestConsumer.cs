@@ -67,10 +67,6 @@ namespace BackgroundService.Application.Consumer.Workflow
                     context.Message.Payload,
                     context.Message.TransactionTypeId);
 
-                await _inbox.MarkAsProcessedAsync(
-                    consumerName, messageId,
-                    context.Message.CorrelationId, context.CancellationToken);
-
                 // ── Auto-approve if no approval rules were found ──────────────────
                 // sp_EvaluateApproval may return without creating any ApprovalRequest
                 // rows when no matching approval rules are configured (e.g. EmergencyPO).
@@ -103,12 +99,23 @@ namespace BackgroundService.Application.Consumer.Workflow
                     await _eventPublisher.SaveEventAsync(autoApproveEvent);
                     await _eventPublisher.PublishPendingEventsAsync();
                 }
+
+                // ── Mark as processed AFTER all business logic succeeds ───────────
+                // Previously this was called right after CreateBulkAsync, before
+                // the auto-approve check. If HasApprovalRequestAsync or the event
+                // publisher threw, MassTransit would retry with the same MessageId,
+                // but the inbox dedup would block the retry (already marked processed),
+                // leaving the PO stuck in Pending with no auto-approve event published.
+                await _inbox.MarkAsProcessedAsync(
+                    consumerName, messageId,
+                    context.Message.CorrelationId, context.CancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Transaction Created Request Consumer. ModuleTypeName : {ModuleTypeName}, Request : {@Request}",
-                    context.Message.ModuleTypeName, context.Message);
+                    "Transaction Created Request Consumer failed. ModuleTypeName : {ModuleTypeName}, TransactionId : {TransactionId}",
+                    context.Message.ModuleTypeName, context.Message.ModuleTransactionId);
+                throw; // Re-throw so MassTransit can retry or move to error queue
             }
         }
     }

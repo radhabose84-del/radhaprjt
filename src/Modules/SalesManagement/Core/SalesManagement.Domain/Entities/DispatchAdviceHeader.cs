@@ -16,6 +16,7 @@ namespace SalesManagement.Domain.Entities
         public int DispatchTypeId { get; set; }             // FK → Sales.MiscMaster
         public int FreightId { get; set; }                  // Cross-module FK → Logistics.FreightMaster
         public int? TransporterId { get; set; }             // Cross-module FK → PartyManagement (optional)
+        public int? TransportMode { get; set; }             // FK → Sales.MiscMaster
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
         public string? LRNo { get; set; }
@@ -26,6 +27,7 @@ namespace SalesManagement.Domain.Entities
         // Same-module navigation properties
         public MiscMaster? StatusMisc { get; set; }
         public MiscMaster? DispatchTypeMisc { get; set; }
+        public MiscMaster? TransportModeMisc { get; set; }
         public SalesOrderHeader? SalesOrderHeader { get; set; }
         public DispatchAddressMaster? DispatchAddress { get; set; }
 

@@ -148,27 +148,11 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.ImportPO
 
                     // ── Approval workflow (outbox — same transaction) ──────────────────
                     var correlationId = Guid.NewGuid();
+                    var workFlowEntity = await _cmd.GetByIdImportPOWorkFlowAsync(newId);
                     var reversePayload = new CreateImportPOReverseDto
                     {
-                        Header = new ImportPOWorkFlowDto
-                        {
-                            Id = newId,
-                            PONumber = dto.PONumber,
-                            VendorId = existing.VendorId,
-                            StatusId = existing.StatusId,
-                            UnitId = unitId
-                        },
-                        Lines = new List<ImportPOWorkFlowDto>
-                        {
-                            new ImportPOWorkFlowDto
-                            {
-                                Id = newId,
-                                PONumber = dto.PONumber,
-                                VendorId = existing.VendorId,
-                                StatusId = existing.StatusId,
-                                UnitId = unitId
-                            }
-                        }
+                        Header = workFlowEntity,
+                        Lines = null
                     };
 
                     var workflowCommand = new CreateApprovalRequestCommand

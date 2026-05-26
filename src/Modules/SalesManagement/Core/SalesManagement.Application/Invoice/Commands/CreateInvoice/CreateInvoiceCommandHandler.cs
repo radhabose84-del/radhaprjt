@@ -60,7 +60,7 @@ namespace SalesManagement.Application.Invoice.Commands.CreateInvoice
 
             // Generate invoice number from DocumentSequence
             var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
-                MiscEnumEntity.TransactionTypeInvoice, MiscEnumEntity.ModuleSales, unitId);
+                MiscEnumEntity.TransactionTypeDInvoice, MiscEnumEntity.ModuleSales, unitId);
             if (!typeId.HasValue)
                 throw new ExceptionRules("Transaction Type 'Invoice' not found for Sales module.");
 

@@ -7,7 +7,7 @@ using MediatR;
 
 namespace BackgroundService.Application.Workflow.WorkflowTypes.Commands.CreateWorkflowType
 {
-    public class CreateWorkflowTypeCommandHandler : IRequestHandler<CreateWorkflowTypeCommand, int>
+    public class CreateWorkflowTypeCommandHandler : IRequestHandler<CreateWorkflowTypeCommand, List<int>>
     {
         private readonly IWorkflowTypeCommand _workflowTypeCommand;
         private readonly IMediator _imediator;
@@ -20,20 +20,44 @@ namespace BackgroundService.Application.Workflow.WorkflowTypes.Commands.CreateWo
             _imapper = imapper;
         }
 
-        public async Task<int> Handle(CreateWorkflowTypeCommand request, CancellationToken cancellationToken)
+        public async Task<List<int>> Handle(CreateWorkflowTypeCommand request, CancellationToken cancellationToken)
         {
-            var workflowType = _imapper.Map<WorkflowType>(request);
-            var result = await _workflowTypeCommand.CreateAsync(workflowType);
+            var transactionTypeIds = request.TransactionTypeIds ?? new List<int>();
+
+            var workflowTypes = new List<WorkflowType>();
+
+            if (transactionTypeIds.Count == 0)
+            {
+                // No transaction types — create single row with TransactionTypeId = null
+                var entity = _imapper.Map<WorkflowType>(request);
+                entity.TransactionTypeId = null;
+                workflowTypes.Add(entity);
+            }
+            else
+            {
+                // Create one row per TransactionTypeId
+                foreach (var txnTypeId in transactionTypeIds)
+                {
+                    var entity = _imapper.Map<WorkflowType>(request);
+                    entity.TransactionTypeId = txnTypeId;
+                    workflowTypes.Add(entity);
+                }
+            }
+
+            var newIds = await _workflowTypeCommand.CreateBulkAsync(workflowTypes);
+
+            if (newIds.Count == 0)
+                throw new ExceptionRules("Workflow Type Creation Failed.");
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "WORKFLOW_TYPE_CREATE",
                 actionName: request.MenuId.ToString(),
-                details: $"WorkflowType created with MenuId {request.MenuId} and ModuleId {request.ModuleId}.",
+                details: $"WorkflowType created with MenuId {request.MenuId}, ModuleId {request.ModuleId}, {newIds.Count} record(s).",
                 module: "WorkflowType");
             await _imediator.Publish(domainEvent, cancellationToken);
 
-            return result > 0 ? result : throw new ExceptionRules("Workflow Type Creation Failed.");
+            return newIds;
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
@@ -697,6 +698,22 @@ public sealed class ContractPOCommandRepository : IContractPOCommandRepository
     }
 
     /* ========================= FORECLOSE ========================= */
+    public async Task<ContractPOWorkFlowDto> GetByIdContractPOWorkFlowAsync(int id)
+    {
+        var entity = await _db.Set<PurchaseOrderHeader>()
+            .Where(x => x.Id == id)
+            .Select(x => new ContractPOWorkFlowDto
+            {
+                Id = x.Id,
+                PONumber = x.PONumber,
+                VendorId = x.VendorId,
+                StatusId = x.StatusId,
+                UnitId = x.UnitId
+            })
+            .FirstOrDefaultAsync();
+        return entity!;
+    }
+
     public async Task<bool> ForecloseAsync(int id, CancellationToken ct)
     {
         var existing = await _db.PurchaseOrderHeaders

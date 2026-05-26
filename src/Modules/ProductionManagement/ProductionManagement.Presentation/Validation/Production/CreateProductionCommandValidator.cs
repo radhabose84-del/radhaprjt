@@ -17,7 +17,7 @@ namespace ProductionManagement.Presentation.Validation.Production
         {
             _queryRepository = queryRepository;
 
-            var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.ProductionPackEntry>("Remarks") ?? 500;
+            var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.ProductionPackEntryDetail>("Remarks") ?? 500;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())
@@ -32,6 +32,7 @@ namespace ProductionManagement.Presentation.Validation.Production
                             .NotNull()
                             .WithMessage($"ProductionPackEntries {rule.Error}");
 
+                        // Header-level required fields
                         RuleFor(x => x.ProductionPackEntries!.WarehouseId)
                             .NotEmpty()
                             .WithMessage($"WarehouseId {rule.Error}")
@@ -42,21 +43,33 @@ namespace ProductionManagement.Presentation.Validation.Production
                             .WithMessage($"ItemId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null);
 
-                        RuleFor(x => x.ProductionPackEntries!.LotId)
+                        // At least one detail row required
+                        RuleFor(x => x.ProductionPackEntries!.Details)
                             .NotEmpty()
-                            .WithMessage($"LotId {rule.Error}")
+                            .WithMessage("At least one detail row is required.")
                             .When(x => x.ProductionPackEntries != null);
+
+                        // Detail-level required fields
+                        RuleForEach(x => x.ProductionPackEntries!.Details).ChildRules(detail =>
+                        {
+                            detail.RuleFor(d => d.LotId)
+                                .NotEmpty()
+                                .WithMessage($"LotId {rule.Error}");
+                        }).When(x => x.ProductionPackEntries?.Details != null);
                         break;
 
                     case "MaxLength":
-                        RuleFor(x => x.ProductionPackEntries!.Remarks)
-                            .MaximumLength(maxLengthRemarks)
-                            .WithMessage($"Remarks {rule.Error} {maxLengthRemarks} characters.")
-                            .When(x => x.ProductionPackEntries != null
-                                       && !string.IsNullOrWhiteSpace(x.ProductionPackEntries.Remarks));
+                        RuleForEach(x => x.ProductionPackEntries!.Details).ChildRules(detail =>
+                        {
+                            detail.RuleFor(d => d.Remarks)
+                                .MaximumLength(maxLengthRemarks)
+                                .WithMessage($"Remarks {rule.Error} {maxLengthRemarks} characters.")
+                                .When(d => !string.IsNullOrWhiteSpace(d.Remarks));
+                        }).When(x => x.ProductionPackEntries?.Details != null);
                         break;
 
                     case "GreaterThan":
+                        // Header-level
                         RuleFor(x => x.ProductionPackEntries!.WarehouseId)
                             .GreaterThan(0).WithMessage($"WarehouseId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null);
@@ -65,31 +78,6 @@ namespace ProductionManagement.Presentation.Validation.Production
                             .GreaterThan(0).WithMessage($"ItemId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null);
 
-                        RuleFor(x => x.ProductionPackEntries!.LotId)
-                            .GreaterThan(0).WithMessage($"LotId {rule.Error}")
-                            .When(x => x.ProductionPackEntries != null);
-
-                        // PackTypeId and NetWeightPerPack only required when a bag range is specified
-                        RuleFor(x => x.ProductionPackEntries!.PackTypeId)
-                            .GreaterThan(0).WithMessage($"PackTypeId {rule.Error}")
-                            .When(x => x.ProductionPackEntries != null
-                                       && x.ProductionPackEntries.StartPackNo.HasValue
-                                       && x.ProductionPackEntries.PackTypeId.HasValue);
-
-                        RuleFor(x => x.ProductionPackEntries!.NetWeightPerPack)
-                            .GreaterThan(0).WithMessage($"NetWeightPerPack {rule.Error}")
-                            .When(x => x.ProductionPackEntries != null
-                                       && x.ProductionPackEntries.StartPackNo.HasValue
-                                       && x.ProductionPackEntries.NetWeightPerPack.HasValue);
-
-                        RuleFor(x => x.ProductionPackEntries!.StartPackNo)
-                            .GreaterThan(0).WithMessage($"StartPackNo {rule.Error}")
-                            .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.StartPackNo.HasValue);
-
-                        RuleFor(x => x.ProductionPackEntries!.EndPackNo)
-                            .GreaterThan(0).WithMessage($"EndPackNo {rule.Error}")
-                            .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.EndPackNo.HasValue);
-
                         RuleFor(x => x.ProductionPackEntries!.BinId)
                             .GreaterThan(0).WithMessage($"BinId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.BinId.HasValue);
@@ -97,30 +85,42 @@ namespace ProductionManagement.Presentation.Validation.Production
                         RuleFor(x => x.ProductionPackEntries!.QualityStatusId)
                             .GreaterThan(0).WithMessage($"QualityStatusId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.QualityStatusId.HasValue);
+
+                        // Detail-level
+                        RuleForEach(x => x.ProductionPackEntries!.Details).ChildRules(detail =>
+                        {
+                            detail.RuleFor(d => d.LotId)
+                                .GreaterThan(0).WithMessage($"LotId {rule.Error}");
+
+                            detail.RuleFor(d => d.PackTypeId)
+                                .GreaterThan(0).WithMessage($"PackTypeId {rule.Error}")
+                                .When(d => d.StartPackNo.HasValue && d.PackTypeId.HasValue);
+
+                            detail.RuleFor(d => d.NetWeightPerPack)
+                                .GreaterThan(0).WithMessage($"NetWeightPerPack {rule.Error}")
+                                .When(d => d.StartPackNo.HasValue && d.NetWeightPerPack.HasValue);
+
+                            detail.RuleFor(d => d.StartPackNo)
+                                .GreaterThan(0).WithMessage($"StartPackNo {rule.Error}")
+                                .When(d => d.StartPackNo.HasValue);
+
+                            detail.RuleFor(d => d.EndPackNo)
+                                .GreaterThan(0).WithMessage($"EndPackNo {rule.Error}")
+                                .When(d => d.EndPackNo.HasValue);
+                        }).When(x => x.ProductionPackEntries?.Details != null);
                         break;
 
                     case "FKColumnDelete":
+                        // Header-level FKs
                         RuleFor(x => x.ProductionPackEntries!.WarehouseId)
                             .MustAsync(async (id, ct) => await _queryRepository.WarehouseExistsAsync(id))
                             .WithMessage($"WarehouseId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.WarehouseId > 0);
 
-                        RuleFor(x => x.ProductionPackEntries!.LotId)
-                            .MustAsync(async (id, ct) => await _queryRepository.LotExistsAsync(id))
-                            .WithMessage($"LotId {rule.Error}")
-                            .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.LotId > 0);
-
                         RuleFor(x => x.ProductionPackEntries!.ItemId)
                             .MustAsync(async (id, ct) => await _queryRepository.ItemExistsAsync(id))
                             .WithMessage($"ItemId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.ItemId > 0);
-
-                        RuleFor(x => x.ProductionPackEntries!.PackTypeId)
-                            .MustAsync(async (id, ct) => await _queryRepository.PackTypeExistsAsync(id!.Value))
-                            .WithMessage($"PackTypeId {rule.Error}")
-                            .When(x => x.ProductionPackEntries != null
-                                       && x.ProductionPackEntries.PackTypeId.HasValue
-                                       && x.ProductionPackEntries.PackTypeId > 0);
 
                         RuleFor(x => x.ProductionPackEntries!.BinId)
                             .MustAsync(async (id, ct) => await _queryRepository.BinExistsAsync(id!.Value))
@@ -131,6 +131,25 @@ namespace ProductionManagement.Presentation.Validation.Production
                             .MustAsync(async (id, ct) => await _queryRepository.QualityStatusExistsAsync(id!.Value))
                             .WithMessage($"QualityStatusId {rule.Error}")
                             .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.QualityStatusId.HasValue && x.ProductionPackEntries.QualityStatusId > 0);
+
+                        // Detail-level FKs
+                        RuleForEach(x => x.ProductionPackEntries!.Details).ChildRules(detail =>
+                        {
+                            detail.RuleFor(d => d.LotId)
+                                .MustAsync(async (id, ct) => await _queryRepository.LotExistsAsync(id))
+                                .WithMessage($"LotId {rule.Error}")
+                                .When(d => d.LotId > 0);
+
+                            detail.RuleFor(d => d.PackTypeId)
+                                .MustAsync(async (id, ct) => await _queryRepository.PackTypeExistsAsync(id!.Value))
+                                .WithMessage($"PackTypeId {rule.Error}")
+                                .When(d => d.PackTypeId.HasValue && d.PackTypeId > 0);
+
+                            detail.RuleFor(d => d.TypeId)
+                                .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
+                                .WithMessage($"TypeId {rule.Error}")
+                                .When(d => d.TypeId.HasValue && d.TypeId > 0);
+                        }).When(x => x.ProductionPackEntries?.Details != null);
                         break;
 
                     default:
@@ -138,35 +157,34 @@ namespace ProductionManagement.Presentation.Validation.Production
                 }
             }
 
-            // When bag range is specified, PackTypeId and NetWeightPerPack are required
-            RuleFor(x => x.ProductionPackEntries!.PackTypeId)
-                .NotNull()
-                .WithMessage("PackTypeId is required when a pack range is specified.")
-                .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.StartPackNo.HasValue);
+            // Detail-level custom rules (outside switch — always applied)
+            RuleForEach(x => x.ProductionPackEntries!.Details).ChildRules(detail =>
+            {
+                // When bag range is specified, PackTypeId and NetWeightPerPack are required
+                detail.RuleFor(d => d.PackTypeId)
+                    .NotNull()
+                    .WithMessage("PackTypeId is required when a pack range is specified.")
+                    .When(d => d.StartPackNo.HasValue);
 
-            RuleFor(x => x.ProductionPackEntries!.NetWeightPerPack)
-                .NotNull()
-                .WithMessage("NetWeightPerPack is required when a pack range is specified.")
-                .When(x => x.ProductionPackEntries != null && x.ProductionPackEntries.StartPackNo.HasValue);
+                detail.RuleFor(d => d.NetWeightPerPack)
+                    .NotNull()
+                    .WithMessage("NetWeightPerPack is required when a pack range is specified.")
+                    .When(d => d.StartPackNo.HasValue);
 
-            // EndPackNo >= StartPackNo (when both supplied)
-            RuleFor(x => x.ProductionPackEntries!.EndPackNo)
-                .GreaterThanOrEqualTo(x => x.ProductionPackEntries!.StartPackNo)
-                .WithMessage("EndPackNo must be greater than or equal to StartPackNo.")
-                .When(x => x.ProductionPackEntries != null
-                            && x.ProductionPackEntries.StartPackNo.HasValue
-                            && x.ProductionPackEntries.EndPackNo.HasValue);
+                // EndPackNo >= StartPackNo (when both supplied)
+                detail.RuleFor(d => d.EndPackNo)
+                    .GreaterThanOrEqualTo(d => d.StartPackNo)
+                    .WithMessage("EndPackNo must be greater than or equal to StartPackNo.")
+                    .When(d => d.StartPackNo.HasValue && d.EndPackNo.HasValue);
 
-            // Pack range DB overlap check
-            RuleFor(x => x.ProductionPackEntries!)
-                .MustAsync(async (dto, ct) =>
-                    !await _queryRepository.PackOverlapExistsAsync(
-                        dto.LotId, dto.StartPackNo!.Value, dto.EndPackNo!.Value))
-                .WithMessage("Pack range overlaps with an existing allocation for the same Lot.")
-                .When(x => x.ProductionPackEntries != null
-                            && x.ProductionPackEntries.LotId > 0
-                            && x.ProductionPackEntries.StartPackNo.HasValue
-                            && x.ProductionPackEntries.EndPackNo.HasValue);
+                // Pack range DB overlap check per detail
+                detail.RuleFor(d => d.EndPackNo)
+                    .MustAsync(async (detailItem, endPackNo, ct) =>
+                        !await _queryRepository.PackOverlapExistsAsync(
+                            detailItem.LotId, detailItem.StartPackNo!.Value, endPackNo!.Value))
+                    .WithMessage("Pack range overlaps with an existing allocation for the same Lot.")
+                    .When(d => d.LotId > 0 && d.StartPackNo.HasValue && d.EndPackNo.HasValue);
+            }).When(x => x.ProductionPackEntries?.Details != null);
         }
     }
 }

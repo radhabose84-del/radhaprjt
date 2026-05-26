@@ -96,6 +96,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     dt.Description AS DispatchTypeName,
                     h.FreightId,
                     h.TransporterId,
+                    h.TransportMode,
+                    tm.Description AS TransportModeName,
                     h.VehicleNo, h.DriverName, h.LRNo,
                     h.UnitId, h.InvFlg, h.Distance,
                     h.IsActive, h.IsDeleted,
@@ -106,6 +108,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 LEFT JOIN Sales.SalesOrderHeader so ON h.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAddressMaster da ON h.DispatchAddressId = da.Id AND da.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DispatchTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportMode = tm.Id AND tm.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -198,6 +201,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     dt.Description AS DispatchTypeName,
                     h.FreightId,
                     h.TransporterId,
+                    h.TransportMode,
+                    tm.Description AS TransportModeName,
                     h.VehicleNo, h.DriverName, h.LRNo,
                     h.UnitId, h.InvFlg, h.Distance,
                     h.IsActive, h.IsDeleted,
@@ -208,6 +213,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 LEFT JOIN Sales.SalesOrderHeader so ON h.SalesOrderId = so.Id AND so.IsDeleted = 0
                 LEFT JOIN Sales.DispatchAddressMaster da ON h.DispatchAddressId = da.Id AND da.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DispatchTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportMode = tm.Id AND tm.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             var row = await _dbConnection.QueryFirstOrDefaultAsync<DispatchAdviceHeaderRow>(headerSql, new { Id = id });
@@ -438,6 +444,16 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = dispatchAddressId });
+            return count > 0;
+        }
+
+        public async Task<bool> MiscMasterExistsAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1) FROM Sales.MiscMaster
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
         }
 
@@ -827,6 +843,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 DispatchTypeName = row.DispatchTypeName,
                 FreightId = row.FreightId,
                 TransporterId = row.TransporterId,
+                TransportMode = row.TransportMode,
+                TransportModeName = row.TransportModeName,
                 VehicleNo = row.VehicleNo,
                 DriverName = row.DriverName,
                 LRNo = row.LRNo,
@@ -918,6 +936,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             public string? DispatchTypeName { get; set; }
             public int FreightId { get; set; }
             public int? TransporterId { get; set; }
+            public int? TransportMode { get; set; }
+            public string? TransportModeName { get; set; }
             public string? VehicleNo { get; set; }
             public string? DriverName { get; set; }
             public string? LRNo { get; set; }

@@ -60,10 +60,8 @@ namespace MaintenanceManagement.Domain.Common
         }
         public static class GetStatusId
         {
-            // Must match the seeded MiscMaster Code under MiscTypeCode = 'MaintenanceStatus'.
-            // The seed stores 'In-Progress' (with hyphen); the previous 'InProgress' was a typo
-            // that silently broke 6 callsites (filter mismatches + NRE in WorkOrderCommandRepository).
-            public const string Status = "In-Progress";
+            // Must match the seeded MiscMaster.Code (no hyphen) under MiscTypeCode = 'MaintenanceStatus'.
+            public const string Status = "InProgress";
         }
         public static class MaintenanceOpenStatus
         {

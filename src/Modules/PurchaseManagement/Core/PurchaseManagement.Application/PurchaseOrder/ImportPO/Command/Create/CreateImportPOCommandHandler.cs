@@ -177,25 +177,11 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
             var correlationId = Guid.NewGuid();
             var createdByName = entity.CreatedByName ?? string.Empty;
 
+            var workFlowEntity = await _repo.GetByIdImportPOWorkFlowAsync(poId);
             var reversePayload = new CreateImportPOReverseDto
             {
-                Header = new ImportPOWorkFlowDto
-                {
-                    Id = poId,
-                    PONumber = entity.PONumber,
-                    VendorId = entity.VendorId,
-                    StatusId = entity.StatusId,
-                    UnitId = entity.UnitId
-                },
-                Lines = (entity.ImportPOHeader ?? new List<Domain.Entities.PurchaseOrder.ImportPO.ImportPOHeader>())
-                    .Select(h => new ImportPOWorkFlowDto
-                    {
-                        Id = poId,
-                        PONumber = entity.PONumber,
-                        VendorId = entity.VendorId,
-                        StatusId = entity.StatusId,
-                        UnitId = entity.UnitId
-                    }).ToList()
+                Header = workFlowEntity,
+                Lines = null
             };
             var serializedPayload = JsonSerializer.Serialize(reversePayload);
 

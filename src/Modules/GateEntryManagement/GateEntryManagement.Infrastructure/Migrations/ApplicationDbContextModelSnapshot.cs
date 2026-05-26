@@ -276,6 +276,11 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(20)")
                         .HasColumnName("GatePassNo");
 
+                    b.Property<decimal?>("GrossWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(10,3)")
+                        .HasColumnName("GrossWeight");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");
@@ -300,6 +305,11 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<decimal?>("NetWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(10,3)")
+                        .HasColumnName("NetWeight");
+
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(500)")
                         .HasColumnName("Remarks");
@@ -307,6 +317,11 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.Property<int?>("ReturnableItems")
                         .HasColumnType("int")
                         .HasColumnName("ReturnableItems");
+
+                    b.Property<decimal?>("TareWeight")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(10,3)")
+                        .HasColumnName("TareWeight");
 
                     b.Property<decimal>("TotalDispatchQty")
                         .HasPrecision(18, 6)

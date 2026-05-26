@@ -160,6 +160,7 @@ public sealed class UpdateContractPOCommandHandler
             FreightTotal = r.FreightTotal,
             PurchaseValue = r.PurchaseValue,
             StatusId = r.StatusId,
+            CostCenterId = r.CostCenterId,
             BudgetGroupId = r.BudgetGroupId,
             BudgetMonthId = r.BudgetMonthId,
             BudgetRequestById = r.BudgetRequestById,

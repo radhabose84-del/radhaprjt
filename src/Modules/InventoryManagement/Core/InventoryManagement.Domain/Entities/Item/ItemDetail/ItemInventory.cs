@@ -31,5 +31,6 @@ namespace InventoryManagement.Domain.Entities.Item.ItemDetail
         public bool AllowNegativeStock { get; set; }
         public bool BatchManagement { get; set; }
         public bool ApplyBatchNumber { get; set; }
+        public int? DefaultPackTypeId { get; set; }
     }
 }

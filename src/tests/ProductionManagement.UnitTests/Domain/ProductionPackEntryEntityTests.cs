@@ -31,32 +31,16 @@ namespace ProductionManagement.UnitTests.Domain
             var entity = new ProductionPackEntry
             {
                 Id = 1,
-                LotId = 5,
                 ItemId = 20,
-                PackTypeId = 3,
-                NetWeightPerPack = 50.0m,
-                StartPackNo = 1,
-                EndPackNo = 10,
-                TotalBags = 10,
-                TotalNetWeight = 500.0m,
-                ProductionKgs = 490.0m,
-                LooseConeKgs = 10.0m,
+                VariantId = 5,
                 BinId = 2,
                 QualityStatusId = 1,
                 UnitId = 1,
                 WarehouseId = 2
             };
             entity.Id.Should().Be(1);
-            entity.LotId.Should().Be(5);
             entity.ItemId.Should().Be(20);
-            entity.PackTypeId.Should().Be(3);
-            entity.NetWeightPerPack.Should().Be(50.0m);
-            entity.StartPackNo.Should().Be(1);
-            entity.EndPackNo.Should().Be(10);
-            entity.TotalBags.Should().Be(10);
-            entity.TotalNetWeight.Should().Be(500.0m);
-            entity.ProductionKgs.Should().Be(490.0m);
-            entity.LooseConeKgs.Should().Be(10.0m);
+            entity.VariantId.Should().Be(5);
             entity.BinId.Should().Be(2);
             entity.QualityStatusId.Should().Be(1);
             entity.UnitId.Should().Be(1);
@@ -69,19 +53,27 @@ namespace ProductionManagement.UnitTests.Domain
             var entity = new ProductionPackEntry
             {
                 PackNo = null,
-                StartPackNo = null,
-                EndPackNo = null,
+                VariantId = null,
                 BinId = null,
-                QualityStatusId = null,
-                Remarks = null
+                QualityStatusId = null
             };
             entity.PackNo.Should().BeNull();
-            entity.StartPackNo.Should().BeNull();
-            entity.EndPackNo.Should().BeNull();
+            entity.VariantId.Should().BeNull();
             entity.BinId.Should().BeNull();
             entity.QualityStatusId.Should().BeNull();
-            entity.Remarks.Should().BeNull();
         }
 
+        [Fact]
+        public void ProductionPackEntry_Details_ShouldBeAssignable()
+        {
+            var entity = new ProductionPackEntry();
+            var details = new List<ProductionPackEntryDetail>
+            {
+                new ProductionPackEntryDetail { Id = 1, LotId = 10, TotalBags = 50 },
+                new ProductionPackEntryDetail { Id = 2, LotId = 20, TotalBags = 30 }
+            };
+            entity.Details = details;
+            entity.Details.Should().HaveCount(2);
+        }
     }
 }

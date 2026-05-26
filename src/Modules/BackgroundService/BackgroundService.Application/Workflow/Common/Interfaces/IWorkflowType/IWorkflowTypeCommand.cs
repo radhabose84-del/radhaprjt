@@ -8,7 +8,8 @@ namespace BackgroundService.Application.Workflow.Common.Interfaces.IWorkflowType
 {
     public interface IWorkflowTypeCommand
     {
-         Task<int> CreateAsync(WorkflowType workflowType);     
+         Task<int> CreateAsync(WorkflowType workflowType);
+         Task<List<int>> CreateBulkAsync(List<WorkflowType> workflowTypes);
         Task<bool> UpdateAsync(WorkflowType workflowType);
         Task<bool> DeleteAsync(int id,WorkflowType workflowType); 
     }

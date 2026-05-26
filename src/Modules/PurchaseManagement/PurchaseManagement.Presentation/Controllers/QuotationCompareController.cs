@@ -69,8 +69,10 @@ namespace PurchaseManagement.Presentation.Controllers
             return Ok(new
             {
                 statusCode = StatusCodes.Status200OK,
-                data = new { items, totalCount = total, pageNumber, pageSize, searchTerm },
-                message = "Pending quotation comparisons fetched successfully (RFQ-wise)."
+                data = items,
+                totalCount = total,
+                pageNumber,
+                pageSize
             });
         }
 

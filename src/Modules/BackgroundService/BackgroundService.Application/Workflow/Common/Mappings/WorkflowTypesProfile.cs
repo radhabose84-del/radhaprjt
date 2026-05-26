@@ -18,11 +18,14 @@ namespace BackgroundService.Application.Workflow.Common.Mappings
         public WorkflowTypesProfile()
         {
             CreateMap<WorkflowType, WorkflowTypeDto>()
-            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == Status.Active ? 1 : 0));
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == Status.Active ? 1 : 0))
+            .ForMember(dest => dest.TransactionTypeName, opt => opt.Ignore());
             
            CreateMap<WorkflowType, GetWorkflowTypeAutoCompleteDto>(); 
            CreateMap<CreateWorkflowTypeCommand, WorkflowType>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())               
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TransactionTypeId, opt => opt.Ignore())
+                .ForSourceMember(s => s.TransactionTypeIds, o => o.DoNotValidate())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 

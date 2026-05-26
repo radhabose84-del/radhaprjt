@@ -10,30 +10,15 @@ namespace ProductionManagement.Domain.Entities
         public int UnitId { get; set; }
         public int WarehouseId { get; set; }
 
-        // Item / Lot / Pack identification
+        // Item identification
         public int ItemId { get; set; }
         public int? VariantId { get; set; }
-        public int LotId { get; set; }
-        public int? PackTypeId { get; set; }
-        public decimal? NetWeightPerPack { get; set; }
-
-        // Pack range (null = Production-only entry, no physical bags)
-        public int? StartPackNo { get; set; }
-        public int? EndPackNo { get; set; }
-
-        // Totals
-        public decimal OpeningLooseKgs { get; set; }
-        public decimal TotalProductionKgs { get; set; }
-        public int TotalBags { get; set; }
-        public decimal TotalNetWeight { get; set; }
-        public decimal ProductionKgs { get; set; }
-        public decimal LooseConeKgs { get; set; }
 
         // Location & quality
         public int? BinId { get; set; }
         public int? QualityStatusId { get; set; }
 
-        public string? Remarks { get; set; }
-
+        // Child collection — lot-level detail rows
+        public ICollection<ProductionPackEntryDetail>? Details { get; set; }
     }
 }

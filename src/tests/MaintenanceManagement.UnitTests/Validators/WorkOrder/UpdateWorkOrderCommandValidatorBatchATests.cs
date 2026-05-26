@@ -10,9 +10,10 @@ namespace MaintenanceManagement.UnitTests.Validators.WorkOrder
     {
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
         private readonly Mock<IWorkOrderCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IWorkOrderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
 
         private UpdateWorkOrderCommandValidator CreateValidator() =>
-            new(_mockMaxLength.Object, _mockCommandRepo.Object);
+            new(_mockMaxLength.Object, _mockCommandRepo.Object, _mockQueryRepo.Object);
 
         [Fact]
         public void Constructor_WithValidDependencies_DoesNotThrow()

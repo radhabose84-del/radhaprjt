@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\QCManagement.Application\QCManagement.Application.csproj" />
+    <ProjectReference Include="..\Core\QCManagement.Domain\QCManagement.Domain.csproj" />
+    <ProjectReference Include="..\QCManagement.Infrastructure\QCManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\QCManagement.Presentation\QCManagement.Presentation.csproj" />
+  </ItemGroup>
+
+</Project>

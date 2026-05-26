@@ -25,6 +25,7 @@ using GateEntryManagement.Module;
 using FinanceManagement.Module;
 using ProductionManagement.Module;
 using LogisticsManagement.Module;
+using QCManagement.Module;
 using Contracts.Common;
 using BSOFT.Api.Hubs;
 
@@ -70,6 +71,7 @@ builder.Services.AddGateEntryManagementModule(builder.Configuration, builder.Env
 builder.Services.AddFinanceManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddProductionManagementModule(builder.Configuration, builder.Environment);
 builder.Services.AddLogisticsManagementModule(builder.Configuration, builder.Environment);
+builder.Services.AddQCManagementModule(builder.Configuration, builder.Environment);
 
 // ✅ Global lookup caching with write-invalidate (MUST be after module registrations)
 // Reads serve from IMemoryCache; CacheInvalidationBehavior auto-evicts after every successful

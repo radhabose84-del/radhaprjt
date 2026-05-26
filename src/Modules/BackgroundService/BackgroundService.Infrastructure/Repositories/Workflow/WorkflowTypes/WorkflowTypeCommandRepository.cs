@@ -25,6 +25,14 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.WorkflowTypes
             return workflowType.Id;
         }
 
+        public async Task<List<int>> CreateBulkAsync(List<WorkflowType> workflowTypes)
+        {
+            await _notificationDbContext.WorkflowType.AddRangeAsync(workflowTypes);
+            await _notificationDbContext.SaveChangesAsync();
+
+            return workflowTypes.Select(x => x.Id).ToList();
+        }
+
         public async Task<bool> DeleteAsync(int id, WorkflowType workflowType)
         {
               var WorkFlowDelete = await _notificationDbContext.WorkflowType.FirstOrDefaultAsync(u => u.Id == id);
@@ -47,6 +55,7 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.WorkflowTypes
                 existingWorkflow.ModuleId = workflowType.ModuleId;
                 existingWorkflow.HasLine = workflowType.HasLine;
                 existingWorkflow.IsMultiselect = workflowType.IsMultiselect;
+                existingWorkflow.TransactionTypeId = workflowType.TransactionTypeId;
                 existingWorkflow.IsActive = workflowType.IsActive;
                 _notificationDbContext.WorkflowType.Update(existingWorkflow);
 

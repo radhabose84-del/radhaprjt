@@ -11,6 +11,8 @@ namespace BackgroundService.Application.Workflow.WorkflowTypes.Queries.GetAllWor
         public int ModuleId { get; set; }
         public int MenuId { get; set; }
         public string MenuName { get; set; }
+        public int? TransactionTypeId { get; set; }
+        public string? TransactionTypeName { get; set; }
         public byte HasLine { get; set; }
         public byte IsMultiselect { get; set; }
         public byte IsActive { get; set; }
