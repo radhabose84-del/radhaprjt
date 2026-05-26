@@ -31,6 +31,7 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (DispatchAdvice)
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsStatus { get; set; }
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsDispatchType { get; set; }
+        public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsTransportMode { get; set; }
 
         // Reverse navigation (SalesOrderDiscount)
         public ICollection<SalesOrderDiscount>? SalesOrderDiscountsAsSlabType { get; set; }

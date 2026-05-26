@@ -93,6 +93,12 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                             .MustAsync(async (id, ct) => await _queryRepository.DispatchAddressExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateDispatchAdviceCommand.DispatchAddressId)} {rule.Error}")
                             .When(x => x.DispatchAddressId.HasValue && x.DispatchAddressId > 0);
+
+                        // TransportMode must reference a valid MiscMaster record
+                        RuleFor(x => x.TransportMode)
+                            .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.TransportMode)} {rule.Error}")
+                            .When(x => x.TransportMode.HasValue && x.TransportMode > 0);
                         break;
 
                     case "GreaterThan":
