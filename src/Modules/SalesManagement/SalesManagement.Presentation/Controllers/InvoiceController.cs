@@ -126,8 +126,10 @@ namespace SalesManagement.Presentation.Controllers
             return Ok(new
             {
                 statusCode = StatusCodes.Status200OK,
-                data = new { rows, totalCount = total, pageNumber, pageSize, searchTerm },
-                message = "Pending Invoice details fetched successfully."
+                data = rows,
+                totalCount = total,
+                pageNumber,
+                pageSize
             });
         }
 

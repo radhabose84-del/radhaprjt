@@ -20,17 +20,26 @@ namespace ProductionManagement.UnitTests.Validators.Production
             WarehouseId = 1,
             IsActive = 1,
             ItemId = 1,
-            LotId = 1,
-            PackTypeId = 1,
-            StartPackNo = 1,
-            EndPackNo = 5,
             BinId = 1,
             QualityStatusId = 1,
-            NetWeightPerPack = 10m,
-            TotalBags = 5,
-            TotalNetWeight = 50m,
-            ProductionKgs = 48m,
-            LooseConeKgs = 2m
+            Details = new List<UpdateProductionDetailItem>
+            {
+                new()
+                {
+                    LotId = 1,
+                    PackTypeId = 1,
+                    NetWeightPerPack = 10m,
+                    TypeId = 1,
+                    StartPackNo = 1,
+                    EndPackNo = 5,
+                    OpeningLooseKgs = 0m,
+                    TotalProductionKgs = 50m,
+                    TotalBags = 5,
+                    TotalNetWeight = 50m,
+                    ProductionKgs = 48m,
+                    LooseConeKgs = 2m
+                }
+            }
         };
 
         [Fact]
@@ -54,6 +63,17 @@ namespace ProductionManagement.UnitTests.Validators.Production
         }
 
         [Fact]
+        public async Task Validate_EmptyDetailsList_FailsValidation()
+        {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            var dto = ValidDto();
+            dto.Details = new List<UpdateProductionDetailItem>();
+            var cmd = new UpdateProductionCommand { ProductionPackEntries = dto };
+            var result = await CreateValidator().TestValidateAsync(cmd);
+            result.ShouldHaveAnyValidationError();
+        }
+
+        [Fact]
         public async Task Validate_ValidCommand_PassesRequiredChecks()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
@@ -63,6 +83,7 @@ namespace ProductionManagement.UnitTests.Validators.Production
             _mockQueryRepo.Setup(r => r.ItemExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.BinExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.QualityStatusExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.PackOverlapExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(false);
 
             var cmd = new UpdateProductionCommand
