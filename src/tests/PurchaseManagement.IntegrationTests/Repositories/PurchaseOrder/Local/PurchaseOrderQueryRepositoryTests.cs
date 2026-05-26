@@ -59,5 +59,17 @@ namespace PurchaseManagement.IntegrationTests.Repositories.PurchaseOrder.Local
             result.Should().NotBeNull();
             result.Items.Should().BeEmpty();
         }
+
+        [Fact]
+        public async Task GetMyPurchaseOrdersAsync_Should_Return_Empty_When_NoData()
+        {
+            await _fixture.ClearAllTablesAsync();
+
+            var result = await CreateRepo().GetMyPurchaseOrdersAsync(123, 1, 10, null, null, null, null, CancellationToken.None);
+
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+            result.Total.Should().Be(0);
+        }
     }
 }

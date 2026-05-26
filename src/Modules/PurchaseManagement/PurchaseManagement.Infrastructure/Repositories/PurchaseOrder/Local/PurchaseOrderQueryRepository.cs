@@ -140,6 +140,115 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             Items = items,
         };
     }
+    public async Task<PagedResult<PurchaseOrderListItemDto>> GetMyPurchaseOrdersAsync(
+        int vendorPartyId,
+        int page,
+        int size,
+        string? searchTerm,
+        int? poMethodId,
+        int? statusId,
+        int? budgetGroupId,
+        CancellationToken ct)
+    {
+        const string sql = @"
+        -- Count
+        SELECT COUNT(1)
+        FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+        WHERE h.IsDeleted = 0
+          AND h.IsActive  = 1
+          AND h.VendorId  = @VendorId
+          AND (@Search IS NULL OR @Search = '' OR h.PONumber LIKE @LikeSearch )
+          AND (@PoMethodId IS NULL OR h.POMethodId = @PoMethodId)
+          AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+          AND (@StatusId IS NULL OR h.StatusId = @StatusId);
+
+        -- Page
+          SELECT
+           h.Id, h.PONumber, h.PODate, h.VendorId, h.StatusId,
+            h.PurchaseValue, h.ItemTotal, h.DiscountTotal, h.PandFTotal, h.MiscCharges,
+            h.GSTTotal, h.CGSTTotal, h.SGSTTotal, h.IGSTTotal, h.FreightTotal,
+            h.InsuranceTotal, h.TDSTotal, h.AdvanceAmount,
+            mStatus.Code AS StatusCode,
+            mCat.Code    AS POCategoryCode,
+            mMethod.Code AS POMethodCode, mMethod.id as POMethodId,h.BudgetGroupId,h.ItemCategoryId,
+            CASE
+                WHEN x.HasGRN  = 1 THEN 2
+                WHEN x.HasGate = 1 THEN 2
+                WHEN mStatus.Code = @Approved THEN 1
+                WHEN mStatus.Code = @Pending  THEN 0
+                ELSE 0
+            END AS Edit,
+            CASE
+                WHEN x.HasGRN  = 1 THEN N'GRN exists for this PO. Edit/Amendment is not allowed'
+                WHEN x.HasGate = 1 THEN N'Gate Entry exists for this PO. Edit/Amendment is not allowed'
+                WHEN mStatus.Code = @Approved THEN N'This PO is approved; editing it will create an amendment and assign a new PO number with a revision code.'
+                WHEN mStatus.Code = @Pending  THEN NULL
+            END AS EditReason,
+            h.RevisionNo,
+            h.AmendmentReason,
+            CASE
+                WHEN LOWER(mStatus.Code) = LOWER(@Approved)
+                THEN CASE WHEN x.HasGRN = 1 THEN 'Y' ELSE 'N' END
+                ELSE NULL
+            END AS GRNFlag,
+            CAST(CASE WHEN mStatus.Code = @Cancelled THEN 1 ELSE 0 END AS BIT) AS IsCancelled,
+            CAST(CASE WHEN mStatus.Code = @ForeClosed THEN 1 ELSE 0 END AS BIT) AS IsForeclosed,
+            CAST(CASE WHEN x.HasGRN = 0 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanCancel,
+            CAST(CASE WHEN x.HasGRN = 1 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanForeclose,
+            h.CancelledDate,
+            h.CancelledByName,
+            h.CancelledIP,
+            h.ForeClosedDate,
+            h.ForeClosedByName,
+            h.ForeClosedIP
+        FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+        LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
+        LEFT JOIN Purchase.MiscMaster mCat    WITH (NOLOCK) ON mCat.Id    = h.POCategoryId
+         LEFT JOIN Purchase.MiscMaster mMethod WITH (NOLOCK) ON mMethod.Id = h.POMethodId
+        OUTER APPLY (
+            SELECT
+                CASE WHEN EXISTS (SELECT 1 FROM Purchase.GrnDetail       gd WITH (NOLOCK) WHERE gd.PoId = h.Id) THEN 1 ELSE 0 END AS HasGRN,
+                CASE WHEN EXISTS (SELECT 1 FROM Purchase.GateEntryDetail ge WITH (NOLOCK) WHERE ge.PoId = h.Id) THEN 1 ELSE 0 END AS HasGate
+        ) x
+        WHERE h.IsDeleted = 0
+          AND h.IsActive  = 1
+          AND h.VendorId  = @VendorId
+          AND (@PoMethodId IS NULL OR h.POMethodId = @PoMethodId)
+          AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+          AND (@StatusId IS NULL OR h.StatusId = @StatusId)
+        ORDER BY h.Id DESC
+        OFFSET @off ROWS FETCH NEXT @size ROWS ONLY;";
+
+        var like = string.IsNullOrWhiteSpace(searchTerm) ? null : $"%{searchTerm.Trim()}%";
+
+        using var multi = await _conn.QueryMultipleAsync(sql, new
+        {
+            VendorId = vendorPartyId,
+            Search = searchTerm,
+            LikeSearch = like,
+            PoMethodId = poMethodId,
+            BudgetGroupId = budgetGroupId,
+            off = Math.Max(0, (page - 1) * size),
+            size,
+            Pending = MiscEnumEntity.Pending,
+            Approved = MiscEnumEntity.Approved,
+            Cancelled = MiscEnumEntity.Cancelled,
+            ForeClosed = MiscEnumEntity.ForeClosed,
+            StatusId = statusId
+        });
+
+        var total = await multi.ReadFirstAsync<int>();
+        var items = (await multi.ReadAsync<PurchaseOrderListItemDto>()).ToList();
+
+        return new PagedResult<PurchaseOrderListItemDto>
+        {
+            Page = page,
+            PageSize = size,
+            Total = total,
+            Items = items,
+        };
+    }
+
     public async Task<PurchaseOrderDetailDto?> GetByIdAsync(int id, CancellationToken ct)
     {
         // header

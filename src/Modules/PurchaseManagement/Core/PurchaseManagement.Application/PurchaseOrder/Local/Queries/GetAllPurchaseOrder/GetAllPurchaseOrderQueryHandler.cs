@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Budget;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
@@ -12,17 +13,20 @@ public class GetPurchaseOrdersQueryHandler
     : IRequestHandler<GetPurchaseOrdersQuery, PagedResult<PurchaseOrderListItemDto>>
 {
     private readonly IPurchaseOrderQueryRepository _repo;
+    private readonly IIPAddressService _ip;
     private readonly IPartyLookup _partyLookup;
     private readonly IBudgetGroupLookup _budgetGroupLookup;
     private readonly IInventoryCategoryLookup _inventoryCategoryLookup;
 
     public GetPurchaseOrdersQueryHandler(
         IPurchaseOrderQueryRepository repo,
+        IIPAddressService ip,
         IPartyLookup partyLookup,
         IBudgetGroupLookup budgetGroupLookup,
         IInventoryCategoryLookup inventoryCategoryLookup)
     {
         _repo = repo;
+        _ip = ip;
         _partyLookup = partyLookup;
         _budgetGroupLookup = budgetGroupLookup;
         _inventoryCategoryLookup = inventoryCategoryLookup;
@@ -31,9 +35,16 @@ public class GetPurchaseOrdersQueryHandler
 
     public async Task<PagedResult<PurchaseOrderListItemDto>> Handle(GetPurchaseOrdersQuery request, CancellationToken ct)
     {
+        // Supplier-scoped view when the JWT carries a PartyId (supplier portal login).
+        // Buyer / internal users have no PartyId → fall back to the buyer-scoped list (filtered by UnitId in repo).
+        var partyId = _ip.GetPartyId();
+
         // ---------- STEP 1: Fetch POs ----------
-        var page = await _repo.GetAllAsync(request.PageNumber, request.PageSize,
-            request.SearchTerm, request.PoMethodId, request.StatusId, request.BudgetGroupId, ct);
+        var page = (partyId.HasValue && partyId.Value > 0)
+            ? await _repo.GetMyPurchaseOrdersAsync(partyId.Value, request.PageNumber, request.PageSize,
+                request.SearchTerm, request.PoMethodId, request.StatusId, request.BudgetGroupId, ct)
+            : await _repo.GetAllAsync(request.PageNumber, request.PageSize,
+                request.SearchTerm, request.PoMethodId, request.StatusId, request.BudgetGroupId, ct);
 
         if (page.Items.Count == 0)
             return page;
