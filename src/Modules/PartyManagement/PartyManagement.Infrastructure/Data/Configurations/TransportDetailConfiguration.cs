@@ -21,6 +21,10 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.TransporterTypeId)
+                .HasColumnName("TransporterTypeId")
+                .HasColumnType("int");
+
             builder.Property(t => t.TransportModeId)
                 .HasColumnName("TransportModeId")
                 .HasColumnType("int");
@@ -38,6 +42,11 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired(false);
 
+            builder.Property(t => t.MinFreightAmount)
+                .HasColumnName("MinFreightAmount")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
             builder.Property(t => t.LicenseNo)
                 .HasColumnName("LicenseNo")
                 .HasColumnType("nvarchar(50)");
@@ -51,6 +60,21 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnName("VehicleNo")
                 .HasColumnType("nvarchar(50)");
 
+            builder.Property(t => t.InsuranceProvider)
+                .HasColumnName("InsuranceProvider")
+                .HasColumnType("nvarchar(100)")
+                .IsRequired(false);
+
+            builder.Property(t => t.PolicyNo)
+                .HasColumnName("PolicyNo")
+                .HasColumnType("nvarchar(50)")
+                .IsRequired(false);
+
+            builder.Property(t => t.InsuranceExpiryDate)
+                .HasColumnName("InsuranceExpiryDate")
+                .HasColumnType("datetimeoffset")
+                .IsRequired(false);
+
             builder.Property(t => t.Status)
                 .HasColumnName("Status")
                 .HasColumnType("tinyint")
@@ -60,6 +84,9 @@ namespace PartyManagement.Infrastructure.Data.Configurations
             // Indexes
             builder.HasIndex(t => t.PartyId)
                 .HasDatabaseName("IX_TransportDetail_PartyId");
+
+            builder.HasIndex(t => t.TransporterTypeId)
+                .HasDatabaseName("IX_TransportDetail_TransporterTypeId");
 
             builder.HasIndex(t => t.TransportModeId)
                 .HasDatabaseName("IX_TransportDetail_TransportModeId");
@@ -74,6 +101,12 @@ namespace PartyManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.PartyMaster)
                 .WithMany(p => p.TransportDetails)
                 .HasForeignKey(t => t.PartyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // FK to MiscMaster (TransporterType)
+            builder.HasOne(t => t.TransporterTypeMisc)
+                .WithMany(m => m.TransportDetailTransporterType)
+                .HasForeignKey(t => t.TransporterTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // FK to MiscMaster (TransportMode)

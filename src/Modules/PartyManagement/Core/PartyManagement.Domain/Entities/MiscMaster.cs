@@ -29,6 +29,7 @@ namespace PartyManagement.Domain.Entities
         public ICollection<BankAccount>? BankAccountBranch { get; set; }
         public ICollection<SalesType>? SalesTypeShippingCondition { get; set; }
         public ICollection<SalesType>? SalesTypeAccountAssignment { get; set; }
+        public ICollection<TransportDetail>? TransportDetailTransporterType { get; set; }
         public ICollection<TransportDetail>? TransportDetailTransportMode { get; set; }
         public ICollection<TransportDetail>? TransportDetailVehicleType { get; set; }
         public ICollection<TransportDetail>? TransportDetailDefaultFreightType { get; set; }
