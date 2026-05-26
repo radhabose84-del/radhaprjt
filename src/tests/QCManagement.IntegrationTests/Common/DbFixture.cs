@@ -115,6 +115,14 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'QC')
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
         }
 
+        public async Task ClearTablesAsync(params string[] schemaQualifiedTables)
+        {
+            await using var cnn = new SqlConnection(_testDbConnection);
+            await cnn.OpenAsync();
+            foreach (var table in schemaQualifiedTables)
+                await cnn.ExecuteAsync($"DELETE FROM {table}");
+        }
+
         public async Task DisposeAsync()
         {
             if (DbContext != null)
