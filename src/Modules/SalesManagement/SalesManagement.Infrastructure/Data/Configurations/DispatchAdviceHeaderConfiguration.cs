@@ -88,6 +88,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            builder.Property(t => t.TransportMode)
+                .HasColumnName("TransportMode")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.VehicleNo)
                 .HasColumnName("VehicleNo")
                 .HasColumnType("varchar(20)")
@@ -158,6 +163,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.DispatchTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(t => t.TransportModeMisc)
+                .WithMany(m => m.DispatchAdviceHeadersAsTransportMode)
+                .HasForeignKey(t => t.TransportMode)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.DispatchAddress)
                 .WithMany(d => d.DispatchAdviceHeaders)
                 .HasForeignKey(t => t.DispatchAddressId)
@@ -177,6 +188,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.StatusId);
             builder.HasIndex(t => t.DispatchTypeId);
             builder.HasIndex(t => t.FreightId);
+            builder.HasIndex(t => t.TransportMode);
             builder.HasIndex(t => t.DispatchDate);
         }
     }
