@@ -158,6 +158,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             SELECT
                 td.Id,
                 td.PartyId,
+                td.TransporterTypeId,
+                tt.Description AS TransporterTypeName,
                 td.TransportModeId,
                 tm.Description AS TransportModeName,
                 td.VehicleTypeId,
@@ -165,11 +167,16 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 td.DefaultFreightTypeId,
                 dft.Description AS DefaultFreightTypeName,
                 td.DefaultFreightRate,
+                td.MinFreightAmount,
                 td.LicenseNo,
                 td.LicenseExpiryDate,
                 td.VehicleNo,
+                td.InsuranceProvider,
+                td.PolicyNo,
+                td.InsuranceExpiryDate,
                 td.Status
             FROM Party.TransportDetail td
+            LEFT JOIN Party.MiscMaster tt ON td.TransporterTypeId = tt.Id AND tt.IsDeleted = 0
             LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
             LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
             LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
@@ -600,12 +607,18 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
                 // ─── Step 5: Fetch TransportDetails (Status = 1 only) ───
                 const string transportSql = @"
-                    SELECT td.Id, td.PartyId, td.TransportModeId, tm.Description AS TransportModeName,
+                    SELECT td.Id, td.PartyId,
+                        td.TransporterTypeId, tt.Description AS TransporterTypeName,
+                        td.TransportModeId, tm.Description AS TransportModeName,
                         td.VehicleTypeId, vt.Description AS VehicleTypeName,
                         td.DefaultFreightTypeId, dft.Description AS DefaultFreightTypeName,
-                        td.DefaultFreightRate, td.LicenseNo, td.LicenseExpiryDate,
-                        td.VehicleNo, td.Status
+                        td.DefaultFreightRate, td.MinFreightAmount,
+                        td.LicenseNo, td.LicenseExpiryDate,
+                        td.VehicleNo,
+                        td.InsuranceProvider, td.PolicyNo, td.InsuranceExpiryDate,
+                        td.Status
                     FROM Party.TransportDetail td
+                    LEFT JOIN Party.MiscMaster tt ON td.TransporterTypeId = tt.Id AND tt.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
