@@ -45,7 +45,7 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
             var searchFilter = string.IsNullOrWhiteSpace(searchTerm)
                 ? ""
-                : "AND (h.PackNo LIKE @Search OR h.Remarks LIKE @Search)";
+                : "AND (h.PackNo LIKE @Search)";
 
             var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
 
@@ -57,21 +57,14 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
                 SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
-                    h.ItemId, h.VariantId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
-                    h.StartPackNo, h.EndPackNo,
-                    h.OpeningLooseKgs, h.TotalProductionKgs,
-                    h.TotalBags, h.TotalNetWeight,
-                    h.ProductionKgs, h.LooseConeKgs,
+                    h.ItemId, h.VariantId,
                     h.BinId, h.QualityStatusId,
-                    h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName,
-                    lm.LotCode,
-                    pt.PackTypeName
+                    qs.Description AS QualityStatusName
                 FROM Production.ProductionPackEntry h
-                LEFT JOIN Production.LotMaster lm ON h.LotId = lm.Id AND lm.IsDeleted = 0
-                LEFT JOIN Production.PackType   pt ON h.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                LEFT JOIN Production.MiscMaster qs ON h.QualityStatusId = qs.Id AND qs.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {unitFilter} {searchFilter}
                 ORDER BY h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -131,34 +124,27 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             var unitId     = _ipAddressService.GetUnitId();
             var unitFilter = unitId.HasValue ? "AND h.UnitId = @UnitId" : "";
 
-            var sql = $@"
+            // Fetch header
+            var headerSql = $@"
                 SELECT h.Id, h.PackNo, h.PackDate, h.ProductionYear,
                     h.UnitId, h.WarehouseId,
-                    h.ItemId, h.VariantId, h.LotId, h.PackTypeId, h.NetWeightPerPack,
-                    h.StartPackNo, h.EndPackNo,
-                    h.OpeningLooseKgs, h.TotalProductionKgs,
-                    h.TotalBags, h.TotalNetWeight,
-                    h.ProductionKgs, h.LooseConeKgs,
+                    h.ItemId, h.VariantId,
                     h.BinId, h.QualityStatusId,
-                    h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName,
-                    lm.LotCode,
-                    pt.PackTypeName,
                     qs.Description AS QualityStatusName
                 FROM Production.ProductionPackEntry h
-                LEFT JOIN Production.LotMaster  lm ON h.LotId           = lm.Id AND lm.IsDeleted = 0
-                LEFT JOIN Production.PackType    pt ON h.PackTypeId       = pt.Id AND pt.IsDeleted = 0
-                LEFT JOIN Production.MiscMaster  qs ON h.QualityStatusId  = qs.Id AND qs.IsDeleted = 0
+                LEFT JOIN Production.MiscMaster qs ON h.QualityStatusId = qs.Id AND qs.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0 {unitFilter}";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<ProductionPackHeaderDto>(
-                sql, new { Id = id, UnitId = unitId });
+                headerSql, new { Id = id, UnitId = unitId });
 
             if (dto == null)
                 return null;
 
+            // Populate cross-module names for header
             var unitLookup = await _unitLookup.GetByIdAsync(dto.UnitId);
             dto.UnitName = unitLookup?.UnitName;
 
@@ -179,6 +165,29 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 var bins = await _binLookup.GetByIdsAsync(new[] { dto.BinId.Value });
                 dto.BinName = bins.FirstOrDefault()?.BinName;
             }
+
+            // Fetch details separately (with same-module JOINs)
+            const string detailSql = @"
+                SELECT d.Id, d.ProductionPackEntryId,
+                    d.LotId, d.PackTypeId, d.NetWeightPerPack,
+                    d.TypeId,
+                    d.StartPackNo, d.EndPackNo,
+                    d.OpeningLooseKgs, d.TotalProductionKgs,
+                    d.TotalBags, d.TotalNetWeight,
+                    d.ProductionKgs, d.LooseConeKgs,
+                    d.Remarks,
+                    lm.LotCode,
+                    pt.PackTypeName,
+                    mm.Description AS TypeName
+                FROM Production.ProductionPackEntryDetail d
+                LEFT JOIN Production.LotMaster lm ON d.LotId = lm.Id AND lm.IsDeleted = 0
+                LEFT JOIN Production.PackType  pt ON d.PackTypeId = pt.Id AND pt.IsDeleted = 0
+                LEFT JOIN Production.MiscMaster mm ON d.TypeId = mm.Id AND mm.IsDeleted = 0
+                WHERE d.ProductionPackEntryId = @Id
+                ORDER BY d.Id";
+
+            dto.Details = (await _dbConnection.QueryAsync<ProductionPackDetailDto>(
+                detailSql, new { Id = id })).ToList();
 
             return dto;
         }
@@ -279,6 +288,17 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = qualityStatusId });
         }
 
+        public async Task<bool> MiscMasterExistsAsync(int id)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Production.MiscMaster
+                    WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        }
+
         public async Task<int> GetLastEndPackNoAsync(int productionYear)
         {
             var unitId = _ipAddressService.GetUnitId() ?? 0;
@@ -286,26 +306,28 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
         }
 
         public async Task<bool> PackOverlapExistsAsync(
-            int lotId, int startPackNo, int endPackNo, int? excludeId = null)
+            int lotId, int startPackNo, int endPackNo, int? excludeHeaderId = null)
         {
-            var excludeFilter = excludeId.HasValue ? "AND h.Id != @ExcludeId" : "";
+            // Queries the detail table; excludes all details of the header being updated
+            var excludeFilter = excludeHeaderId.HasValue ? "AND h.Id != @ExcludeHeaderId" : "";
 
             var sql = $@"
                 SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM Production.ProductionPackEntry h
-                    WHERE h.LotId = @LotId
-                        AND h.StartPackNo <= @EndPackNo
-                        AND h.EndPackNo >= @StartPackNo
+                    SELECT 1 FROM Production.ProductionPackEntryDetail d
+                    INNER JOIN Production.ProductionPackEntry h ON d.ProductionPackEntryId = h.Id
+                    WHERE d.LotId = @LotId
+                        AND d.StartPackNo <= @EndPackNo
+                        AND d.EndPackNo >= @StartPackNo
                         AND h.IsDeleted = 0
                         {excludeFilter}
                 ) THEN 1 ELSE 0 END";
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new
             {
-                LotId       = lotId,
-                StartPackNo = startPackNo,
-                EndPackNo   = endPackNo,
-                ExcludeId   = excludeId
+                LotId           = lotId,
+                StartPackNo     = startPackNo,
+                EndPackNo       = endPackNo,
+                ExcludeHeaderId = excludeHeaderId
             });
         }
 

@@ -1,33 +1,22 @@
 namespace ProductionManagement.Application.ProductionPack.Dto
 {
-    public class CreateProductionDto
+    public class ProductionPackDetailDto
     {
-        public DateOnly PackDate { get; set; }
-        public int ProductionYear { get; set; }
-        public int WarehouseId { get; set; }
+        public int Id { get; set; }
+        public int ProductionPackEntryId { get; set; }
 
-        // Item identification
-        public int ItemId { get; set; }
-        public int? VariantId { get; set; }
-
-        // Location & quality (optional)
-        public int? BinId { get; set; }
-        public int? QualityStatusId { get; set; }
-
-        // Detail rows (lot-level)
-        public List<CreateProductionDetailItem> Details { get; set; } = new();
-    }
-
-    public class CreateProductionDetailItem
-    {
+        // Lot / Pack identification
         public int LotId { get; set; }
+        public string? LotCode { get; set; }
         public int? PackTypeId { get; set; }
+        public string? PackTypeName { get; set; }
         public decimal? NetWeightPerPack { get; set; }
 
         // Type: Loose Cone / Packed (FK to MiscMaster)
         public int? TypeId { get; set; }
+        public string? TypeName { get; set; }
 
-        // Pack range (null = loose cone / production-only)
+        // Pack range
         public int? StartPackNo { get; set; }
         public int? EndPackNo { get; set; }
 

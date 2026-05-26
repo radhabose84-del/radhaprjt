@@ -74,14 +74,11 @@ namespace PurchaseManagement.Presentation.Controllers
 
             return Ok(new
             {
-                StatusCode = StatusCodes.Status200OK,
-                page = result.Page,
-                pageSize = result.PageSize,
-                totalCount = result.Total,
+                statusCode = StatusCodes.Status200OK,
                 data = result.Items,
-                message = result.Items.Count > 0
-                    ? $"Fetched {result.Items.Count} record(s) out of {result.Total}."
-                    : "No records found."
+                totalCount = result.Total,
+                pageNumber,
+                pageSize
             });
         }
 
@@ -126,8 +123,10 @@ namespace PurchaseManagement.Presentation.Controllers
             return Ok(new
             {
                 statusCode = StatusCodes.Status200OK,
-                data = new { rows , totalCount = total, pageNumber, pageSize, searchTerm },
-                message = "Pending Price Master fetched successfully."
+                data = rows,
+                totalCount = total,
+                pageNumber,
+                pageSize
             });
         }  
     }
