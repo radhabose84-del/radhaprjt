@@ -46,7 +46,9 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     h.VehicleNumber, h.DriverName, h.DriverMobile, h.TransporterName,
                     h.UnitId,
                     h.TotalItems, h.TotalDocumentQty, h.TotalDispatchQty,
-                    h.ReturnableItems, h.TotalValue, h.Remarks,
+                    h.ReturnableItems, h.TotalValue,
+                    h.GrossWeight, h.TareWeight, h.NetWeight,
+                    h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
@@ -78,7 +80,9 @@ namespace GateEntryManagement.Infrastructure.Repositories.GatePass
                     vmr.GateInTime, vmr.GateOutTime,
                     h.UnitId,
                     h.TotalItems, h.TotalDocumentQty, h.TotalDispatchQty,
-                    h.ReturnableItems, h.TotalValue, h.Remarks,
+                    h.ReturnableItems, h.TotalValue,
+                    h.GrossWeight, h.TareWeight, h.NetWeight,
+                    h.Remarks,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
                     h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP

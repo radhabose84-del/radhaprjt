@@ -20,6 +20,12 @@ namespace GateEntryManagement.Application.GatePass.Dto
         public decimal TotalDispatchQty { get; set; }
         public int? ReturnableItems { get; set; }
         public decimal TotalValue { get; set; }
+
+        // Weighbridge
+        public decimal? GrossWeight { get; set; }
+        public decimal? TareWeight { get; set; }
+        public decimal? NetWeight { get; set; }
+
         public string? Remarks { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
