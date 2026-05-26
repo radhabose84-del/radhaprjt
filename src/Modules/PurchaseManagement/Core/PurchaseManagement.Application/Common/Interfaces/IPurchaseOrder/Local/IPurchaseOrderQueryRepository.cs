@@ -7,6 +7,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 public interface IPurchaseOrderQueryRepository
 {
     Task<PagedResult<PurchaseOrderListItemDto>> GetAllAsync(int page, int size, string? search,int? poMethodId,int? statusId, int? budgetGroupId, CancellationToken ct);
+    Task<PagedResult<PurchaseOrderListItemDto>> GetMyPurchaseOrdersAsync(int vendorPartyId, int page, int size, string? search, int? poMethodId, int? statusId, int? budgetGroupId, CancellationToken ct);
     Task<PurchaseOrderDetailDto?> GetByIdAsync(int id, CancellationToken ct);
     Task<IEnumerable<AutocompleteDto>> GetAutocompleteAsync(string? term, int? poMethodId, int? budgetGroupId, CancellationToken ct);
     Task<(List<GetPOLocalPendingGroupDto> Rows, int Total)> GetPOPendingAsync(int? page, int? size, string? search, int? poId, int? poMethodId, CancellationToken ct);
