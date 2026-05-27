@@ -4431,6 +4431,414 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("ServiceEntrySheetDocuments", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.PurchaseReturnDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AcceptedQty")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("GrnDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LineRemarks")
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<decimal?>("LineValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PurchaseReturnHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("RatePerUnit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("ReceivedQty")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("ReturnQty")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int?>("ReturnReasonId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UomId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrnDetailId")
+                        .HasDatabaseName("IX_PurchaseReturnDetail_GrnDetailId");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("IX_PurchaseReturnDetail_ItemId");
+
+                    b.HasIndex("PurchaseReturnHeaderId")
+                        .HasDatabaseName("IX_PurchaseReturnDetail_PurchaseReturnHeaderId");
+
+                    b.HasIndex("ReturnReasonId");
+
+                    b.ToTable("PurchaseReturnDetail", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.PurchaseReturnHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ApprovalRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("GrnHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDebitNoteRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsQcVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReplacementRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("PoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTimeOffset?>("ReplacementClosedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ReplacementStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReturnActionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReturnReasonId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReturnTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("RtvDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("RtvNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrnHeaderId")
+                        .HasDatabaseName("IX_PurchaseReturnHeader_GrnHeaderId");
+
+                    b.HasIndex("PoId")
+                        .HasDatabaseName("IX_PurchaseReturnHeader_PoId");
+
+                    b.HasIndex("ReplacementStatusId");
+
+                    b.HasIndex("ReturnActionId");
+
+                    b.HasIndex("ReturnReasonId");
+
+                    b.HasIndex("ReturnTypeId");
+
+                    b.HasIndex("RtvNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_PurchaseReturnHeader_RtvNumber");
+
+                    b.HasIndex("StatusId")
+                        .HasDatabaseName("IX_PurchaseReturnHeader_StatusId");
+
+                    b.HasIndex("VendorId")
+                        .HasDatabaseName("IX_PurchaseReturnHeader_VendorId");
+
+                    b.HasIndex("UnitId", "IsDeleted")
+                        .HasDatabaseName("IX_PurchaseReturnHeader_Unit_NotDeleted");
+
+                    b.ToTable("PurchaseReturnHeader", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnReason", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool?>("IsDebitNoteOverride")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool?>("IsQcMandatoryOverride")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsReplacementOverride")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("ReturnTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ReturnReason_Code");
+
+                    b.HasIndex("ReturnTypeId")
+                        .HasDatabaseName("IX_ReturnReason_ReturnTypeId");
+
+                    b.ToTable("ReturnReason", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApprovalRoleCode")
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("FinanceImpactId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InventoryImpactId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsQcMandatory")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReplacementApplicable")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_ReturnType_Code");
+
+                    b.HasIndex("FinanceImpactId")
+                        .HasDatabaseName("IX_ReturnType_FinanceImpactId");
+
+                    b.HasIndex("InventoryImpactId")
+                        .HasDatabaseName("IX_ReturnType_InventoryImpactId");
+
+                    b.ToTable("ReturnType", "Purchase");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -6480,6 +6888,118 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("ServiceEntrySheet");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.PurchaseReturnDetail", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnDetail", "GrnDetail")
+                        .WithMany()
+                        .HasForeignKey("GrnDetailId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseReturn.PurchaseReturnHeader", "PurchaseReturnHeader")
+                        .WithMany("Details")
+                        .HasForeignKey("PurchaseReturnHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnReason", "ReturnReason")
+                        .WithMany("PurchaseReturnDetailReasons")
+                        .HasForeignKey("ReturnReasonId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("GrnDetail");
+
+                    b.Navigation("PurchaseReturnHeader");
+
+                    b.Navigation("ReturnReason");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.PurchaseReturnHeader", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnHeader", "GrnHeader")
+                        .WithMany()
+                        .HasForeignKey("GrnHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader", "Po")
+                        .WithMany()
+                        .HasForeignKey("PoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "ReplacementStatus")
+                        .WithMany()
+                        .HasForeignKey("ReplacementStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "ReturnAction")
+                        .WithMany()
+                        .HasForeignKey("ReturnActionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnReason", "ReturnReason")
+                        .WithMany("PurchaseReturns")
+                        .HasForeignKey("ReturnReasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnType", "ReturnType")
+                        .WithMany("PurchaseReturns")
+                        .HasForeignKey("ReturnTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscStatus")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GrnHeader");
+
+                    b.Navigation("MiscStatus");
+
+                    b.Navigation("Po");
+
+                    b.Navigation("ReplacementStatus");
+
+                    b.Navigation("ReturnAction");
+
+                    b.Navigation("ReturnReason");
+
+                    b.Navigation("ReturnType");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnReason", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnType", "ReturnType")
+                        .WithMany("Reasons")
+                        .HasForeignKey("ReturnTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReturnType");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnType", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "FinanceImpact")
+                        .WithMany()
+                        .HasForeignKey("FinanceImpactId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "InventoryImpact")
+                        .WithMany()
+                        .HasForeignKey("InventoryImpactId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("FinanceImpact");
+
+                    b.Navigation("InventoryImpact");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonDetail", b =>
                 {
                     b.HasOne("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", "QuotationComparisonHeader")
@@ -7015,6 +7535,25 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("Activities");
 
                     b.Navigation("Documents");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.PurchaseReturnHeader", b =>
+                {
+                    b.Navigation("Details");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnReason", b =>
+                {
+                    b.Navigation("PurchaseReturnDetailReasons");
+
+                    b.Navigation("PurchaseReturns");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.PurchaseReturn.ReturnType", b =>
+                {
+                    b.Navigation("PurchaseReturns");
+
+                    b.Navigation("Reasons");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.Quotation.QuotationCompare.QuotationComparisonHeader", b =>

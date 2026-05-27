@@ -49,4 +49,50 @@ public sealed class CreateDeliveryChallanCommandValidatorTests
         var result = await CreateValidator().TestValidateAsync(cmd);
         result.ShouldHaveAnyValidationError();
     }
+
+    [Fact]
+    public async Task TransportModeId_Null_DoesNotInvokeFkCheck()
+    {
+        var cmd = ValidCommand();
+        cmd.TransportModeId = null;
+
+        await CreateValidator().TestValidateAsync(cmd);
+
+        _mockQueryRepo.Verify(r => r.TransportModeExistsAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task TransportModeId_Zero_DoesNotInvokeFkCheck()
+    {
+        var cmd = ValidCommand();
+        cmd.TransportModeId = 0;
+
+        await CreateValidator().TestValidateAsync(cmd);
+
+        _mockQueryRepo.Verify(r => r.TransportModeExistsAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task TransportModeId_Valid_PassesFkCheck()
+    {
+        var cmd = ValidCommand();
+        cmd.TransportModeId = 95; // ByRoad
+        _mockQueryRepo.Setup(r => r.TransportModeExistsAsync(95)).ReturnsAsync(true);
+
+        var result = await CreateValidator().TestValidateAsync(cmd);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.TransportModeId);
+    }
+
+    [Fact]
+    public async Task TransportModeId_InvalidId_FailsFkCheck()
+    {
+        var cmd = ValidCommand();
+        cmd.TransportModeId = 999; // not in MiscMaster under TransMode
+        _mockQueryRepo.Setup(r => r.TransportModeExistsAsync(999)).ReturnsAsync(false);
+
+        var result = await CreateValidator().TestValidateAsync(cmd);
+
+        result.ShouldHaveValidationErrorFor(x => x.TransportModeId);
+    }
 }

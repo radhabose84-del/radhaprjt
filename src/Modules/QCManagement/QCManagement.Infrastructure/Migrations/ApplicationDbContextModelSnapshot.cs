@@ -166,6 +166,103 @@ namespace QCManagement.Infrastructure.Migrations
                     b.ToTable("MiscTypeMaster", "QC");
                 });
 
+            modelBuilder.Entity("QCManagement.Domain.Entities.QualityParameter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DataTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DataTypeId");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Description");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("ParameterCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("ParameterCode");
+
+                    b.Property<int>("ParameterGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("ParameterGroupId");
+
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ParameterName");
+
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnitId");
+
+                    b.Property<int>("ValidationTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ValidationTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataTypeId");
+
+                    b.HasIndex("ParameterCode")
+                        .IsUnique();
+
+                    b.HasIndex("ParameterGroupId");
+
+                    b.HasIndex("ParameterName");
+
+                    b.HasIndex("UnitId");
+
+                    b.HasIndex("ValidationTypeId");
+
+                    b.ToTable("QualityParameter", "QC");
+                });
+
             modelBuilder.Entity("QCManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.HasOne("QCManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
@@ -175,6 +272,42 @@ namespace QCManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("MiscTypeMaster");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QualityParameter", b =>
+                {
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "DataType")
+                        .WithMany("QualityParametersAsDataType")
+                        .HasForeignKey("DataTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "ParameterGroup")
+                        .WithMany("QualityParametersAsParameterGroup")
+                        .HasForeignKey("ParameterGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "ValidationType")
+                        .WithMany("QualityParametersAsValidationType")
+                        .HasForeignKey("ValidationTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DataType");
+
+                    b.Navigation("ParameterGroup");
+
+                    b.Navigation("ValidationType");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.MiscMaster", b =>
+                {
+                    b.Navigation("QualityParametersAsDataType");
+
+                    b.Navigation("QualityParametersAsParameterGroup");
+
+                    b.Navigation("QualityParametersAsValidationType");
                 });
 
             modelBuilder.Entity("QCManagement.Domain.Entities.MiscTypeMaster", b =>

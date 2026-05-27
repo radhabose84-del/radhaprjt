@@ -1824,6 +1824,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("TransportDistance");
 
+                    b.Property<int?>("TransportModeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TransportModeId");
+
                     b.Property<int>("TransporterId")
                         .HasColumnType("int")
                         .HasColumnName("TransporterId");
@@ -1851,6 +1855,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("StoHeaderId");
 
                     b.HasIndex("ToPlantId");
+
+                    b.HasIndex("TransportModeId");
 
                     b.HasIndex("TransporterId");
 
@@ -7472,6 +7478,11 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "TransportMode")
+                        .WithMany("DeliveryChallanHeadersAsTransportMode")
+                        .HasForeignKey("TransportModeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("DcType");
 
                     b.Navigation("MovementType");
@@ -7479,6 +7490,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("Status");
 
                     b.Navigation("StoHeader");
+
+                    b.Navigation("TransportMode");
                 });
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.DiscountMaster", b =>
@@ -8540,6 +8553,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("DeliveryChallanHeadersAsDcType");
 
                     b.Navigation("DeliveryChallanHeadersAsStatus");
+
+                    b.Navigation("DeliveryChallanHeadersAsTransportMode");
 
                     b.Navigation("DiscountMastersAsCustomerGroup");
 

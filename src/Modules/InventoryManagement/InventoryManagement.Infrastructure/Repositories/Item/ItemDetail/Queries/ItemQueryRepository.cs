@@ -700,7 +700,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                        ISale.MinQuantity,
                        ISale.UomId AS SaleUomId,
                        USale.Code  AS SaleUom,
-                       IInv.DefaultPackTypeId
+                       II.DefaultPackTypeId
                 FROM Inventory.ItemMaster IM
                 INNER JOIN Inventory.HSNMaster HM ON IM.HSNId = HM.Id
                 LEFT JOIN Inventory.ItemPurchase P ON P.ItemId = IM.Id
@@ -708,7 +708,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
                 LEFT JOIN Inventory.ItemSale ISale ON ISale.ItemId = IM.Id
                 LEFT JOIN Inventory.UOM USale ON USale.Id = ISale.UomId
-                LEFT JOIN Inventory.ItemInventory IInv ON IInv.ItemId = IM.Id
+                LEFT JOIN Inventory.ItemInventory II ON II.ItemId = IM.Id
                 WHERE IM.IsDeleted = 0 AND IM.IsActive = 1";
 
             const string variantFilter = @"
@@ -802,8 +802,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                                 : new List<ItemCategoryUnitConfigDto>();
                     }
                 }
-
-                // Populate DefaultPackTypeName from cross-module lookup (ProductionManagement)
+// Populate DefaultPackTypeName from cross-module lookup (ProductionManagement)
                 var packTypeIds = itemList
                     .Where(i => i.DefaultPackTypeId.HasValue)
                     .Select(i => i.DefaultPackTypeId!.Value)
@@ -822,7 +821,6 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                     }
                 }
             }
-
             return itemList;
         }
 

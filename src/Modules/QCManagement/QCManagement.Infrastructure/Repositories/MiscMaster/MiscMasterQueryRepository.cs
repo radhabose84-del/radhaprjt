@@ -122,18 +122,32 @@ namespace QCManagement.Infrastructure.Repositories.MiscMaster
             return count > 0;
         }
 
-        public Task<bool> SoftDeleteValidationAsync(int id)
+        public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // No QC entities depend on MiscMaster yet. When QualityParameter is added,
-            // extend this query to check QC.QualityParameter (ParameterGroupId / DataTypeId / ValidationTypeId).
-            return Task.FromResult(false);
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [QC].[QualityParameter] WHERE ParameterGroupId = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [QC].[QualityParameter] WHERE DataTypeId       = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [QC].[QualityParameter] WHERE ValidationTypeId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
 
-        public Task<bool> IsMiscMasterLinkedAsync(int id)
+        public async Task<bool> IsMiscMasterLinkedAsync(int id)
         {
-            // No QC entities depend on MiscMaster yet. When QualityParameter is added,
-            // extend this query to check active QC.QualityParameter rows.
-            return Task.FromResult(false);
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [QC].[QualityParameter] WHERE ParameterGroupId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [QC].[QualityParameter] WHERE DataTypeId       = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [QC].[QualityParameter] WHERE ValidationTypeId = @id AND IsDeleted = 0 AND IsActive = 1
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
     }
 }

@@ -23,6 +23,9 @@ namespace SalesManagement.Domain.Entities
         public string? VehicleNumber { get; set; }
         public decimal? TransportDistance { get; set; }
 
+        // Transport Mode (same-module FK → Sales.MiscMaster, MiscType = "TransMode": ByRoad / ByAir)
+        public int? TransportModeId { get; set; }
+
         // Values
         public decimal DeliveryValue { get; set; }
         public decimal ConsignmentValue { get; set; }
@@ -43,6 +46,7 @@ namespace SalesManagement.Domain.Entities
         public StoHeader? StoHeader { get; set; }
         public MiscMaster? Status { get; set; }
         public MiscMaster? DcType { get; set; }
+        public MiscMaster? TransportMode { get; set; }
         public MovementTypeConfig? MovementType { get; set; }
 
         // Child collection

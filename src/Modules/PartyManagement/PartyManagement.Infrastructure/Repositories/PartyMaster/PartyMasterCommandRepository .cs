@@ -119,6 +119,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             // Update the existing PartyMaster properties
 
             existingParty.PartyName = partyMaster.PartyName;
+            existingParty.AlternateName = partyMaster.AlternateName;
+            existingParty.ShortName = partyMaster.ShortName;
+            existingParty.IsVerified = partyMaster.IsVerified;
+            existingParty.StatusControlId = partyMaster.StatusControlId;
             existingParty.PartyZoneId = partyMaster.PartyZoneId;
             existingParty.RegistrationTypeId = partyMaster.RegistrationTypeId;
             existingParty.GSTNumber = partyMaster.GSTNumber;
@@ -138,6 +142,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             existingParty.PayementModeId = partyMaster.PayementModeId;
             existingParty.FavourOf = partyMaster.FavourOf;
             existingParty.PreferredCurrencyPurchase = partyMaster.PreferredCurrencyPurchase;
+            existingParty.CreditDays = partyMaster.CreditDays;
+            existingParty.DueDateTypeId = partyMaster.DueDateTypeId;
+            existingParty.LeadTime = partyMaster.LeadTime;
+            existingParty.PreferredCurrencySale = partyMaster.PreferredCurrencySale;
             existingParty.CreditLimit = partyMaster.CreditLimit;
             existingParty.SellingPriceListId = partyMaster.SellingPriceListId;
             existingParty.CustomerTypeId = partyMaster.CustomerTypeId;
@@ -272,7 +280,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             existingChildpartyciontact.GenderId = incoming.GenderId;
                             existingChildpartyciontact.Designation = incoming.Designation;
                             existingChildpartyciontact.EmailID = incoming.EmailID;
+                            existingChildpartyciontact.AlternateEmailId = incoming.AlternateEmailId;
                             existingChildpartyciontact.MobileNo = incoming.MobileNo;
+                            existingChildpartyciontact.AlternateMobileNumber = incoming.AlternateMobileNumber;
                             existingChildpartyciontact.Phone = incoming.Phone;
                             existingChildpartyciontact.PreferredChannelId = incoming.PreferredChannelId;
                             existingChildpartyciontact.ContactTypeId = incoming.ContactTypeId;
@@ -290,7 +300,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             GenderId = incoming.GenderId,
                             Designation = incoming.Designation,
                             EmailID = incoming.EmailID,
+                            AlternateEmailId = incoming.AlternateEmailId,
                             MobileNo = incoming.MobileNo,
+                            AlternateMobileNumber = incoming.AlternateMobileNumber,
                             Phone = incoming.Phone,
                             PreferredChannelId = incoming.PreferredChannelId,
                             ContactTypeId = incoming.ContactTypeId,
