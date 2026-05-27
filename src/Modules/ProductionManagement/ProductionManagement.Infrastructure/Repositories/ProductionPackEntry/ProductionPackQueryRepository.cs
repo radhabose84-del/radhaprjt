@@ -423,9 +423,12 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
                 sql, new { UnitId = unitId });
 
             if (!result.HasValue)
-                return null;
+            {
+                var fallback = DateOnly.FromDateTime(DateTime.Today).AddDays(-5);
+                return dayClose ? fallback.AddDays(1) : fallback;
+            }
 
-            var lastDate = DateOnly.FromDateTime(result.Value);   
+            var lastDate = DateOnly.FromDateTime(result.Value);
             return dayClose ? lastDate.AddDays(1) : lastDate;
         }
 
