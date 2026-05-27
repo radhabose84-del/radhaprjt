@@ -78,6 +78,11 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired(false);
 
+            builder.Property(t => t.TransportModeId)
+                .HasColumnName("TransportModeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.DeliveryValue)
                 .HasColumnName("DeliveryValue")
                 .HasColumnType("decimal(18,3)")
@@ -154,6 +159,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.DcTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Same-module FK: DeliveryChallanHeader → MiscMaster (TransportMode, nullable)
+            builder.HasOne(t => t.TransportMode)
+                .WithMany(m => m.DeliveryChallanHeadersAsTransportMode)
+                .HasForeignKey(t => t.TransportModeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Same-module FK: DeliveryChallanHeader → MovementTypeConfig
             builder.HasOne(t => t.MovementType)
                 .WithMany(m => m.DeliveryChallanHeaders)
@@ -174,6 +185,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.TransporterId);
             builder.HasIndex(t => t.StatusId);
             builder.HasIndex(t => t.DcTypeId);
+            builder.HasIndex(t => t.TransportModeId);
             builder.HasIndex(t => t.MovementTypeId);
             builder.HasIndex(t => t.DeliveryDate);
         }

@@ -45,6 +45,8 @@ using PurchaseContractHeaderConfig = PurchaseManagement.Infrastructure.Data.Conf
 using PurchaseContractDetailConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ContractPO.PurchaseContractDetailConfiguration;
 using PurchaseManagement.Domain.Entities.Outbox;
 using PurchaseManagement.Infrastructure.Data.Configurations.Outbox;
+using PurchaseManagement.Domain.Entities.PurchaseReturn;
+using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseReturn;
 
 namespace PurchaseManagement.Infrastructure.Data
 {
@@ -133,6 +135,12 @@ namespace PurchaseManagement.Infrastructure.Data
         // Outbox Pattern
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+        // Purchase Return (RTV)
+        public DbSet<ReturnType> ReturnTypes { get; set; }
+        public DbSet<ReturnReason> ReturnReasons { get; set; }
+        public DbSet<PurchaseReturnHeader> PurchaseReturnHeaders { get; set; }
+        public DbSet<PurchaseReturnDetail> PurchaseReturnDetails { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // modelBuilder.ApplyConfiguration(new AssetGroupConfiguration());           
@@ -214,6 +222,12 @@ namespace PurchaseManagement.Infrastructure.Data
 
             // Outbox Pattern
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+
+            // Purchase Return (RTV)
+            modelBuilder.ApplyConfiguration(new ReturnTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ReturnReasonConfiguration());
+            modelBuilder.ApplyConfiguration(new PurchaseReturnHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new PurchaseReturnDetailConfiguration());
 
             
             // Global convention: set explicit precision/scale for all decimal properties

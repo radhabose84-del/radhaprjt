@@ -103,6 +103,11 @@ namespace SalesManagement.Presentation.Validation.DeliveryChallan
                             .MustAsync(async (id, ct) => await _queryRepository.MovementTypeConfigExistsAsync(id))
                             .WithMessage($"{nameof(CreateDeliveryChallanCommand.MovementTypeId)} {rule.Error}")
                             .When(x => x.MovementTypeId > 0);
+
+                        RuleFor(x => x.TransportModeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.TransportModeExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateDeliveryChallanCommand.TransportModeId)} {rule.Error}")
+                            .When(x => x.TransportModeId.HasValue && x.TransportModeId.Value > 0);
                         break;
 
                     case "AlreadyExists":
