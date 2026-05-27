@@ -268,62 +268,40 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             foreach (var entry in entries)
                 entry.StockClosing = true;
 
-            // 2. Find Item+Lot combos that have previous entries but NO entry on the closing date.
-            //    Create carry-forward rows with zero activity so every active combo has a closed record.
-            var allCombos = await _applicationDbContext.ProductionStockLedger
-                .Where(l => l.UnitId == unitId && l.DocDate < closingDate)
-                .Select(l => new { l.ItemId, l.LotId })
-                .Distinct()
-                .ToListAsync(ct);
+            // 2. If no entry exists at all for the closing date, create a single
+            //    placeholder row with zero data and mark it as closed.
+            var hasEntryOnDate = entries.Any(e => e.DocDate == closingDate)
+                || await _applicationDbContext.ProductionStockLedger
+                    .AnyAsync(l => l.UnitId == unitId && l.DocDate == closingDate, ct);
 
-            var existingOnDate = await _applicationDbContext.ProductionStockLedger
-                .Where(l => l.UnitId == unitId && l.DocDate == closingDate)
-                .Select(l => new { l.ItemId, l.LotId })
-                .ToListAsync(ct);
-
-            var existingSet = new HashSet<(int, int)>(
-                existingOnDate.Select(e => (e.ItemId, e.LotId)));
-
-            var missingCombos = allCombos
-                .Where(c => !existingSet.Contains((c.ItemId, c.LotId)))
-                .ToList();
-
-            foreach (var combo in missingCombos)
+            int created = 0;
+            if (!hasEntryOnDate)
             {
-                // Get the latest entry for this combo to carry forward closing balances
-                var prev = await _applicationDbContext.ProductionStockLedger
-                    .Where(l => l.UnitId == unitId
-                        && l.ItemId == combo.ItemId
-                        && l.LotId == combo.LotId
-                        && l.DocDate < closingDate)
-                    .OrderByDescending(l => l.DocDate)
-                    .ThenByDescending(l => l.Id)
-                    .FirstOrDefaultAsync(ct);
-
                 await _applicationDbContext.ProductionStockLedger.AddAsync(new ProductionStockLedger
                 {
                     UnitId           = unitId,
-                    ItemId           = combo.ItemId,
-                    LotId            = combo.LotId,
+                    ItemId           = 0,
+                    LotId            = 0,
                     DocDate          = closingDate,
-                    OpeningLooseKgs  = prev?.ClosingLooseKgs ?? 0,
+                    OpeningLooseKgs  = 0,
                     ProdKgs          = 0,
-                    TotalProdKgs     = prev?.ClosingLooseKgs ?? 0,
-                    PackTypeId       = prev?.PackTypeId ?? 0,
-                    NetWeightPerPack = prev?.NetWeightPerPack ?? 0,
+                    TotalProdKgs     = 0,
+                    PackTypeId       = 0,
+                    NetWeightPerPack = 0,
                     TotalBags        = 0,
                     NetWeight        = 0,
                     BagsRepacked     = 0,
                     RepackKgs        = 0,
-                    ClosingLooseKgs  = prev?.ClosingLooseKgs ?? 0,
-                    ClosingPackKgs   = prev?.ClosingPackKgs ?? 0,
-                    ClosingBags      = prev?.ClosingBags ?? 0,
+                    ClosingLooseKgs  = 0,
+                    ClosingPackKgs   = 0,
+                    ClosingBags      = 0,
                     StockClosing     = true
                 }, ct);
+                created = 1;
             }
 
             await _applicationDbContext.SaveChangesAsync(ct);
-            return entries.Count + missingCombos.Count;
+            return entries.Count + created;
         }
 
         private async Task UpsertProductionStockLedgerAsync(
