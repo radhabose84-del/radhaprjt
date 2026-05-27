@@ -424,8 +424,8 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
             if (!result.HasValue)
             {
-                var fallback = DateOnly.FromDateTime(DateTime.Today).AddDays(-5);
-                return dayClose ? fallback.AddDays(1) : fallback;
+                var fallback = DateOnly.FromDateTime(DateTime.Today).AddDays(-3);
+                return fallback;
             }
 
             var lastDate = DateOnly.FromDateTime(result.Value);
