@@ -92,6 +92,10 @@ using PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Print;
+using PurchaseManagement.Application.Common.Interfaces.IReturnType;
+using PurchaseManagement.Application.Common.Interfaces.IReturnReason;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseReturn;
+using PurchaseManagement.Infrastructure.Repositories.PurchaseReturn;
 
 
 
@@ -281,6 +285,14 @@ namespace PurchaseManagement.Infrastructure
 
             services.AddScoped<IPortMasterQueryRepository, PortMasterQueryRepository>();
             services.AddScoped<IPortMasterCommandRepository, PortMasterCommandRepository>();
+
+            // Purchase Return (RTV)
+            services.AddScoped<IReturnTypeCommandRepository, ReturnTypeCommandRepository>();
+            services.AddScoped<IReturnTypeQueryRepository, ReturnTypeQueryRepository>();
+            services.AddScoped<IReturnReasonCommandRepository, ReturnReasonCommandRepository>();
+            services.AddScoped<IReturnReasonQueryRepository, ReturnReasonQueryRepository>();
+            services.AddScoped<IPurchaseReturnCommandRepository, PurchaseReturnCommandRepository>();
+            services.AddScoped<IPurchaseReturnQueryRepository, PurchaseReturnQueryRepository>();
 
             services.AddScoped<IIssueReturnEntryCommandRepository, IssueReturnEntryCommandRepository>();
             services.AddScoped<IIssueReturnEntryQueryRepository, IssueReturnEntryQueryRepository>();
