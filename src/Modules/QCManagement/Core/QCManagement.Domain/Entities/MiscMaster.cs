@@ -14,5 +14,7 @@ namespace QCManagement.Domain.Entities
         public ICollection<QualityParameter>? QualityParametersAsParameterGroup { get; set; }
         public ICollection<QualityParameter>? QualityParametersAsDataType { get; set; }
         public ICollection<QualityParameter>? QualityParametersAsValidationType { get; set; }
+
+        public ICollection<QualityTemplateParameter>? QualityTemplateParametersAsInspectionMethod { get; set; }
     }
 }
