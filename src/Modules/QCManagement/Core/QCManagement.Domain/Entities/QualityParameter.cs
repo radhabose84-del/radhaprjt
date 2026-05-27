@@ -15,5 +15,8 @@ namespace QCManagement.Domain.Entities
         public MiscMaster? ParameterGroup { get; set; }
         public MiscMaster? DataType { get; set; }
         public MiscMaster? ValidationType { get; set; }
+
+        // Reverse navigation (Quality Templates that include this parameter)
+        public ICollection<QualityTemplateParameter>? QualityTemplateParameters { get; set; }
     }
 }

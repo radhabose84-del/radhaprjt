@@ -131,12 +131,48 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetTransferIssue
         public async Task IsAssetPendingOrApprovedAsync_Should_Return_False_When_Approved_And_Acknowledged()
         {
             await ClearTablesAsync();
-            var hdrId = await SeedHdrAsync(status: "Approved", ackStatus: 1);
+            // Truth of "acknowledged" lives on AssetTransferReceiptDtl.AckStatus, not Hdr.AckStatus
+            // — Hdr.AckStatus is never written by the receipt-acknowledgement flow.
+            var hdrId = await SeedHdrAsync(status: "Approved", ackStatus: 0);
             await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7779);
+            var receiptHdrId = await SeedReceiptHdrRawAsync(hdrId);
+            await SeedReceiptDtlRawAsync(receiptHdrId: receiptHdrId, assetId: 7779, ackStatus: 1);
 
             var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(7779);
 
             result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Return_False_For_FullyAcknowledged_Multi_Unit_Reuse()
+        {
+            // Regression: asset transferred Unit 1 → Unit 11 and fully acknowledged
+            // (ReceiptDtl.AckStatus = 1) must be free to transfer again. Previously the guard read
+            // Hdr.AckStatus (never updated) and incorrectly blocked the second transfer.
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Approved", ackStatus: 0);
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 11403);
+            var receiptHdrId = await SeedReceiptHdrRawAsync(hdrId);
+            await SeedReceiptDtlRawAsync(receiptHdrId: receiptHdrId, assetId: 11403, ackStatus: 1);
+
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(11403);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsAssetPendingOrApprovedAsync_Should_Return_True_When_Approved_With_Receipt_Not_Acknowledged()
+        {
+            // Approved but receipt-dtl exists with AckStatus = 0 — receiver hasn't signed yet → block.
+            await ClearTablesAsync();
+            var hdrId = await SeedHdrAsync(status: "Approved", ackStatus: 0);
+            await SeedTransferDtlRawAsync(hdrId: hdrId, assetId: 7785);
+            var receiptHdrId = await SeedReceiptHdrRawAsync(hdrId);
+            await SeedReceiptDtlRawAsync(receiptHdrId: receiptHdrId, assetId: 7785, ackStatus: 0);
+
+            var result = await CreateQueryRepo().IsAssetPendingOrApprovedAsync(7785);
+
+            result.Should().BeTrue();
         }
 
         [Fact]
@@ -200,6 +236,57 @@ namespace FixedAssetManagement.IntegrationTests.Repositories.AssetTransferIssue
             // "not trusted" but is still enforced for future inserts/updates.
             await conn.ExecuteAsync(
                 "ALTER TABLE FixedAsset.AssetTransferIssueDtl CHECK CONSTRAINT ALL;");
+        }
+
+        private async Task<int> SeedReceiptHdrRawAsync(int assetTransferId)
+        {
+            await using var conn = new SqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+
+            const string sql = @"
+                INSERT INTO FixedAsset.AssetTransferReceiptHdr
+                    (AssetTransferId, DocDate, AuthorizedBy, AuthorizedDate, AuthorizedByName, AuthorizedIP)
+                OUTPUT INSERTED.Id
+                VALUES
+                    (@AssetTransferId, @DocDate, @AuthorizedBy, @AuthorizedDate, @AuthorizedByName, @AuthorizedIP);";
+
+            return await conn.ExecuteScalarAsync<int>(sql, new
+            {
+                AssetTransferId = assetTransferId,
+                DocDate = DateTimeOffset.UtcNow,
+                AuthorizedBy = "1",
+                AuthorizedDate = DateTimeOffset.UtcNow,
+                AuthorizedByName = "test-user",
+                AuthorizedIP = "127.0.0.1"
+            });
+        }
+
+        private async Task SeedReceiptDtlRawAsync(int receiptHdrId, int assetId, byte ackStatus)
+        {
+            await using var conn = new SqlConnection(_fixture.ConnectionString);
+            await conn.OpenAsync();
+
+            // Same FK-sidestep as SeedTransferDtlRawAsync: AssetMaster row is not needed for
+            // IsAssetPendingOrApprovedAsync, which only joins on AssetId.
+            await conn.ExecuteAsync(
+                "ALTER TABLE FixedAsset.AssetTransferReceiptDtl NOCHECK CONSTRAINT ALL;");
+
+            const string sql = @"
+                INSERT INTO FixedAsset.AssetTransferReceiptDtl
+                    (AssetReceiptId, AssetId, AckStatus, AckDate)
+                VALUES
+                    (@AssetReceiptId, @AssetId, @AckStatus, @AckDate);";
+
+            await conn.ExecuteAsync(sql, new
+            {
+                AssetReceiptId = receiptHdrId,
+                AssetId = assetId,
+                AckStatus = ackStatus,
+                AckDate = ackStatus == 1 ? (DateTimeOffset?)DateTimeOffset.UtcNow : null
+            });
+
+            await conn.ExecuteAsync(
+                "ALTER TABLE FixedAsset.AssetTransferReceiptDtl CHECK CONSTRAINT ALL;");
         }
 
         [Fact]
