@@ -699,7 +699,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                        U.Code AS PurchaseUom, U1.Code AS StockUom, IM.IsOnSpot,
                        ISale.MinQuantity,
                        ISale.UomId AS SaleUomId,
-                       USale.Code  AS SaleUom
+                       USale.Code  AS SaleUom,
+                       II.DefaultPackTypeId
                 FROM Inventory.ItemMaster IM
                 INNER JOIN Inventory.HSNMaster HM ON IM.HSNId = HM.Id
                 LEFT JOIN Inventory.ItemPurchase P ON P.ItemId = IM.Id
@@ -707,6 +708,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
                 LEFT JOIN Inventory.ItemSale ISale ON ISale.ItemId = IM.Id
                 LEFT JOIN Inventory.UOM USale ON USale.Id = ISale.UomId
+                LEFT JOIN Inventory.ItemInventory II ON II.ItemId = IM.Id
                 WHERE IM.IsDeleted = 0 AND IM.IsActive = 1";
 
             const string variantFilter = @"
