@@ -8,10 +8,10 @@ using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 
-namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending
+namespace PurchaseManagement.Application.PurchaseOrder.EmergencyPO.Queries.GetEmergencyPOPending
 {
-    public sealed class GetPOLocalPendingQueryHandler
-        : IRequestHandler<GetPOLocalPendingQuery, (List<GetPOLocalPendingGroupDto> Items, int TotalCount)>
+    public sealed class GetEmergencyPOPendingQueryHandler
+        : IRequestHandler<GetEmergencyPOPendingQuery, (List<GetEmergencyPOPendingGroupDto> Items, int TotalCount)>
     {
         private readonly IPurchaseOrderQueryRepository _repo;
         private readonly IMediator _mediator;
@@ -22,7 +22,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalP
         private readonly IItemLookup _itemLookup;
         private readonly IPartyLookup _partyLookup;
 
-        public GetPOLocalPendingQueryHandler(
+        public GetEmergencyPOPendingQueryHandler(
             IPurchaseOrderQueryRepository repo,
             IMediator mediator,
             IWorkflowLookup workflowLookup,
@@ -42,11 +42,12 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalP
             _partyLookup = partyLookup;
         }
 
-        public async Task<(List<GetPOLocalPendingGroupDto> Items, int TotalCount)> Handle(
-            GetPOLocalPendingQuery request, CancellationToken ct)
+        public async Task<(List<GetEmergencyPOPendingGroupDto> Items, int TotalCount)> Handle(
+            GetEmergencyPOPendingQuery request, CancellationToken ct)
         {
-            var (rows, total) = await _repo.GetPOPendingAsync(
-                request.PageNumber ?? 1, request.PageSize ?? 15, request.SearchTerm, request.PoId, request.PoMethodId, ct);
+            var (rows, total) = await _repo.GetEmergencyPOPendingAsync(
+                request.PageNumber ?? 1, request.PageSize ?? 15, request.SearchTerm,
+                request.PoId, request.PoMethodId, ct);
 
             if (rows.Count == 0)
             {
@@ -63,7 +64,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalP
                             .ToList();
 
             var wfApprovers = await _workflowLookup
-                .GetApproverListAsync(MiscEnumEntity.TransactionTypeLPO, poIds);
+                .GetApproverListAsync(MiscEnumEntity.TransactionTypeEPO, poIds);
 
             // Allowed PO IDs where current user is an approver
             var allowedPoIds = wfApprovers
@@ -110,7 +111,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalP
 
             // Ensure Lines non-null
             foreach (var g in rows)
-                g.Lines ??= new List<GetPOLocalPendingDto>();
+                g.Lines ??= new List<GetEmergencyPOPendingLineDto>();
 
             // Collect IDs (from filtered rows only)
             var allLines = rows.SelectMany(g => g.Lines).ToList();
@@ -184,12 +185,12 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalP
             return (rows, rows.Count);
         }
 
-        private Task PublishAudit(int count, GetPOLocalPendingQuery q, CancellationToken ct)
+        private Task PublishAudit(int count, GetEmergencyPOPendingQuery q, CancellationToken ct)
             => _mediator.Publish(new AuditLogsDomainEvent(
                 actionDetail: "GetAll-Pending",
                 actionCode: string.Empty,
-                actionName: "PurchaseOrderPending",
-                details: $"Fetched {count} rows. Page={q.PageNumber}, Size={q.PageSize}, Search='{q.SearchTerm ?? ""}'.",
+                actionName: "EmergencyPOPending",
+                details: $"Fetched {count} emergency pending rows. Page={q.PageNumber}, Size={q.PageSize}, Search='{q.SearchTerm ?? ""}'.",
                 module: "PurchaseOrder"), ct);
     }
 }

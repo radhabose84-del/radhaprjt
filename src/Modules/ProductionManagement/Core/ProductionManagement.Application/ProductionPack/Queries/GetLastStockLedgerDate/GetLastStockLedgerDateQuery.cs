@@ -4,5 +4,6 @@ namespace ProductionManagement.Application.ProductionPack.Queries.GetLastStockLe
 {
     public class GetLastStockLedgerDateQuery : IRequest<DateOnly?>
     {
+        public bool DayClose { get; set; }
     }
 }
