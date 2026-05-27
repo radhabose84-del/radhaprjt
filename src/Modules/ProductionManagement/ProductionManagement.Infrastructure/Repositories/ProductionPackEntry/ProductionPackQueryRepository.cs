@@ -412,18 +412,24 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
         {
             var unitId = _ipAddressService.GetUnitId();
             var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
-            var stockClosingValue = dayClose ? 0 : 1;
 
             var sql = $@"
                 SELECT TOP 1 DocDate
                 FROM Production.ProductionStockLedger
-                WHERE StockClosing = @StockClosing {unitFilter}
+                WHERE StockClosing = 1 {unitFilter}
                 ORDER BY DocDate DESC";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<DateTime?>(
-                sql, new { StockClosing = stockClosingValue, UnitId = unitId });
+                sql, new { UnitId = unitId });
 
-            return result.HasValue ? DateOnly.FromDateTime(result.Value) : null;
+            if (!result.HasValue)
+            {
+                var fallback = DateOnly.FromDateTime(DateTime.Today).AddDays(-5);
+                return dayClose ? fallback.AddDays(1) : fallback;
+            }
+
+            var lastDate = DateOnly.FromDateTime(result.Value);
+            return dayClose ? lastDate.AddDays(1) : lastDate;
         }
 
     }
