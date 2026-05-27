@@ -121,6 +121,106 @@ public class QuotationQueryRepository(
     }
 
 
+    public async Task<(List<QuotationListItemDto> Items, int Total)> GetMyQuotationsAsync(
+        int supplierPartyId,
+        int PageNumber,
+        int PageSize,
+        string? SearchTerm)
+    {
+        var unitId = ip.GetUnitId() ?? 0;
+
+        var approvedQuotationIds =
+            from cd in db.Set<QuotationComparisonDetail>()
+            join ch in db.Set<QuotationComparisonHeader>() on cd.QuotationComparisonHeaderId equals ch.Id
+            join m  in db.Set<PurchaseManagement.Domain.Entities.MiscMaster>() on ch.StatusId equals m.Id
+            where m.Code == MiscEnumEntity.Approved
+            select cd.QuotationHeaderId;
+
+        var q = db.Set<QuotationHeader>()
+                .AsNoTracking()
+                .Where(h => h.IsDeleted == BaseEntity.IsDelete.NotDeleted
+                         && h.SupplierId == supplierPartyId
+                         && approvedQuotationIds.Contains(h.Id));
+
+        var total = await q.CountAsync();
+
+        var compHeaders = db.Set<QuotationComparisonHeader>();
+
+        var page = await q.OrderByDescending(h => h.Id)
+                        .Skip((PageNumber - 1) * PageSize)
+                        .Take(PageSize)
+                        .Select(h => new
+                        {
+                            h.Id,
+                            h.QuotationNumber,
+                            h.SupplierId,
+                            h.RfqId,
+                            h.ValidTill,
+                            h.FreightModeId,
+                            h.Freight,
+                            h.PaymentTermsId,
+                            h.IncotermsId,
+                            h.InsuranceCharge,
+                            h.TaxableSubtotal,
+                            h.GstTotal,
+                            h.ItemsTotal,
+                            h.GrandTotal,
+                            h.IsActive,
+                            h.QuotationImage,
+                            HasComparison = compHeaders.Any(ch => ch.RfqId == h.RfqId)
+                        })
+                        .ToListAsync();
+
+        if (page.Count == 0)
+            return (new List<QuotationListItemDto>(), total);
+
+        var rfqIds  = page.Select(p => p.RfqId).Distinct().ToList();
+        var miscIds = page.SelectMany(p => new[] { p.FreightModeId, p.PaymentTermsId, p.IncotermsId })
+                            .Where(id => id != 0)
+                            .Distinct()
+                            .ToList();
+
+        var rfqMap = await db.Set<RfqMaster>()
+                            .AsNoTracking()
+                            .Where(r => rfqIds.Contains(r.Id))
+                            .Where(r => r.UnitId == unitId)
+                            .Select(r => new { r.Id, r.RfqCode })
+                            .ToDictionaryAsync(k => k.Id, v => v.RfqCode ?? string.Empty);
+
+        var miscMap = await db.Set<PurchaseManagement.Domain.Entities.MiscMaster>()
+                            .AsNoTracking()
+                            .Where(m => miscIds.Contains(m.Id))
+                            .Select(m => new { m.Id, m.Code })
+                            .ToDictionaryAsync(k => k.Id, v => v.Code ?? string.Empty);
+
+        var suppliers = await partyLookup.GetByIdsAsync(new List<int> { supplierPartyId });
+        var supplierMap = suppliers.ToDictionary(k => k.Id, v => v.PartyName ?? string.Empty);
+
+        var items = page.Select(p => new QuotationListItemDto(
+            Id:               p.Id,
+            QuotationNumber:  p.QuotationNumber,
+            SupplierName:     supplierMap.TryGetValue(p.SupplierId, out var sName) ? sName : string.Empty,
+            RfqNumber:        rfqMap.TryGetValue(p.RfqId, out var rCode) ? rCode : string.Empty,
+            ValidTill:        p.ValidTill,
+            FreightModeName:  miscMap.TryGetValue(p.FreightModeId ?? 0, out var fm) ? fm : string.Empty,
+            Freight:          p.Freight ?? 0,
+            PaymentTermsName: miscMap.TryGetValue(p.PaymentTermsId ?? 0, out var pt) ? pt : string.Empty,
+            IncotermsName:    miscMap.TryGetValue(p.IncotermsId ?? 0, out var it) ? it : string.Empty,
+            InsuranceCharge:  p.InsuranceCharge ?? 0,
+            TaxableSubtotal:  p.TaxableSubtotal,
+            GstTotal:         p.GstTotal,
+            ItemsTotal:       p.ItemsTotal,
+            GrandTotal:       p.GrandTotal,
+            IsActive:         (p.IsActive == BaseEntity.Status.Active ? 1 : 0),
+            QuotationImage:   p.QuotationImage,
+            Edit:             p.HasComparison ? 1 : 0,
+            EditReason:       p.HasComparison ? "Quotation comparison exists" : null
+        )).ToList();
+
+        return (items, total);
+    }
+
+
     public async Task<GetQuotationHeaderDto?> GetByIdAsync(int id, CancellationToken ct)
     {
         // Read the two config values sequentially (EF)

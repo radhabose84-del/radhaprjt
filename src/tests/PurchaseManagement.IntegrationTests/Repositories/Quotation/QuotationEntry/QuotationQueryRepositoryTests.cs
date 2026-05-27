@@ -58,5 +58,16 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Quotation.QuotationEn
             items.Should().BeEmpty();
             total.Should().Be(0);
         }
+
+        [Fact]
+        public async Task GetMyQuotationsAsync_Should_Return_Empty_When_NoData()
+        {
+            await _fixture.ClearAllTablesAsync();
+
+            var (items, total) = await CreateRepo().GetMyQuotationsAsync(123, 1, 10, null);
+
+            items.Should().BeEmpty();
+            total.Should().Be(0);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotationEntry;
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
 using PurchaseManagement.Domain.Events;
@@ -6,32 +7,45 @@ using MediatR;
 
 namespace PurchaseManagement.Application.Quotations.QuotationEntry.Queries.GetAllQuotations
 {
-    public class GetAllQuotationsQueryHandler 
+    public class GetAllQuotationsQueryHandler
         : IRequestHandler<GetAllQuotationsQuery, (IReadOnlyList<QuotationListItemDto> Items, int Total)>
     {
         private readonly IQuotationQueryRepository _repo;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
+        private readonly IIPAddressService _ip;
 
         public GetAllQuotationsQueryHandler(
             IQuotationQueryRepository repo,
             IMapper mapper,
-            IMediator mediator)
+            IMediator mediator,
+            IIPAddressService ip)
         {
             _repo     = repo;
             _mapper   = mapper;
             _mediator = mediator;
+            _ip       = ip;
         }
 
         public async Task<(IReadOnlyList<QuotationListItemDto> Items, int Total)> Handle(
             GetAllQuotationsQuery request,
             CancellationToken ct)
         {
+            // Supplier-scoped view when the JWT carries a PartyId (supplier portal login).
+            // Buyer / internal users have no PartyId → fall back to the full list.
+            var partyId = _ip.GetPartyId();
+
             // 🔹 IMPORTANT: do NOT pass SearchTerm to repo if you want SupplierName search to work
-            var (items, total) = await _repo.GetAllAsync(
-                PageNumber: request.PageNumber,
-                PageSize:   request.PageSize,
-                SearchTerm: null); // or remove param from interface later
+            var (items, total) = (partyId.HasValue && partyId.Value > 0)
+                ? await _repo.GetMyQuotationsAsync(
+                    supplierPartyId: partyId.Value,
+                    PageNumber: request.PageNumber,
+                    PageSize:   request.PageSize,
+                    SearchTerm: null)
+                : await _repo.GetAllAsync(
+                    PageNumber: request.PageNumber,
+                    PageSize:   request.PageSize,
+                    SearchTerm: null);
 
             // repo already returns QuotationListItemDto, mapping is optional
             var result = _mapper.Map<List<QuotationListItemDto>>(items);
