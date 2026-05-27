@@ -17,6 +17,9 @@ namespace SalesManagement.Application.DeliveryChallan.Commands.CreateDeliveryCha
         public decimal? TransportDistance { get; set; }
         public decimal ConsignmentValue { get; set; }
 
+        // FK → Sales.MiscMaster (MiscType = "TransMode": ByRoad / ByAir). Optional.
+        public int? TransportModeId { get; set; }
+
         // FK → Sales.MiscMaster (MiscType = "DCType": Returnable / Non-Returnable)
         public int DcTypeId { get; set; }
 
