@@ -11,6 +11,7 @@ namespace SalesManagement.Application.Common.Interfaces.IDispatchAdvice
         Task<bool> DispatchAddressExistsAsync(int dispatchAddressId);
         Task<bool> MiscMasterExistsAsync(int id);
         Task<int> GetSalesOrderUnitIdAsync(int salesOrderId);
+        Task<int> GetSalesOrderFreightTypeIdAsync(int salesOrderId);
         Task<List<DispatchAdviceStockDto>> GetStockAsync(int itemId, int lotId, int statusId);
         Task<List<int>> GetAvailablePackNosAsync(int itemId, int lotId, int statusId, int startPackNo, int endPackNo, int packTypeId);
         Task<List<DispatchAdvicePackRangeDto>> GetPackRangeAsync(int itemId, int lotId, int packTypeId, IList<int> statusIds, int range, string? orderType, int? unitId);
