@@ -338,13 +338,14 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
             const string sql = @"
                     SELECT TOP 1
-                        ClosingLooseKgs,
-                        ClosingPackKgs,
-                        ClosingBags
+                      sum(ClosingLooseKgs)ClosingLooseKgs,
+                        sum(ClosingPackKgs)ClosingPackKgs,
+                        sum(ClosingBags)ClosingBags,DocDate ProdDate
                     FROM Production.ProductionStockLedger
                     WHERE UnitId = @UnitId AND ItemId = @ItemId AND LotId = @LotId
-                        AND DocDate <= @DocDate
-                    ORDER BY DocDate DESC, Id DESC";
+                        AND DocDate <= @DocDate 
+                        group by DocDate
+                    ORDER BY DocDate DESC";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<ProductionStockClosingDto>(
                 sql, new { UnitId = unitId, ItemId = itemId, LotId = lotId, DocDate = docDate.ToDateTime(TimeOnly.MinValue) });
@@ -407,19 +408,20 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
             return list;
         }
 
-        public async Task<DateOnly?> GetLastStockLedgerDateAsync()
+        public async Task<DateOnly?> GetLastStockLedgerDateAsync(bool dayClose = false)
         {
             var unitId = _ipAddressService.GetUnitId();
             var unitFilter = unitId.HasValue ? "AND UnitId = @UnitId" : "";
+            var stockClosingValue = dayClose ? 0 : 1;
 
             var sql = $@"
                 SELECT TOP 1 DocDate
                 FROM Production.ProductionStockLedger
-                WHERE StockClosing=1 {unitFilter}
+                WHERE StockClosing = @StockClosing {unitFilter}
                 ORDER BY DocDate DESC";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<DateTime?>(
-                sql, new { UnitId = unitId });
+                sql, new { StockClosing = stockClosingValue, UnitId = unitId });
 
             return result.HasValue ? DateOnly.FromDateTime(result.Value) : null;
         }
