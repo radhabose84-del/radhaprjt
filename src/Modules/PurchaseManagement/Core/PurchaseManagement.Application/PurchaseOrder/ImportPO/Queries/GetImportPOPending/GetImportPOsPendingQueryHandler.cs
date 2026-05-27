@@ -66,7 +66,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImpor
                             .ToList();
 
             var wfApprovers = await _workflowLookup
-                .GetApproverListAsync(MiscEnumEntity.POImport.ToString(), poIds);
+                .GetApproverListAsync(MiscEnumEntity.TransactionTypeIPO.ToString(), poIds);
 
             var allowedPoIds = wfApprovers
                 .Where(a => !string.IsNullOrWhiteSpace(a.ApproverValue)

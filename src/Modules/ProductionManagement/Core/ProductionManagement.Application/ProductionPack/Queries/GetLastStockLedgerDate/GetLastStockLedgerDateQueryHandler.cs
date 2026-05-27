@@ -19,7 +19,7 @@ namespace ProductionManagement.Application.ProductionPack.Queries.GetLastStockLe
 
         public async Task<DateOnly?> Handle(GetLastStockLedgerDateQuery request, CancellationToken cancellationToken)
         {
-            var lastDate = await _queryRepository.GetLastStockLedgerDateAsync();
+            var lastDate = await _queryRepository.GetLastStockLedgerDateAsync(request.DayClose);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetLastStockLedgerDate",

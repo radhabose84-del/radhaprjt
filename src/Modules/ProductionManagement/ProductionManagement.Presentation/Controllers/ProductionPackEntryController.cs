@@ -127,9 +127,9 @@ namespace ProductionManagement.Presentation.Controllers
         }
 
         [HttpGet("last-stock-ledger-date")]
-        public async Task<IActionResult> GetLastStockLedgerDateAsync()
+        public async Task<IActionResult> GetLastStockLedgerDateAsync([FromQuery] bool dayClose = false)
         {
-            var result = await Mediator.Send(new GetLastStockLedgerDateQuery());
+            var result = await Mediator.Send(new GetLastStockLedgerDateQuery { DayClose = dayClose });
 
             return Ok(new
             {
@@ -161,13 +161,10 @@ namespace ProductionManagement.Presentation.Controllers
             });
         }
 
-        [HttpPost("stock-close")]
-        public async Task<IActionResult> StockCloseAsync([FromQuery] DateOnly closingDate)
+        [HttpPut("stock-close")]
+        public async Task<IActionResult> StockCloseAsync([FromBody] StockCloseCommand command)
         {
-            var result = await Mediator.Send(new StockCloseCommand
-            {
-                ClosingDate = closingDate
-            });
+            var result = await Mediator.Send(command);
 
             return Ok(new
             {

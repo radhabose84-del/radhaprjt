@@ -8,6 +8,7 @@ using PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Cancel;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOPending;
+using PurchaseManagement.Application.PurchaseOrder.EmergencyPO.Queries.GetEmergencyPOPending;
 using Microsoft.AspNetCore.Http;
 
 namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
@@ -69,6 +70,35 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
                 StatusCode = StatusCodes.Status200OK,
                 data = result,
                 message = "Pending PO data fetched successfully"
+            });
+        }
+
+        [HttpGet("emergency-pending-po")]
+        public async Task<IActionResult> GetEmergencyPendingPOAsync(
+            [FromQuery] int? poId = null,
+            [FromQuery] int? poMethodId = null,
+            [FromQuery] int? pageNumber = 1,
+            [FromQuery] int? pageSize = 15,
+            [FromQuery] string? searchTerm = null,
+            CancellationToken ct = default)
+        {
+            var (items, totalCount) = await _mediator.Send(new GetEmergencyPOPendingQuery
+            {
+                PoId = poId,
+                PoMethodId = poMethodId,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm
+            }, ct);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = items,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                message = "Emergency pending PO data fetched successfully"
             });
         }
 
