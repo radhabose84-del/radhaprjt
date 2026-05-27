@@ -199,11 +199,15 @@ namespace QCManagement.Infrastructure.Repositories.QualityParameter
             return await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Id = qualityParameterId });
         }
 
-        public Task<bool> SoftDeleteValidationAsync(int id)
+        public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // No entities depend on QualityParameter yet. Quality Template / Spec / Inspection
-            // entities (when built) MUST extend this to block delete when dependents exist.
-            return Task.FromResult(false);
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM QC.QualityTemplateParameter
+                    WHERE QualityParameterId = @Id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
         }
     }
 }

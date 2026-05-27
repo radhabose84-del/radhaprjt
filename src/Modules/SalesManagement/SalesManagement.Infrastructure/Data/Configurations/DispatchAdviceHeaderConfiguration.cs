@@ -81,7 +81,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.FreightId)
                 .HasColumnName("FreightId")
                 .HasColumnType("int")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.TransporterId)
                 .HasColumnName("TransporterId")

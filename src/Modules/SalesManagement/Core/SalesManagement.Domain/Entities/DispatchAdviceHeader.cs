@@ -14,7 +14,7 @@ namespace SalesManagement.Domain.Entities
         public decimal TotPendingQty { get; set; }
         public int? DispatchAddressId { get; set; }          // FK → Sales.DispatchAddressMaster
         public int DispatchTypeId { get; set; }             // FK → Sales.MiscMaster
-        public int FreightId { get; set; }                  // Cross-module FK → Logistics.FreightMaster
+        public int? FreightId { get; set; }                 // Cross-module FK → Logistics.FreightMaster (nullable: required only when FreightType = Prepaid)
         public int? TransporterId { get; set; }             // Cross-module FK → PartyManagement (optional)
         public int? TransportMode { get; set; }             // FK → Sales.MiscMaster
         public string? VehicleNo { get; set; }

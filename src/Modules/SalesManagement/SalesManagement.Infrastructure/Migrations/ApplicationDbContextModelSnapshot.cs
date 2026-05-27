@@ -2530,7 +2530,7 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("DriverName");
 
-                    b.Property<int>("FreightId")
+                    b.Property<int?>("FreightId")
                         .HasColumnType("int")
                         .HasColumnName("FreightId");
 

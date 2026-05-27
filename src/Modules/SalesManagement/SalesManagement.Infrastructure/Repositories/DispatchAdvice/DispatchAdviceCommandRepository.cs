@@ -85,20 +85,25 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                     var dbConnection = _applicationDbContext.Database.GetDbConnection();
                     var dbTransaction = transaction.GetDbTransaction();
 
-                    if (string.Equals(dispatchTypeName, directToPartyName, StringComparison.OrdinalIgnoreCase))
+                    // Propagation only when both: handler signaled it via dispatchTypeName AND a FreightId was actually provided.
+                    // FreightId is null for non-Prepaid SalesOrders — nothing to propagate in that case.
+                    if (entity.FreightId.HasValue)
                     {
-                        await _partyFreightUpdate.UpdateSalesFreightIfNullAsync(
-                            entity.PartyId, entity.FreightId, dbConnection, dbTransaction);
-                    }
-                    else if (string.Equals(dispatchTypeName, othersName, StringComparison.OrdinalIgnoreCase)
-                             && entity.DispatchAddressId.HasValue)
-                    {
-                        const string addressSql = @"
-                            UPDATE Sales.DispatchAddressMaster
-                            SET FreightId = {0}
-                            WHERE Id = {1} AND FreightId IS NULL";
+                        if (string.Equals(dispatchTypeName, directToPartyName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            await _partyFreightUpdate.UpdateSalesFreightIfNullAsync(
+                                entity.PartyId, entity.FreightId.Value, dbConnection, dbTransaction);
+                        }
+                        else if (string.Equals(dispatchTypeName, othersName, StringComparison.OrdinalIgnoreCase)
+                                 && entity.DispatchAddressId.HasValue)
+                        {
+                            const string addressSql = @"
+                                UPDATE Sales.DispatchAddressMaster
+                                SET FreightId = {0}
+                                WHERE Id = {1} AND FreightId IS NULL";
 
-                        await _applicationDbContext.Database.ExecuteSqlRawAsync(addressSql, entity.FreightId, entity.DispatchAddressId.Value);
+                            await _applicationDbContext.Database.ExecuteSqlRawAsync(addressSql, entity.FreightId.Value, entity.DispatchAddressId.Value);
+                        }
                     }
 
                     // Increment DocNo via lookup — same connection + transaction

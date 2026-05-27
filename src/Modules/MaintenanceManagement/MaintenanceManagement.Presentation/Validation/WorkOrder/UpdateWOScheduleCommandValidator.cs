@@ -65,8 +65,17 @@ namespace MaintenanceManagement.Presentation.Validation.WorkOrder
         private async Task<bool> IsClosingTransitionAsync(UpdateWOScheduleCommand cmd, CancellationToken ct)
         {
             if (cmd.WOSchedule == null) return false;
+
             var closedId = await GetClosedStatusIdAsync();
-            return closedId.HasValue && cmd.WOSchedule.StatusId == closedId.Value;
+            if (!closedId.HasValue || cmd.WOSchedule.StatusId != closedId.Value)
+                return false;
+
+            // Time-tracking validation applies only to Preventive Schedule WOs.
+            // Request-driven WOs (Breakdown / Predictive / Internal Request) have
+            // no Maintenance Start/End Time fields in the UI and must skip this rule.
+            if (!cmd.WOSchedule.WorkOrderId.HasValue) return false;
+            var wo = await _workOrderRepository.GetByIdAsync(cmd.WOSchedule.WorkOrderId.Value);
+            return wo != null && wo.PreventiveScheduleId.HasValue;
         }
 
         private async Task<int?> GetClosedStatusIdAsync()

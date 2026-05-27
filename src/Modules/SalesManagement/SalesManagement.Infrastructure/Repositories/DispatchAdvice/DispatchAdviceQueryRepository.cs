@@ -142,7 +142,8 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
                 var transporterDict = transporters.ToDictionary(p => p.Id, p => p.PartyName);
 
                 // Populate cross-module: Freight details (FreightModeName, RateMethodName, Rate)
-                var freightIds = list.Select(x => x.FreightId).Distinct().ToList();
+                // FreightId is nullable (only set when SalesOrder.FreightType = Prepaid) — skip nulls.
+                var freightIds = list.Where(x => x.FreightId.HasValue).Select(x => x.FreightId!.Value).Distinct().ToList();
                 var allFreights = await _freightMasterLookup.GetAllFreightMasterAsync();
                 var freightDict = allFreights.Where(f => freightIds.Contains(f.Id)).ToDictionary(f => f.Id);
 
@@ -162,7 +163,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
 
                     item.PartyName = partyDict.TryGetValue(item.PartyId, out var pName) ? pName : null;
 
-                    if (freightDict.TryGetValue(item.FreightId, out var freightDto))
+                    if (item.FreightId.HasValue && freightDict.TryGetValue(item.FreightId.Value, out var freightDto))
                     {
                         item.FreightModeName = freightDto.FreightModeName;
                         item.RateMethodName = freightDto.RateMethodName;
@@ -267,10 +268,14 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             header.PartyName = party?.PartyName;
 
             // Populate cross-module: Freight details (FreightModeName, RateMethodName, Rate)
-            var freight = await _freightMasterLookup.GetByIdAsync(header.FreightId);
-            header.FreightModeName = freight?.FreightModeName;
-            header.RateMethodName = freight?.RateMethodName;
-            header.FreightRate = freight?.Rate;
+            // FreightId is nullable (only set when SalesOrder.FreightType = Prepaid) — skip if null.
+            if (header.FreightId.HasValue)
+            {
+                var freight = await _freightMasterLookup.GetByIdAsync(header.FreightId.Value);
+                header.FreightModeName = freight?.FreightModeName;
+                header.RateMethodName = freight?.RateMethodName;
+                header.FreightRate = freight?.Rate;
+            }
 
             // Populate cross-module: TransporterName
             if (header.TransporterId.HasValue)
@@ -461,6 +466,16 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
         {
             const string sql = @"
                 SELECT OrderUnitId
+                FROM Sales.SalesOrderHeader
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = salesOrderId });
+        }
+
+        public async Task<int> GetSalesOrderFreightTypeIdAsync(int salesOrderId)
+        {
+            const string sql = @"
+                SELECT FreightTypeId
                 FROM Sales.SalesOrderHeader
                 WHERE Id = @Id AND IsDeleted = 0";
 
@@ -934,7 +949,7 @@ namespace SalesManagement.Infrastructure.Repositories.DispatchAdvice
             public decimal TotPendingQty { get; set; }
             public int DispatchTypeId { get; set; }
             public string? DispatchTypeName { get; set; }
-            public int FreightId { get; set; }
+            public int? FreightId { get; set; }
             public int? TransporterId { get; set; }
             public int? TransportMode { get; set; }
             public string? TransportModeName { get; set; }

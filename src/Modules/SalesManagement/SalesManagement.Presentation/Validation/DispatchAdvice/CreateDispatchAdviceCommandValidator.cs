@@ -48,9 +48,8 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateDispatchAdviceCommand.DispatchTypeId)} {rule.Error}");
 
-                        RuleFor(x => x.FreightId)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.FreightId)} {rule.Error}");
+                        // FreightId is optional — required only when SalesOrder.FreightType = "Prepaid".
+                        // The FE controls this: Prepaid → sends value; non-Prepaid → sends null.
 
                         RuleFor(x => x.Details)
                             .NotNull()
