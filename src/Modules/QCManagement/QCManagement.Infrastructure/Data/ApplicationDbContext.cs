@@ -24,6 +24,9 @@ namespace QCManagement.Infrastructure.Data
         // ── DbSets ────────────────────────────────────────────────────────────
         public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
         public DbSet<MiscMaster> MiscMaster { get; set; }
+        public DbSet<QualityParameter> QualityParameter { get; set; }
+        public DbSet<QualityTemplate> QualityTemplate { get; set; }
+        public DbSet<QualityTemplateParameter> QualityTemplateParameter { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

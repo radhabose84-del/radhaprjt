@@ -802,8 +802,25 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                                 : new List<ItemCategoryUnitConfigDto>();
                     }
                 }
-            }
+// Populate DefaultPackTypeName from cross-module lookup (ProductionManagement)
+                var packTypeIds = itemList
+                    .Where(i => i.DefaultPackTypeId.HasValue)
+                    .Select(i => i.DefaultPackTypeId!.Value)
+                    .Distinct()
+                    .ToList();
 
+                if (packTypeIds.Count > 0)
+                {
+                    var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds, ct);
+                    var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+                    foreach (var item in itemList.Where(i => i.DefaultPackTypeId.HasValue))
+                    {
+                        if (packTypeDict.TryGetValue(item.DefaultPackTypeId!.Value, out var name))
+                            item.DefaultPackTypeName = name;
+                    }
+                }
+            }
             return itemList;
         }
 

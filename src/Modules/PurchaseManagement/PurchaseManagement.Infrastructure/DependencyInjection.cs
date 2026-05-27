@@ -92,6 +92,18 @@ using PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Print;
+using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationCriteria;
+using PurchaseManagement.Application.Common.Interfaces.IVendorRatingGrade;
+using PurchaseManagement.Application.Common.Interfaces.IDeliveryScoreRule;
+using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationHeader;
+using PurchaseManagement.Infrastructure.Repositories.VendorEvaluationCriteria;
+using PurchaseManagement.Infrastructure.Repositories.VendorRatingGrade;
+using PurchaseManagement.Infrastructure.Repositories.DeliveryScoreRule;
+using PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader;
+using PurchaseManagement.Application.Common.Interfaces.IReturnType;
+using PurchaseManagement.Application.Common.Interfaces.IReturnReason;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseReturn;
+using PurchaseManagement.Infrastructure.Repositories.PurchaseReturn;
 
 
 
@@ -282,6 +294,14 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IPortMasterQueryRepository, PortMasterQueryRepository>();
             services.AddScoped<IPortMasterCommandRepository, PortMasterCommandRepository>();
 
+            // Purchase Return (RTV)
+            services.AddScoped<IReturnTypeCommandRepository, ReturnTypeCommandRepository>();
+            services.AddScoped<IReturnTypeQueryRepository, ReturnTypeQueryRepository>();
+            services.AddScoped<IReturnReasonCommandRepository, ReturnReasonCommandRepository>();
+            services.AddScoped<IReturnReasonQueryRepository, ReturnReasonQueryRepository>();
+            services.AddScoped<IPurchaseReturnCommandRepository, PurchaseReturnCommandRepository>();
+            services.AddScoped<IPurchaseReturnQueryRepository, PurchaseReturnQueryRepository>();
+
             services.AddScoped<IIssueReturnEntryCommandRepository, IssueReturnEntryCommandRepository>();
             services.AddScoped<IIssueReturnEntryQueryRepository, IssueReturnEntryQueryRepository>();
 
@@ -295,6 +315,22 @@ namespace PurchaseManagement.Infrastructure
 
             // PO Print
             services.AddScoped<IPurchaseOrderPrintQueryRepository, PurchaseOrderPrintQueryRepository>();
+
+            // Vendor Evaluation & Rating
+            services.AddScoped<IVendorEvaluationCriteriaCommandRepository, VendorEvaluationCriteriaCommandRepository>();
+            services.AddScoped<IVendorEvaluationCriteriaQueryRepository, VendorEvaluationCriteriaQueryRepository>();
+
+            services.AddScoped<IVendorRatingGradeCommandRepository, VendorRatingGradeCommandRepository>();
+            services.AddScoped<IVendorRatingGradeQueryRepository, VendorRatingGradeQueryRepository>();
+
+            services.AddScoped<IDeliveryScoreRuleCommandRepository, DeliveryScoreRuleCommandRepository>();
+            services.AddScoped<IDeliveryScoreRuleQueryRepository, DeliveryScoreRuleQueryRepository>();
+
+            services.AddScoped<IVendorEvaluationHeaderCommandRepository, VendorEvaluationHeaderCommandRepository>();
+            services.AddScoped<IVendorEvaluationHeaderQueryRepository, VendorEvaluationHeaderQueryRepository>();
+
+            // Vendor Rating Lookup (cross-module)
+            services.AddScoped<IVendorRatingLookup, VendorRatingLookupRepository>();
 
             // // AutoMapper profiles
             // services.AddAutoMapper(

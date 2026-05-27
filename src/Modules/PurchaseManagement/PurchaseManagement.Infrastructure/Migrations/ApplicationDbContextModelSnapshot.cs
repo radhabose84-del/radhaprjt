@@ -5634,6 +5634,405 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("TnCTemplateMaster", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.DeliveryScoreRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("DelayDaysFrom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DelayDaysTo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("RuleCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal>("Score")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RuleCode")
+                        .IsUnique();
+
+                    b.ToTable("DeliveryScoreRule", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationCriteria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("CriteriaCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("CriteriaName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<decimal>("MinimumScore")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("RatingImpactId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScoringMethodId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<decimal>("WeightagePercent")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CriteriaCode")
+                        .IsUnique();
+
+                    b.HasIndex("RatingImpactId");
+
+                    b.HasIndex("ScoringMethodId");
+
+                    b.ToTable("VendorEvaluationCriteria", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("CriteriaId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<decimal>("Score")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ScoringMethod")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("VendorEvaluationHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("WeightagePercent")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("WeightedScore")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CriteriaId");
+
+                    b.HasIndex("VendorEvaluationHeaderId");
+
+                    b.ToTable("VendorEvaluationDetail", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("EvaluationCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTimeOffset>("EvaluationDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("EvaluationMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EvaluationYear")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GradeId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalWeightedScore")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("VendorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EvaluationCode")
+                        .IsUnique();
+
+                    b.HasIndex("GradeId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("VendorId");
+
+                    b.HasIndex("VendorId", "EvaluationMonth", "EvaluationYear")
+                        .IsUnique();
+
+                    b.ToTable("VendorEvaluationHeader", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorRatingGrade", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionDescription")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int?>("ActionTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("GradeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("GradeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<decimal>("MaxScore")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MinScore")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActionTypeId");
+
+                    b.HasIndex("GradeCode")
+                        .IsUnique();
+
+                    b.ToTable("VendorRatingGrade", "Purchase");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.PurchaseOrder.PurchaseDocument", b =>
                 {
                     b.Property<int>("Id")
@@ -6781,6 +7180,72 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("TemplateType");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationCriteria", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "RatingImpact")
+                        .WithMany("VendorCriteriaRatingImpact")
+                        .HasForeignKey("RatingImpactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "ScoringMethod")
+                        .WithMany("VendorCriteriaScoringMethod")
+                        .HasForeignKey("ScoringMethodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RatingImpact");
+
+                    b.Navigation("ScoringMethod");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationDetail", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationCriteria", "VendorEvaluationCriteria")
+                        .WithMany("VendorEvaluationDetails")
+                        .HasForeignKey("CriteriaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader", "VendorEvaluationHeader")
+                        .WithMany("VendorEvaluationDetails")
+                        .HasForeignKey("VendorEvaluationHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("VendorEvaluationCriteria");
+
+                    b.Navigation("VendorEvaluationHeader");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorRatingGrade", "Grade")
+                        .WithMany("VendorEvaluationHeaders")
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "EvaluationStatus")
+                        .WithMany("VendorEvaluationStatuses")
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("EvaluationStatus");
+
+                    b.Navigation("Grade");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorRatingGrade", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "ActionType")
+                        .WithMany("VendorRatingGradeActions")
+                        .HasForeignKey("ActionTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ActionType");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.PurchaseOrder.PurchaseDocument", b =>
                 {
                     b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "MiscMaster")
@@ -6969,6 +7434,14 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
                     b.Navigation("TncTemplatesByType");
 
+                    b.Navigation("VendorCriteriaRatingImpact");
+
+                    b.Navigation("VendorCriteriaScoringMethod");
+
+                    b.Navigation("VendorEvaluationStatuses");
+
+                    b.Navigation("VendorRatingGradeActions");
+
                     b.Navigation("dutyCOA");
 
                     b.Navigation("dutyCategory");
@@ -7116,6 +7589,21 @@ namespace PurchaseManagement.Infrastructure.Migrations
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateMaster", b =>
                 {
                     b.Navigation("Applicabilities");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationCriteria", b =>
+                {
+                    b.Navigation("VendorEvaluationDetails");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader", b =>
+                {
+                    b.Navigation("VendorEvaluationDetails");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorRatingGrade", b =>
+                {
+                    b.Navigation("VendorEvaluationHeaders");
                 });
 #pragma warning restore 612, 618
         }

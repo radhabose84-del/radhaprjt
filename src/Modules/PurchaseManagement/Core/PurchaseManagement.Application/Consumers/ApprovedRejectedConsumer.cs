@@ -633,6 +633,27 @@ namespace PurchaseManagement.Application.Consumers
                     return;
                 }
 
+                // -----------------------------
+                // PURCHASE RETURN (RTV)
+                // -----------------------------
+                if (msg.ModuleTypeName == MiscEnumEntity.RtvModuleTypeName)
+                {
+                    var status = msg.Status;
+                    var rtvId = msg.ModuleTransactionId;
+
+                    if (status == MiscEnumEntity.Approved || status == MiscEnumEntity.Rejected)
+                    {
+                        await _mediator.Send(new PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.ProcessApprovalDecision.ProcessPurchaseReturnApprovalDecisionCommand(
+                            PurchaseReturnHeaderId: rtvId,
+                            IsApproved: status == MiscEnumEntity.Approved,
+                            ApprovalRequestId: null,
+                            ApproverRemarks: null), context.CancellationToken);
+                    }
+
+                    await PublishCompletedAsync();
+                    return;
+                }
+
                 // ✅ If module not handled, still complete so saga doesn't hang
                 await PublishCompletedAsync();
             }

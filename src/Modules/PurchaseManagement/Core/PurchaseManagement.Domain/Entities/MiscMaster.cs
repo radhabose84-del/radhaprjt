@@ -13,6 +13,7 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.IssueReturn;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
+using PurchaseManagement.Domain.Entities.VendorEvaluation;
 namespace PurchaseManagement.Domain.Entities
 {
     public class MiscMaster : BaseEntity
@@ -99,6 +100,16 @@ namespace PurchaseManagement.Domain.Entities
 
         // Purchase Contract Detail — Discount type
         public ICollection<PurchaseContractDetail>? PurchaseContractDetailDiscount { get; set; }
+
+        // Vendor Evaluation — Scoring Method & Rating Impact
+        public ICollection<VendorEvaluationCriteria>? VendorCriteriaScoringMethod { get; set; }
+        public ICollection<VendorEvaluationCriteria>? VendorCriteriaRatingImpact { get; set; }
+
+        // Vendor Evaluation — Status
+        public ICollection<VendorEvaluationHeader>? VendorEvaluationStatuses { get; set; }
+
+        // Vendor Rating Grade — Action Type
+        public ICollection<VendorRatingGrade>? VendorRatingGradeActions { get; set; }
 
     }
     }

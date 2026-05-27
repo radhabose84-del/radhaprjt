@@ -56,7 +56,23 @@ namespace PurchaseManagement.Domain.Common
         public const string TransactionTypeSPO = "Service Purchase Order";
         public const string TransactionTypeRFQ = "RFQ";
         public const string TransactionTypeDutyMaster = "Duty Master";
-		public const string TransactionTypeContract = "Purchase Contract";        
+		public const string TransactionTypeContract = "Purchase Contract";
+        public const string TransactionTypePurchaseReturn = "Purchase Return";
         public const string ModulePurchase = "Purchase";
+
+        // Purchase Return (RTV) — MiscMaster type codes (seeded via migration)
+        public const string RtvStatus = "RtvStatus";
+        public const string RtvReturnAction = "RtvReturnAction";
+        public const string RtvReplacementStatus = "RtvReplacementStatus";
+        public const string RtvInventoryImpact = "RtvInventoryImpact";
+        public const string RtvFinanceImpact = "RtvFinanceImpact";
+
+        // RTV status code values (also seeded under RtvStatus MiscType)
+        public const string RtvPendingApproval = "PendingApproval";
+        public const string RtvShipped = "Shipped";
+        public const string RtvClosed = "Closed";
+
+        // Approval workflow integration
+        public const string RtvModuleTypeName = "PurchaseReturn";
     }
 }

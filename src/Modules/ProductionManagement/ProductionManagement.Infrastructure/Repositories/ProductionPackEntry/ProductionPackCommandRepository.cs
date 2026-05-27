@@ -258,20 +258,50 @@ namespace ProductionManagement.Infrastructure.Repositories.ProductionPack
 
         public async Task<int> StockCloseAsync(DateOnly closingDate, int unitId, CancellationToken ct)
         {
+            // 1. Close any existing unclosed entries up to the closing date
             var entries = await _applicationDbContext.ProductionStockLedger
                 .Where(l => l.UnitId == unitId
                     && l.DocDate <= closingDate
                     && !l.StockClosing)
                 .ToListAsync(ct);
 
-            if (entries.Count == 0)
-                return 0;
-
             foreach (var entry in entries)
                 entry.StockClosing = true;
 
+            // 2. If no entry exists at all for the closing date, create a single
+            //    placeholder row with zero data and mark it as closed.
+            var hasEntryOnDate = entries.Any(e => e.DocDate == closingDate)
+                || await _applicationDbContext.ProductionStockLedger
+                    .AnyAsync(l => l.UnitId == unitId && l.DocDate == closingDate, ct);
+
+            int created = 0;
+            if (!hasEntryOnDate)
+            {
+                await _applicationDbContext.ProductionStockLedger.AddAsync(new ProductionStockLedger
+                {
+                    UnitId           = unitId,
+                    ItemId           = 0,
+                    LotId            = 0,
+                    DocDate          = closingDate,
+                    OpeningLooseKgs  = 0,
+                    ProdKgs          = 0,
+                    TotalProdKgs     = 0,
+                    PackTypeId       = 0,
+                    NetWeightPerPack = 0,
+                    TotalBags        = 0,
+                    NetWeight        = 0,
+                    BagsRepacked     = 0,
+                    RepackKgs        = 0,
+                    ClosingLooseKgs  = 0,
+                    ClosingPackKgs   = 0,
+                    ClosingBags      = 0,
+                    StockClosing     = true
+                }, ct);
+                created = 1;
+            }
+
             await _applicationDbContext.SaveChangesAsync(ct);
-            return entries.Count;
+            return entries.Count + created;
         }
 
         private async Task UpsertProductionStockLedgerAsync(
