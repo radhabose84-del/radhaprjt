@@ -92,6 +92,14 @@ using PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Print;
+using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationCriteria;
+using PurchaseManagement.Application.Common.Interfaces.IVendorRatingGrade;
+using PurchaseManagement.Application.Common.Interfaces.IDeliveryScoreRule;
+using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationHeader;
+using PurchaseManagement.Infrastructure.Repositories.VendorEvaluationCriteria;
+using PurchaseManagement.Infrastructure.Repositories.VendorRatingGrade;
+using PurchaseManagement.Infrastructure.Repositories.DeliveryScoreRule;
+using PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader;
 using PurchaseManagement.Application.Common.Interfaces.IReturnType;
 using PurchaseManagement.Application.Common.Interfaces.IReturnReason;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseReturn;
@@ -307,6 +315,22 @@ namespace PurchaseManagement.Infrastructure
 
             // PO Print
             services.AddScoped<IPurchaseOrderPrintQueryRepository, PurchaseOrderPrintQueryRepository>();
+
+            // Vendor Evaluation & Rating
+            services.AddScoped<IVendorEvaluationCriteriaCommandRepository, VendorEvaluationCriteriaCommandRepository>();
+            services.AddScoped<IVendorEvaluationCriteriaQueryRepository, VendorEvaluationCriteriaQueryRepository>();
+
+            services.AddScoped<IVendorRatingGradeCommandRepository, VendorRatingGradeCommandRepository>();
+            services.AddScoped<IVendorRatingGradeQueryRepository, VendorRatingGradeQueryRepository>();
+
+            services.AddScoped<IDeliveryScoreRuleCommandRepository, DeliveryScoreRuleCommandRepository>();
+            services.AddScoped<IDeliveryScoreRuleQueryRepository, DeliveryScoreRuleQueryRepository>();
+
+            services.AddScoped<IVendorEvaluationHeaderCommandRepository, VendorEvaluationHeaderCommandRepository>();
+            services.AddScoped<IVendorEvaluationHeaderQueryRepository, VendorEvaluationHeaderQueryRepository>();
+
+            // Vendor Rating Lookup (cross-module)
+            services.AddScoped<IVendorRatingLookup, VendorRatingLookupRepository>();
 
             // // AutoMapper profiles
             // services.AddAutoMapper(
