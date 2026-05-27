@@ -202,6 +202,9 @@ namespace SalesManagement.Domain.Common
         public const string DirectToParty = "Direct-To-Party";
         public const string Others = "Others";
 
+        // Sales Order Freight Type — propagation gate (only Prepaid propagates freight to Party/DispatchAddress)
+        public const string FreightTypePrepaid = "Prepaid";
+
         // Discount Slab Type
         public const string SLAB_TYPE = "SLAB_TYPE";
         public const string QUANTITY = "QUANTITY";
