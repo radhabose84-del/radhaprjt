@@ -39,6 +39,8 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoCom
         public int? EmergencyPOById { get; set; }
         public decimal? EmergencyValueLimit { get; set; }
         public int? EmergencyActionId { get; set; }
+        // Populated only by GetItemsByVariantFilter — from Inventory.ItemInventory.DefaultPackTypeId.
+        public int? DefaultPackTypeId { get; set; }
         // Populated only by GetItemsByVariantFilter — config rows for this item's category + current unit.
         public List<ItemCategoryUnitConfigDto>? ItemCategoryUnitConfigs { get; set; }
     }
