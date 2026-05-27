@@ -45,6 +45,8 @@ using PurchaseContractHeaderConfig = PurchaseManagement.Infrastructure.Data.Conf
 using PurchaseContractDetailConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ContractPO.PurchaseContractDetailConfiguration;
 using PurchaseManagement.Domain.Entities.Outbox;
 using PurchaseManagement.Infrastructure.Data.Configurations.Outbox;
+using PurchaseManagement.Domain.Entities.VendorEvaluation;
+using PurchaseManagement.Infrastructure.Data.Configurations.VendorEvaluation;
 
 namespace PurchaseManagement.Infrastructure.Data
 {
@@ -133,6 +135,13 @@ namespace PurchaseManagement.Infrastructure.Data
         // Outbox Pattern
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+        // Vendor Evaluation & Rating
+        public DbSet<VendorEvaluationCriteria> VendorEvaluationCriteria { get; set; }
+        public DbSet<VendorRatingGrade> VendorRatingGrades { get; set; }
+        public DbSet<DeliveryScoreRule> DeliveryScoreRules { get; set; }
+        public DbSet<VendorEvaluationHeader> VendorEvaluationHeaders { get; set; }
+        public DbSet<VendorEvaluationDetail> VendorEvaluationDetails { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // modelBuilder.ApplyConfiguration(new AssetGroupConfiguration());           
@@ -215,7 +224,13 @@ namespace PurchaseManagement.Infrastructure.Data
             // Outbox Pattern
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
-            
+            // Vendor Evaluation & Rating
+            modelBuilder.ApplyConfiguration(new VendorEvaluationCriteriaConfiguration());
+            modelBuilder.ApplyConfiguration(new VendorRatingGradeConfiguration());
+            modelBuilder.ApplyConfiguration(new DeliveryScoreRuleConfiguration());
+            modelBuilder.ApplyConfiguration(new VendorEvaluationHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new VendorEvaluationDetailConfiguration());
+
             // Global convention: set explicit precision/scale for all decimal properties
             // This prevents EF Core runtime warnings about silent truncation
             foreach (var property in modelBuilder.Model.GetEntityTypes()

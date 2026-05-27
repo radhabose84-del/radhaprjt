@@ -699,7 +699,8 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                        U.Code AS PurchaseUom, U1.Code AS StockUom, IM.IsOnSpot,
                        ISale.MinQuantity,
                        ISale.UomId AS SaleUomId,
-                       USale.Code  AS SaleUom
+                       USale.Code  AS SaleUom,
+                       IInv.DefaultPackTypeId
                 FROM Inventory.ItemMaster IM
                 INNER JOIN Inventory.HSNMaster HM ON IM.HSNId = HM.Id
                 LEFT JOIN Inventory.ItemPurchase P ON P.ItemId = IM.Id
@@ -707,6 +708,7 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                 LEFT JOIN Inventory.UOM U1 ON U1.Id = IM.StockUomId
                 LEFT JOIN Inventory.ItemSale ISale ON ISale.ItemId = IM.Id
                 LEFT JOIN Inventory.UOM USale ON USale.Id = ISale.UomId
+                LEFT JOIN Inventory.ItemInventory IInv ON IInv.ItemId = IM.Id
                 WHERE IM.IsDeleted = 0 AND IM.IsActive = 1";
 
             const string variantFilter = @"
@@ -798,6 +800,25 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
                             configsByCategory.TryGetValue(item.ItemCategoryId, out var rows)
                                 ? rows
                                 : new List<ItemCategoryUnitConfigDto>();
+                    }
+                }
+
+                // Populate DefaultPackTypeName from cross-module lookup (ProductionManagement)
+                var packTypeIds = itemList
+                    .Where(i => i.DefaultPackTypeId.HasValue)
+                    .Select(i => i.DefaultPackTypeId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                if (packTypeIds.Count > 0)
+                {
+                    var packTypes = await _packTypeLookup.GetByIdsAsync(packTypeIds, ct);
+                    var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
+
+                    foreach (var item in itemList.Where(i => i.DefaultPackTypeId.HasValue))
+                    {
+                        if (packTypeDict.TryGetValue(item.DefaultPackTypeId!.Value, out var name))
+                            item.DefaultPackTypeName = name;
                     }
                 }
             }
