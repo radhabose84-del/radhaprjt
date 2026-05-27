@@ -1,6 +1,7 @@
 using Contracts.Interfaces;
 using QCManagement.Application.Common.Interfaces;
 using QCManagement.Domain.Common;
+using QCManagement.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace QCManagement.Infrastructure.Data
@@ -19,6 +20,10 @@ namespace QCManagement.Infrastructure.Data
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
         }
+
+        // ── DbSets ────────────────────────────────────────────────────────────
+        public DbSet<MiscTypeMaster> MiscTypeMaster { get; set; }
+        public DbSet<MiscMaster> MiscMaster { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
