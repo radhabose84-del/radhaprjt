@@ -28,6 +28,10 @@ namespace SalesManagement.Application.DeliveryChallan.Dto
         public string? VehicleNumber { get; set; }
         public decimal? TransportDistance { get; set; }
 
+        // Transport Mode (same-module JOIN to MiscMaster, MiscType = "TransMode")
+        public int? TransportModeId { get; set; }
+        public string? TransportModeName { get; set; }
+
         // Values
         public decimal DeliveryValue { get; set; }
         public decimal ConsignmentValue { get; set; }
