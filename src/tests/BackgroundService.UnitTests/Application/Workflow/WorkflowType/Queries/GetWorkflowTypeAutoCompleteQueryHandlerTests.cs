@@ -2,6 +2,7 @@ using AutoMapper;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IWorkflowType;
 using BackgroundService.Application.Workflow.WorkflowTypes.Queries.GetWorkflowTypeAutoComplete;
+using Contracts.Interfaces;
 
 namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
 {
@@ -10,9 +11,10 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
         private readonly Mock<IWorkflowTypeQuery> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<ILookupRepository> _mockLookupRepo = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIpAddressService = new(MockBehavior.Loose);
 
         private GetWorkflowTypeAutoCompleteQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMapper.Object, _mockLookupRepo.Object);
+            new(_mockQueryRepo.Object, _mockMapper.Object, _mockLookupRepo.Object, _mockIpAddressService.Object);
 
         [Fact]
         public async Task Handle_ReturnsMappedList()
@@ -31,9 +33,17 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
                 new() { Id = 1, MenuId = 100, MenuName = "Test" }
             };
 
+            // Handler filters the list before mapping; use It.IsAny to match the re-created list
             _mockMapper
-                .Setup(m => m.Map<List<GetWorkflowTypeAutoCompleteDto>>(entities))
+                .Setup(m => m.Map<List<GetWorkflowTypeAutoCompleteDto>>(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()))
                 .Returns(dtos);
+
+            _mockIpAddressService.Setup(s => s.GetUserId()).Returns(1);
+
+            // MenuId on new() { Id = 1 } defaults to 0 — include 0 so the entity passes the filter
+            _mockLookupRepo
+                .Setup(r => r.GetUserAccessibleMenuIdsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HashSet<int> { 0, 100 });
 
             _mockLookupRepo
                 .Setup(r => r.GetMenuNamesAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
@@ -59,6 +69,12 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
             _mockMapper
                 .Setup(m => m.Map<List<GetWorkflowTypeAutoCompleteDto>>(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()))
                 .Returns(new List<GetWorkflowTypeAutoCompleteDto>());
+
+            _mockIpAddressService.Setup(s => s.GetUserId()).Returns(1);
+
+            _mockLookupRepo
+                .Setup(r => r.GetUserAccessibleMenuIdsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HashSet<int>());
 
             _mockLookupRepo
                 .Setup(r => r.GetMenuNamesAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))

@@ -3,8 +3,9 @@ using MediatR;
 
 namespace SalesManagement.Application.ComplaintResolution.Commands.SubmitResolution
 {
-    public class SubmitResolutionCommand : IRequest<ApiResponseDTO<int>>
+    public class SubmitResolutionCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
         public int ComplaintHeaderId { get; set; }
         public int ResolutionTypeId { get; set; }
         public string? ResolutionSummary { get; set; }

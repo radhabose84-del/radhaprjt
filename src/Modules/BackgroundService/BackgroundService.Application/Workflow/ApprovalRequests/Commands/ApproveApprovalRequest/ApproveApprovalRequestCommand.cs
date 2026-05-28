@@ -1,12 +1,14 @@
 using System.ComponentModel;
 using System.Text.Json;
+using Contracts.Common;
 using Contracts.Dtos.Common;
 using MediatR;
 
 namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveApprovalRequest
 {
-    public class ApproveApprovalRequestCommand : IRequest<bool>
+    public class ApproveApprovalRequestCommand : IRequest<bool>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanApprove;
         public int ApprovalRequestHeaderId { get; set; }
         // public int WorkFlowTypeId { get; set; }
            public int ModuleTransactionId { get; set; }   

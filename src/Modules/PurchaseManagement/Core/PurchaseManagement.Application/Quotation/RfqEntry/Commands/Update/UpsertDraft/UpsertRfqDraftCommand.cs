@@ -1,9 +1,11 @@
+using Contracts.Common;
 using MediatR;
 
 namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.UpsertDraft;
 
-public class UpsertRfqDraftCommand : IRequest<UpsertRfqDraftResult>
+public class UpsertRfqDraftCommand : IRequest<UpsertRfqDraftResult>, IRequirePermission
 {
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
     public int? Id { get; set; }                 
     public int? InitiationTypeId { get; set; }
     public int? IndentId { get; set; }

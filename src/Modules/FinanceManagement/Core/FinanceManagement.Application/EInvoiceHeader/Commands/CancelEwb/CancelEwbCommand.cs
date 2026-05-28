@@ -4,8 +4,9 @@ using MediatR;
 
 namespace FinanceManagement.Application.EInvoiceHeader.Commands.CancelEwb
 {
-    public class CancelEwbCommand : IRequest<ApiResponseDTO<NicCancelEwbResultDto>>
+    public class CancelEwbCommand : IRequest<ApiResponseDTO<NicCancelEwbResultDto>>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
         public int EInvoiceHeaderId { get; set; }
 
         /// <summary>
