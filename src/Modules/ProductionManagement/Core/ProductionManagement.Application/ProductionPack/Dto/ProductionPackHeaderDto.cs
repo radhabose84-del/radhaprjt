@@ -11,28 +11,11 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public int WarehouseId { get; set; }
         public string? WarehouseName { get; set; }
 
-        // Item / Lot / Pack identification
+        // Item identification
         public int ItemId { get; set; }
         public string? ItemName { get; set; }
         public int? VariantId { get; set; }
         public string? VariantName { get; set; }
-        public int LotId { get; set; }
-        public string? LotCode { get; set; }
-        public int? PackTypeId { get; set; }
-        public string? PackTypeName { get; set; }
-        public decimal? NetWeightPerPack { get; set; }
-
-        // Pack range
-        public int? StartPackNo { get; set; }
-        public int? EndPackNo { get; set; }
-
-        // Totals
-        public decimal OpeningLooseKgs { get; set; }
-        public decimal TotalProductionKgs { get; set; }
-        public int TotalBags { get; set; }
-        public decimal TotalNetWeight { get; set; }
-        public decimal ProductionKgs { get; set; }
-        public decimal LooseConeKgs { get; set; }
 
         // Location & quality
         public int? BinId { get; set; }
@@ -40,7 +23,6 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public int? QualityStatusId { get; set; }
         public string? QualityStatusName { get; set; }
 
-        public string? Remarks { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }
@@ -49,5 +31,8 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public int? ModifiedBy { get; set; }
         public DateTimeOffset? ModifiedDate { get; set; }
         public string? ModifiedByName { get; set; }
+
+        // Detail rows (lot-level)
+        public List<ProductionPackDetailDto>? Details { get; set; }
     }
 }

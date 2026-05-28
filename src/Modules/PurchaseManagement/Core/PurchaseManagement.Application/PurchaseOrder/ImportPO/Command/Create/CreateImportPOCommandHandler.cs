@@ -91,6 +91,9 @@ public class CreateImportPOCommandHandler : IRequestHandler<CreateImportPOComman
         entity.CreatedIP = _ip.GetSystemIPAddress();
         entity.CreatedDate = now;
 
+        var pending = await _misc.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+        entity.StatusId = pending.Id;
+
         // Documents: filter + rename on disk, then attach to entity.PurchaseDocuments
         if (dto.Documents != null && dto.Documents.Any())
         {

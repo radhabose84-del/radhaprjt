@@ -16,12 +16,14 @@ namespace SalesManagement.Application.DispatchAdvice.Dto
         public decimal TotPendingQty { get; set; }
         public int DispatchTypeId { get; set; }
         public string? DispatchTypeName { get; set; }
-        public int FreightId { get; set; }
+        public int? FreightId { get; set; }
         public string? FreightModeName { get; set; }
         public string? RateMethodName { get; set; }
         public decimal? FreightRate { get; set; }
         public int? TransporterId { get; set; }
         public string? TransporterName { get; set; }
+        public int? TransportMode { get; set; }
+        public string? TransportModeName { get; set; }
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
         public string? LRNo { get; set; }

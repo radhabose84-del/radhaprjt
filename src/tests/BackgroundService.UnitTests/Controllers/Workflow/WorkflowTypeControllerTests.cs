@@ -73,7 +73,7 @@ namespace BackgroundService.UnitTests.Controllers.Workflow
         {
             _mockMediator
                 .Setup(m => m.Send(It.IsAny<CreateWorkflowTypeCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
+                .ReturnsAsync(new List<int> { 1 });
 
             var result = await CreateSut().CreateAsync(new CreateWorkflowTypeCommand());
 

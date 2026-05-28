@@ -84,10 +84,19 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                 PackDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 ProductionYear = DateTime.UtcNow.Year,
                 UnitId = 1, WarehouseId = 1,
-                ItemId = 1, LotId = lotId,
-                StartPackNo = startPackNo, EndPackNo = endPackNo,
-                TotalBags = 0, TotalNetWeight = 0m,
-                IsActive = Status.Active, IsDeleted = deleted
+                ItemId = 1,
+                IsActive = Status.Active, IsDeleted = deleted,
+                Details = new List<Domain.Entities.ProductionPackEntryDetail>
+                {
+                    new Domain.Entities.ProductionPackEntryDetail
+                    {
+                        LotId = lotId,
+                        StartPackNo = startPackNo,
+                        EndPackNo = endPackNo,
+                        TotalBags = 0,
+                        TotalNetWeight = 0m
+                    }
+                }
             };
             await ctx.ProductionPackEntry.AddAsync(p);
             await ctx.SaveChangesAsync();
@@ -247,7 +256,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
             var lotId = await SeedLotMasterAsync();
             var id = await SeedProductionAsync("POV3", lotId, startPackNo: 1, endPackNo: 10);
 
-            var result = await CreateRepo().PackOverlapExistsAsync(lotId, 5, 15, excludeId: id);
+            var result = await CreateRepo().PackOverlapExistsAsync(lotId, 5, 15, excludeHeaderId: id);
 
             result.Should().BeFalse();
         }

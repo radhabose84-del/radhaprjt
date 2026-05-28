@@ -18,6 +18,12 @@ namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
         public decimal TotalDispatchQty { get; set; }
         public int? ReturnableItems { get; set; }
         public decimal TotalValue { get; set; }
+
+        // Weighbridge
+        public decimal? GrossWeight { get; set; }
+        public decimal? TareWeight { get; set; }
+        public decimal? NetWeight { get; set; }
+
         public string? Remarks { get; set; }
 
         public List<CreateGatePassDetailDto>? GatePassDetails { get; set; }

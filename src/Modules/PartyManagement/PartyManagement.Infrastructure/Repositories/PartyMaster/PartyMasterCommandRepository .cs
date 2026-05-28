@@ -119,6 +119,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             // Update the existing PartyMaster properties
 
             existingParty.PartyName = partyMaster.PartyName;
+            existingParty.AlternateName = partyMaster.AlternateName;
+            existingParty.ShortName = partyMaster.ShortName;
+            existingParty.IsVerified = partyMaster.IsVerified;
+            existingParty.StatusControlId = partyMaster.StatusControlId;
             existingParty.PartyZoneId = partyMaster.PartyZoneId;
             existingParty.RegistrationTypeId = partyMaster.RegistrationTypeId;
             existingParty.GSTNumber = partyMaster.GSTNumber;
@@ -138,6 +142,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             existingParty.PayementModeId = partyMaster.PayementModeId;
             existingParty.FavourOf = partyMaster.FavourOf;
             existingParty.PreferredCurrencyPurchase = partyMaster.PreferredCurrencyPurchase;
+            existingParty.CreditDays = partyMaster.CreditDays;
+            existingParty.DueDateTypeId = partyMaster.DueDateTypeId;
+            existingParty.LeadTime = partyMaster.LeadTime;
+            existingParty.PreferredCurrencySale = partyMaster.PreferredCurrencySale;
             existingParty.CreditLimit = partyMaster.CreditLimit;
             existingParty.SellingPriceListId = partyMaster.SellingPriceListId;
             existingParty.CustomerTypeId = partyMaster.CustomerTypeId;
@@ -272,7 +280,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             existingChildpartyciontact.GenderId = incoming.GenderId;
                             existingChildpartyciontact.Designation = incoming.Designation;
                             existingChildpartyciontact.EmailID = incoming.EmailID;
+                            existingChildpartyciontact.AlternateEmailId = incoming.AlternateEmailId;
                             existingChildpartyciontact.MobileNo = incoming.MobileNo;
+                            existingChildpartyciontact.AlternateMobileNumber = incoming.AlternateMobileNumber;
                             existingChildpartyciontact.Phone = incoming.Phone;
                             existingChildpartyciontact.PreferredChannelId = incoming.PreferredChannelId;
                             existingChildpartyciontact.ContactTypeId = incoming.ContactTypeId;
@@ -290,7 +300,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             GenderId = incoming.GenderId,
                             Designation = incoming.Designation,
                             EmailID = incoming.EmailID,
+                            AlternateEmailId = incoming.AlternateEmailId,
                             MobileNo = incoming.MobileNo,
+                            AlternateMobileNumber = incoming.AlternateMobileNumber,
                             Phone = incoming.Phone,
                             PreferredChannelId = incoming.PreferredChannelId,
                             ContactTypeId = incoming.ContactTypeId,
@@ -542,9 +554,29 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 }
             }
 
-            // TransportDetails - Update if exists, else Insert
+            // TransportDetails - Remove if dropped from payload, Update if exists, else Insert
             if (partyMaster.TransportDetails != null)
             {
+                // 1. Hard delete: any existing row whose Id is NOT in the incoming payload
+                //    (matches trash-icon removal in the UI). Rows the user kept come back with Id > 0;
+                //    rows the user removed simply don't appear in the payload.
+                var incomingIds = partyMaster.TransportDetails
+                    .Where(t => t.Id > 0)
+                    .Select(t => t.Id)
+                    .ToHashSet();
+
+                var toRemove = existingParty.TransportDetails?
+                    .Where(td => !incomingIds.Contains(td.Id))
+                    .ToList() ?? new List<TransportDetail>();
+
+                foreach (var removed in toRemove)
+                {
+                    _applicationDbContext.TransportDetail.Remove(removed);
+                    await LogChange(existingParty.Id, "TransportDetail", "VehicleNo",
+                        removed.VehicleNo ?? "", "", "Delete");
+                }
+
+                // 2. Upsert: existing rows update, new rows (Id == 0) insert
                 foreach (var incoming in partyMaster.TransportDetails)
                 {
                     if (incoming.Id > 0 && incoming.PartyId > 0)
@@ -554,13 +586,18 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
                         if (existingChild != null)
                         {
+                            existingChild.TransporterTypeId = incoming.TransporterTypeId;
                             existingChild.TransportModeId = incoming.TransportModeId;
                             existingChild.VehicleTypeId = incoming.VehicleTypeId;
                             existingChild.DefaultFreightTypeId = incoming.DefaultFreightTypeId;
                             existingChild.DefaultFreightRate = incoming.DefaultFreightRate;
+                            existingChild.MinFreightAmount = incoming.MinFreightAmount;
                             existingChild.LicenseNo = incoming.LicenseNo;
                             existingChild.LicenseExpiryDate = incoming.LicenseExpiryDate;
                             existingChild.VehicleNo = incoming.VehicleNo;
+                            existingChild.InsuranceProvider = incoming.InsuranceProvider;
+                            existingChild.PolicyNo = incoming.PolicyNo;
+                            existingChild.InsuranceExpiryDate = incoming.InsuranceExpiryDate;
                             existingChild.Status = incoming.Status;
                         }
                     }
@@ -570,13 +607,18 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         existingParty.TransportDetails.Add(new TransportDetail
                         {
                             PartyId = existingParty.Id,
+                            TransporterTypeId = incoming.TransporterTypeId,
                             TransportModeId = incoming.TransportModeId,
                             VehicleTypeId = incoming.VehicleTypeId,
                             DefaultFreightTypeId = incoming.DefaultFreightTypeId,
                             DefaultFreightRate = incoming.DefaultFreightRate,
+                            MinFreightAmount = incoming.MinFreightAmount,
                             LicenseNo = incoming.LicenseNo,
                             LicenseExpiryDate = incoming.LicenseExpiryDate,
                             VehicleNo = incoming.VehicleNo,
+                            InsuranceProvider = incoming.InsuranceProvider,
+                            PolicyNo = incoming.PolicyNo,
+                            InsuranceExpiryDate = incoming.InsuranceExpiryDate,
                             Status = incoming.Status
                         });
 

@@ -45,6 +45,8 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
     {
         public int Id { get; set; }
         public int PartyId { get; set; }
+        public int? TransporterTypeId { get; set; }
+        public string? TransporterTypeName { get; set; }
         public int? TransportModeId { get; set; }
         public string? TransportModeName { get; set; }
         public int? VehicleTypeId { get; set; }
@@ -52,9 +54,13 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public int? DefaultFreightTypeId { get; set; }
         public string? DefaultFreightTypeName { get; set; }
         public decimal? DefaultFreightRate { get; set; }
+        public decimal? MinFreightAmount { get; set; }
         public string? LicenseNo { get; set; }
         public DateTimeOffset? LicenseExpiryDate { get; set; }
         public string? VehicleNo { get; set; }
+        public string? InsuranceProvider { get; set; }
+        public string? PolicyNo { get; set; }
+        public DateTimeOffset? InsuranceExpiryDate { get; set; }
         public byte Status { get; set; }
     }
 

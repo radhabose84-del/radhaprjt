@@ -140,9 +140,11 @@ namespace PurchaseManagement.Presentation.Controllers.PurchaseOrder
 
             return Ok(new
             {
-                StatusCode = StatusCodes.Status200OK,
-                data = new { Items = items, TotalCount = total },
-                message = $"Pending Service PO data{(poId.HasValue ? $" for PO ID {poId}" : "")} fetched successfully"
+                statusCode = StatusCodes.Status200OK,
+                data = items,
+                totalCount = total,
+                pageNumber = page,
+                pageSize = size
             });
         }
             

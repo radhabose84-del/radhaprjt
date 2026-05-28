@@ -5,6 +5,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IQuotation.IQuotation
 public interface IQuotationQueryRepository
 {    
     Task<(List<QuotationListItemDto> Items, int Total)> GetAllAsync(int PageNumber, int PageSize, string? SearchTerm);
+    Task<(List<QuotationListItemDto> Items, int Total)> GetMyQuotationsAsync(int supplierPartyId, int PageNumber, int PageSize, string? SearchTerm);
     Task<GetQuotationHeaderDto?> GetByIdAsync(int id, CancellationToken ct);
     Task<List<QuotationAutoCompleteDto>> GetQuotationAutoComplete(string? searchPattern);
   

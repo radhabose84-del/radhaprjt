@@ -48,9 +48,8 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                             .NotEmpty()
                             .WithMessage($"{nameof(CreateDispatchAdviceCommand.DispatchTypeId)} {rule.Error}");
 
-                        RuleFor(x => x.FreightId)
-                            .NotEmpty()
-                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.FreightId)} {rule.Error}");
+                        // FreightId is optional — required only when SalesOrder.FreightType = "Prepaid".
+                        // The FE controls this: Prepaid → sends value; non-Prepaid → sends null.
 
                         RuleFor(x => x.Details)
                             .NotNull()
@@ -93,6 +92,12 @@ namespace SalesManagement.Presentation.Validation.DispatchAdvice
                             .MustAsync(async (id, ct) => await _queryRepository.DispatchAddressExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateDispatchAdviceCommand.DispatchAddressId)} {rule.Error}")
                             .When(x => x.DispatchAddressId.HasValue && x.DispatchAddressId > 0);
+
+                        // TransportMode must reference a valid MiscMaster record
+                        RuleFor(x => x.TransportMode)
+                            .MustAsync(async (id, ct) => await _queryRepository.MiscMasterExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateDispatchAdviceCommand.TransportMode)} {rule.Error}")
+                            .When(x => x.TransportMode.HasValue && x.TransportMode > 0);
                         break;
 
                     case "GreaterThan":

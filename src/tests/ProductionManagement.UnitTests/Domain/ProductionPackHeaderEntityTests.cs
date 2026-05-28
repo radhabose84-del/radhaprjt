@@ -44,10 +44,8 @@ namespace ProductionManagement.UnitTests.Domain
                 ProductionYear = 2025,
                 UnitId = 1,
                 WarehouseId = 2,
-                TotalBags = 100,
-                TotalNetWeight = 5000.00m,
-                ProductionKgs = 4950.00m,
-                LooseConeKgs = 50.00m
+                ItemId = 10,
+                VariantId = 5
             };
             entity.Id.Should().Be(1);
             entity.PackNo.Should().Be("PKG-2025-001");
@@ -55,10 +53,8 @@ namespace ProductionManagement.UnitTests.Domain
             entity.ProductionYear.Should().Be(2025);
             entity.UnitId.Should().Be(1);
             entity.WarehouseId.Should().Be(2);
-            entity.TotalBags.Should().Be(100);
-            entity.TotalNetWeight.Should().Be(5000.00m);
-            entity.ProductionKgs.Should().Be(4950.00m);
-            entity.LooseConeKgs.Should().Be(50.00m);
+            entity.ItemId.Should().Be(10);
+            entity.VariantId.Should().Be(5);
         }
 
         [Fact]
@@ -67,18 +63,27 @@ namespace ProductionManagement.UnitTests.Domain
             var entity = new ProductionPackEntry
             {
                 PackNo = null,
-                Remarks = null,
-                StartPackNo = null,
-                EndPackNo = null,
+                VariantId = null,
                 BinId = null,
                 QualityStatusId = null
             };
             entity.PackNo.Should().BeNull();
-            entity.Remarks.Should().BeNull();
-            entity.StartPackNo.Should().BeNull();
-            entity.EndPackNo.Should().BeNull();
+            entity.VariantId.Should().BeNull();
             entity.BinId.Should().BeNull();
             entity.QualityStatusId.Should().BeNull();
+        }
+
+        [Fact]
+        public void ProductionPackEntry_Details_ShouldBeAssignable()
+        {
+            var entity = new ProductionPackEntry();
+            var details = new List<ProductionPackEntryDetail>
+            {
+                new ProductionPackEntryDetail { Id = 1, LotId = 10, TotalBags = 50 },
+                new ProductionPackEntryDetail { Id = 2, LotId = 20, TotalBags = 30 }
+            };
+            entity.Details = details;
+            entity.Details.Should().HaveCount(2);
         }
     }
 }

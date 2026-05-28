@@ -86,6 +86,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportModeId = tm.Id AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter};";
 
@@ -103,6 +104,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.TransporterId,
                     h.VehicleNumber,
                     h.TransportDistance,
+                    h.TransportModeId,
+                    tm.Description AS TransportModeName,
                     h.DeliveryValue,
                     h.ConsignmentValue,
                     h.StatusId,
@@ -127,6 +130,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportModeId = tm.Id AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 {searchFilter}
                 ORDER BY h.Id DESC
@@ -197,6 +201,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.TransporterId,
                     h.VehicleNumber,
                     h.TransportDistance,
+                    h.TransportModeId,
+                    tm.Description AS TransportModeName,
                     h.DeliveryValue,
                     h.ConsignmentValue,
                     h.StatusId,
@@ -221,6 +227,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportModeId = tm.Id AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
@@ -389,6 +396,21 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
             return count > 0;
         }
 
+        public async Task<bool> TransportModeExistsAsync(int transportModeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.MiscMaster mm
+                INNER JOIN Sales.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id
+                WHERE mm.Id = @Id
+                  AND mt.MiscTypeCode = 'TransMode'
+                  AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                  AND mt.IsDeleted = 0;";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = transportModeId });
+            return count > 0;
+        }
+
         public async Task<bool> MovementTypeConfigExistsAsync(int movementTypeId)
         {
             const string sql = @"
@@ -483,6 +505,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportModeId = tm.Id AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter};";
 
@@ -500,6 +523,8 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.TransporterId,
                     h.VehicleNumber,
                     h.TransportDistance,
+                    h.TransportModeId,
+                    tm.Description AS TransportModeName,
                     h.DeliveryValue,
                     h.ConsignmentValue,
                     h.StatusId,
@@ -524,6 +549,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportModeId = tm.Id AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.IsDeleted = 0 AND h.StatusId = @PendingStatusId {approverFilter} {searchFilter}
                 ORDER BY h.Id DESC
@@ -639,6 +665,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                     h.FromPlantId, h.FromStorageLocationId,
                     h.ToPlantId, h.ToStorageLocationId,
                     h.TransporterId, h.VehicleNumber, h.TransportDistance,
+                    h.TransportModeId, tm.Description AS TransportModeName,
                     h.DeliveryValue, h.ConsignmentValue,
                     h.StatusId, ms.Description AS StatusName,
                     h.DcTypeId, dt.Description AS DcTypeName,
@@ -651,6 +678,7 @@ namespace SalesManagement.Infrastructure.Repositories.DeliveryChallan
                 LEFT JOIN Sales.StoHeader sh ON h.StoHeaderId = sh.Id AND sh.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ms ON h.StatusId = ms.Id AND ms.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster dt ON h.DcTypeId = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster tm ON h.TransportModeId = tm.Id AND tm.IsDeleted = 0
                 LEFT JOIN Sales.MovementTypeConfig mt ON h.MovementTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0 AND h.StatusId = @PendingStatusId
                   AND h.Id IN (

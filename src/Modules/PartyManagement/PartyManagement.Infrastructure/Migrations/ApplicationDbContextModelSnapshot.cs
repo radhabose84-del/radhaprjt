@@ -1188,6 +1188,14 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DefaultFreightTypeId");
 
+                    b.Property<DateTimeOffset?>("InsuranceExpiryDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("InsuranceExpiryDate");
+
+                    b.Property<string>("InsuranceProvider")
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("InsuranceProvider");
+
                     b.Property<DateTimeOffset?>("LicenseExpiryDate")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("LicenseExpiryDate");
@@ -1196,9 +1204,18 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("LicenseNo");
 
+                    b.Property<decimal?>("MinFreightAmount")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("MinFreightAmount");
+
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
+
+                    b.Property<string>("PolicyNo")
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("PolicyNo");
 
                     b.Property<byte>("Status")
                         .ValueGeneratedOnAdd()
@@ -1209,6 +1226,10 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Property<int?>("TransportModeId")
                         .HasColumnType("int")
                         .HasColumnName("TransportModeId");
+
+                    b.Property<int?>("TransporterTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TransporterTypeId");
 
                     b.Property<string>("VehicleNo")
                         .HasColumnType("nvarchar(50)")
@@ -1228,6 +1249,9 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     b.HasIndex("TransportModeId")
                         .HasDatabaseName("IX_TransportDetail_TransportModeId");
+
+                    b.HasIndex("TransporterTypeId")
+                        .HasDatabaseName("IX_TransportDetail_TransporterTypeId");
 
                     b.HasIndex("VehicleTypeId")
                         .HasDatabaseName("IX_TransportDetail_VehicleTypeId");
@@ -1531,6 +1555,11 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasForeignKey("TransportModeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "TransporterTypeMisc")
+                        .WithMany("TransportDetailTransporterType")
+                        .HasForeignKey("TransporterTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "VehicleTypeMisc")
                         .WithMany("TransportDetailVehicleType")
                         .HasForeignKey("VehicleTypeId")
@@ -1541,6 +1570,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("PartyMaster");
 
                     b.Navigation("TransportModeMisc");
+
+                    b.Navigation("TransporterTypeMisc");
 
                     b.Navigation("VehicleTypeMisc");
                 });
@@ -1592,6 +1623,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("TransportDetailDefaultFreightType");
 
                     b.Navigation("TransportDetailTransportMode");
+
+                    b.Navigation("TransportDetailTransporterType");
 
                     b.Navigation("TransportDetailVehicleType");
                 });

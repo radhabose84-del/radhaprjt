@@ -16,10 +16,11 @@ namespace ProductionManagement.Application.Common.Interfaces.IProductionPack
         Task<bool> PackTypeExistsAsync(int packTypeId);
         Task<bool> ItemExistsAsync(int itemId);
         Task<bool> QualityStatusExistsAsync(int qualityStatusId);
+        Task<bool> MiscMasterExistsAsync(int id);
         Task<int> GetLastEndPackNoAsync(int productionYear);
-        Task<bool> PackOverlapExistsAsync(int lotId, int startPackNo, int endPackNo, int? excludeDetailId = null);
+        Task<bool> PackOverlapExistsAsync(int lotId, int startPackNo, int endPackNo, int? excludeHeaderId = null);
         Task<ProductionStockClosingDto?> GetPreviousDateClosingAsync(int itemId, int lotId, DateOnly docDate);
         Task<List<ProductionStockRegisterDto>> GetProductionStockRegisterAsync(DateOnly fromDate, DateOnly toDate, int? lotId, int? itemId);
-        Task<DateOnly?> GetLastStockLedgerDateAsync();
+        Task<DateOnly?> GetLastStockLedgerDateAsync(bool dayClose = false);
     }
 }

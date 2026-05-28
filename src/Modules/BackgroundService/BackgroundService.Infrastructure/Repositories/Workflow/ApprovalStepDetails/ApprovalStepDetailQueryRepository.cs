@@ -48,7 +48,7 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalStepDet
                 ASD.StopOnFirstMatch,
                 ASD.IsEdit,
                 ASD.IsActive,ASD.CreatedDate,ASD.CreatedBy,ASD.CreatedByName,ASD.ModifiedBy,ASD.ModifiedDate,ASD.ModifiedByName,
-                ApprovalStep.Id,ApprovalStep.Code,WorkFlow.Id,WorkFlow.MenuId,TargetType.Id,TargetType.Code
+                ApprovalStep.Id,ApprovalStep.Code,WorkFlow.Id,WorkFlow.MenuId,WorkFlow.TransactionTypeId,TargetType.Id,TargetType.Code
             FROM [AppData].[ApprovalStepDetail] ASD
             INNER JOIN [AppData].[MiscMaster] ApprovalStep on ApprovalStep.Id=ASD.ApprovalStepId
             INNER JOIN [AppData].[WorkflowType] WorkFlow on WorkFlow.Id=ASD.WorkFlowTypeId
@@ -88,7 +88,8 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalStepDet
                     detail.WorkflowType = new WorkflowType
                     {
                         Id = workFlow.Id,
-                        MenuId = workFlow.MenuId
+                        MenuId = workFlow.MenuId,
+                        TransactionTypeId = workFlow.TransactionTypeId
                     };
                      detail.TargetType = new Domain.Entities.Notification.MiscMaster
                     {

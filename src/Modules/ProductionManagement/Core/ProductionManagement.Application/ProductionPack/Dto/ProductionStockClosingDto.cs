@@ -5,5 +5,6 @@ namespace ProductionManagement.Application.ProductionPack.Dto
         public decimal ClosingLooseKgs { get; set; }
         public decimal ClosingPackKgs { get; set; }
         public int ClosingBags { get; set; }
+        public DateOnly ProdDate { get; set; }
     }
 }

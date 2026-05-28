@@ -12,9 +12,10 @@ namespace BackgroundService.UnitTests.Application.Workflow.ApprovalStepDetail.Qu
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<ILookupRepository> _mockLookupRepo = new(MockBehavior.Loose);
+        private readonly Mock<Contracts.Interfaces.IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
         private GetAllApprovalStepDetailQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockLookupRepo.Object);
+            new(_mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockLookupRepo.Object, _mockIpService.Object);
 
         private void SetupHappyPath(int count = 1)
         {

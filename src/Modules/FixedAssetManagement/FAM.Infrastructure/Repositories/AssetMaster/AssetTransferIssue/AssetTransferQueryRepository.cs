@@ -391,26 +391,28 @@ namespace FAM.Infrastructure.Repositories.AssetMaster.AssetTransferIssue
         }
         public async Task<bool> IsAssetPendingOrApprovedAsync(int assetId, int? excludeTransferId = null)
         {
-            // SCRUM-1463 fix:
-            // The previous version INNER JOIN'd AssetTransferReceiptDtl, which silently dropped
-            // any pending transfer that didn't yet have a receipt row — so brand-new pending
-            // transfers slipped through the guard and duplicates were allowed.
-            // Correct logic: a transfer blocks if its Hdr is Pending, OR Approved-but-not-acknowledged.
-            // No receipt-side join is needed — AckStatus lives on the Hdr.
+            // Source of truth for acknowledgement is AssetTransferReceiptDtl.AckStatus
+            // (the receipt-acknowledgement flow updates only that column — Hdr.AckStatus is never
+            // written by any code path, so reading it here let historically-completed transfers
+            // block new ones). Block when: Status = 'Pending', OR Status = 'Approved' AND the
+            // receipt-dtl for this asset is missing or not yet acknowledged.
             const string query = @"
                 SELECT 1
                 FROM FixedAsset.AssetTransferIssueHdr A
                 INNER JOIN FixedAsset.AssetTransferIssueDtl B ON A.Id = B.AssetTransferId
+                LEFT JOIN FixedAsset.AssetTransferReceiptHdr RH ON RH.AssetTransferId = A.Id
+                LEFT JOIN FixedAsset.AssetTransferReceiptDtl RD
+                       ON RD.AssetReceiptId = RH.Id AND RD.AssetId = B.AssetId
                 WHERE B.AssetId = @assetId
                   AND (A.Status = 'Pending'
-                       OR (A.Status = 'Approved' AND A.AckStatus <> 1))
+                       OR (A.Status = 'Approved' AND (RD.AckStatus IS NULL OR RD.AckStatus <> 1)))
                   AND (@ExcludeId IS NULL OR A.Id <> @ExcludeId);";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<int?>(
                 query,
                 new { assetId, ExcludeId = excludeTransferId });
 
-            return result.HasValue; // If a blocking row exists, restrict the user
+            return result.HasValue;
         }
 
         public async Task<List<GetAllTransferDtlDto>> GetAssetTransferByIDAsync(int assetTransferId)

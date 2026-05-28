@@ -63,7 +63,7 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalP
                             .ToList();
 
             var wfApprovers = await _workflowLookup
-                .GetApproverListAsync(MiscEnumEntity.POLocal, poIds);
+                .GetApproverListAsync(MiscEnumEntity.TransactionTypeLPO, poIds);
 
             // Allowed PO IDs where current user is an approver
             var allowedPoIds = wfApprovers

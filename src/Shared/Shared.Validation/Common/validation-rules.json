@@ -41,6 +41,11 @@
         "error": " must contain only alphabetic characters and spaces."
     },
     {
+        "rule": "AlphabeticWithSeparators",
+        "pattern": "^[A-Za-z _-]+$",
+        "error": " must not contain digits or special characters."
+    },
+    {
         "rule": "Alphanumeric",
         "pattern": "^[A-Za-z0-9]+$",
         "error": " must be alphanumeric only."

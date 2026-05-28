@@ -7,6 +7,7 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
 using PurchaseManagement.Application.PurchaseIndents.Queries.ApprovedIndentDetailsForPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
+using PurchaseManagement.Application.PurchaseOrder.EmergencyPO.Queries.GetEmergencyPOPending;
 using PurchaseManagement.Domain.Common;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
@@ -140,6 +141,115 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
             Items = items,
         };
     }
+    public async Task<PagedResult<PurchaseOrderListItemDto>> GetMyPurchaseOrdersAsync(
+        int vendorPartyId,
+        int page,
+        int size,
+        string? searchTerm,
+        int? poMethodId,
+        int? statusId,
+        int? budgetGroupId,
+        CancellationToken ct)
+    {
+        const string sql = @"
+        -- Count
+        SELECT COUNT(1)
+        FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+        WHERE h.IsDeleted = 0
+          AND h.IsActive  = 1
+          AND h.VendorId  = @VendorId
+          AND (@Search IS NULL OR @Search = '' OR h.PONumber LIKE @LikeSearch )
+          AND (@PoMethodId IS NULL OR h.POMethodId = @PoMethodId)
+          AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+          AND (@StatusId IS NULL OR h.StatusId = @StatusId);
+
+        -- Page
+          SELECT
+           h.Id, h.PONumber, h.PODate, h.VendorId, h.StatusId,
+            h.PurchaseValue, h.ItemTotal, h.DiscountTotal, h.PandFTotal, h.MiscCharges,
+            h.GSTTotal, h.CGSTTotal, h.SGSTTotal, h.IGSTTotal, h.FreightTotal,
+            h.InsuranceTotal, h.TDSTotal, h.AdvanceAmount,
+            mStatus.Code AS StatusCode,
+            mCat.Code    AS POCategoryCode,
+            mMethod.Code AS POMethodCode, mMethod.id as POMethodId,h.BudgetGroupId,h.ItemCategoryId,
+            CASE
+                WHEN x.HasGRN  = 1 THEN 2
+                WHEN x.HasGate = 1 THEN 2
+                WHEN mStatus.Code = @Approved THEN 1
+                WHEN mStatus.Code = @Pending  THEN 0
+                ELSE 0
+            END AS Edit,
+            CASE
+                WHEN x.HasGRN  = 1 THEN N'GRN exists for this PO. Edit/Amendment is not allowed'
+                WHEN x.HasGate = 1 THEN N'Gate Entry exists for this PO. Edit/Amendment is not allowed'
+                WHEN mStatus.Code = @Approved THEN N'This PO is approved; editing it will create an amendment and assign a new PO number with a revision code.'
+                WHEN mStatus.Code = @Pending  THEN NULL
+            END AS EditReason,
+            h.RevisionNo,
+            h.AmendmentReason,
+            CASE
+                WHEN LOWER(mStatus.Code) = LOWER(@Approved)
+                THEN CASE WHEN x.HasGRN = 1 THEN 'Y' ELSE 'N' END
+                ELSE NULL
+            END AS GRNFlag,
+            CAST(CASE WHEN mStatus.Code = @Cancelled THEN 1 ELSE 0 END AS BIT) AS IsCancelled,
+            CAST(CASE WHEN mStatus.Code = @ForeClosed THEN 1 ELSE 0 END AS BIT) AS IsForeclosed,
+            CAST(CASE WHEN x.HasGRN = 0 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanCancel,
+            CAST(CASE WHEN x.HasGRN = 1 AND mStatus.Code = @Approved THEN 1 ELSE 0 END AS BIT) AS CanForeclose,
+            h.CancelledDate,
+            h.CancelledByName,
+            h.CancelledIP,
+            h.ForeClosedDate,
+            h.ForeClosedByName,
+            h.ForeClosedIP
+        FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+        LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
+        LEFT JOIN Purchase.MiscMaster mCat    WITH (NOLOCK) ON mCat.Id    = h.POCategoryId
+         LEFT JOIN Purchase.MiscMaster mMethod WITH (NOLOCK) ON mMethod.Id = h.POMethodId
+        OUTER APPLY (
+            SELECT
+                CASE WHEN EXISTS (SELECT 1 FROM Purchase.GrnDetail       gd WITH (NOLOCK) WHERE gd.PoId = h.Id) THEN 1 ELSE 0 END AS HasGRN,
+                CASE WHEN EXISTS (SELECT 1 FROM Purchase.GateEntryDetail ge WITH (NOLOCK) WHERE ge.PoId = h.Id) THEN 1 ELSE 0 END AS HasGate
+        ) x
+        WHERE h.IsDeleted = 0
+          AND h.IsActive  = 1
+          AND h.VendorId  = @VendorId
+          AND (@PoMethodId IS NULL OR h.POMethodId = @PoMethodId)
+          AND (@BudgetGroupId IS NULL OR h.BudgetGroupId = @BudgetGroupId)
+          AND (@StatusId IS NULL OR h.StatusId = @StatusId)
+        ORDER BY h.Id DESC
+        OFFSET @off ROWS FETCH NEXT @size ROWS ONLY;";
+
+        var like = string.IsNullOrWhiteSpace(searchTerm) ? null : $"%{searchTerm.Trim()}%";
+
+        using var multi = await _conn.QueryMultipleAsync(sql, new
+        {
+            VendorId = vendorPartyId,
+            Search = searchTerm,
+            LikeSearch = like,
+            PoMethodId = poMethodId,
+            BudgetGroupId = budgetGroupId,
+            off = Math.Max(0, (page - 1) * size),
+            size,
+            Pending = MiscEnumEntity.Pending,
+            Approved = MiscEnumEntity.Approved,
+            Cancelled = MiscEnumEntity.Cancelled,
+            ForeClosed = MiscEnumEntity.ForeClosed,
+            StatusId = statusId
+        });
+
+        var total = await multi.ReadFirstAsync<int>();
+        var items = (await multi.ReadAsync<PurchaseOrderListItemDto>()).ToList();
+
+        return new PagedResult<PurchaseOrderListItemDto>
+        {
+            Page = page,
+            PageSize = size,
+            Total = total,
+            Items = items,
+        };
+    }
+
     public async Task<PurchaseOrderDetailDto?> GetByIdAsync(int id, CancellationToken ct)
     {
         // header
@@ -503,6 +613,249 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
                 DepartmentId = d.DepartmentId,
                 ItemValue = d.ItemValue
             });
+        }
+
+        return (headers, total);
+    }
+
+    public async Task<(List<GetEmergencyPOPendingGroupDto> Rows, int Total)> GetEmergencyPOPendingAsync(
+        int? page, int? size, string? search, int? poId, int? poMethodId, CancellationToken ct)
+    {
+        var p = (page.HasValue && page > 0) ? page.Value : 1;
+        var s = (size.HasValue && size > 0) ? size.Value : 15;
+        var off = (p - 1) * s;
+        var like = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+        var unitId = _ip.GetUnitId() ?? 0;
+
+        // Only "Pending" status
+        var pending = await _miscMasterQueryRepository.GetMiscMasterByName(
+            MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+
+        var sql = @"
+            /* 1) Matching PO ids — Emergency category across all PO methods */
+            CREATE TABLE #filtered (Id INT PRIMARY KEY);
+
+            INSERT INTO #filtered (Id)
+            SELECT DISTINCT h.Id
+            FROM Purchase.PurchaseOrderHeader h
+            INNER JOIN Purchase.MiscMaster cat ON cat.Id = h.POCategoryId AND cat.Code = @EmergencyCode AND cat.IsDeleted = 0
+            LEFT JOIN Purchase.PurchaseLocalHeader       lh ON lh.PurchaseOrderId  = h.Id AND lh.IsDeleted = 0
+            LEFT JOIN Purchase.PurchaseOrderImportHeader  ih ON ih.PurchaseOrderId  = h.Id AND ih.IsDeleted = 0
+            LEFT JOIN Purchase.PurchaseContractHeader     ch ON ch.PurchaseOrderId  = h.Id AND ch.IsDeleted = 0
+            WHERE h.IsDeleted = 0
+              AND (@UnitId IS NULL OR h.UnitId = @UnitId)
+              AND h.StatusId = @StatusId
+              AND (@PoId IS NULL OR h.Id = @PoId)
+              AND (@PoMethodId IS NULL OR h.PoMethodId = @PoMethodId)
+              AND (@LikeSearch IS NULL OR h.PONumber LIKE @LikeSearch)
+              AND (lh.Id IS NOT NULL OR ih.Id IS NOT NULL OR ch.Id IS NOT NULL);
+
+            /* 2) Page ids */
+            CREATE TABLE #paged (Id INT PRIMARY KEY);
+            WITH numbered AS (
+                SELECT Id, ROW_NUMBER() OVER (ORDER BY Id DESC) rn
+                FROM #filtered
+            )
+            INSERT INTO #paged (Id)
+            SELECT Id FROM numbered WHERE rn BETWEEN (@off + 1) AND (@off + @size);
+
+            /* 3) Header groups */
+            SELECT
+                h.Id,
+                h.PONumber,
+                h.PODate,
+                h.VendorId,
+                h.PurchaseValue,
+                h.StatusId,
+                h.ItemTotal,
+                h.DiscountTotal,
+                h.PandFTotal,
+                h.MiscCharges,
+                h.GSTTotal,
+                h.CGSTTotal,
+                h.SGSTTotal,
+                h.IGSTTotal,
+                h.FreightTotal,
+                h.InsuranceTotal,
+                h.TDSTotal,
+                h.AdvanceAmount,
+                h.CreatedDate      AS createdDate,
+                h.CreatedByName    AS createdByName,
+                st.Code            AS StatusCode,
+                eCat.Code          AS POCategoryCode,
+                mth.Code           AS POMethodCode,
+                mth.Id             AS POMethodId
+            FROM Purchase.PurchaseOrderHeader h
+            LEFT JOIN Purchase.MiscMaster st   ON st.Id  = h.StatusId
+            LEFT JOIN Purchase.MiscMaster eCat ON eCat.Id = h.POCategoryId
+            LEFT JOIN Purchase.MiscMaster mth  ON mth.Id = h.POMethodId
+            WHERE h.Id IN (SELECT Id FROM #paged)
+            ORDER BY h.Id DESC;
+
+            /* 4) Unified detail lines — Local + Import + Contract */
+            SELECT *
+            FROM (
+                /* Local detail */
+                SELECT
+                    d.Id,
+                    d.PurchaseLocalId               AS ParentHeaderId,
+                    d.IndentId,
+                    d.ItemId,
+                    d.Quantity,
+                    d.UnitPrice,
+                    d.LastPOPrice,
+                    d.DiscountTypeId,
+                    d.DiscountValue,
+                    d.PandFType,
+                    d.PandFCharge,
+                    d.OtherCharge,
+                    d.GSTPercentage,
+                    d.CGSTPercentage,
+                    d.SGSTPercentage,
+                    d.IGSTPercentage,
+                    d.CGST,
+                    d.SGST,
+                    d.IGST,
+                    d.ScheduleDate,
+                    d.DepartmentId,
+                    d.ItemValue
+                FROM Purchase.PurchaseLocalDetail d
+                JOIN Purchase.PurchaseLocalHeader lh ON lh.Id = d.PurchaseLocalId AND lh.IsDeleted = 0
+                WHERE d.IsDeleted = 0
+                  AND lh.PurchaseOrderId IN (SELECT Id FROM #paged)
+
+                UNION ALL
+
+                /* Import detail */
+                SELECT
+                    ipd.Id,
+                    ipd.PurchaseHeaderId             AS ParentHeaderId,
+                    ipd.IndentId,
+                    ipd.ItemId,
+                    ipd.Quantity,
+                    ipd.UnitPrice,
+                    CAST(NULL AS DECIMAL(18,6))      AS LastPOPrice,
+                    CAST(NULL AS INT)                AS DiscountTypeId,
+                    CAST(NULL AS DECIMAL(18,6))      AS DiscountValue,
+                    CAST(NULL AS INT)                AS PandFType,
+                    CAST(NULL AS DECIMAL(18,6))      AS PandFCharge,
+                    ipd.OtherCharges                 AS OtherCharge,
+                    CAST(NULL AS DECIMAL(18,6))      AS GSTPercentage,
+                    CAST(NULL AS DECIMAL(18,6))      AS CGSTPercentage,
+                    CAST(NULL AS DECIMAL(18,6))      AS SGSTPercentage,
+                    ipd.IGSTPercentage               AS IGSTPercentage,
+                    CAST(NULL AS DECIMAL(18,6))      AS CGST,
+                    CAST(NULL AS DECIMAL(18,6))      AS SGST,
+                    ipd.IGST                         AS IGST,
+                    CAST(NULL AS DATETIMEOFFSET)      AS ScheduleDate,
+                    CAST(NULL AS INT)                AS DepartmentId,
+                    ipd.TotalValue                   AS ItemValue
+                FROM Purchase.PurchaseOrderImportDetail ipd
+                JOIN Purchase.PurchaseOrderImportHeader iph ON iph.Id = ipd.PurchaseHeaderId AND iph.IsDeleted = 0
+                WHERE iph.PurchaseOrderId IN (SELECT Id FROM #paged)
+
+                UNION ALL
+
+                /* Contract detail */
+                SELECT
+                    cd.Id,
+                    cd.PurchaseContractHeaderId      AS ParentHeaderId,
+                    CAST(NULL AS INT)                AS IndentId,
+                    cd.ItemId,
+                    cd.Quantity,
+                    cd.UnitPrice,
+                    CAST(NULL AS DECIMAL(18,6))      AS LastPOPrice,
+                    cd.DiscountTypeId,
+                    cd.DiscountValue,
+                    cd.PandFType,
+                    cd.PandFCharge,
+                    cd.OtherCharge,
+                    cd.GSTPercentage,
+                    cd.CGSTPercentage,
+                    cd.SGSTPercentage,
+                    cd.IGSTPercentage,
+                    cd.CGST,
+                    cd.SGST,
+                    cd.IGST,
+                    cd.ScheduleDate,
+                    cd.DepartmentId,
+                    cd.ItemValue
+                FROM Purchase.PurchaseContractDetail cd
+                JOIN Purchase.PurchaseContractHeader cth ON cth.Id = cd.PurchaseContractHeaderId AND cth.IsDeleted = 0
+                WHERE cd.IsDeleted = 0
+                  AND cth.PurchaseOrderId IN (SELECT Id FROM #paged)
+            ) u
+            ORDER BY ParentHeaderId, Id;
+
+            /* 4b) Map parent header id -> PurchaseOrderId for all three types */
+            SELECT *
+            FROM (
+                SELECT lh.Id AS ParentHeaderId, lh.PurchaseOrderId
+                FROM Purchase.PurchaseLocalHeader lh
+                WHERE lh.IsDeleted = 0
+                  AND lh.PurchaseOrderId IN (SELECT Id FROM #paged)
+
+                UNION ALL
+
+                SELECT iph.Id AS ParentHeaderId, iph.PurchaseOrderId
+                FROM Purchase.PurchaseOrderImportHeader iph
+                WHERE iph.IsDeleted = 0
+                  AND iph.PurchaseOrderId IN (SELECT Id FROM #paged)
+
+                UNION ALL
+
+                SELECT cth.Id AS ParentHeaderId, cth.PurchaseOrderId
+                FROM Purchase.PurchaseContractHeader cth
+                WHERE cth.IsDeleted = 0
+                  AND cth.PurchaseOrderId IN (SELECT Id FROM #paged)
+            ) m;
+
+            /* 5) Total groups */
+            SELECT COUNT(1) FROM #filtered;
+
+            /* 6) Cleanup */
+            DROP TABLE #paged;
+            DROP TABLE #filtered;";
+
+        var param = new
+        {
+            UnitId = unitId,
+            StatusId = pending.Id,
+            PoId = poId,
+            PoMethodId = poMethodId,
+            EmergencyCode = MiscEnumEntity.EmergencyPO,
+            LikeSearch = like,
+            off,
+            size = s
+        };
+
+        using var multi = await _conn.QueryMultipleAsync(
+            new CommandDefinition(sql, param, cancellationToken: ct));
+
+        // 3) headers
+        var headers = (await multi.ReadAsync<GetEmergencyPOPendingGroupDto>()).ToList();
+
+        // 4) unified detail lines
+        var details = (await multi.ReadAsync<GetEmergencyPOPendingLineDto>()).ToList();
+
+        // 4b) parentHeaderId -> POId map
+        var mapRows = (await multi.ReadAsync<(int ParentHeaderId, int PurchaseOrderId)>()).ToList();
+        var poByParentId = mapRows
+            .GroupBy(x => x.ParentHeaderId)
+            .ToDictionary(g => g.Key, g => g.First().PurchaseOrderId);
+
+        // 5) total
+        var total = await multi.ReadFirstAsync<int>();
+
+        // attach details to headers
+        var byPo = headers.ToDictionary(h => h.Id, h => h);
+        foreach (var g in headers) g.Lines ??= new List<GetEmergencyPOPendingLineDto>();
+
+        foreach (var d in details)
+        {
+            if (!poByParentId.TryGetValue(d.ParentHeaderId, out var poIdForDetail)) continue;
+            if (!byPo.TryGetValue(poIdForDetail, out var grp)) continue;
+            grp.Lines.Add(d);
         }
 
         return (headers, total);

@@ -14,8 +14,9 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
         public decimal TotPendingQty { get; set; }
         public int? DispatchAddressId { get; set; }
         public int DispatchTypeId { get; set; }
-        public int FreightId { get; set; }
+        public int? FreightId { get; set; }
         public int? TransporterId { get; set; }
+        public int? TransportMode { get; set; }
         public string? VehicleNo { get; set; }
         public string? DriverName { get; set; }
         public string? LRNo { get; set; }

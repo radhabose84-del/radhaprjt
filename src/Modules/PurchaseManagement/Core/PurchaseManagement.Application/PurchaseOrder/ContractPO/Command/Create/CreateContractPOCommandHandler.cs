@@ -104,6 +104,7 @@ public sealed class CreateContractPOCommandHandler
             ? sequences[^1]
             : throw new ExceptionRules("No document sequence configured for Contract PO.");
 
+       
         // -------------------------------------------------
         // BUDGET VALIDATION (Optimistic - read-only check)
         // -------------------------------------------------

@@ -31,6 +31,7 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (DispatchAdvice)
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsStatus { get; set; }
         public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsDispatchType { get; set; }
+        public ICollection<DispatchAdviceHeader>? DispatchAdviceHeadersAsTransportMode { get; set; }
 
         // Reverse navigation (SalesOrderDiscount)
         public ICollection<SalesOrderDiscount>? SalesOrderDiscountsAsSlabType { get; set; }
@@ -44,6 +45,7 @@ namespace SalesManagement.Domain.Entities
         // Reverse navigation (DeliveryChallanHeader)
         public ICollection<DeliveryChallanHeader>? DeliveryChallanHeadersAsStatus { get; set; }
         public ICollection<DeliveryChallanHeader>? DeliveryChallanHeadersAsDcType { get; set; }
+        public ICollection<DeliveryChallanHeader>? DeliveryChallanHeadersAsTransportMode { get; set; }
 
         // Reverse navigation (InvoiceHeader)
         public ICollection<InvoiceHeader>? InvoiceHeadersAsTransportMode { get; set; }

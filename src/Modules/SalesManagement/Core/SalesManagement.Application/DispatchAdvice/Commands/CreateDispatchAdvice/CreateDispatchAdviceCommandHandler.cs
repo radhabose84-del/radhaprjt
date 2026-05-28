@@ -75,8 +75,21 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
             // Resolve DispatchType description for address-based freight propagation
             //   • Direct-To-Party → updates Party.PartyMaster.SalesFreightId (only when NULL)
             //   • Others          → updates Sales.DispatchAddressMaster.FreightId (only when NULL)
-            var dispatchType = await _miscMasterQueryRepository.GetByIdAsync(request.DispatchTypeId);
-            var dispatchTypeName = dispatchType?.Description;
+            // GATE: propagation runs only when the SalesOrder's FreightType is "Prepaid".
+            // For other freight types (e.g., ToPay, ToBeBilled) the user-selected FreightId stays
+            // on the Dispatch header only — Party / DispatchAddress freight defaults are not touched.
+            var freightTypeId = await _queryRepository.GetSalesOrderFreightTypeIdAsync(request.SalesOrderId);
+            var freightType = freightTypeId > 0
+                ? await _miscMasterQueryRepository.GetByIdAsync(freightTypeId)
+                : null;
+            var isPrepaid = string.Equals(freightType?.Description, MiscEnumEntity.FreightTypePrepaid, StringComparison.OrdinalIgnoreCase);
+
+            string? dispatchTypeName = null;
+            if (isPrepaid)
+            {
+                var dispatchType = await _miscMasterQueryRepository.GetByIdAsync(request.DispatchTypeId);
+                dispatchTypeName = dispatchType?.Description;
+            }
 
             // CreateAsync inserts header + details, updates StockLedger, propagates freight, increments DocNo — all in one transaction
             var newId = await _commandRepository.CreateAsync(

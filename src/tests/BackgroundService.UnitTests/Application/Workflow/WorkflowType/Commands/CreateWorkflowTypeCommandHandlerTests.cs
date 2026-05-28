@@ -31,9 +31,10 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Commands
                 .Setup(m => m.Map<BackgroundService.Domain.Entities.Workflow.WorkflowType>(It.IsAny<CreateWorkflowTypeCommand>()))
                 .Returns(new BackgroundService.Domain.Entities.Workflow.WorkflowType());
 
+            var returnedIds = newId > 0 ? new List<int> { newId } : new List<int>();
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<BackgroundService.Domain.Entities.Workflow.WorkflowType>()))
-                .ReturnsAsync(newId);
+                .Setup(r => r.CreateBulkAsync(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()))
+                .ReturnsAsync(returnedIds);
 
             _mockMediator
                 .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -48,7 +49,7 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Commands
 
             var result = await sut.Handle(ValidCommand(), CancellationToken.None);
 
-            result.Should().Be(5);
+            result.Should().Contain(5);
         }
 
         [Fact]
@@ -60,7 +61,7 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Commands
             await sut.Handle(ValidCommand(), CancellationToken.None);
 
             _mockCommandRepo.Verify(
-                r => r.CreateAsync(It.IsAny<BackgroundService.Domain.Entities.Workflow.WorkflowType>()),
+                r => r.CreateBulkAsync(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()),
                 Times.Once);
         }
 

@@ -22,6 +22,11 @@ namespace GateEntryManagement.Domain.Entities
         public int? ReturnableItems { get; set; }
         public decimal TotalValue { get; set; }
 
+        // Weighbridge
+        public decimal? GrossWeight { get; set; }
+        public decimal? TareWeight { get; set; }
+        public decimal? NetWeight { get; set; }
+
         public string? Remarks { get; set; }
 
         // Navigation Properties

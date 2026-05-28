@@ -10,9 +10,10 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
         private readonly Mock<IWorkflowTypeQuery> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<ILookupRepository> _mockLookupRepo = new(MockBehavior.Loose);
+        private readonly Mock<Contracts.Interfaces.IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
         private GetAllWorkflowTypeQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMapper.Object, _mockLookupRepo.Object);
+            new(_mockQueryRepo.Object, _mockMapper.Object, _mockLookupRepo.Object, _mockIpService.Object);
 
         private void SetupHappyPath(int count = 1)
         {
