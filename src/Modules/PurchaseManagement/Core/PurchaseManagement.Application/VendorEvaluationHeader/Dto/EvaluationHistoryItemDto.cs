@@ -10,7 +10,6 @@ public class EvaluationHistoryItemDto
     public decimal TotalWeightedScore { get; set; }
     public string? GradeCode { get; set; }
     public string? GradeName { get; set; }
-    public string? StatusName { get; set; }
     public string? EvaluatedBy { get; set; }
     public DateTimeOffset? EvaluatedDate { get; set; }
     public List<CriteriaScoreItemDto>? CriteriaScores { get; set; }

@@ -24,7 +24,7 @@ namespace PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendo
 
         public async Task<VendorEvaluationDashboardDto?> Handle(GetVendorEvaluationDashboardQuery request, CancellationToken cancellationToken)
         {
-            var result = await _dashboardRepository.GetDashboardAsync(
+            var result = await _dashboardRepository.VendorEvaluationCalcAsync(
                 request.VendorId,
                 request.EvaluationMonth,
                 request.EvaluationYear);

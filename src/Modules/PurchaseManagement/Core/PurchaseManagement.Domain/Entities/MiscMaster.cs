@@ -105,9 +105,6 @@ namespace PurchaseManagement.Domain.Entities
         public ICollection<VendorEvaluationCriteria>? VendorCriteriaScoringMethod { get; set; }
         public ICollection<VendorEvaluationCriteria>? VendorCriteriaRatingImpact { get; set; }
 
-        // Vendor Evaluation — Status
-        public ICollection<VendorEvaluationHeader>? VendorEvaluationStatuses { get; set; }
-
         // Vendor Rating Grade — Action Type
         public ICollection<VendorRatingGrade>? VendorRatingGradeActions { get; set; }
 

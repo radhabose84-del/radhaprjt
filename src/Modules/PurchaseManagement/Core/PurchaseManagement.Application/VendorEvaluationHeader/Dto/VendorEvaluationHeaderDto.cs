@@ -13,8 +13,6 @@ public class VendorEvaluationHeaderDto
     public int? GradeId { get; set; }
     public string? GradeCode { get; set; }
     public string? GradeName { get; set; }
-    public int StatusId { get; set; }
-    public string? StatusName { get; set; }
     public string? Remarks { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }

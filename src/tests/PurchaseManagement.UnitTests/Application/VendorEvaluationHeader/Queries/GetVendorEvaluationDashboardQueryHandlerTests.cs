@@ -21,8 +21,7 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
             {
                 VendorId = 1,
                 EvaluationMonth = 5,
-                EvaluationYear = 2026,
-                LookbackMonths = 3
+                EvaluationYear = 2026
             };
 
         private static VendorEvaluationDashboardDto ValidDashboardDto() =>
@@ -32,7 +31,6 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
                 VendorName = "Test Vendor",
                 EvaluationMonth = 5,
                 EvaluationYear = 2026,
-                LookbackMonths = 3,
                 Criteria = new List<DashboardCriteriaDto>
                 {
                     new()
@@ -61,12 +59,7 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
                 TotalWeightedScore = 25.65m,
                 ResolvedGradeId = 1,
                 ResolvedGradeCode = "A",
-                ResolvedGradeName = "Excellent",
-                GradeReferences = new List<GradeReferenceDto>
-                {
-                    new() { Id = 1, GradeCode = "A", GradeName = "Excellent", MinScore = 80, MaxScore = 100 },
-                    new() { Id = 2, GradeCode = "B", GradeName = "Good", MinScore = 60, MaxScore = 79.99m }
-                }
+                ResolvedGradeName = "Excellent"
             };
 
         [Fact]
@@ -76,7 +69,7 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
             var expected = ValidDashboardDto();
 
             _mockDashboardRepo
-                .Setup(r => r.GetDashboardAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear, query.LookbackMonths))
+                .Setup(r => r.VendorEvaluationCalcAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear))
                 .ReturnsAsync(expected);
 
             _mockMediator
@@ -99,7 +92,7 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
             var query = ValidQuery();
 
             _mockDashboardRepo
-                .Setup(r => r.GetDashboardAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear, query.LookbackMonths))
+                .Setup(r => r.VendorEvaluationCalcAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear))
                 .ReturnsAsync(ValidDashboardDto());
 
             _mockMediator
@@ -123,7 +116,7 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
             var query = ValidQuery();
 
             _mockDashboardRepo
-                .Setup(r => r.GetDashboardAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear, query.LookbackMonths))
+                .Setup(r => r.VendorEvaluationCalcAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear))
                 .ReturnsAsync((VendorEvaluationDashboardDto?)null);
 
             var result = await CreateSut().Handle(query, CancellationToken.None);
@@ -137,7 +130,7 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
             var query = ValidQuery();
 
             _mockDashboardRepo
-                .Setup(r => r.GetDashboardAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear, query.LookbackMonths))
+                .Setup(r => r.VendorEvaluationCalcAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear))
                 .ReturnsAsync((VendorEvaluationDashboardDto?)null);
 
             await CreateSut().Handle(query, CancellationToken.None);
@@ -153,7 +146,7 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
             var query = ValidQuery();
 
             _mockDashboardRepo
-                .Setup(r => r.GetDashboardAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear, query.LookbackMonths))
+                .Setup(r => r.VendorEvaluationCalcAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear))
                 .ReturnsAsync(ValidDashboardDto());
 
             _mockMediator
@@ -163,28 +156,8 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Querie
             await CreateSut().Handle(query, CancellationToken.None);
 
             _mockDashboardRepo.Verify(
-                r => r.GetDashboardAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear, query.LookbackMonths),
+                r => r.VendorEvaluationCalcAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear),
                 Times.Once);
-        }
-
-        [Fact]
-        public async Task Handle_DashboardWithGradeReferences_ReturnsList()
-        {
-            var query = ValidQuery();
-            var dto = ValidDashboardDto();
-
-            _mockDashboardRepo
-                .Setup(r => r.GetDashboardAsync(query.VendorId, query.EvaluationMonth, query.EvaluationYear, query.LookbackMonths))
-                .ReturnsAsync(dto);
-
-            _mockMediator
-                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-
-            var result = await CreateSut().Handle(query, CancellationToken.None);
-
-            result!.GradeReferences.Should().NotBeNull();
-            result.GradeReferences.Should().HaveCount(2);
         }
     }
 }

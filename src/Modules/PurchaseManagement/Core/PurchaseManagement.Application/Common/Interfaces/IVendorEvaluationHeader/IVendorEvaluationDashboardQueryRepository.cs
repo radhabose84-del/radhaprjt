@@ -4,7 +4,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationHead
 {
     public interface IVendorEvaluationDashboardQueryRepository
     {
-        Task<VendorEvaluationDashboardDto?> GetDashboardAsync(
+        Task<VendorEvaluationDashboardDto?> VendorEvaluationCalcAsync(
             int vendorId, int evaluationMonth, int evaluationYear);
 
         Task<(List<VendorRatingDashboardListItemDto>, int, VendorRatingDashboardSummaryDto)> GetAllDashboardAsync(

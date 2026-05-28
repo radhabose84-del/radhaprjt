@@ -17,7 +17,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
             _supplierLookup = supplierLookup;
         }
 
-        public async Task<VendorEvaluationDashboardDto?> GetDashboardAsync(
+        public async Task<VendorEvaluationDashboardDto?> VendorEvaluationCalcAsync(
             int vendorId, int evaluationMonth, int evaluationYear)
         {
             // Resolve vendor name directly — not restricted by active/unit filters
@@ -80,8 +80,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                 TotalWeightedScore = Math.Round(totalWeightedScore, 2),
                 ResolvedGradeId = resolvedGrade?.Id,
                 ResolvedGradeCode = resolvedGrade?.GradeCode,
-                ResolvedGradeName = resolvedGrade?.GradeName,
-                GradeReferences = grades
+                ResolvedGradeName = resolvedGrade?.GradeName
             };
         }
 
@@ -479,12 +478,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                        veh.TotalWeightedScore,
                        vrg.GradeCode,
                        vrg.GradeName,
-                       mm.Description AS StatusName,
                        veh.CreatedByName AS EvaluatedBy,
                        veh.CreatedDate AS EvaluatedDate
                 FROM Purchase.VendorEvaluationHeader veh
                 LEFT JOIN Purchase.VendorRatingGrade vrg ON veh.GradeId = vrg.Id AND vrg.IsDeleted = 0
-                LEFT JOIN Purchase.MiscMaster mm ON veh.StatusId = mm.Id AND mm.IsDeleted = 0
                 WHERE veh.VendorId = @VendorId AND veh.IsDeleted = 0
                 ORDER BY veh.EvaluationYear DESC, veh.EvaluationMonth DESC";
 

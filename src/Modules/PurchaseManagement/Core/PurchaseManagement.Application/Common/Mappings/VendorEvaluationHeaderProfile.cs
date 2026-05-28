@@ -16,8 +16,9 @@ namespace PurchaseManagement.Application.Common.Mappings
             // Entity → Detail DTO
             CreateMap<Domain.Entities.VendorEvaluation.VendorEvaluationDetail, VendorEvaluationDetailDto>();
 
-            // Create Command → Header Entity
+            // Create Command → Header Entity (EvaluationCode is auto-generated, not in command)
             CreateMap<CreateVendorEvaluationHeaderCommand, Domain.Entities.VendorEvaluation.VendorEvaluationHeader>()
+                .ForMember(dest => dest.EvaluationCode, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
                 .ForMember(dest => dest.VendorEvaluationDetails, opt => opt.MapFrom(src => src.Details));

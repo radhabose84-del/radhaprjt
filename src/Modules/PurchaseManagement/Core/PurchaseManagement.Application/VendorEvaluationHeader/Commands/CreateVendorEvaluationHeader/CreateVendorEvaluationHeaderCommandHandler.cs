@@ -1,7 +1,10 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationHeader;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.VendorEvaluation;
 using PurchaseManagement.Domain.Events;
 
@@ -13,17 +16,23 @@ namespace PurchaseManagement.Application.VendorEvaluationHeader.Commands.CreateV
         private readonly IVendorEvaluationHeaderQueryRepository _queryRepository;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public CreateVendorEvaluationHeaderCommandHandler(
             IVendorEvaluationHeaderCommandRepository commandRepository,
             IVendorEvaluationHeaderQueryRepository queryRepository,
             IMediator mediator,
-            IMapper mapper)
+            IMapper mapper,
+            IDocumentSequenceLookup documentSequenceLookup,
+            IIPAddressService ipAddressService)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
+            _documentSequenceLookup = documentSequenceLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateVendorEvaluationHeaderCommand request, CancellationToken cancellationToken)
@@ -44,13 +53,23 @@ namespace PurchaseManagement.Application.VendorEvaluationHeader.Commands.CreateV
                 }).ToList();
             }
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Generate EvaluationCode from DocumentSequence
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+            var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeVendorEvaluation, MiscEnumEntity.ModulePurchase, unitId)
+                ?? throw new InvalidOperationException("No transaction type configured for Vendor Evaluation.");
+            var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId);
+            entity.EvaluationCode = sequences.Count > 0
+                ? sequences[^1]
+                : throw new InvalidOperationException("No document sequence configured for Vendor Evaluation.");
+
+            var newId = await _commandRepository.CreateAsync(entity, transactionTypeId, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "VENDOR_EVAL_HEADER_CREATE",
-                actionName: request.EvaluationCode ?? string.Empty,
-                details: $"VendorEvaluationHeader '{request.EvaluationCode}' created successfully with Id {newId}.",
+                actionName: entity.EvaluationCode,
+                details: $"VendorEvaluationHeader '{entity.EvaluationCode}' created successfully with Id {newId}.",
                 module: "VendorEvaluationHeader"
             );
             await _mediator.Publish(auditEvent, cancellationToken);

@@ -31,15 +31,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
             const string dataSql = @"
                 SELECT veh.Id, veh.EvaluationCode, veh.VendorId,
                        veh.EvaluationMonth, veh.EvaluationYear, veh.EvaluationDate,
-                       veh.TotalWeightedScore, veh.GradeId, veh.StatusId, veh.Remarks,
+                       veh.TotalWeightedScore, veh.GradeId, veh.Remarks,
                        veh.IsActive, veh.IsDeleted,
                        veh.CreatedBy, veh.CreatedDate, veh.CreatedByName,
                        veh.ModifiedBy, veh.ModifiedDate, veh.ModifiedByName,
-                       vrg.GradeCode, vrg.GradeName,
-                       mm.Description AS StatusName
+                       vrg.GradeCode, vrg.GradeName
                 FROM Purchase.VendorEvaluationHeader veh
                 LEFT JOIN Purchase.VendorRatingGrade vrg ON veh.GradeId = vrg.Id AND vrg.IsDeleted = 0
-                LEFT JOIN Purchase.MiscMaster mm ON veh.StatusId = mm.Id AND mm.IsDeleted = 0
                 WHERE veh.IsDeleted = 0
                   AND (@SearchTerm IS NULL OR veh.EvaluationCode LIKE '%' + @SearchTerm + '%'
                        OR veh.Remarks LIKE '%' + @SearchTerm + '%')
@@ -80,15 +78,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
             const string headerSql = @"
                 SELECT veh.Id, veh.EvaluationCode, veh.VendorId,
                        veh.EvaluationMonth, veh.EvaluationYear, veh.EvaluationDate,
-                       veh.TotalWeightedScore, veh.GradeId, veh.StatusId, veh.Remarks,
+                       veh.TotalWeightedScore, veh.GradeId, veh.Remarks,
                        veh.IsActive, veh.IsDeleted,
                        veh.CreatedBy, veh.CreatedDate, veh.CreatedByName,
                        veh.ModifiedBy, veh.ModifiedDate, veh.ModifiedByName,
-                       vrg.GradeCode, vrg.GradeName,
-                       mm.Description AS StatusName
+                       vrg.GradeCode, vrg.GradeName
                 FROM Purchase.VendorEvaluationHeader veh
                 LEFT JOIN Purchase.VendorRatingGrade vrg ON veh.GradeId = vrg.Id AND vrg.IsDeleted = 0
-                LEFT JOIN Purchase.MiscMaster mm ON veh.StatusId = mm.Id AND mm.IsDeleted = 0
                 WHERE veh.Id = @Id AND veh.IsDeleted = 0";
 
             const string detailSql = @"
@@ -116,18 +112,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
             header.VendorEvaluationDetails = details;
 
             return header;
-        }
-
-        public async Task<bool> AlreadyExistsAsync(string evaluationCode, int? id = null)
-        {
-            const string sql = @"
-                SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM Purchase.VendorEvaluationHeader
-                    WHERE EvaluationCode = @EvaluationCode AND IsDeleted = 0
-                      AND (@Id IS NULL OR Id != @Id)
-                ) THEN 1 ELSE 0 END";
-
-            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { EvaluationCode = evaluationCode, Id = id });
         }
 
         public async Task<bool> CompositeKeyExistsAsync(int vendorId, int evaluationMonth, int evaluationYear, int? id = null)
@@ -171,17 +155,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                 ) THEN 1 ELSE 0 END";
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = gradeId });
-        }
-
-        public async Task<bool> StatusExistsAsync(int statusId)
-        {
-            const string sql = @"
-                SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM Purchase.MiscMaster
-                    WHERE Id = @Id AND IsDeleted = 0 AND IsActive = 1
-                ) THEN 1 ELSE 0 END";
-
-            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = statusId });
         }
 
         public async Task<bool> CriteriaExistsAsync(int criteriaId)

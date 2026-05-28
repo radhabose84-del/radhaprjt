@@ -11,5 +11,4 @@ public class VendorEvaluationDashboardDto
     public int? ResolvedGradeId { get; set; }
     public string? ResolvedGradeCode { get; set; }
     public string? ResolvedGradeName { get; set; }
-    public List<GradeReferenceDto>? GradeReferences { get; set; }
 }
