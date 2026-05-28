@@ -263,6 +263,224 @@ namespace QCManagement.Infrastructure.Migrations
                     b.ToTable("QualityParameter", "QC");
                 });
 
+            modelBuilder.Entity("QCManagement.Domain.Entities.QualitySpecification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicableLevelId")
+                        .HasColumnType("int")
+                        .HasColumnName("ApplicableLevelId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Description");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("EffectiveFrom");
+
+                    b.Property<DateTimeOffset?>("EffectiveTo")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("EffectiveTo");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ItemCategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemCategoryId");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ItemId");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("QualityTemplateId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualityTemplateId");
+
+                    b.Property<string>("SpecificationCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("SpecificationCode");
+
+                    b.Property<string>("SpecificationName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("SpecificationName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicableLevelId");
+
+                    b.HasIndex("EffectiveFrom");
+
+                    b.HasIndex("ItemCategoryId");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("QualityTemplateId");
+
+                    b.HasIndex("SpecificationCode")
+                        .IsUnique();
+
+                    b.HasIndex("SpecificationName");
+
+                    b.ToTable("QualitySpecification", "QC");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QualitySpecificationParameter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AllowedValues")
+                        .HasColumnType("varchar(2000)")
+                        .HasColumnName("AllowedValues");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("ExpectedValue")
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("ExpectedValue");
+
+                    b.Property<int?>("FailureActionId")
+                        .HasColumnType("int")
+                        .HasColumnName("FailureActionId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsSamplingRequired")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsSamplingRequired");
+
+                    b.Property<decimal?>("MaxValue")
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("MaxValue");
+
+                    b.Property<decimal?>("MinValue")
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("MinValue");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("QualityParameterId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualityParameterId");
+
+                    b.Property<int>("QualitySpecificationId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualitySpecificationId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<int?>("SeverityId")
+                        .HasColumnType("int")
+                        .HasColumnName("SeverityId");
+
+                    b.Property<int>("ValidationTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ValidationTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FailureActionId");
+
+                    b.HasIndex("QualityParameterId");
+
+                    b.HasIndex("QualitySpecificationId");
+
+                    b.HasIndex("SeverityId");
+
+                    b.HasIndex("ValidationTypeId");
+
+                    b.HasIndex("QualitySpecificationId", "QualityParameterId")
+                        .IsUnique();
+
+                    b.ToTable("QualitySpecificationParameter", "QC");
+                });
+
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityTemplate", b =>
                 {
                     b.Property<int>("Id")
@@ -479,6 +697,66 @@ namespace QCManagement.Infrastructure.Migrations
                     b.Navigation("ValidationType");
                 });
 
+            modelBuilder.Entity("QCManagement.Domain.Entities.QualitySpecification", b =>
+                {
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "ApplicableLevel")
+                        .WithMany("QualitySpecificationsAsApplicableLevel")
+                        .HasForeignKey("ApplicableLevelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QCManagement.Domain.Entities.QualityTemplate", "QualityTemplate")
+                        .WithMany("QualitySpecifications")
+                        .HasForeignKey("QualityTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApplicableLevel");
+
+                    b.Navigation("QualityTemplate");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QualitySpecificationParameter", b =>
+                {
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "FailureAction")
+                        .WithMany("QualitySpecificationParametersAsFailureAction")
+                        .HasForeignKey("FailureActionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("QCManagement.Domain.Entities.QualityParameter", "QualityParameter")
+                        .WithMany("QualitySpecificationParameters")
+                        .HasForeignKey("QualityParameterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QCManagement.Domain.Entities.QualitySpecification", "QualitySpecification")
+                        .WithMany("QualitySpecificationParameters")
+                        .HasForeignKey("QualitySpecificationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "Severity")
+                        .WithMany("QualitySpecificationParametersAsSeverity")
+                        .HasForeignKey("SeverityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "ValidationType")
+                        .WithMany("QualitySpecificationParametersAsValidationType")
+                        .HasForeignKey("ValidationTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FailureAction");
+
+                    b.Navigation("QualityParameter");
+
+                    b.Navigation("QualitySpecification");
+
+                    b.Navigation("Severity");
+
+                    b.Navigation("ValidationType");
+                });
+
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityTemplateParameter", b =>
                 {
                     b.HasOne("QCManagement.Domain.Entities.MiscMaster", "InspectionMethod")
@@ -513,6 +791,14 @@ namespace QCManagement.Infrastructure.Migrations
 
                     b.Navigation("QualityParametersAsValidationType");
 
+                    b.Navigation("QualitySpecificationParametersAsFailureAction");
+
+                    b.Navigation("QualitySpecificationParametersAsSeverity");
+
+                    b.Navigation("QualitySpecificationParametersAsValidationType");
+
+                    b.Navigation("QualitySpecificationsAsApplicableLevel");
+
                     b.Navigation("QualityTemplateParametersAsInspectionMethod");
                 });
 
@@ -523,11 +809,20 @@ namespace QCManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityParameter", b =>
                 {
+                    b.Navigation("QualitySpecificationParameters");
+
                     b.Navigation("QualityTemplateParameters");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QualitySpecification", b =>
+                {
+                    b.Navigation("QualitySpecificationParameters");
                 });
 
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityTemplate", b =>
                 {
+                    b.Navigation("QualitySpecifications");
+
                     b.Navigation("QualityTemplateParameters");
                 });
 #pragma warning restore 612, 618

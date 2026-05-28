@@ -10,6 +10,7 @@ using QCManagement.Application.Common.Interfaces.AuditLog;
 using QCManagement.Application.Common.Interfaces.IMiscMaster;
 using QCManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using QCManagement.Application.Common.Interfaces.IQualityParameter;
+using QCManagement.Application.Common.Interfaces.IQualitySpecification;
 using QCManagement.Application.Common.Interfaces.IQualityTemplate;
 using QCManagement.Infrastructure.Data;
 using QCManagement.Infrastructure.Persistence;
@@ -17,6 +18,7 @@ using QCManagement.Infrastructure.Repositories.AuditLog;
 using QCManagement.Infrastructure.Repositories.MiscMaster;
 using QCManagement.Infrastructure.Repositories.MiscTypeMaster;
 using QCManagement.Infrastructure.Repositories.QualityParameter;
+using QCManagement.Infrastructure.Repositories.QualitySpecification;
 using QCManagement.Infrastructure.Repositories.QualityTemplate;
 using QCManagement.Infrastructure.Services;
 using Serilog;
@@ -108,6 +110,10 @@ namespace QCManagement.Infrastructure
             // ── QualityTemplate ──────────────────────────────────────────────
             services.AddScoped<IQualityTemplateCommandRepository, QualityTemplateCommandRepository>();
             services.AddScoped<IQualityTemplateQueryRepository, QualityTemplateQueryRepository>();
+
+            // ── QualitySpecification ─────────────────────────────────────────
+            services.AddScoped<IQualitySpecificationCommandRepository, QualitySpecificationCommandRepository>();
+            services.AddScoped<IQualitySpecificationQueryRepository, QualitySpecificationQueryRepository>();
 
             return services;
         }

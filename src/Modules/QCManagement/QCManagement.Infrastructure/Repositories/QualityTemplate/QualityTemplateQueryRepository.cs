@@ -201,8 +201,12 @@ namespace QCManagement.Infrastructure.Repositories.QualityTemplate
 
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
-            // No dependents yet — QC Inspection (future) will extend this check.
-            return await Task.FromResult(false);
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM [QC].[QualitySpecification] WHERE QualityTemplateId = @id AND IsDeleted = 0
+                ) THEN 1 ELSE 0 END";
+
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
         }
     }
 }

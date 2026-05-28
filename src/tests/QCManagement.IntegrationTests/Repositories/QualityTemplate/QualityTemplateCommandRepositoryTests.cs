@@ -24,6 +24,7 @@ namespace QCManagement.IntegrationTests.Repositories.QualityTemplate
 
         private async Task ClearAllAsync() =>
             await _fixture.ClearTablesAsync(
+                "QC.QualitySpecificationParameter", "QC.QualitySpecification",
                 "QC.QualityTemplateParameter", "QC.QualityTemplate",
                 "QC.QualityParameter", "QC.MiscMaster", "QC.MiscTypeMaster");
 
