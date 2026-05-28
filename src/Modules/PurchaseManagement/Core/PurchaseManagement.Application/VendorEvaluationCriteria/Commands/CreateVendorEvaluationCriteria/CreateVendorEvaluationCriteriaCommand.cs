@@ -13,5 +13,6 @@ namespace PurchaseManagement.Application.VendorEvaluationCriteria.Commands.Creat
         public decimal MinimumScore { get; set; }
         public int RatingImpactId { get; set; }
         public int SortOrder { get; set; }
+        public string? CalculationType { get; set; }
     }
 }

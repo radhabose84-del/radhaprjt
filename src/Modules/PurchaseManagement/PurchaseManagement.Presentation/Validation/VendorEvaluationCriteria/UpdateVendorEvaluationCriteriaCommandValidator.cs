@@ -19,6 +19,7 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationCriteria
 
             var maxLengthName = maxLengthProvider.GetMaxLength<Domain.Entities.VendorEvaluation.VendorEvaluationCriteria>("CriteriaName") ?? 100;
             var maxLengthDesc = maxLengthProvider.GetMaxLength<Domain.Entities.VendorEvaluation.VendorEvaluationCriteria>("Description") ?? 500;
+            var maxLengthCalcType = maxLengthProvider.GetMaxLength<Domain.Entities.VendorEvaluation.VendorEvaluationCriteria>("CalculationType") ?? 30;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
@@ -45,6 +46,11 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationCriteria
                             .MaximumLength(maxLengthDesc)
                             .WithMessage($"{nameof(UpdateVendorEvaluationCriteriaCommand.Description)} {rule.Error} {maxLengthDesc} characters.")
                             .When(x => !string.IsNullOrWhiteSpace(x.Description));
+
+                        RuleFor(x => x.CalculationType)
+                            .MaximumLength(maxLengthCalcType)
+                            .WithMessage($"{nameof(UpdateVendorEvaluationCriteriaCommand.CalculationType)} {rule.Error} {maxLengthCalcType} characters.")
+                            .When(x => !string.IsNullOrWhiteSpace(x.CalculationType));
                         break;
 
                     case "NotFound":

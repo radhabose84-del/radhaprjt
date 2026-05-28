@@ -14,5 +14,6 @@ namespace PurchaseManagement.Application.VendorEvaluationCriteria.Commands.Updat
         public int RatingImpactId { get; set; }
         public int SortOrder { get; set; }
         public int IsActive { get; set; }
+        public string? CalculationType { get; set; }
     }
 }

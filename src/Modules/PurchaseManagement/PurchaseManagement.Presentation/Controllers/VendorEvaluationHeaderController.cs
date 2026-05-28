@@ -5,6 +5,7 @@ using PurchaseManagement.Application.VendorEvaluationHeader.Commands.CreateVendo
 using PurchaseManagement.Application.VendorEvaluationHeader.Commands.DeleteVendorEvaluationHeader;
 using PurchaseManagement.Application.VendorEvaluationHeader.Commands.UpdateVendorEvaluationHeader;
 using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetAllVendorEvaluationHeader;
+using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationDashboard;
 using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationHeaderById;
 
 namespace PurchaseManagement.Presentation.Controllers
@@ -33,6 +34,24 @@ namespace PurchaseManagement.Presentation.Controllers
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
             });
+        }
+
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetVendorEvaluationDashboardAsync(
+            [FromQuery] int vendorId,
+            [FromQuery] int evaluationMonth,
+            [FromQuery] int evaluationYear,
+            [FromQuery] int lookbackMonths = 3)
+        {
+            var result = await Mediator.Send(new GetVendorEvaluationDashboardQuery
+            {
+                VendorId = vendorId,
+                EvaluationMonth = evaluationMonth,
+                EvaluationYear = evaluationYear,
+                LookbackMonths = lookbackMonths
+            });
+
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 
         [HttpGet("{id}")]

@@ -328,6 +328,7 @@ namespace PurchaseManagement.Infrastructure
 
             services.AddScoped<IVendorEvaluationHeaderCommandRepository, VendorEvaluationHeaderCommandRepository>();
             services.AddScoped<IVendorEvaluationHeaderQueryRepository, VendorEvaluationHeaderQueryRepository>();
+            services.AddScoped<IVendorEvaluationDashboardQueryRepository, VendorEvaluationDashboardQueryRepository>();
 
             // Vendor Rating Lookup (cross-module)
             services.AddScoped<IVendorRatingLookup, VendorRatingLookupRepository>();

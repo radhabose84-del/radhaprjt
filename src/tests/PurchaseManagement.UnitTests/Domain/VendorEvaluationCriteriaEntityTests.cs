@@ -40,7 +40,8 @@ namespace PurchaseManagement.UnitTests.Domain
                 ScoringMethodId = 1,
                 MinimumScore = 0m,
                 RatingImpactId = 2,
-                SortOrder = 1
+                SortOrder = 1,
+                CalculationType = "DELIVERY"
             };
 
             entity.Id.Should().Be(1);
@@ -52,6 +53,7 @@ namespace PurchaseManagement.UnitTests.Domain
             entity.MinimumScore.Should().Be(0m);
             entity.RatingImpactId.Should().Be(2);
             entity.SortOrder.Should().Be(1);
+            entity.CalculationType.Should().Be("DELIVERY");
         }
 
         [Fact]
@@ -61,12 +63,14 @@ namespace PurchaseManagement.UnitTests.Domain
             {
                 CriteriaCode = null,
                 CriteriaName = null,
-                Description = null
+                Description = null,
+                CalculationType = null
             };
 
             entity.CriteriaCode.Should().BeNull();
             entity.CriteriaName.Should().BeNull();
             entity.Description.Should().BeNull();
+            entity.CalculationType.Should().BeNull();
         }
 
         [Fact]
