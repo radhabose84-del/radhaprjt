@@ -18,32 +18,37 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
         }
 
         public async Task<VendorEvaluationDashboardDto?> GetDashboardAsync(
-            int vendorId, int evaluationMonth, int evaluationYear, int lookbackMonths)
+            int vendorId, int evaluationMonth, int evaluationYear)
         {
-            // Resolve vendor name via cross-module lookup
-            var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(vendorId);
-            if (supplier == null) return null;
+            // Resolve vendor name directly — not restricted by active/unit filters
+            // so the dashboard works for any vendor that has evaluation data
+            var vendor = await GetVendorInfoAsync(vendorId);
+            if (vendor == null) return null;
 
-            // Calculate lookback date range
-            var endDate = new DateTimeOffset(evaluationYear, evaluationMonth, 1, 0, 0, 0, TimeSpan.Zero)
-                .AddMonths(1); // first day of next month
-            var startDate = endDate.AddMonths(-lookbackMonths);
+            // Single month date range
+            var startDate = new DateTimeOffset(evaluationYear, evaluationMonth, 1, 0, 0, 0, TimeSpan.Zero);
+            var endDate = startDate.AddMonths(1); // first day of next month
 
             // 1. Fetch all active criteria
             var criteria = await GetActiveCriteriaAsync();
 
             // 2. Calculate auto-scores for each criterion
+            //    Use CalculationType if available, otherwise fall back to CriteriaCode
             foreach (var c in criteria)
             {
-                if (!string.IsNullOrEmpty(c.CalculationType))
+                var calcKey = !string.IsNullOrEmpty(c.CalculationType)
+                    ? c.CalculationType
+                    : c.CriteriaName;
+
+                if (!string.IsNullOrEmpty(calcKey))
                 {
                     c.IsAutoCalculated = true;
                     c.AutoCalculatedScore = await CalculateAutoScoreAsync(
-                        c.CalculationType, vendorId, startDate, endDate);
+                        calcKey, vendorId, startDate, endDate);
                 }
             }
 
-            // 3. Calculate total weighted score (auto-calculated criteria only)
+            // 3. Calculate total weighted score
             decimal totalWeightedScore = 0;
             foreach (var c in criteria)
             {
@@ -68,10 +73,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
             return new VendorEvaluationDashboardDto
             {
                 VendorId = vendorId,
-                VendorName = supplier.VendorName,
+                VendorName = vendor.VendorName,
                 EvaluationMonth = evaluationMonth,
                 EvaluationYear = evaluationYear,
-                LookbackMonths = lookbackMonths,
                 Criteria = criteria,
                 TotalWeightedScore = Math.Round(totalWeightedScore, 2),
                 ResolvedGradeId = resolvedGrade?.Id,
@@ -79,6 +83,18 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                 ResolvedGradeName = resolvedGrade?.GradeName,
                 GradeReferences = grades
             };
+        }
+
+        private async Task<SupplierInfo?> GetVendorInfoAsync(int vendorId)
+        {
+            const string sql = @"
+                SELECT a.PartyCode AS VendorCode,
+                       a.PartyName AS VendorName
+                FROM Party.PartyMaster a
+                WHERE a.Id = @VendorId AND a.IsDeleted = 0";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<SupplierInfo>(
+                sql, new { VendorId = vendorId });
         }
 
         private async Task<List<DashboardCriteriaDto>> GetActiveCriteriaAsync()
@@ -98,21 +114,31 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
         }
 
         private async Task<decimal> CalculateAutoScoreAsync(
-            string calculationType, int vendorId, DateTimeOffset startDate, DateTimeOffset endDate)
+            string calcKey, int vendorId, DateTimeOffset startDate, DateTimeOffset endDate)
         {
-            return calculationType.ToUpperInvariant() switch
-            {
-                "DELIVERY" => await CalculateDeliveryScoreAsync(vendorId, startDate, endDate),
-                "QC_DEFECT" => await CalculateQcDefectScoreAsync(vendorId, startDate, endDate),
-                "QTY_COMPLIANCE" => await CalculateQtyComplianceScoreAsync(vendorId, startDate, endDate),
-                "RATE_STABILITY" => await CalculateRateStabilityScoreAsync(vendorId, startDate, endDate),
-                _ => 0m
-            };
+            var key = calcKey.ToUpperInvariant().Trim();
+
+            // Match both CalculationType values (e.g., "DELIVERY") and CriteriaCode values (e.g., "DEL")
+            if (key.Contains("DELIVERY") )
+                return await CalculateDeliveryScoreAsync(vendorId, startDate, endDate);
+
+            if (key.Contains("QC") || key.Contains("DEFECT") || key.Contains("QUALITY"))
+                return await CalculateQcDefectScoreAsync(vendorId, startDate, endDate);
+
+            if (key.Contains("QTY") || key.Contains("QUANTITY") || key.Contains("COMPLIANCE"))
+                return await CalculateQtyComplianceScoreAsync(vendorId, startDate, endDate);
+
+            if (key.Contains("RATE") || key.Contains("STABILITY") || key.Contains("PRICE"))
+                return await CalculateRateStabilityScoreAsync(vendorId, startDate, endDate);
+
+            return 0m;
         }
 
         private async Task<decimal> CalculateDeliveryScoreAsync(
             int vendorId, DateTimeOffset startDate, DateTimeOffset endDate)
         {
+            // GrnHeader/GrnDetail do NOT extend BaseEntity (no IsDeleted column)
+            // PurchaseOrderHeader/PurchaseLocalHeader/PurchaseLocalDetail DO extend BaseEntity
             const string sql = @"
                 WITH GrnDeliveries AS (
                     SELECT gh.Id AS GrnHeaderId,
@@ -122,9 +148,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                     FROM Purchase.GrnHeader gh
                     INNER JOIN Purchase.GrnDetail gd ON gd.GrnId = gh.Id
                     INNER JOIN Purchase.PurchaseOrderHeader poh ON gd.PoId = poh.Id
+                        AND poh.IsDeleted = 0
                     INNER JOIN Purchase.PurchaseLocalHeader plh ON plh.PurchaseOrderId = poh.Id
+                        AND plh.IsDeleted = 0
                     INNER JOIN Purchase.PurchaseLocalDetail pld ON pld.PurchaseLocalId = plh.Id
-                              AND pld.ItemId = gd.ItemId
+                        AND pld.ItemId = gd.ItemId
+                        AND pld.IsDeleted = 0
                     WHERE gh.PartyId = @VendorId
                       AND pld.ScheduleDate IS NOT NULL
                       AND gh.GrnDate >= @StartDate AND gh.GrnDate < @EndDate
@@ -201,9 +230,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                     FROM Purchase.GrnHeader gh
                     INNER JOIN Purchase.GrnDetail gd ON gd.GrnId = gh.Id
                     INNER JOIN Purchase.PurchaseOrderHeader poh ON gd.PoId = poh.Id
+                        AND poh.IsDeleted = 0
                     INNER JOIN Purchase.PurchaseLocalHeader plh ON plh.PurchaseOrderId = poh.Id
+                        AND plh.IsDeleted = 0
                     INNER JOIN Purchase.PurchaseLocalDetail pld ON pld.PurchaseLocalId = plh.Id
-                              AND pld.ItemId = gd.ItemId
+                        AND pld.ItemId = gd.ItemId
+                        AND pld.IsDeleted = 0
                     WHERE gh.PartyId = @VendorId
                       AND gh.GrnDate >= @StartDate AND gh.GrnDate < @EndDate
                 )
@@ -392,7 +424,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                     var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(vendorId);
                     if (supplier != null)
                     {
-                        vendorDict[vendorId] = new SupplierInfo(supplier.VendorCode, supplier.VendorName);
+                        vendorDict[vendorId] = new SupplierInfo { VendorCode = supplier.VendorCode, VendorName = supplier.VendorName };
                     }
                 }
 
@@ -535,6 +567,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
             public decimal WeightedScore { get; set; }
         }
 
-        private record SupplierInfo(string VendorCode, string VendorName);
+        private class SupplierInfo
+        {
+            public string? VendorCode { get; set; }
+            public string? VendorName { get; set; }
+        }
     }
 }

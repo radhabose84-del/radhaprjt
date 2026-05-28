@@ -6,7 +6,6 @@ public class VendorEvaluationDashboardDto
     public string? VendorName { get; set; }
     public int EvaluationMonth { get; set; }
     public int EvaluationYear { get; set; }
-    public int LookbackMonths { get; set; }
     public List<DashboardCriteriaDto>? Criteria { get; set; }
     public decimal TotalWeightedScore { get; set; }
     public int? ResolvedGradeId { get; set; }

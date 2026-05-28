@@ -27,8 +27,7 @@ namespace PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendo
             var result = await _dashboardRepository.GetDashboardAsync(
                 request.VendorId,
                 request.EvaluationMonth,
-                request.EvaluationYear,
-                request.LookbackMonths);
+                request.EvaluationYear);
 
             if (result == null) return null;
 

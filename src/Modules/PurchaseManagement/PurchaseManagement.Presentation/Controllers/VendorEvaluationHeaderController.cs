@@ -42,15 +42,13 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetVendorEvaluationDashboardAsync(
             [FromQuery] int vendorId,
             [FromQuery] int evaluationMonth,
-            [FromQuery] int evaluationYear,
-            [FromQuery] int lookbackMonths = 3)
+            [FromQuery] int evaluationYear)
         {
             var result = await Mediator.Send(new GetVendorEvaluationDashboardQuery
             {
                 VendorId = vendorId,
                 EvaluationMonth = evaluationMonth,
-                EvaluationYear = evaluationYear,
-                LookbackMonths = lookbackMonths
+                EvaluationYear = evaluationYear
             });
 
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
