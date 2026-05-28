@@ -29,7 +29,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationCriteri
             const string dataSql = @"
                 SELECT vec.Id, vec.CriteriaCode, vec.CriteriaName, vec.Description,
                        vec.WeightagePercent, vec.ScoringMethodId, vec.MinimumScore,
-                       vec.RatingImpactId, vec.SortOrder, vec.IsActive, vec.IsDeleted,
+                       vec.RatingImpactId, vec.SortOrder, vec.CalculationType,
+                       vec.IsActive, vec.IsDeleted,
                        vec.CreatedBy, vec.CreatedDate, vec.CreatedByName, vec.CreatedIP,
                        vec.ModifiedBy, vec.ModifiedDate, vec.ModifiedByName, vec.ModifiedIP,
                        sm.Description AS ScoringMethodName,
@@ -54,7 +55,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationCriteri
             const string sql = @"
                 SELECT vec.Id, vec.CriteriaCode, vec.CriteriaName, vec.Description,
                        vec.WeightagePercent, vec.ScoringMethodId, vec.MinimumScore,
-                       vec.RatingImpactId, vec.SortOrder, vec.IsActive, vec.IsDeleted,
+                       vec.RatingImpactId, vec.SortOrder, vec.CalculationType,
+                       vec.IsActive, vec.IsDeleted,
                        vec.CreatedBy, vec.CreatedDate, vec.CreatedByName, vec.CreatedIP,
                        vec.ModifiedBy, vec.ModifiedDate, vec.ModifiedByName, vec.ModifiedIP,
                        sm.Description AS ScoringMethodName,

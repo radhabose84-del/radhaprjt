@@ -6,6 +6,7 @@ using PurchaseManagement.Application.VendorEvaluationHeader.Commands.DeleteVendo
 using PurchaseManagement.Application.VendorEvaluationHeader.Commands.UpdateVendorEvaluationHeader;
 using PurchaseManagement.Application.VendorEvaluationHeader.Dto;
 using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetAllVendorEvaluationHeader;
+using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationDashboard;
 using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationHeaderById;
 using PurchaseManagement.Presentation.Controllers;
 using PurchaseManagement.UnitTests.TestData;
@@ -117,6 +118,42 @@ namespace PurchaseManagement.UnitTests.Controllers
 
             _mockSender.Verify(
                 m => m.Send(It.IsAny<DeleteVendorEvaluationHeaderCommand>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Dashboard_ReturnsOkResult()
+        {
+            _mockSender
+                .Setup(m => m.Send(It.IsAny<GetVendorEvaluationDashboardQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new VendorEvaluationDashboardDto
+                {
+                    VendorId = 1,
+                    VendorName = "Test Vendor",
+                    EvaluationMonth = 5,
+                    EvaluationYear = 2026,
+                    LookbackMonths = 3,
+                    TotalWeightedScore = 75m,
+                    Criteria = new List<DashboardCriteriaDto>(),
+                    GradeReferences = new List<GradeReferenceDto>()
+                });
+
+            var result = await CreateSut().GetVendorEvaluationDashboardAsync(1, 5, 2026, 3);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task Dashboard_CallsMediatorSend_Once()
+        {
+            _mockSender
+                .Setup(m => m.Send(It.IsAny<GetVendorEvaluationDashboardQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new VendorEvaluationDashboardDto());
+
+            await CreateSut().GetVendorEvaluationDashboardAsync(1, 5, 2026, 3);
+
+            _mockSender.Verify(
+                m => m.Send(It.IsAny<GetVendorEvaluationDashboardQuery>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

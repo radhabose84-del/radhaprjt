@@ -197,6 +197,9 @@ namespace PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create
             entity.CreatedIP = _ip.GetSystemIPAddress();
             entity.CreatedDate = now;
 
+            var pending = await _misc.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
+            entity.StatusId = pending.Id;
+
             // ---- Documents (rename on disk + attach to aggregate)
             await HandleDocumentsAsync(dto, entity, ct);
 

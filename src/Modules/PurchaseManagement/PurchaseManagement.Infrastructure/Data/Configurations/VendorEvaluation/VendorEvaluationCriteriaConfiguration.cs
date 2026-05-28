@@ -55,6 +55,9 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.VendorEvaluation
                 .HasDefaultValue(0)
                 .IsRequired();
 
+            builder.Property(t => t.CalculationType)
+                .HasColumnType("varchar(30)");
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")

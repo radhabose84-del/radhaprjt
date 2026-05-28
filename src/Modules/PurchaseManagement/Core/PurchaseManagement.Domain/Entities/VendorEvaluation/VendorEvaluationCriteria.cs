@@ -12,6 +12,7 @@ public class VendorEvaluationCriteria : BaseEntity
     public decimal MinimumScore { get; set; }
     public int RatingImpactId { get; set; }
     public int SortOrder { get; set; }
+    public string? CalculationType { get; set; }
 
     // Same-module navigation — MiscMaster
     public MiscMaster? ScoringMethod { get; set; }

@@ -13,6 +13,7 @@ public class VendorEvaluationCriteriaDto
     public int RatingImpactId { get; set; }
     public string? RatingImpactName { get; set; }
     public int SortOrder { get; set; }
+    public string? CalculationType { get; set; }
     public bool IsActive { get; set; }
     public bool IsDeleted { get; set; }
     public int CreatedBy { get; set; }
