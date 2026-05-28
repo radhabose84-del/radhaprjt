@@ -1,4 +1,6 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationHeader;
 using PurchaseManagement.Infrastructure.Data;
 using static PurchaseManagement.Domain.Common.BaseEntity;
@@ -8,17 +10,36 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
     public class VendorEvaluationHeaderCommandRepository : IVendorEvaluationHeaderCommandRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-        public VendorEvaluationHeaderCommandRepository(ApplicationDbContext dbContext)
+        public VendorEvaluationHeaderCommandRepository(
+            ApplicationDbContext dbContext,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _dbContext = dbContext;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
-        public async Task<int> CreateAsync(Domain.Entities.VendorEvaluation.VendorEvaluationHeader entity)
+        public async Task<int> CreateAsync(Domain.Entities.VendorEvaluation.VendorEvaluationHeader entity, int transactionTypeId, CancellationToken ct)
         {
-            await _dbContext.VendorEvaluationHeaders.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
-            return entity.Id;
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
+            try
+            {
+                await _dbContext.VendorEvaluationHeaders.AddAsync(entity, ct);
+                await _dbContext.SaveChangesAsync(ct);
+
+                var dbConnection = _dbContext.Database.GetDbConnection();
+                var dbTransaction = transaction.GetDbTransaction();
+                await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbConnection, dbTransaction);
+
+                await transaction.CommitAsync(ct);
+                return entity.Id;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
         }
 
         public async Task<int> UpdateAsync(Domain.Entities.VendorEvaluation.VendorEvaluationHeader entity)
@@ -36,7 +57,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
             existing.EvaluationDate = entity.EvaluationDate;
             existing.TotalWeightedScore = entity.TotalWeightedScore;
             existing.GradeId = entity.GradeId;
-            existing.StatusId = entity.StatusId;
             existing.Remarks = entity.Remarks;
             existing.IsActive = entity.IsActive;
 

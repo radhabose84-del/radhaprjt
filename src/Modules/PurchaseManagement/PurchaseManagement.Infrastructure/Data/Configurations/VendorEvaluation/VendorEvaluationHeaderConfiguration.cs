@@ -49,10 +49,6 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.VendorEvaluation
             builder.Property(t => t.GradeId)
                 .HasColumnType("int");
 
-            builder.Property(t => t.StatusId)
-                .HasColumnType("int")
-                .IsRequired();
-
             builder.Property(t => t.Remarks)
                 .HasColumnType("varchar(500)");
 
@@ -91,12 +87,6 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.VendorEvaluation
             builder.HasOne(t => t.Grade)
                 .WithMany(g => g.VendorEvaluationHeaders)
                 .HasForeignKey(t => t.GradeId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Foreign key — same-module MiscMaster (Status)
-            builder.HasOne(t => t.EvaluationStatus)
-                .WithMany(m => m.VendorEvaluationStatuses)
-                .HasForeignKey(t => t.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // No FK constraint for VendorId — cross-module (PartyManagement)

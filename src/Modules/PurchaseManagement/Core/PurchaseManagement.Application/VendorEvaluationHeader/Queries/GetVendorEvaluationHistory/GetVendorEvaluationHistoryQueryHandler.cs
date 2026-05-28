@@ -4,15 +4,15 @@ using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationHeader;
 using PurchaseManagement.Application.VendorEvaluationHeader.Dto;
 using PurchaseManagement.Domain.Events;
 
-namespace PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationDashboard
+namespace PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationHistory
 {
-    public class GetVendorEvaluationDashboardQueryHandler : IRequestHandler<GetVendorEvaluationDashboardQuery, VendorEvaluationDashboardDto?>
+    public class GetVendorEvaluationHistoryQueryHandler : IRequestHandler<GetVendorEvaluationHistoryQuery, VendorEvaluationHistoryDto?>
     {
         private readonly IVendorEvaluationDashboardQueryRepository _dashboardRepository;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
 
-        public GetVendorEvaluationDashboardQueryHandler(
+        public GetVendorEvaluationHistoryQueryHandler(
             IVendorEvaluationDashboardQueryRepository dashboardRepository,
             IMapper mapper,
             IMediator mediator)
@@ -22,20 +22,18 @@ namespace PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendo
             _mediator = mediator;
         }
 
-        public async Task<VendorEvaluationDashboardDto?> Handle(GetVendorEvaluationDashboardQuery request, CancellationToken cancellationToken)
+        public async Task<VendorEvaluationHistoryDto?> Handle(
+            GetVendorEvaluationHistoryQuery request, CancellationToken cancellationToken)
         {
-            var result = await _dashboardRepository.VendorEvaluationCalcAsync(
-                request.VendorId,
-                request.EvaluationMonth,
-                request.EvaluationYear);
+            var result = await _dashboardRepository.GetEvaluationHistoryAsync(request.VendorId);
 
             if (result == null) return null;
 
             var domainEvent = new AuditLogsDomainEvent(
-                actionDetail: "GetDashboard",
-                actionCode: "GetVendorEvaluationDashboardQuery",
+                actionDetail: "GetEvaluationHistory",
+                actionCode: "GetVendorEvaluationHistoryQuery",
                 actionName: request.VendorId.ToString(),
-                details: $"Vendor Evaluation Dashboard for VendorId {request.VendorId} ({request.EvaluationMonth}/{request.EvaluationYear}) was fetched.",
+                details: $"Vendor Evaluation History for VendorId {request.VendorId} was fetched.",
                 module: "VendorEvaluationHeader"
             );
             await _mediator.Publish(domainEvent, cancellationToken);

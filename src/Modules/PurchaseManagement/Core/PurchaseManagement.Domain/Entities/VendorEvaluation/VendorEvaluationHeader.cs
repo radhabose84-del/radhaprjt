@@ -11,12 +11,10 @@ public class VendorEvaluationHeader : BaseEntity
     public DateTimeOffset EvaluationDate { get; set; }
     public decimal TotalWeightedScore { get; set; }
     public int? GradeId { get; set; }
-    public int StatusId { get; set; }
     public string? Remarks { get; set; }
 
     // Same-module navigation
     public VendorRatingGrade? Grade { get; set; }
-    public MiscMaster? EvaluationStatus { get; set; }
 
     // Child collection
     public ICollection<VendorEvaluationDetail>? VendorEvaluationDetails { get; set; }

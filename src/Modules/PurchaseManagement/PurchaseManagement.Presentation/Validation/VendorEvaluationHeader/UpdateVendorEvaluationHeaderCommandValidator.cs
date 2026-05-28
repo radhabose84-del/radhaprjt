@@ -53,11 +53,6 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationHeader
                             .MustAsync(async (id, ct) => await _queryRepo.GradeExistsAsync(id!.Value))
                             .WithMessage($"{nameof(UpdateVendorEvaluationHeaderCommand.GradeId)} {rule.Error}")
                             .When(x => x.GradeId.HasValue && x.GradeId.Value > 0);
-
-                        RuleFor(x => x.StatusId)
-                            .MustAsync(async (id, ct) => await _queryRepo.StatusExistsAsync(id))
-                            .WithMessage($"{nameof(UpdateVendorEvaluationHeaderCommand.StatusId)} {rule.Error}")
-                            .When(x => x.StatusId > 0);
                         break;
 
                     case "AlreadyExists":
@@ -77,10 +72,6 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationHeader
                         RuleFor(x => x.VendorId)
                             .GreaterThan(0)
                             .WithMessage($"{nameof(UpdateVendorEvaluationHeaderCommand.VendorId)} must be greater than zero.");
-
-                        RuleFor(x => x.StatusId)
-                            .GreaterThan(0)
-                            .WithMessage($"{nameof(UpdateVendorEvaluationHeaderCommand.StatusId)} must be greater than zero.");
 
                         RuleFor(x => x.EvaluationMonth)
                             .InclusiveBetween(1, 12)

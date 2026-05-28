@@ -12,7 +12,6 @@ namespace PurchaseManagement.Application.VendorEvaluationHeader.Commands.UpdateV
         public DateTimeOffset EvaluationDate { get; set; }
         public decimal TotalWeightedScore { get; set; }
         public int? GradeId { get; set; }
-        public int StatusId { get; set; }
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
         public List<UpdateVendorEvaluationDetailItem>? Details { get; set; }

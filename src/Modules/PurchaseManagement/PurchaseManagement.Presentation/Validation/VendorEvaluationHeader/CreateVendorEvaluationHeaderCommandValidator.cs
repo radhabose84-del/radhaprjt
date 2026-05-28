@@ -17,7 +17,6 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationHeader
         {
             _queryRepo = queryRepo;
 
-            var maxLengthCode = maxLengthProvider.GetMaxLength<Domain.Entities.VendorEvaluation.VendorEvaluationHeader>("EvaluationCode") ?? 20;
             var maxLengthRemarks = maxLengthProvider.GetMaxLength<Domain.Entities.VendorEvaluation.VendorEvaluationHeader>("Remarks") ?? 500;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
@@ -30,24 +29,7 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationHeader
             {
                 switch (rule.Rule)
                 {
-                    case "NotEmpty":
-                        RuleFor(x => x.EvaluationCode)
-                            .NotNull().WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.EvaluationCode)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.EvaluationCode)} {rule.Error}");
-                        break;
-
-                    case "Alphanumeric":
-                        RuleFor(x => x.EvaluationCode)
-                            .Matches(rule.Pattern)
-                            .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.EvaluationCode)} {rule.Error}")
-                            .When(x => !string.IsNullOrWhiteSpace(x.EvaluationCode));
-                        break;
-
                     case "MaxLength":
-                        RuleFor(x => x.EvaluationCode)
-                            .MaximumLength(maxLengthCode)
-                            .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.EvaluationCode)} {rule.Error} {maxLengthCode} characters.");
-
                         RuleFor(x => x.Remarks)
                             .MaximumLength(maxLengthRemarks)
                             .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.Remarks)} {rule.Error} {maxLengthRemarks} characters.")
@@ -64,19 +46,9 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationHeader
                             .MustAsync(async (id, ct) => await _queryRepo.GradeExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.GradeId)} {rule.Error}")
                             .When(x => x.GradeId.HasValue && x.GradeId.Value > 0);
-
-                        RuleFor(x => x.StatusId)
-                            .MustAsync(async (id, ct) => await _queryRepo.StatusExistsAsync(id))
-                            .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.StatusId)} {rule.Error}")
-                            .When(x => x.StatusId > 0);
                         break;
 
                     case "AlreadyExists":
-                        RuleFor(x => x.EvaluationCode)
-                            .MustAsync(async (code, ct) => !await _queryRepo.AlreadyExistsAsync(code!))
-                            .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.EvaluationCode)} {rule.Error}")
-                            .When(x => !string.IsNullOrWhiteSpace(x.EvaluationCode));
-
                         RuleFor(x => x)
                             .MustAsync(async (cmd, ct) => !await _queryRepo.CompositeKeyExistsAsync(cmd.VendorId, cmd.EvaluationMonth, cmd.EvaluationYear))
                             .WithMessage("An evaluation for this Vendor, Month, and Year already exists.")
@@ -87,10 +59,6 @@ namespace PurchaseManagement.Presentation.Validation.VendorEvaluationHeader
                         RuleFor(x => x.VendorId)
                             .GreaterThan(0)
                             .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.VendorId)} {rule.Error}");
-
-                        RuleFor(x => x.StatusId)
-                            .GreaterThan(0)
-                            .WithMessage($"{nameof(CreateVendorEvaluationHeaderCommand.StatusId)} {rule.Error}");
 
                         RuleFor(x => x.EvaluationMonth)
                             .InclusiveBetween(1, 12)
