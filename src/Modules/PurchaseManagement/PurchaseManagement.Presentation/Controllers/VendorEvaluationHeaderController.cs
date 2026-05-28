@@ -5,8 +5,10 @@ using PurchaseManagement.Application.VendorEvaluationHeader.Commands.CreateVendo
 using PurchaseManagement.Application.VendorEvaluationHeader.Commands.DeleteVendorEvaluationHeader;
 using PurchaseManagement.Application.VendorEvaluationHeader.Commands.UpdateVendorEvaluationHeader;
 using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetAllVendorEvaluationHeader;
+using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetAllVendorRatingDashboard;
 using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationDashboard;
 using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationHeaderById;
+using PurchaseManagement.Application.VendorEvaluationHeader.Queries.GetVendorEvaluationHistory;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
@@ -92,6 +94,38 @@ namespace PurchaseManagement.Presentation.Controllers
         {
             await Mediator.Send(new DeleteVendorEvaluationHeaderCommand(id));
             return Ok(new { StatusCode = StatusCodes.Status200OK, message = "Deleted successfully." });
+        }
+
+        [HttpGet("rating-dashboard")]
+        public async Task<IActionResult> GetAllVendorRatingDashboardAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? Grade = null)
+        {
+            var result = await Mediator.Send(new GetAllVendorRatingDashboardQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm,
+                Grade = Grade
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("evaluation-history/{vendorId}")]
+        public async Task<IActionResult> GetVendorEvaluationHistoryAsync(int vendorId)
+        {
+            var result = await Mediator.Send(new GetVendorEvaluationHistoryQuery { VendorId = vendorId });
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
     }
 }
