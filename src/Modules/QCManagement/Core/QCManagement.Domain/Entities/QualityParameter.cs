@@ -18,5 +18,8 @@ namespace QCManagement.Domain.Entities
 
         // Reverse navigation (Quality Templates that include this parameter)
         public ICollection<QualityTemplateParameter>? QualityTemplateParameters { get; set; }
+
+        // Reverse navigation (Quality Specifications that include this parameter)
+        public ICollection<QualitySpecificationParameter>? QualitySpecificationParameters { get; set; }
     }
 }

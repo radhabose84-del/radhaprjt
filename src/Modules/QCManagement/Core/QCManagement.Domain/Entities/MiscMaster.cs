@@ -16,5 +16,13 @@ namespace QCManagement.Domain.Entities
         public ICollection<QualityParameter>? QualityParametersAsValidationType { get; set; }
 
         public ICollection<QualityTemplateParameter>? QualityTemplateParametersAsInspectionMethod { get; set; }
+
+        // Reverse navigation for QualitySpecification (ApplicableLevel)
+        public ICollection<QualitySpecification>? QualitySpecificationsAsApplicableLevel { get; set; }
+
+        // Reverse navigation for QualitySpecificationParameter (ValidationType / Severity / FailureAction)
+        public ICollection<QualitySpecificationParameter>? QualitySpecificationParametersAsValidationType { get; set; }
+        public ICollection<QualitySpecificationParameter>? QualitySpecificationParametersAsSeverity { get; set; }
+        public ICollection<QualitySpecificationParameter>? QualitySpecificationParametersAsFailureAction { get; set; }
     }
 }

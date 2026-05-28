@@ -27,6 +27,8 @@ namespace QCManagement.Infrastructure.Data
         public DbSet<QualityParameter> QualityParameter { get; set; }
         public DbSet<QualityTemplate> QualityTemplate { get; set; }
         public DbSet<QualityTemplateParameter> QualityTemplateParameter { get; set; }
+        public DbSet<QualitySpecification> QualitySpecification { get; set; }
+        public DbSet<QualitySpecificationParameter> QualitySpecificationParameter { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

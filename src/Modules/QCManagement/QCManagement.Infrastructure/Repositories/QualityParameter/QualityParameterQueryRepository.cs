@@ -205,6 +205,9 @@ namespace QCManagement.Infrastructure.Repositories.QualityParameter
                 SELECT CASE WHEN EXISTS (
                     SELECT 1 FROM QC.QualityTemplateParameter
                     WHERE QualityParameterId = @Id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM QC.QualitySpecificationParameter
+                    WHERE QualityParameterId = @Id AND IsDeleted = 0
                 ) THEN 1 ELSE 0 END";
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
