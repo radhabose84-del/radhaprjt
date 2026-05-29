@@ -82,7 +82,7 @@ namespace PurchaseManagement.Presentation.Controllers.BlanketMaster
         [HttpGet("by-name")]
         public async Task<IActionResult> AutoCompleteAsync(
             [FromQuery] string? term = null,
-            [FromQuery] bool approved = true,
+            [FromQuery] bool approved = false,
             [FromQuery] int? vendorId = null,
             [FromQuery] DateTimeOffset? poDate = null,
             CancellationToken ct = default)
