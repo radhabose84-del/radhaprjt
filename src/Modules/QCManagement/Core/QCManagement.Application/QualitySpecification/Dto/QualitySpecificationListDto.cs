@@ -9,6 +9,8 @@ namespace QCManagement.Application.QualitySpecification.Dto
         public string? QualityTemplateName { get; set; }
         public int ApplicableLevelId { get; set; }
         public string? ApplicableLevelName { get; set; }
+        public int QcTypeId { get; set; }
+        public string? QcTypeName { get; set; }
         public int? ItemCategoryId { get; set; }
         public int? ItemId { get; set; }
         public string? AppliesTo { get; set; }

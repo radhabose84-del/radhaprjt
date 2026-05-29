@@ -61,6 +61,7 @@ namespace GateEntryManagement.UnitTests.Domain
             var entity = new GateInwardHdr
             {
                 GateEntryNo = null,
+                VehicleMovementRecordId = null,
                 PartyId = null,
                 GrossWeight = null,
                 TareWeight = null,
@@ -70,6 +71,7 @@ namespace GateEntryManagement.UnitTests.Domain
             };
 
             entity.GateEntryNo.Should().BeNull();
+            entity.VehicleMovementRecordId.Should().BeNull();
             entity.PartyId.Should().BeNull();
             entity.GrossWeight.Should().BeNull();
             entity.QAStatusId.Should().BeNull();

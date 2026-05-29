@@ -134,6 +134,8 @@ namespace QCManagement.Infrastructure.Repositories.MiscMaster
                     UNION ALL
                     SELECT 1 FROM [QC].[QualitySpecification]          WHERE ApplicableLevelId = @id AND IsDeleted = 0
                     UNION ALL
+                    SELECT 1 FROM [QC].[QualitySpecification]          WHERE QcTypeId          = @id AND IsDeleted = 0
+                    UNION ALL
                     SELECT 1 FROM [QC].[QualitySpecificationParameter] WHERE ValidationTypeId  = @id AND IsDeleted = 0
                     UNION ALL
                     SELECT 1 FROM [QC].[QualitySpecificationParameter] WHERE SeverityId        = @id AND IsDeleted = 0
@@ -155,6 +157,8 @@ namespace QCManagement.Infrastructure.Repositories.MiscMaster
                     SELECT 1 FROM [QC].[QualityParameter]              WHERE ValidationTypeId = @id AND IsDeleted = 0 AND IsActive = 1
                     UNION ALL
                     SELECT 1 FROM [QC].[QualitySpecification]          WHERE ApplicableLevelId = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [QC].[QualitySpecification]          WHERE QcTypeId          = @id AND IsDeleted = 0 AND IsActive = 1
                     UNION ALL
                     SELECT 1 FROM [QC].[QualitySpecificationParameter] WHERE ValidationTypeId  = @id AND IsDeleted = 0 AND IsActive = 1
                     UNION ALL

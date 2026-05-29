@@ -22,6 +22,7 @@ namespace QCManagement.Presentation.Controllers
             [FromQuery] string? SearchTerm = null,
             [FromQuery] int? QualityTemplateId = null,
             [FromQuery] int? ApplicableLevelId = null,
+            [FromQuery] int? QcTypeId = null,
             [FromQuery] int? ItemCategoryId = null,
             [FromQuery] int? ItemId = null,
             [FromQuery] bool? IsActive = null)
@@ -33,6 +34,7 @@ namespace QCManagement.Presentation.Controllers
                 SearchTerm = SearchTerm,
                 QualityTemplateId = QualityTemplateId,
                 ApplicableLevelId = ApplicableLevelId,
+                QcTypeId = QcTypeId,
                 ItemCategoryId = ItemCategoryId,
                 ItemId = ItemId,
                 IsActive = IsActive

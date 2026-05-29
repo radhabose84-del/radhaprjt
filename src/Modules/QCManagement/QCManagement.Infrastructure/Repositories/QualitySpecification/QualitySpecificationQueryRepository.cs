@@ -24,7 +24,7 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
 
         public async Task<(List<QualitySpecificationListDto>, int)> GetAllAsync(
             int pageNumber, int pageSize, string? searchTerm,
-            int? qualityTemplateId, int? applicableLevelId,
+            int? qualityTemplateId, int? applicableLevelId, int? qcTypeId,
             int? itemCategoryId, int? itemId, bool? isActive)
         {
             var whereClause = "qs.IsDeleted = 0";
@@ -34,6 +34,8 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
                 whereClause += " AND qs.QualityTemplateId = @QualityTemplateId";
             if (applicableLevelId.HasValue)
                 whereClause += " AND qs.ApplicableLevelId = @ApplicableLevelId";
+            if (qcTypeId.HasValue)
+                whereClause += " AND qs.QcTypeId = @QcTypeId";
             if (itemCategoryId.HasValue)
                 whereClause += " AND qs.ItemCategoryId = @ItemCategoryId";
             if (itemId.HasValue)
@@ -53,6 +55,8 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
                     qt.TemplateName AS QualityTemplateName,
                     qs.ApplicableLevelId,
                     al.Description AS ApplicableLevelName,
+                    qs.QcTypeId,
+                    qct.Description AS QcTypeName,
                     qs.ItemCategoryId, qs.ItemId,
                     qs.EffectiveFrom, qs.EffectiveTo,
                     qs.IsActive, qs.IsDeleted,
@@ -65,6 +69,7 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
                 FROM QC.QualitySpecification qs
                 LEFT JOIN QC.QualityTemplate qt ON qs.QualityTemplateId = qt.Id AND qt.IsDeleted = 0
                 LEFT JOIN QC.MiscMaster al ON qs.ApplicableLevelId = al.Id AND al.IsDeleted = 0
+                LEFT JOIN QC.MiscMaster qct ON qs.QcTypeId = qct.Id AND qct.IsDeleted = 0
                 WHERE {whereClause}
                 ORDER BY qs.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -77,6 +82,7 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
                 Search = $"%{searchTerm}%",
                 QualityTemplateId = qualityTemplateId,
                 ApplicableLevelId = applicableLevelId,
+                QcTypeId = qcTypeId,
                 ItemCategoryId = itemCategoryId,
                 ItemId = itemId,
                 IsActive = isActive,
@@ -131,6 +137,9 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
                     qs.ApplicableLevelId,
                     al.Code AS ApplicableLevelCode,
                     al.Description AS ApplicableLevelName,
+                    qs.QcTypeId,
+                    qct.Code AS QcTypeCode,
+                    qct.Description AS QcTypeName,
                     qs.ItemCategoryId, qs.ItemId,
                     qs.Description,
                     qs.EffectiveFrom, qs.EffectiveTo,
@@ -140,6 +149,7 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
                 FROM QC.QualitySpecification qs
                 LEFT JOIN QC.QualityTemplate qt ON qs.QualityTemplateId = qt.Id AND qt.IsDeleted = 0
                 LEFT JOIN QC.MiscMaster al ON qs.ApplicableLevelId = al.Id AND al.IsDeleted = 0
+                LEFT JOIN QC.MiscMaster qct ON qs.QcTypeId = qct.Id AND qct.IsDeleted = 0
                 WHERE qs.Id = @Id AND qs.IsDeleted = 0;
 
                 SELECT
@@ -276,6 +286,21 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
                 AND mtm.MiscTypeCode = 'QP_APPLICABLE_LEVEL'";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = applicableLevelId });
+            return count > 0;
+        }
+
+        public async Task<bool> QcTypeExistsAsync(int qcTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM QC.MiscMaster mm
+                INNER JOIN QC.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
+                WHERE mm.Id = @Id
+                AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                AND mtm.IsDeleted = 0
+                AND mtm.MiscTypeCode = 'QP_QC_TYPE'";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = qcTypeId });
             return count > 0;
         }
 

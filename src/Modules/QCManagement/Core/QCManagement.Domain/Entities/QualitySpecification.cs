@@ -8,6 +8,7 @@ namespace QCManagement.Domain.Entities
         public string? SpecificationName { get; set; }
         public int QualityTemplateId { get; set; }
         public int ApplicableLevelId { get; set; }
+        public int QcTypeId { get; set; }
         public int? ItemCategoryId { get; set; }
         public int? ItemId { get; set; }
         public string? Description { get; set; }
@@ -17,6 +18,7 @@ namespace QCManagement.Domain.Entities
         // Navigation properties (same-module FKs only)
         public QualityTemplate? QualityTemplate { get; set; }
         public MiscMaster? ApplicableLevel { get; set; }
+        public MiscMaster? QcType { get; set; }
         // Note: ItemCategoryId and ItemId are cross-module FKs (Inventory) — no navigation property, no DB FK constraint
 
         // Child collection

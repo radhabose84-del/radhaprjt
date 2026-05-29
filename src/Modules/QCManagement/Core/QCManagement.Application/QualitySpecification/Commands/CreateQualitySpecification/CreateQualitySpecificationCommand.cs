@@ -8,6 +8,7 @@ namespace QCManagement.Application.QualitySpecification.Commands.CreateQualitySp
         public string? SpecificationName { get; set; }
         public int QualityTemplateId { get; set; }
         public int ApplicableLevelId { get; set; }
+        public int QcTypeId { get; set; }
         public int? ItemCategoryId { get; set; }
         public int? ItemId { get; set; }
         public string? Description { get; set; }

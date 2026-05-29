@@ -23,7 +23,7 @@ namespace QCManagement.Application.QualitySpecification.Queries.GetAllQualitySpe
         {
             var (data, totalCount) = await _queryRepository.GetAllAsync(
                 request.PageNumber, request.PageSize, request.SearchTerm,
-                request.QualityTemplateId, request.ApplicableLevelId,
+                request.QualityTemplateId, request.ApplicableLevelId, request.QcTypeId,
                 request.ItemCategoryId, request.ItemId, request.IsActive);
 
             var domainEvent = new AuditLogsDomainEvent(

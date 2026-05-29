@@ -59,10 +59,11 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
         }
 
         [Fact]
-        public async Task Validate_EmptyVMRId_FailsValidation()
+        public async Task Validate_EmptyVMRId_NowPassesValidation()
         {
+            // VehicleMovementRecordId is now OPTIONAL — Courier/Manual flows skip the VMR link.
             var command = ValidCommand();
-            command.VehicleMovementRecordId = 0;
+            command.VehicleMovementRecordId = null;
             _mockQueryRepo.Setup(r => r.UnitExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(9)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.IsCourierReceivingTypeAsync(9)).ReturnsAsync(false);
@@ -72,7 +73,7 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.VehicleMovementRecordId);
+            result.ShouldNotHaveValidationErrorFor(x => x.VehicleMovementRecordId);
         }
 
         [Fact]
