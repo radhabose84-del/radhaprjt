@@ -1,4 +1,5 @@
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetContractPOPending;
+using PurchaseManagement.Application.PurchaseOrder.Dtos.BlanketPO;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImportPOPending;
 
@@ -16,4 +17,7 @@ public sealed class GetCombinePOPendingVm
 
     public List<GetContractPOPendingGroupDto>? ContractItems { get; set; }
     public int ContractTotalCount { get; set; }
+
+    public List<GetBlanketPOPendingGroupDto>? BlanketItems { get; set; }
+    public int BlanketTotalCount { get; set; }
 }

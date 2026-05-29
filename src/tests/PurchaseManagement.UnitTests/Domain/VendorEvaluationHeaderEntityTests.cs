@@ -1,5 +1,4 @@
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.VendorEvaluation;
 using static PurchaseManagement.Domain.Common.BaseEntity;
 
@@ -41,7 +40,6 @@ namespace PurchaseManagement.UnitTests.Domain
                 EvaluationDate = now,
                 TotalWeightedScore = 85.5m,
                 GradeId = 1,
-                StatusId = 2,
                 Remarks = "Monthly evaluation"
             };
 
@@ -53,7 +51,6 @@ namespace PurchaseManagement.UnitTests.Domain
             entity.EvaluationDate.Should().Be(now);
             entity.TotalWeightedScore.Should().Be(85.5m);
             entity.GradeId.Should().Be(1);
-            entity.StatusId.Should().Be(2);
             entity.Remarks.Should().Be("Monthly evaluation");
         }
 
@@ -78,12 +75,10 @@ namespace PurchaseManagement.UnitTests.Domain
             var entity = new VendorEvaluationHeader
             {
                 Grade = new VendorRatingGrade(),
-                EvaluationStatus = new MiscMaster(),
                 VendorEvaluationDetails = new List<VendorEvaluationDetail>()
             };
 
             entity.Grade.Should().NotBeNull();
-            entity.EvaluationStatus.Should().NotBeNull();
             entity.VendorEvaluationDetails.Should().NotBeNull();
         }
     }

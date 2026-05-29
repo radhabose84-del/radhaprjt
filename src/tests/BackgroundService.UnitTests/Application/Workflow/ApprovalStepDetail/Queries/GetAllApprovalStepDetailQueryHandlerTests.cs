@@ -2,6 +2,7 @@ using AutoMapper;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.ApprovalStepDetails.Queries.GetAllApprovalStepDetail;
 using BackgroundService.Application.Workflow.Common.Interfaces.IApprovalStepDetail;
+using Contracts.Interfaces;
 using MediatR;
 
 namespace BackgroundService.UnitTests.Application.Workflow.ApprovalStepDetail.Queries
@@ -12,9 +13,10 @@ namespace BackgroundService.UnitTests.Application.Workflow.ApprovalStepDetail.Qu
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<ILookupRepository> _mockLookupRepo = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIpAddressService = new(MockBehavior.Loose);
 
         private GetAllApprovalStepDetailQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockLookupRepo.Object);
+            new(_mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockLookupRepo.Object, _mockIpAddressService.Object);
 
         private void SetupHappyPath(int count = 1)
         {

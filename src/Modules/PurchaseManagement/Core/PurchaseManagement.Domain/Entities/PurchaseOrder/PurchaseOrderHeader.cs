@@ -2,6 +2,7 @@ using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.GRN.GateEntry;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.BlanketPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.Local;
@@ -61,6 +62,9 @@ public class PurchaseOrderHeader : BaseEntity, IActivityTracked
 
     // Contract PO (4th PO type — release PO against a contract)
     public ICollection<PurchaseContractHeader> ContractPOHeaders { get; set; } = new List<PurchaseContractHeader>();
+
+    // Blanket PO (5th PO type — release PO against a blanket agreement)
+    public ICollection<PurchaseBlanketHeader> BlanketPOHeaders { get; set; } = new List<PurchaseBlanketHeader>();
 
     // Release history — tracks which release POs were created against contracts
     public ICollection<ContractPOReleaseHistory> ContractPOReleaseHistories { get; set; } = new List<ContractPOReleaseHistory>();
