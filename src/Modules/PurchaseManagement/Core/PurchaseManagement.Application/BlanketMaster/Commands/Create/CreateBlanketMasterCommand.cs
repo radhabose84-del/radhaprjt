@@ -12,8 +12,6 @@ public sealed class CreateBlanketMasterCommand : IRequest<BlanketHeaderDto>
     public string? BrokerName { get; set; }
     public DateTimeOffset ValidityFrom { get; set; }
     public DateTimeOffset ValidityTo { get; set; }
-    public string? PaymentTerms { get; set; }
-    public string? DeliveryTerms { get; set; }
     public string? Remarks { get; set; }
     public List<CreateBlanketMasterDetailItem> Details { get; set; } = new();
 }
