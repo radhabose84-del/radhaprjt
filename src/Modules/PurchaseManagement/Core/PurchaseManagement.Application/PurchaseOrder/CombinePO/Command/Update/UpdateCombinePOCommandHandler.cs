@@ -1,7 +1,8 @@
 using MediatR;
-using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Update;
-using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Update;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.BlanketPO.Commands.Update;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Update;
+using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Update;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Commands.Update;
 
@@ -33,6 +34,12 @@ public sealed class UpdateCombinePOCommandHandler : IRequestHandler<UpdateCombin
         {
             if (dto.Contract is not null) dto.Contract.POMethodId = dto.POMethodId;
             return await _mediator.Send(new UpdateContractPOCommand(dto.Contract!), ct);
+        }
+
+        if (await _lookup.IsBlanketAsync(dto.POMethodId, ct))
+        {
+            if (dto.Blanket is not null) dto.Blanket.POMethodId = dto.POMethodId;
+            return await _mediator.Send(new UpdateBlanketPOCommand(dto.Blanket!), ct);
         }
 
         throw new InvalidOperationException("Unsupported POMethodId.");

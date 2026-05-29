@@ -1,5 +1,6 @@
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.BlanketPO.Queries.GetPending;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetContractPOPending;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetImportPOPending;
@@ -69,6 +70,20 @@ public sealed class GetCombinePOPendingQueryHandler
                 return vm;
             }
 
+            if (await _lookup.IsBlanketAsync(request.PoMethodId.Value, ct))
+            {
+                var (items, total) = await _mediator.Send(new GetBlanketPOPendingQuery
+                {
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    SearchTerm = request.SearchTerm,
+                    PoId = request.PoId
+                }, ct);
+                vm.BlanketItems = items;
+                vm.BlanketTotalCount = total;
+                return vm;
+            }
+
             throw new InvalidOperationException("Unsupported POMethodId.");
         }
 
@@ -103,6 +118,16 @@ public sealed class GetCombinePOPendingQueryHandler
         }, ct);
         vm.ContractItems = contractItems;
         vm.ContractTotalCount = contractTotal;
+
+        var (blanketItems, blanketTotal) = await _mediator.Send(new GetBlanketPOPendingQuery
+        {
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            SearchTerm = request.SearchTerm,
+            PoId = request.PoId
+        }, ct);
+        vm.BlanketItems = blanketItems;
+        vm.BlanketTotalCount = blanketTotal;
 
         return vm;
     }

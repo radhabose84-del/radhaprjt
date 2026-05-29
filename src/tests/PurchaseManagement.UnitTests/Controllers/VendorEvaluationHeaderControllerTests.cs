@@ -132,13 +132,11 @@ namespace PurchaseManagement.UnitTests.Controllers
                     VendorName = "Test Vendor",
                     EvaluationMonth = 5,
                     EvaluationYear = 2026,
-                    LookbackMonths = 3,
                     TotalWeightedScore = 75m,
-                    Criteria = new List<DashboardCriteriaDto>(),
-                    GradeReferences = new List<GradeReferenceDto>()
+                    Criteria = new List<DashboardCriteriaDto>()
                 });
 
-            var result = await CreateSut().GetVendorEvaluationDashboardAsync(1, 5, 2026, 3);
+            var result = await CreateSut().GetVendorEvaluationDashboardAsync(1, 5, 2026);
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -150,7 +148,7 @@ namespace PurchaseManagement.UnitTests.Controllers
                 .Setup(m => m.Send(It.IsAny<GetVendorEvaluationDashboardQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new VendorEvaluationDashboardDto());
 
-            await CreateSut().GetVendorEvaluationDashboardAsync(1, 5, 2026, 3);
+            await CreateSut().GetVendorEvaluationDashboardAsync(1, 5, 2026);
 
             _mockSender.Verify(
                 m => m.Send(It.IsAny<GetVendorEvaluationDashboardQuery>(), It.IsAny<CancellationToken>()),

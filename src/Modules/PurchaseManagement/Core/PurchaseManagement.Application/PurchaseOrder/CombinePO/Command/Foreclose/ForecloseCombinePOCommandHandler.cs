@@ -1,5 +1,6 @@
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.BlanketPO.Commands.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Foreclose;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Foreclose;
@@ -28,6 +29,9 @@ public sealed class ForecloseCombinePOCommandHandler
 
         if (await _lookup.IsContractAsync(request.POMethodId, ct))
             return await _mediator.Send(new ForecloseContractPOCommand(request.Id), ct);
+
+        if (await _lookup.IsBlanketAsync(request.POMethodId, ct))
+            return await _mediator.Send(new ForecloseBlanketPOCommand(request.Id), ct);
 
         throw new InvalidOperationException("Unsupported POMethodId for foreclose.");
     }

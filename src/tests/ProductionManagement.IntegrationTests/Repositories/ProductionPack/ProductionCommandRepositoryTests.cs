@@ -82,9 +82,21 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                 PackDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 ProductionYear = DateTime.UtcNow.Year,
                 UnitId = 1, WarehouseId = 1,
-                ItemId = 1, LotId = lotId,
-                TotalBags = 0, TotalNetWeight = 0m,
-                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                ItemId = 1,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted,
+                Details = new List<ProductionPackEntryDetail>
+                {
+                    new ProductionPackEntryDetail
+                    {
+                        LotId = lotId,
+                        TotalBags = 0,
+                        TotalNetWeight = 0m,
+                        OpeningLooseKgs = 0m,
+                        TotalProductionKgs = 0m,
+                        ProductionKgs = 0m,
+                        LooseConeKgs = 0m
+                    }
+                }
             };
 
         private async Task ClearAsync() =>
@@ -114,8 +126,9 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
             await using var ctx = _fixture.CreateFreshDbContext();
 
             var entity = BuildEntity(lotId, "PCMD_2");
-            entity.TotalNetWeight = 100m;
-            entity.TotalBags = 5;
+            var detail = entity.Details!.First();
+            detail.TotalNetWeight = 100m;
+            detail.TotalBags = 5;
             var id = await CreateRepo(ctx).CreateAsync(entity, typeId: 1);
             ctx.ChangeTracker.Clear();
 

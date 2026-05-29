@@ -12,6 +12,7 @@ using PurchaseManagement.Domain.Entities.MRS;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
 using PurchaseManagement.Domain.Entities.IssueReturn;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.BlanketPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 using PurchaseManagement.Domain.Entities.VendorEvaluation;
 namespace PurchaseManagement.Domain.Entities
@@ -107,6 +108,17 @@ namespace PurchaseManagement.Domain.Entities
 
         // Vendor Rating Grade — Action Type
         public ICollection<VendorRatingGrade>? VendorRatingGradeActions { get; set; }
+
+        // Blanket Master — Status & ProcurementType
+        public ICollection<BlanketMaster.BlanketHeader>? BlanketStatuses { get; set; }
+        public ICollection<BlanketMaster.BlanketHeader>? BlanketProcurementTypes { get; set; }
+
+        // Purchase Blanket Header — Incoterms & ModeOfDispatch (5th PO type)
+        public ICollection<PurchaseBlanketHeader>? PurchaseBlanketHeaderIncoterms { get; set; }
+        public ICollection<PurchaseBlanketHeader>? PurchaseBlanketHeaderMode { get; set; }
+
+        // Purchase Blanket Detail — Discount type
+        public ICollection<PurchaseBlanketDetail>? PurchaseBlanketDetailDiscount { get; set; }
 
     }
     }
