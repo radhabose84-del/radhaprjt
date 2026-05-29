@@ -14,8 +14,6 @@ public class BlanketHeader : BaseEntity, IActivityTracked
     public string? BrokerName { get; set; }
     public DateTimeOffset ValidityFrom { get; set; }
     public DateTimeOffset ValidityTo { get; set; }
-    public string? PaymentTerms { get; set; }
-    public string? DeliveryTerms { get; set; }
     public int StatusId { get; set; }
     public MiscMaster? MiscStatus { get; set; }
     public decimal TotalEstimatedValue { get; set; }

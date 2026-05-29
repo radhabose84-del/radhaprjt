@@ -86,8 +86,6 @@ public sealed class BlanketMasterCommandRepository : IBlanketMasterCommandReposi
             existing.BrokerName = entity.BrokerName;
             existing.ValidityFrom = entity.ValidityFrom;
             existing.ValidityTo = entity.ValidityTo;
-            existing.PaymentTerms = entity.PaymentTerms;
-            existing.DeliveryTerms = entity.DeliveryTerms;
             existing.StatusId = entity.StatusId;
             existing.Remarks = entity.Remarks;
             existing.IsActive = entity.IsActive;
