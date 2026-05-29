@@ -8,22 +8,18 @@ namespace PurchaseManagement.UnitTests.TestData
     public static class VendorEvaluationHeaderBuilders
     {
         public static CreateVendorEvaluationHeaderCommand ValidCreateCommand(
-            string? evaluationCode = "EVL001",
             int vendorId = 1,
             int evaluationMonth = 6,
             int evaluationYear = 2026,
-            int? gradeId = 1,
-            int statusId = 1) =>
+            int? gradeId = 1) =>
             new CreateVendorEvaluationHeaderCommand
             {
-                EvaluationCode = evaluationCode,
                 VendorId = vendorId,
                 EvaluationMonth = evaluationMonth,
                 EvaluationYear = evaluationYear,
                 EvaluationDate = new DateTimeOffset(2026, 6, 15, 0, 0, 0, TimeSpan.Zero),
                 TotalWeightedScore = 85.5m,
                 GradeId = gradeId,
-                StatusId = statusId,
                 Remarks = "Monthly evaluation",
                 Details = new List<CreateVendorEvaluationDetailItem>
                 {
@@ -45,7 +41,6 @@ namespace PurchaseManagement.UnitTests.TestData
             int evaluationMonth = 6,
             int evaluationYear = 2026,
             int? gradeId = 1,
-            int statusId = 1,
             int isActive = 1) =>
             new UpdateVendorEvaluationHeaderCommand
             {
@@ -56,7 +51,6 @@ namespace PurchaseManagement.UnitTests.TestData
                 EvaluationDate = new DateTimeOffset(2026, 6, 15, 0, 0, 0, TimeSpan.Zero),
                 TotalWeightedScore = 88.0m,
                 GradeId = gradeId,
-                StatusId = statusId,
                 Remarks = "Updated evaluation",
                 IsActive = isActive,
                 Details = new List<UpdateVendorEvaluationDetailItem>
@@ -79,9 +73,7 @@ namespace PurchaseManagement.UnitTests.TestData
             int vendorId = 1,
             string? vendorName = "Test Vendor",
             int? gradeId = 1,
-            string? gradeName = "Excellent",
-            int statusId = 1,
-            string? statusName = "Approved") =>
+            string? gradeName = "Excellent") =>
             new VendorEvaluationHeaderDto
             {
                 Id = id,
@@ -94,8 +86,6 @@ namespace PurchaseManagement.UnitTests.TestData
                 TotalWeightedScore = 85.5m,
                 GradeId = gradeId,
                 GradeName = gradeName,
-                StatusId = statusId,
-                StatusName = statusName,
                 Remarks = "Monthly evaluation",
                 IsActive = true,
                 IsDeleted = false,
@@ -128,7 +118,6 @@ namespace PurchaseManagement.UnitTests.TestData
                 EvaluationDate = new DateTimeOffset(2026, 6, 15, 0, 0, 0, TimeSpan.Zero),
                 TotalWeightedScore = 85.5m,
                 GradeId = 1,
-                StatusId = 1,
                 Remarks = "Monthly evaluation",
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted

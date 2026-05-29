@@ -38,9 +38,16 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
 using Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.BillEntry;
 using PurchaseManagement.Infrastructure.Persistence.Configurations;
+using PurchaseManagement.Domain.Entities.BlanketMaster;
 using PurchaseManagement.Domain.Entities.ContractPOMaster;
+using PurchaseManagement.Domain.Entities.PurchaseOrder.BlanketPO;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.ContractPO;
 using PurchaseManagement.Infrastructure.Data.Configurations.ContractPO;
+using BlanketHeaderConfig = PurchaseManagement.Infrastructure.Data.Configurations.BlanketMaster.BlanketHeaderConfiguration;
+using BlanketDetailConfig = PurchaseManagement.Infrastructure.Data.Configurations.BlanketMaster.BlanketDetailConfiguration;
+using BlanketScheduleConfig = PurchaseManagement.Infrastructure.Data.Configurations.BlanketMaster.BlanketScheduleConfiguration;
+using PurchaseBlanketHeaderConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.BlanketPO.PurchaseBlanketHeaderConfiguration;
+using PurchaseBlanketDetailConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.BlanketPO.PurchaseBlanketDetailConfiguration;
 using PurchaseContractHeaderConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ContractPO.PurchaseContractHeaderConfiguration;
 using PurchaseContractDetailConfig = PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ContractPO.PurchaseContractDetailConfiguration;
 using PurchaseManagement.Domain.Entities.Outbox;
@@ -134,6 +141,15 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<PurchaseContractHeader> PurchaseContractHeaders { get; set; }
         public DbSet<PurchaseContractDetail> PurchaseContractDetails { get; set; }
 
+        // Blanket Master (standalone blanket agreement)
+        public DbSet<BlanketHeader> BlanketHeaders { get; set; }
+        public DbSet<BlanketDetail> BlanketDetails { get; set; }
+        public DbSet<BlanketSchedule> BlanketSchedules { get; set; }
+
+        // Blanket PO (5th PO type — release PO under PurchaseOrderHeader)
+        public DbSet<PurchaseBlanketHeader> PurchaseBlanketHeaders { get; set; }
+        public DbSet<PurchaseBlanketDetail> PurchaseBlanketDetails { get; set; }
+
         // Outbox Pattern
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
@@ -225,6 +241,15 @@ namespace PurchaseManagement.Infrastructure.Data
             // Contract PO (4th PO type under PurchaseOrderHeader)
             modelBuilder.ApplyConfiguration(new PurchaseContractHeaderConfig());
             modelBuilder.ApplyConfiguration(new PurchaseContractDetailConfig());
+
+            // Blanket Master (standalone blanket agreement)
+            modelBuilder.ApplyConfiguration(new BlanketHeaderConfig());
+            modelBuilder.ApplyConfiguration(new BlanketDetailConfig());
+            modelBuilder.ApplyConfiguration(new BlanketScheduleConfig());
+
+            // Blanket PO (5th PO type under PurchaseOrderHeader)
+            modelBuilder.ApplyConfiguration(new PurchaseBlanketHeaderConfig());
+            modelBuilder.ApplyConfiguration(new PurchaseBlanketDetailConfig());
 
             // Outbox Pattern
             modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());

@@ -75,5 +75,10 @@ namespace PurchaseManagement.Domain.Common
 
         // Approval workflow integration
         public const string RtvModuleTypeName = "PurchaseReturn";
+
+        // Blanket PO constants
+        public const string Blanket = "Blanket";
+        public const string TransactionTypeBlanket = "Blanket Master";
+        public const string TransactionTypeBPO = "Blanket Purchase Order";        
     }
 }

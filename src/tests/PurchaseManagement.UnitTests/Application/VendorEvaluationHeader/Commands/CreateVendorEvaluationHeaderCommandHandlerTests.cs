@@ -1,5 +1,7 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationHeader;
 using PurchaseManagement.Application.VendorEvaluationHeader.Commands.CreateVendorEvaluationHeader;
@@ -14,9 +16,12 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Comman
         private readonly Mock<IVendorEvaluationHeaderQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIpAddressService = new(MockBehavior.Loose);
 
         private CreateVendorEvaluationHeaderCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object,
+                _mockDocSeqLookup.Object, _mockIpAddressService.Object);
 
         private void SetupHappyPath(int newId = 1)
         {
@@ -24,11 +29,23 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Comman
                 .Setup(m => m.Map<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>(It.IsAny<object>()))
                 .Returns(new PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader());
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>()))
+                .Setup(r => r.CreateAsync(
+                    It.IsAny<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(newId);
             _mockMediator
                 .Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
+            _mockDocSeqLookup
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockDocSeqLookup
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "EVL-0001" });
+            _mockIpAddressService
+                .Setup(s => s.GetUnitId())
+                .Returns(1);
         }
 
         [Fact]
@@ -53,7 +70,12 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Comman
         {
             SetupHappyPath();
             await CreateSut().Handle(VendorEvaluationHeaderBuilders.ValidCreateCommand(), CancellationToken.None);
-            _mockCommandRepo.Verify(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>()), Times.Once);
+            _mockCommandRepo.Verify(
+                r => r.CreateAsync(
+                    It.IsAny<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -86,9 +108,22 @@ namespace PurchaseManagement.UnitTests.Application.VendorEvaluationHeader.Comman
                 .Setup(m => m.Map<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>(It.IsAny<object>()))
                 .Returns(new PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader());
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>()))
-                .Callback<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>(e => capturedEntity = e)
+                .Setup(r => r.CreateAsync(
+                    It.IsAny<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader>(),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationHeader, int, CancellationToken>(
+                    (e, _, _) => capturedEntity = e)
                 .ReturnsAsync(1);
+            _mockDocSeqLookup
+                .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(1);
+            _mockDocSeqLookup
+                .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
+                .ReturnsAsync(new List<string> { "EVL-0001" });
+            _mockIpAddressService
+                .Setup(s => s.GetUnitId())
+                .Returns(1);
 
             var command = VendorEvaluationHeaderBuilders.ValidCreateCommand();
             await CreateSut().Handle(command, CancellationToken.None);

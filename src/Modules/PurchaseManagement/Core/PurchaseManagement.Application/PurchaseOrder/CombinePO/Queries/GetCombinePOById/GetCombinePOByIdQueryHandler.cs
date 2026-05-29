@@ -1,8 +1,9 @@
 using MediatR;
-using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
-using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetPOById;
-using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetById;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.BlanketPO.Queries.GetById;
+using PurchaseManagement.Application.PurchaseOrder.ContractPO.Queries.GetById;
+using PurchaseManagement.Application.PurchaseOrder.ImportPO.Queries.GetPOById;
+using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
 
 namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Queries.GetCombinePOById;
 
@@ -42,6 +43,14 @@ public sealed class GetCombinePOByIdQueryHandler : IRequestHandler<GetCombinePOB
             vm.Contract = await _mediator.Send(new GetContractPOByIdQuery(request.Id), ct);
             if (vm.Contract is null)
                 throw new KeyNotFoundException($"Contract Release PO {request.Id} not found.");
+            return vm;
+        }
+
+        if (await _lookup.IsBlanketAsync(request.POMethodId, ct))
+        {
+            vm.Blanket = await _mediator.Send(new GetBlanketPOByIdQuery(request.Id), ct);
+            if (vm.Blanket is null)
+                throw new KeyNotFoundException($"Blanket Release PO {request.Id} not found.");
             return vm;
         }
 

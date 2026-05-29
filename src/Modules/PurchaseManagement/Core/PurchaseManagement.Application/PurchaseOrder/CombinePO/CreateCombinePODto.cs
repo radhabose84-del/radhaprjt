@@ -1,3 +1,4 @@
+using PurchaseManagement.Application.PurchaseOrder.Dtos.BlanketPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ContractPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.Local;
@@ -9,6 +10,7 @@ public sealed class CreateCombinePODto
     public PurchaseOrderCreateDto? Local { get; set; }
     public ImportPOCreateDto? Import { get; set; }
     public ContractPOCreateDto? Contract { get; set; }
+    public BlanketPOCreateDto? Blanket { get; set; }
 }
 
 public sealed class AmendCombinePODto
@@ -18,6 +20,7 @@ public sealed class AmendCombinePODto
     public PurchaseOrderUpdateDto? Local { get; set; }
     public ImportPOUpdateDto? Import { get; set; }
     public ContractPOUpdateDto? Contract { get; set; }
+    public BlanketPOUpdateDto? Blanket { get; set; }
 }
 
 public sealed class GetCombinePOByIdVm
@@ -26,6 +29,7 @@ public sealed class GetCombinePOByIdVm
     public PurchaseOrderDetailDto? Local { get; set; }
     public ImportPOFullVm? Import { get; set; }
     public ContractPODetailVm? Contract { get; set; }
+    public BlanketPODetailVm? Blanket { get; set; }
 }
 
 public sealed class UpdateCombinePODto
@@ -34,4 +38,5 @@ public sealed class UpdateCombinePODto
     public PurchaseOrderUpdateDto? Local { get; set; }
     public ImportPOUpdateDto? Import { get; set; }
     public ContractPOUpdateDto? Contract { get; set; }
+    public BlanketPOUpdateDto? Blanket { get; set; }
 }

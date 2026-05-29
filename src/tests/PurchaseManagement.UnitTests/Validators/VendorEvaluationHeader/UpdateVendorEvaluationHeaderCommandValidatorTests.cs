@@ -14,12 +14,11 @@ namespace PurchaseManagement.UnitTests.Validators.VendorEvaluationHeader
         private UpdateVendorEvaluationHeaderCommandValidator CreateValidator() =>
             new(TestMaxLengthProviderFactory.Create(), _mockQueryRepo.Object);
 
-        private void SetupAllAsyncMocks(int id = 1, int vendorId = 1, int? gradeId = 1, int statusId = 1)
+        private void SetupAllAsyncMocks(int id = 1, int vendorId = 1, int? gradeId = 1)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.VendorExistsAsync(vendorId)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.StatusExistsAsync(statusId)).ReturnsAsync(true);
             if (gradeId.HasValue && gradeId.Value > 0)
                 _mockQueryRepo.Setup(r => r.GradeExistsAsync(gradeId.Value)).ReturnsAsync(true);
         }
@@ -42,7 +41,6 @@ namespace PurchaseManagement.UnitTests.Validators.VendorEvaluationHeader
             _mockQueryRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.VendorExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.StatusExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.GradeExistsAsync(1)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -57,7 +55,6 @@ namespace PurchaseManagement.UnitTests.Validators.VendorEvaluationHeader
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(1, 6, 2026, 1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.VendorExistsAsync(1)).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.StatusExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.GradeExistsAsync(1)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -72,7 +69,6 @@ namespace PurchaseManagement.UnitTests.Validators.VendorEvaluationHeader
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.CompositeKeyExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.VendorExistsAsync(999)).ReturnsAsync(false);
-            _mockQueryRepo.Setup(r => r.StatusExistsAsync(1)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.GradeExistsAsync(1)).ReturnsAsync(true);
 
             var result = await CreateValidator().TestValidateAsync(command);

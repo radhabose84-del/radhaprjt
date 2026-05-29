@@ -18,6 +18,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PoMethodLookup
             public required int LocalId;
             public required int ImportId;
             public required int ContractId;
+            public required int BlanketId;
         }
 
         // Fetch fresh, no caching
@@ -26,6 +27,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PoMethodLookup
             var local    = await _misc.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Local);
             var import   = await _misc.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Import);
             var contract = await _misc.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Contract);
+            var blanket  = await _misc.GetMiscMasterByName(MiscEnumEntity.POMethod, MiscEnumEntity.Blanket);
 
             if (local is null || local.Id <= 0 || import is null || import.Id <= 0)
                 throw new InvalidOperationException("POMethod misc not configured (Local/Import not found or inactive).");
@@ -34,7 +36,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.PoMethodLookup
             {
                 LocalId = local.Id,
                 ImportId = import.Id,
-                ContractId = contract?.Id ?? 0
+                ContractId = contract?.Id ?? 0,
+                BlanketId = blanket?.Id ?? 0
             };
         }
 
@@ -46,6 +49,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.PoMethodLookup
 
         public async Task<int> GetContractIdAsync(CancellationToken ct)
             => (await LoadAsync(ct)).ContractId;
+
+        public async Task<int> GetBlanketIdAsync(CancellationToken ct)
+            => (await LoadAsync(ct)).BlanketId;
 
         public async Task<bool> IsLocalAsync(int id, CancellationToken ct)
             => id == (await LoadAsync(ct)).LocalId;
@@ -59,10 +65,19 @@ namespace PurchaseManagement.Infrastructure.Repositories.PoMethodLookup
             return ids.ContractId > 0 && id == ids.ContractId;
         }
 
+        public async Task<bool> IsBlanketAsync(int id, CancellationToken ct)
+        {
+            var ids = await LoadAsync(ct);
+            return ids.BlanketId > 0 && id == ids.BlanketId;
+        }
+
         public async Task<bool> IsValidAsync(int id, CancellationToken ct)
         {
             var ids = await LoadAsync(ct);
-            return id == ids.LocalId || id == ids.ImportId || (ids.ContractId > 0 && id == ids.ContractId);
+            return id == ids.LocalId
+                || id == ids.ImportId
+                || (ids.ContractId > 0 && id == ids.ContractId)
+                || (ids.BlanketId > 0 && id == ids.BlanketId);
         }
     }
 }

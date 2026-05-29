@@ -25,15 +25,17 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Commands
                 IsMultiselect = 0
             };
 
-        private void SetupHappyPath(int newId = 1)
+        private void SetupHappyPath(List<int>? newIds = null)
         {
+            newIds ??= new List<int> { 1 };
+
             _mockMapper
                 .Setup(m => m.Map<BackgroundService.Domain.Entities.Workflow.WorkflowType>(It.IsAny<CreateWorkflowTypeCommand>()))
                 .Returns(new BackgroundService.Domain.Entities.Workflow.WorkflowType());
 
             _mockCommandRepo
-                .Setup(r => r.CreateAsync(It.IsAny<BackgroundService.Domain.Entities.Workflow.WorkflowType>()))
-                .ReturnsAsync(newId);
+                .Setup(r => r.CreateBulkAsync(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()))
+                .ReturnsAsync(newIds);
 
             _mockMediator
                 .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -41,33 +43,33 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Commands
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_ReturnsNewId()
+        public async Task Handle_ValidCommand_ReturnsNewIds()
         {
-            SetupHappyPath(5);
+            SetupHappyPath(new List<int> { 5 });
             var sut = CreateSut();
 
             var result = await sut.Handle(ValidCommand(), CancellationToken.None);
 
-            result.Should().Be(5);
+            result.Should().Contain(5);
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_CallsCreateOnce()
+        public async Task Handle_ValidCommand_CallsCreateBulkOnce()
         {
-            SetupHappyPath(1);
+            SetupHappyPath();
             var sut = CreateSut();
 
             await sut.Handle(ValidCommand(), CancellationToken.None);
 
             _mockCommandRepo.Verify(
-                r => r.CreateAsync(It.IsAny<BackgroundService.Domain.Entities.Workflow.WorkflowType>()),
+                r => r.CreateBulkAsync(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()),
                 Times.Once);
         }
 
         [Fact]
         public async Task Handle_ValidCommand_PublishesAuditEvent()
         {
-            SetupHappyPath(1);
+            SetupHappyPath();
             var sut = CreateSut();
 
             await sut.Handle(ValidCommand(), CancellationToken.None);
@@ -82,9 +84,9 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Commands
         }
 
         [Fact]
-        public async Task Handle_CreateReturnsZero_ThrowsExceptionRules()
+        public async Task Handle_CreateReturnsEmpty_ThrowsExceptionRules()
         {
-            SetupHappyPath(0);
+            SetupHappyPath(new List<int>());
             var sut = CreateSut();
 
             Func<Task> act = async () => await sut.Handle(ValidCommand(), CancellationToken.None);

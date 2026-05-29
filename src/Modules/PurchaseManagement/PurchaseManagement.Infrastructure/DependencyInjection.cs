@@ -91,6 +91,10 @@ using PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
+using PurchaseManagement.Application.Common.Interfaces.IBlanketMaster;
+using PurchaseManagement.Infrastructure.Repositories.BlanketMaster;
+using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IBlanketPO;
+using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.BlanketPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.Print;
 using PurchaseManagement.Application.Common.Interfaces.IVendorEvaluationCriteria;
 using PurchaseManagement.Application.Common.Interfaces.IVendorRatingGrade;
@@ -317,6 +321,13 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IContractPOMasterQueryRepository, ContractPOMasterQueryRepository>();
             services.AddScoped<IContractPOCommandRepository, ContractPOCommandRepository>();
             services.AddScoped<IContractPOQueryRepository, ContractPOQueryRepository>();
+
+            // Blanket Master
+            services.AddScoped<IBlanketMasterCommandRepository, BlanketMasterCommandRepository>();
+            services.AddScoped<IBlanketMasterQueryRepository, BlanketMasterQueryRepository>();
+            // Blanket Release PO
+            services.AddScoped<IBlanketPOCommandRepository, BlanketPOCommandRepository>();
+            services.AddScoped<IBlanketPOQueryRepository, BlanketPOQueryRepository>();
 
             // PO Print
             services.AddScoped<IPurchaseOrderPrintQueryRepository, PurchaseOrderPrintQueryRepository>();
