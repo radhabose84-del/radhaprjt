@@ -8,6 +8,8 @@ using GateEntryManagement.Application.GateInward.Commands.DeleteGateInwardAttach
 using GateEntryManagement.Application.GateInward.Queries.GetAllGateInward;
 using GateEntryManagement.Application.GateInward.Queries.GetGateInwardById;
 using GateEntryManagement.Application.GateInward.Queries.GetGateInwardAutoComplete;
+using GateEntryManagement.Application.GateInward.Queries.GetPendingReferenceDocs;
+using GateEntryManagement.Application.GateInward.Queries.GetPendingReferenceDocItems;
 
 namespace GateEntryManagement.Presentation.Controllers
 {
@@ -60,6 +62,48 @@ namespace GateEntryManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        [HttpGet("pending-reference-docs")]
+        public async Task<IActionResult> GetPendingReferenceDocsAsync(
+            [FromQuery] int partyId,
+            [FromQuery] int referenceDocumentTypeId)
+        {
+            var result = await Mediator.Send(new GetPendingReferenceDocsQuery
+            {
+                PartyId = partyId,
+                ReferenceDocumentTypeId = referenceDocumentTypeId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        [HttpGet("pending-reference-doc-items")]
+        public async Task<IActionResult> GetPendingReferenceDocItemsAsync(
+            [FromQuery] int partyId,
+            [FromQuery] int referenceDocumentTypeId,
+            [FromQuery(Name = "poIds")] List<int>? poIds)
+        {
+            var result = await Mediator.Send(new GetPendingReferenceDocItemsQuery
+            {
+                PartyId = partyId,
+                ReferenceDocumentTypeId = referenceDocumentTypeId,
+                PoIds = poIds ?? []
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
 

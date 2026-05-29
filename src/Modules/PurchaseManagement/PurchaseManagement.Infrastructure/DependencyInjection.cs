@@ -196,6 +196,11 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+
+            // Pending reference-document resolvers consumed by GateEntryManagement.GateInward.
+            // One implementation per Finance.TransactionTypeMaster.Id within ModuleId = 21 (Purchase).
+            services.AddScoped<Contracts.Interfaces.Gate.IPendingReferenceDocResolver, Repositories.GateInward.LocalPoPendingResolver>();
+            services.AddScoped<Contracts.Interfaces.Gate.IPendingReferenceDocResolver, Repositories.GateInward.ImportPoPendingResolver>();
             services.AddScoped<IPurchaseIndentCommand, PurchaseIndentCommandRepository>();
             services.AddScoped<ILogServiceCommand, LogServiceCommandRepository>();
             services.AddScoped<IPurchaseIndentQuery, PurchaseIndentQueryRepository>();
