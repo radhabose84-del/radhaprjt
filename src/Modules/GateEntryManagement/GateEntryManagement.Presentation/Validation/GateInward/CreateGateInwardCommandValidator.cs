@@ -39,6 +39,10 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                             .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.UnitId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.UnitId)} {rule.Error}");
 
+                        RuleFor(x => x.ReceivingWarehouseId)
+                            .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.ReceivingWarehouseId)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.ReceivingWarehouseId)} {rule.Error}");
+
                         RuleFor(x => x.ReceivingTypeId)
                             .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.ReceivingTypeId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.ReceivingTypeId)} {rule.Error}");

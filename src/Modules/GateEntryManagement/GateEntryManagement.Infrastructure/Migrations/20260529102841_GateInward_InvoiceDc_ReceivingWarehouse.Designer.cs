@@ -4,6 +4,7 @@ using GateEntryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GateEntryManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529102841_GateInward_InvoiceDc_ReceivingWarehouse")]
+    partial class GateInward_InvoiceDc_ReceivingWarehouse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -182,7 +185,7 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UnitId");
 
-                    b.Property<int?>("VehicleMovementRecordId")
+                    b.Property<int>("VehicleMovementRecordId")
                         .HasColumnType("int")
                         .HasColumnName("VehicleMovementRecordId");
 
@@ -696,7 +699,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.HasOne("GateEntryManagement.Domain.Entities.VehicleMovementRecord", "VehicleMovementRecord")
                         .WithMany("GateInwardHeaders")
                         .HasForeignKey("VehicleMovementRecordId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("QAStatusMisc");
 

@@ -23,6 +23,15 @@ namespace GateEntryManagement.Domain.Entities
         public decimal? TareWeight { get; set; }
         public decimal? NetWeight { get; set; }
 
+        // Invoice / Delivery Challan (from supplier — all nullable)
+        public string? InvoiceNo { get; set; }
+        public DateTimeOffset? InvoiceDate { get; set; }
+        public string? DcNo { get; set; }
+        public DateTimeOffset? DcDate { get; set; }
+
+        // Destination warehouse — cross-module FK (WarehouseManagement), no DB FK constraint, required
+        public int ReceivingWarehouseId { get; set; }
+
         // QA
         public bool QAInspectionRequired { get; set; }
         public int? QAStatusId { get; set; }              // Same-module FK → Gate.MiscMaster

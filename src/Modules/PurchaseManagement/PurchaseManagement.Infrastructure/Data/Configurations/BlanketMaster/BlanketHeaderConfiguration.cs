@@ -27,8 +27,6 @@ public class BlanketHeaderConfiguration : IEntityTypeConfiguration<BlanketHeader
         b.HasIndex(x => x.BlanketNumber).IsUnique();
 
         b.Property(x => x.BrokerName).HasMaxLength(200).IsRequired(false);
-        b.Property(x => x.PaymentTerms).HasMaxLength(500).IsRequired(false);
-        b.Property(x => x.DeliveryTerms).HasMaxLength(500).IsRequired(false);
         b.Property(x => x.Remarks).HasMaxLength(500).IsRequired(false);
 
         b.Property(x => x.TotalEstimatedValue).HasPrecision(18, 2);

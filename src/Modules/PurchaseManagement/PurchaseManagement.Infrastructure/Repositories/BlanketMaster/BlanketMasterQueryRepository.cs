@@ -30,7 +30,6 @@ public sealed class BlanketMasterQueryRepository : IBlanketMasterQueryRepository
                    h.VendorId, h.CurrencyId,
                    h.ProcurementTypeId, mp.Description AS ProcurementTypeName,
                    h.BrokerName, h.ValidityFrom, h.ValidityTo,
-                   h.PaymentTerms, h.DeliveryTerms,
                    h.StatusId, ms.Description AS StatusName,
                    h.TotalEstimatedValue, h.Remarks,
                    h.IsActive, h.IsDeleted,
@@ -60,7 +59,6 @@ public sealed class BlanketMasterQueryRepository : IBlanketMasterQueryRepository
                    h.VendorId, h.CurrencyId,
                    h.ProcurementTypeId, mp.Description AS ProcurementTypeName,
                    h.BrokerName, h.ValidityFrom, h.ValidityTo,
-                   h.PaymentTerms, h.DeliveryTerms,
                    h.StatusId, ms.Description AS StatusName,
                    h.TotalEstimatedValue, h.Remarks,
                    h.IsActive, h.IsDeleted,
@@ -128,9 +126,9 @@ public sealed class BlanketMasterQueryRepository : IBlanketMasterQueryRepository
             sql += " AND h.VendorId = @VendorId";
 
         if (poDate.HasValue)
-            sql += " AND h.ValidityFrom <= @PODate AND h.ValidityTo >= @PODate";
+            sql += " AND CAST(h.ValidityFrom AS DATE) <= CAST(@PODate AS DATE) AND CAST(h.ValidityTo AS DATE) >= CAST(@PODate AS DATE)";
 
-        sql += @" AND (@Term = '' OR h.BlanketNumber LIKE '%' + @Term + '%')
+        sql += @" AND (@Term IS NULL OR @Term = '' OR h.BlanketNumber LIKE '%' + @Term + '%')
             ORDER BY h.BlanketNumber;";
 
         var results = await _db.QueryAsync<BlanketMasterLookupDto>(sql, new
