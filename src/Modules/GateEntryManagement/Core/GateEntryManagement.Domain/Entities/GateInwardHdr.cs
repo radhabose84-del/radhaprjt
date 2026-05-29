@@ -6,8 +6,8 @@ namespace GateEntryManagement.Domain.Entities
     {
         public string? GateEntryNo { get; set; }
 
-        // Linked VMR
-        public int VehicleMovementRecordId { get; set; }
+        // Linked VMR (optional — only set when Receiving Type = Vehicle)
+        public int? VehicleMovementRecordId { get; set; }
 
         // Cross-module FK (PartyManagement) — no DB FK constraint; validated via IPartyLookup
         public int? PartyId { get; set; }

@@ -57,12 +57,14 @@ namespace QCManagement.Infrastructure.Repositories.QualityParameter
 
         public async Task<int> GetMaxParameterCodeSequenceAsync()
         {
-            // Codes follow format "QP-{6-digit zero-padded sequence}"
+            // Codes follow format "QP-{6-digit zero-padded sequence}". Soft-deleted rows are
+            // included on purpose — the UNIQUE index on ParameterCode is unfiltered, so reusing
+            // a deleted code would collide. Sequence must always advance past every code ever issued.
             var values = await _applicationDbContext.Database
                 .SqlQueryRaw<int>(@"
                     SELECT ISNULL(MAX(CAST(SUBSTRING(ParameterCode, 4, 10) AS INT)), 0) AS [Value]
                     FROM QC.QualityParameter
-                    WHERE ParameterCode LIKE 'QP-%' AND IsDeleted = 0")
+                    WHERE ParameterCode LIKE 'QP-%'")
                 .ToListAsync();
             return values.FirstOrDefault();
         }

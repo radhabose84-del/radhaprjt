@@ -4,6 +4,7 @@ using GateEntryManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GateEntryManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529110755_GateInwardHdr_VehicleMovementRecordId_Nullable")]
+    partial class GateInwardHdr_VehicleMovementRecordId_Nullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,14 +95,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
-                    b.Property<DateTimeOffset?>("DcDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("DcDate");
-
-                    b.Property<string>("DcNo")
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnName("DcNo");
-
                     b.Property<string>("GateEntryNo")
                         .IsRequired()
                         .HasColumnType("varchar(20)")
@@ -109,14 +104,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(10,3)")
                         .HasColumnName("GrossWeight");
-
-                    b.Property<DateTimeOffset?>("InvoiceDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("InvoiceDate");
-
-                    b.Property<string>("InvoiceNo")
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnName("InvoiceNo");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -165,10 +152,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ReceivingTypeId");
 
-                    b.Property<int>("ReceivingWarehouseId")
-                        .HasColumnType("int")
-                        .HasColumnName("ReceivingWarehouseId");
-
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(250)")
                         .HasColumnName("Remarks");
@@ -196,8 +179,6 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.HasIndex("QAStatusId");
 
                     b.HasIndex("ReceivingTypeId");
-
-                    b.HasIndex("ReceivingWarehouseId");
 
                     b.HasIndex("UnitId");
 

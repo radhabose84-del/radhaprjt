@@ -33,11 +33,8 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        // PartyId is now OPTIONAL — frontend may send null (future-use field).
-                        RuleFor(x => x.VehicleMovementRecordId)
-                            .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}");
-
+                        // PartyId and VehicleMovementRecordId are both OPTIONAL.
+                        // VMR is only sent when Receiving Type = Vehicle (UI-driven).
                         RuleFor(x => x.UnitId)
                             .NotNull().WithMessage($"{nameof(CreateGateInwardCommand.UnitId)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateGateInwardCommand.UnitId)} {rule.Error}");
@@ -77,9 +74,9 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
 
                     case "FKColumnDelete":
                         RuleFor(x => x.VehicleMovementRecordId)
-                            .MustAsync(async (id, ct) => await _queryRepository.VehicleMovementRecordExistsAsync(id))
+                            .MustAsync(async (id, ct) => await _queryRepository.VehicleMovementRecordExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateGateInwardCommand.VehicleMovementRecordId)} {rule.Error}")
-                            .When(x => x.VehicleMovementRecordId > 0);
+                            .When(x => x.VehicleMovementRecordId.HasValue && x.VehicleMovementRecordId > 0);
 
                         RuleFor(x => x.PartyId)
                             .MustAsync(async (id, ct) => await _partyLookup.GetByIdAsync(id!.Value, ct) != null)

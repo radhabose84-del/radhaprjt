@@ -16,6 +16,8 @@ namespace QCManagement.Application.Common.Mappings
                 .ForMember(dest => dest.QualityTemplateName, opt => opt.Ignore())
                 .ForMember(dest => dest.ApplicableLevelCode, opt => opt.Ignore())
                 .ForMember(dest => dest.ApplicableLevelName, opt => opt.Ignore())
+                .ForMember(dest => dest.QcTypeCode, opt => opt.Ignore())
+                .ForMember(dest => dest.QcTypeName, opt => opt.Ignore())
                 .ForMember(dest => dest.ItemCategoryName, opt => opt.Ignore())
                 .ForMember(dest => dest.ItemCode, opt => opt.Ignore())
                 .ForMember(dest => dest.ItemName, opt => opt.Ignore())
