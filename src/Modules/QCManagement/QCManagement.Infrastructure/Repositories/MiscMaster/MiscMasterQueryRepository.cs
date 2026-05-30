@@ -141,6 +141,8 @@ namespace QCManagement.Infrastructure.Repositories.MiscMaster
                     SELECT 1 FROM [QC].[QualitySpecificationParameter] WHERE SeverityId        = @id AND IsDeleted = 0
                     UNION ALL
                     SELECT 1 FROM [QC].[QualitySpecificationParameter] WHERE FailureActionId   = @id AND IsDeleted = 0
+                    UNION ALL
+                    SELECT 1 FROM [QC].[QcInspectionHdr]               WHERE QcStatusId        = @id AND IsDeleted = 0
                 ) THEN 1 ELSE 0 END";
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
@@ -165,6 +167,8 @@ namespace QCManagement.Infrastructure.Repositories.MiscMaster
                     SELECT 1 FROM [QC].[QualitySpecificationParameter] WHERE SeverityId        = @id AND IsDeleted = 0 AND IsActive = 1
                     UNION ALL
                     SELECT 1 FROM [QC].[QualitySpecificationParameter] WHERE FailureActionId   = @id AND IsDeleted = 0 AND IsActive = 1
+                    UNION ALL
+                    SELECT 1 FROM [QC].[QcInspectionHdr]               WHERE QcStatusId        = @id AND IsDeleted = 0 AND IsActive = 1
                 ) THEN 1 ELSE 0 END";
 
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { id });
