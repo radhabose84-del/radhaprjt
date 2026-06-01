@@ -50,7 +50,7 @@ namespace PurchaseManagement.Domain.Entities
         public ICollection<PurchaseLocalDetail>? PurchaseLocalDetailDiscount { get; set; }
         public ICollection<PurchaseLocalHeader>? PurchaseLocalHeaderIncoterms { get; set; }
         public ICollection<PurchaseLocalHeader>? PurchaseLocalHeaderMode { get; set; }
-        public ICollection<GrnHeader>? GrnQcStatusMisc { get; set; }
+        // QC status moved to GrnDetail; the FK is unconstrained (no DB FK), so no reverse nav.
         public ICollection<GrnDetail>? GrnDetailsPoCategory { get; set; }
         public ICollection<GrnDetail>? GrnDetailsPoMethod { get; set; }
         public ICollection<GateEntryDetail>? GateEntryDetailsPoMethod { get; set; }

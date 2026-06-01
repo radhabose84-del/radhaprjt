@@ -318,7 +318,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                 var whereClause = "WHERE A.UnitId = @UnitId";
                 if (GrnId.HasValue) whereClause += " AND A.Id = @GrnId";
                 if (IsGrnGenerated.HasValue) whereClause += " AND A.IsGrnGenerated = @IsGrnGenerated";
-                if (IsQcGenerated.HasValue) whereClause += " AND A.IsQcApproved = @IsQcGenerated";
+                // IsQcGenerated filter — per-line semantics: "ALL detail lines QC-approved" (Decision 2).
+                if (IsQcGenerated.HasValue && IsQcGenerated.Value)
+                {
+                    whereClause += @" AND NOT EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
+                else if (IsQcGenerated.HasValue && !IsQcGenerated.Value)
+                {
+                    whereClause += @" AND EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
 
                 var query = $@"
                 WITH POMethodType AS (
@@ -365,11 +379,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         A.CreatedByName,
                         A.ModifiedDate,
                         A.ModifiedByName,
-                        A.QcRemarks,
-                        A.QcPersonName,
-                        A.QcStatusId,
-                        A.QcDate,
-                        A.IsQcApproved,
+                        -- QC display fields (QcRemarks, QcPersonName, QcStatusId, QcDate) moved per-line.
+                        -- Header IsQcApproved aggregate dropped from this parent-child view to avoid
+                        -- a CTE column-name collision with per-line B.IsQcApproved (below). The outer
+                        -- DTO's IsQcApproved stays null for this view; per-line columns are authoritative.
                         A.QcWarehouseId,
                         A.RejectedImage,
 
@@ -390,6 +403,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         B.QcAcceptedQuantity,
                         B.QcRejectedQuantity,
                         B.QcRejectedRemarks,
+                        -- Per-line QC sign-off (moved from header)
+                        B.QcPersonName,
+                        B.QcRemarks,
+                        B.QcStatusId,
+                        B.QcDate,
+                        B.QcApprovedIp,
+                        B.IsQcApproved,
                         B.GrnDetailImage,
 
                         (B.OrderQuantity - ISNULL(gs.TotalGrnQty, 0)) AS PendingQty,
@@ -529,12 +549,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             G.DcDate,
                             G.ReceivingWarehouseId,
                             G.Remarks,
-                            G.QcRemarks,
-                            G.QcStatusId,
-                            G.QcPersonName,
-                            G.QcDate,
+                            -- QC display fields (QcRemarks, QcStatusId, QcPersonName, QcDate) moved per-line.
                             G.QcWarehouseId,
-                            G.IsQcApproved,
+                            -- IsQcApproved = computed AND aggregate (true only when every detail line is QC-approved).
+                            CAST(CASE WHEN EXISTS (
+                                SELECT 1 FROM Purchase.GrnDetail X
+                                WHERE X.GrnId = G.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                            ) THEN 0 ELSE 1 END AS BIT) AS IsQcApproved,
                             G.RejectedImage,
                             ROW_NUMBER() OVER (ORDER BY G.GrnDate DESC) AS RowNum
                         FROM Purchase.GrnHeader G
@@ -550,8 +571,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             G.Id, G.GrnNo, G.GrnDate, G.UnitId, G.GateEntryId, G.PartyId,
                             G.InvoiceNo, G.InvoiceDate,
                             G.DcNo, G.DcDate, G.ReceivingWarehouseId, G.Remarks,
-                            G.QcRemarks, G.QcStatusId, G.QcPersonName, G.QcDate,
-                            G.QcWarehouseId, G.IsQcApproved, G.RejectedImage
+                            G.QcWarehouseId, G.RejectedImage
                     )
                     SELECT *
                     FROM FilteredGrn
@@ -625,8 +645,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
             if (IsQcGenerated.HasValue)
             {
-                whereClause += " AND A.IsQcApproved = @IsQcGenerated";
-                parameters.Add("IsQcGenerated", IsQcGenerated.Value ? 1 : 0);
+                // Per-line semantics (Decision 2): "ALL detail lines QC-approved" when true; else "any line still un-approved".
+                if (IsQcGenerated.Value)
+                {
+                    whereClause += @" AND NOT EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
+                else
+                {
+                    whereClause += @" AND EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
@@ -667,12 +700,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                     A.CreatedByName,
                     A.ModifiedDate,
                     A.ModifiedByName,
-                    A.QcRemarks,
-                    A.QcStatusId,
-                    A.QcPersonName,
-                    A.QcDate,
+                    -- QC display fields (QcRemarks, QcStatusId, QcPersonName, QcDate) moved per-line.
                     A.QcWarehouseId,
-                    A.IsQcApproved,
+                    -- IsQcApproved = computed AND aggregate.
+                    CAST(CASE WHEN EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    ) THEN 0 ELSE 1 END AS BIT) AS IsQcApproved,
                     A.RejectedImage
                 FROM Purchase.GrnHeader A
                 {whereClause}
@@ -1310,11 +1344,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                                 A.CreatedByName,
                                 A.ModifiedDate,
                                 A.ModifiedByName,
-                                A.QcRemarks,
-                                A.QcPersonName,
-                                A.QcStatusId,
-                                A.QcDate,
-                                A.IsQcApproved,
+                                -- QC display fields (QcRemarks, QcPersonName, QcStatusId, QcDate) moved per-line.
+                                -- Header IsQcApproved aggregate dropped from this view — the WHERE-clause
+                                -- semantics already constrain to QC-completed rows; per-line columns below speak for themselves.
                                 A.QcWarehouseId,
                                 A.RejectedImage,
 
@@ -1327,6 +1359,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                                 B.DcQuantity,
                                 B.ReceivedQuantity,
                                 B.QcAcceptedQuantity,
+                                -- Per-line QC sign-off (moved from header)
+                                B.QcPersonName,
+                                B.QcRemarks,
+                                B.QcStatusId,
+                                B.QcDate,
+                                B.QcApprovedIp,
+                                B.IsQcApproved,
                                 B.GrnDetailImage,
 
                                 ISNULL(

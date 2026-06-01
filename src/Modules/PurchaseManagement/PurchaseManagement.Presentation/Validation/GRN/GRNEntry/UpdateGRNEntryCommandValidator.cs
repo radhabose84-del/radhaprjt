@@ -44,20 +44,21 @@ namespace PurchaseManagement.Presentation.Validation.GRN.GRNEntry
                                     .WithMessage("Received Quantity must be a positive value.");
                             });
 
-                        // QC Rules (dependent on header IsQcApproved)
+                        // QC Rules — per-line now (IsQcApproved is on each detail row).
+                        // Skip the qty-vs-Qc check when the detail itself isn't being marked approved.
                         RuleForEach(x => x.GrnEntryUpdate.UpdateGRNDetailsDtos)
-                                    .Must((command, detail) =>
-                                        command.GrnEntryUpdate.IsQcApproved != 1 || 
-                                        detail.ReceivedQuantity <= ((detail.QcAcceptedQuantity ?? 0) + (detail.QcRejectedQuantity ?? 0))
-                                    )
-                                    .WithMessage("Received Quantity cannot exceed the sum of QC Accepted and QC Rejected quantities.");
+                            .Must(detail =>
+                                detail.IsQcApproved != 1 ||
+                                detail.ReceivedQuantity <= ((detail.QcAcceptedQuantity ?? 0) + (detail.QcRejectedQuantity ?? 0))
+                            )
+                            .WithMessage("Received Quantity cannot exceed the sum of QC Accepted and QC Rejected quantities.");
 
-                                RuleForEach(x => x.GrnEntryUpdate.UpdateGRNDetailsDtos)
-                                    .Must((command, detail) =>
-                                        command.GrnEntryUpdate.IsQcApproved != 1 || 
-                                        ((detail.QcAcceptedQuantity ?? 0) + (detail.QcRejectedQuantity ?? 0)) <= detail.ReceivedQuantity
-                                    )
-                                    .WithMessage("Total QC Accepted + QC Rejected cannot exceed Received Quantity.");
+                        RuleForEach(x => x.GrnEntryUpdate.UpdateGRNDetailsDtos)
+                            .Must(detail =>
+                                detail.IsQcApproved != 1 ||
+                                ((detail.QcAcceptedQuantity ?? 0) + (detail.QcRejectedQuantity ?? 0)) <= detail.ReceivedQuantity
+                            )
+                            .WithMessage("Total QC Accepted + QC Rejected cannot exceed Received Quantity.");
 
                         // Custom async tolerance validation
                         RuleFor(x => x.GrnEntryUpdate)
