@@ -22,7 +22,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
         // QC display fields (QcRemarks, QcPersonName, QcDate, QcStatusId) moved per-line.
         public int? QcWarehouseId { get; set; }
         public string? QcWarehouseName { get; set; }
-        // Computed AND aggregate: true only when every detail line is QC-approved.
+        // Computed OR aggregate: true if ANY detail line is QC-approved.
         public bool? IsQcApproved { get; set; }
         public string? RejectedImage { get; set; }
        

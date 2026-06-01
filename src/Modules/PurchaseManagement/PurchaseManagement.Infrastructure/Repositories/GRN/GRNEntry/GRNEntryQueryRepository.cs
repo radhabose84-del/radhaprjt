@@ -551,11 +551,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             G.Remarks,
                             -- QC display fields (QcRemarks, QcStatusId, QcPersonName, QcDate) moved per-line.
                             G.QcWarehouseId,
-                            -- IsQcApproved = computed AND aggregate (true only when every detail line is QC-approved).
+                            -- IsQcApproved = computed OR aggregate (true if ANY detail line is QC-approved).
+                            -- Header surfaces as approved the moment the first line is signed off; the
+                            -- details view filters to only the approved lines for display.
                             CAST(CASE WHEN EXISTS (
                                 SELECT 1 FROM Purchase.GrnDetail X
-                                WHERE X.GrnId = G.Id AND ISNULL(X.IsQcApproved, 0) = 0
-                            ) THEN 0 ELSE 1 END AS BIT) AS IsQcApproved,
+                                WHERE X.GrnId = G.Id AND X.IsQcApproved = 1
+                            ) THEN 1 ELSE 0 END AS BIT) AS IsQcApproved,
                             G.RejectedImage,
                             ROW_NUMBER() OVER (ORDER BY G.GrnDate DESC) AS RowNum
                         FROM Purchase.GrnHeader G
@@ -1414,6 +1416,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             {whereClause}
                                 AND E.IsDeleted = 0
                                 AND B.QcAcceptedQuantity > 0
+                                AND B.IsQcApproved = 1  -- only QC-approved lines surface (OR semantics — header is approved if any line is, but only approved lines are listed)
                                 AND P.Id IS NULL
                         )
 
