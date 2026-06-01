@@ -8,8 +8,12 @@ namespace PurchaseManagement.Domain.Entities.GRN.GRNEntry
         public int UnitId { get; set; }
         public string? GrnNo { get; set; }
         public DateTimeOffset GrnDate { get; set; }
-        public int GateEntryId { get; set; }
-        public GateEntryHeader GrnHeaderDetails { get; set; } = null!;
+        // Nullable + no DB FK constraint. Legacy column once pointed at Purchase.GateEntryHeader,
+        // which is deprecated. New centralized flow stores Gate.GateInwardHdr.Id here; older rows
+        // may still reference Purchase.GateEntryHeader. Null is allowed for callers that don't
+        // have a gate entry (e.g., direct GRN without a gate flow).
+        public int? GateEntryId { get; set; }
+        public GateEntryHeader? GrnHeaderDetails { get; set; }
         public int PartyId { get; set; }
         public string? InvoiceNo { get; set; }
         public DateTimeOffset InvoiceDate { get; set; }
