@@ -74,7 +74,7 @@ namespace PurchaseManagement.Domain.Common
         public const string RtvClosed = "Closed";
 
         // Approval workflow integration
-        public const string RtvModuleTypeName = "PurchaseReturn";
+        public const string RtvModuleTypeName = "Purchase Return";
 
         // Blanket PO constants
         public const string Blanket = "Blanket";
