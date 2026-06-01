@@ -33,8 +33,26 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(100)")
                 .IsRequired(false);
 
+            // Minimum PO context — only fields that aren't derivable from Purchase / Inventory.
+            // All three are nullable so the same table can hold non-PO (manual) lines too.
+            builder.Property(t => t.PoId)
+                .HasColumnName("PoId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.PoSlNoLocal)
+                .HasColumnName("PoSlNoLocal")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.DcQuantity)
+                .HasColumnName("DcQuantity")
+                .HasColumnType("decimal(18,3)")
+                .IsRequired(false);
+
             // Indexes
             builder.HasIndex(t => t.GateInwardHdrId);
+            builder.HasIndex(t => t.PoId);
 
             // FK — cascade delete
             builder.HasOne(t => t.GateInwardHdr)
