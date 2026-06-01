@@ -86,8 +86,10 @@ using PurchaseManagement.Infrastructure.Services.Outbox;
 
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Updates.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.Lookups;
 using PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase;
+using PurchaseManagement.Infrastructure.Repositories.Updates.Purchase;
 using PurchaseManagement.Infrastructure.Repositories.ContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPO;
 using PurchaseManagement.Infrastructure.Repositories.PurchaseOrder.ContractPO;
@@ -257,6 +259,10 @@ namespace PurchaseManagement.Infrastructure
             // services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
             services.AddScoped<IPaymentTermLookup, PaymentTermLookupRepository>();
             services.AddScoped<IIncotermLookup, IncotermLookupRepository>();
+
+            // QC inspection cross-module read + write-back (SCRUM-1667)
+            services.AddScoped<IGrnLookup, GrnLookupRepository>();
+            services.AddScoped<IGrnQcUpdate, GrnQcUpdateRepository>();
 
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();

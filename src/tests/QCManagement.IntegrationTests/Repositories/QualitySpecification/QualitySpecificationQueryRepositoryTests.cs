@@ -170,7 +170,7 @@ namespace QCManagement.IntegrationTests.Repositories.QualitySpecification
             var deps = await SeedDependenciesAsync();
             await SeedSpecAsync(deps.templateId, deps.qpId, deps.applicableLevelId, deps.validationTypeId, deps.severityId, deps.failureActionId);
 
-            var (rows, total) = await CreateQueryRepo().GetAllAsync(1, 10, null, null, null, null, null, null);
+            var (rows, total) = await CreateQueryRepo().GetAllAsync(1, 10, null, null, null, null, null, null, null);
 
             rows.Should().HaveCount(1);
             total.Should().Be(1);
