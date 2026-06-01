@@ -134,13 +134,36 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
             }
 
             // ─── Auto-fire GRN for PO-backed lines ───────────────────────────────────────
-            // Re-resolves DocumentTypeCode (same first line); sends CreateGRNEntryCommand via MediatR.
+            // Atomicity contract: "GRN failed means Gate Inward could not save."
+            // Pre-validation already caught tolerance/qty issues, so this path normally succeeds.
+            // If the downstream GRN insert still throws (DB outage, FK violation, unexpected state),
+            // we soft-delete the just-saved Gate Inward + clean up the moved attachment so the
+            // user sees a clean failure with nothing orphaned.
             if (poBackedLines is { Count: > 0 })
             {
                 var refDocTypeId = poBackedLines[0].ReferenceDocTypeId;
                 var documentTypeCode = await ResolveDocumentTypeCodeAsync(refDocTypeId);
                 var grnContext = BuildGrnContext(entity, gateEntryId: newId, documentTypeCode, poBackedLines);
-                await _grnBridge.CreateAsync(grnContext, cancellationToken);
+
+                try
+                {
+                    await _grnBridge.CreateAsync(grnContext, cancellationToken);
+                }
+                catch
+                {
+                    // Compensate — soft-delete the Gate Inward we just persisted.
+                    try { await _commandRepository.SoftDeleteAsync(newId, CancellationToken.None); }
+                    catch { /* best-effort cleanup */ }
+
+                    // Best-effort attachment cleanup if we moved one earlier.
+                    if (movedRelativePath != null)
+                    {
+                        try { await _attachmentStorage.DeleteAsync(movedRelativePath, CancellationToken.None); }
+                        catch { /* best-effort cleanup */ }
+                    }
+
+                    throw;
+                }
             }
             // ─────────────────────────────────────────────────────────────────────────────
 

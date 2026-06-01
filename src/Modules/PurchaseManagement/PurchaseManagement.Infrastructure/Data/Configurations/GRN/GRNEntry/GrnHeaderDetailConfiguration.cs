@@ -32,16 +32,15 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.GRN.GRNEntry
                    .HasColumnType("int")
                    .IsRequired();
 
+            // GateEntryId is now nullable and has no DB FK constraint. Legacy column once pointed
+            // at Purchase.GateEntryHeader (deprecated); centralized flow stores Gate.GateInwardHdr.Id.
             builder.Property(m => m.GateEntryId)
                   .HasColumnName("GateEntryId")
                   .HasColumnType("int")
-                  .IsRequired();
+                  .IsRequired(false);
 
-            // Foreign Key Relationship
-            builder.HasOne(m => m.GrnHeaderDetails)
-                .WithMany(t => t.GrnGateEntries)
-                .HasForeignKey(m => m.GateEntryId) // Foreign Key property in PartyContact
-                .OnDelete(DeleteBehavior.Restrict); // Use .Cascade if needed
+            // Ignore the legacy navigation so EF does not regenerate the FK.
+            builder.Ignore(m => m.GrnHeaderDetails);
 
             builder.Property(m => m.PartyId)
                  .HasColumnName("PartyId")
