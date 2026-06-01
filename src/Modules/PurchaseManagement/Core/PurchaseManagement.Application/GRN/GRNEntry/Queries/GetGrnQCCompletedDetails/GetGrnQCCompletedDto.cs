@@ -7,6 +7,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
         public DateTimeOffset? GrnDate { get; set; }
         public int UnitId { get; set; }
         public int GateEntryId { get; set; }
+        public string? GateEntryNo { get; set; }
+        public DateTimeOffset? GateEntryDate { get; set; }
         public int PartyId { get; set; }
         public string? QcRemarks { get; set; }
         public int? QcStatusId { get; set; }
