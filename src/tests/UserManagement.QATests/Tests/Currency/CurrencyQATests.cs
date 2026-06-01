@@ -435,10 +435,10 @@ public sealed class CurrencyQATests
     }
 
     [Fact, TestPriority(33)]
-    public async Task TC033_Update_IdZero_NoValidatorCheck_Returns200()
+    public async Task TC033_Update_IdZero_NotFound_Returns400()
     {
-        // UpdateCurrencyCommandValidator has NO Id > 0 check
-        // Controller has no check either → passes to handler → updates 0 rows → 200
+        // UpdateCurrencyCommandValidator has NO Id > 0 check, but the handler guards
+        // existence: GetByIdAsync(0) is null → throws "Currency Id not found" → 400.
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id       = 0,
@@ -446,8 +446,9 @@ public sealed class CurrencyQATests
             isActive = (byte)1
         });
 
-        // No validator catches Id=0 → handler runs → 200 OK
-        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await resp.Content.ReadAsStringAsync();
+        body.Should().Contain("not found");
     }
 
     [Fact, TestPriority(34)]
@@ -538,7 +539,11 @@ public sealed class CurrencyQATests
 
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var doc = await ParseAsync(resp);
-        doc.RootElement.CreatedId().Should().BeGreaterThan(0);
+        var id = doc.RootElement.CreatedId();
+        id.Should().BeGreaterThan(0);
+
+        // Self-clean: soft-delete so the code is freed for the next run.
+        await _f.Client.DeleteAsync($"{BaseRoute}/{id}");
     }
 
     [Fact, TestPriority(42)]
@@ -553,7 +558,11 @@ public sealed class CurrencyQATests
 
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var doc = await ParseAsync(resp);
-        doc.RootElement.CreatedId().Should().BeGreaterThan(0);
+        var id = doc.RootElement.CreatedId();
+        id.Should().BeGreaterThan(0);
+
+        // Self-clean: soft-delete so the code is freed for the next run.
+        await _f.Client.DeleteAsync($"{BaseRoute}/{id}");
     }
 
     [Fact, TestPriority(43)]

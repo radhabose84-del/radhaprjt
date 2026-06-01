@@ -14,6 +14,7 @@ namespace UserManagement.UnitTests.Validators.Currency
 
         private void SetupHappyPath(int id = 1)
         {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(id)).ReturnsAsync(false);
         }
 
@@ -28,6 +29,7 @@ namespace UserManagement.UnitTests.Validators.Currency
         [Fact]
         public async Task ZeroId_FailsValidation()
         {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(0)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(0)).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(new DeleteCurrencyCommand { Id = 0 });
             result.ShouldHaveValidationErrorFor(x => x.Id);
@@ -36,6 +38,7 @@ namespace UserManagement.UnitTests.Validators.Currency
         [Fact]
         public async Task LinkedRecords_FailsValidation()
         {
+            _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.SoftDeleteValidationAsync(1)).ReturnsAsync(true);
             var result = await CreateValidator().TestValidateAsync(new DeleteCurrencyCommand { Id = 1 });
             result.ShouldHaveAnyValidationError();

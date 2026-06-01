@@ -78,6 +78,9 @@ namespace QCManagement.Presentation.Validation.QualitySpecification
                         break;
 
                     case "GreaterThan":
+                        RuleFor(x => x.QcTypeId)
+                            .GreaterThan(0).WithMessage($"QcTypeId {rule.Error}");
+
                         RuleForEach(x => x.Parameters).ChildRules(p =>
                         {
                             p.RuleFor(d => d.Id)
@@ -89,6 +92,11 @@ namespace QCManagement.Presentation.Validation.QualitySpecification
                         break;
 
                     case "FKColumnDelete":
+                        RuleFor(x => x.QcTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepo.QcTypeExistsAsync(id))
+                            .WithMessage($"QcTypeId {rule.Error}")
+                            .When(x => x.QcTypeId > 0);
+
                         RuleForEach(x => x.Parameters).ChildRules(p =>
                         {
                             p.RuleFor(d => d.ValidationTypeId)

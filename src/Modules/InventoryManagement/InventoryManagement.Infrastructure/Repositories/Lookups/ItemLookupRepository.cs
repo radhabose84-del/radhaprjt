@@ -31,11 +31,13 @@ namespace InventoryManagement.Infrastructure.Repositories.Lookups
                        ISNULL(H.GSTPercentage, 0) AS GSTPercentage,
                        IM.IsOnSpot,
                        ISNULL(IP.SourceOfItem, 0) AS SourceOfItem,
-                       ISNULL(IM.ItemCategoryId, 0) AS ItemCategoryId
+                       ISNULL(IM.ItemCategoryId, 0) AS ItemCategoryId,
+                       ISNULL(IQ.InspectionRequired, 0) AS InspectionRequired
                 FROM Inventory.ItemMaster IM
                 LEFT JOIN Inventory.ItemMaster PIM ON PIM.Id = IM.ParentItemId AND PIM.IsDeleted = 0
                 LEFT JOIN Inventory.ItemPurchase IP ON IP.ItemId = IM.Id
                 LEFT JOIN Inventory.HSNMaster H ON H.Id = IM.HSNId AND H.IsDeleted = 0
+                LEFT JOIN Inventory.ItemQuality IQ ON IQ.ItemId = IM.Id
                 WHERE IM.Id IN @ItemIds AND IM.IsDeleted = 0;";
 
             var result = await _dbConnection.QueryAsync<ItemLookupDto>(

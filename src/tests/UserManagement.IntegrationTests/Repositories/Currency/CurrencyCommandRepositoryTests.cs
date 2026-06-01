@@ -208,5 +208,49 @@ namespace UserManagement.IntegrationTests.Repositories.Currency
 
             result.Should().Be(-1);
         }
+
+        // --- EXISTS BY CODE ---
+
+        [Fact]
+        public async Task ExistsByCodeAsync_Should_Return_True_For_Active_Code()
+        {
+            await using var ctx = CreateDbContext();
+            await ClearTableAsync(ctx);
+            await CreateRepository(ctx).CreateAsync(BuildEntity("USD", "US Dollar"));
+            ctx.ChangeTracker.Clear();
+
+            var exists = await CreateRepository(ctx).ExistsByCodeAsync("USD");
+
+            exists.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ExistsByCodeAsync_Should_Return_False_When_Code_Absent()
+        {
+            await using var ctx = CreateDbContext();
+            await ClearTableAsync(ctx);
+
+            var exists = await CreateRepository(ctx).ExistsByCodeAsync("USD");
+
+            exists.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task ExistsByCodeAsync_Should_Return_False_When_Code_Only_SoftDeleted()
+        {
+            // The core of the fix: a soft-deleted currency must NOT reserve its code.
+            await using var ctx = CreateDbContext();
+            await ClearTableAsync(ctx);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("USD", "US Dollar"));
+            ctx.ChangeTracker.Clear();
+
+            await CreateRepository(ctx).DeletecurrencyAsync(
+                id, new Domain.Entities.Currency { IsDeleted = Enums.IsDelete.Deleted });
+            ctx.ChangeTracker.Clear();
+
+            var exists = await CreateRepository(ctx).ExistsByCodeAsync("USD");
+
+            exists.Should().BeFalse();
+        }
     }
 }

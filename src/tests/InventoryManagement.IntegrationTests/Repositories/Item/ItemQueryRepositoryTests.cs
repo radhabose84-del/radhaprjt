@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Sales;
 using Contracts.Interfaces.Lookups.Users;

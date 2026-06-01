@@ -247,5 +247,25 @@ namespace QCManagement.IntegrationTests.Repositories.QualityParameter
 
             max.Should().Be(7);
         }
+
+        [Fact]
+        public async Task GetMaxParameterCodeSequenceAsync_Should_Include_SoftDeleted_Rows()
+        {
+            // Sequence must advance past every code ever issued. The UNIQUE index on ParameterCode
+            // is unfiltered, so the next code can never be a soft-deleted one — even if the highest
+            // code currently belongs to a soft-deleted row, the generator must still see it.
+            await ClearAllAsync();
+            var (g, d, v) = await SeedDependenciesAsync();
+
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await CreateRepo(ctx).CreateAsync(BuildEntity(g, d, v, code: "QP-000001", name: "One"));
+            var highestId = await CreateRepo(ctx).CreateAsync(BuildEntity(g, d, v, code: "QP-000006", name: "Six"));
+
+            await CreateRepo(ctx).SoftDeleteAsync(highestId, CancellationToken.None);
+
+            var max = await CreateRepo(ctx).GetMaxParameterCodeSequenceAsync();
+
+            max.Should().Be(6);
+        }
     }
 }

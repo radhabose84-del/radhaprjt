@@ -32,7 +32,15 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
             _dbContext.Entry(stub).Property(x => x.MiscTypeCode).IsModified = true;
             _dbContext.Entry(stub).Property(x => x.Description).IsModified = true;
             _dbContext.Entry(stub).Property(x => x.IsActive).IsModified = true;
-            return await _dbContext.SaveChangesAsync() > 0;
+            try
+            {
+                return await _dbContext.SaveChangesAsync() > 0;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Row does not exist — EF expected 1 affected row but got 0.
+                return false;
+            }
         }
 
         public async Task<bool> DeleteAsync(int id, UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
@@ -41,8 +49,16 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
             _dbContext.Attach(stub);
             stub.IsDeleted = miscTypeMaster.IsDeleted;
             _dbContext.Entry(stub).Property(x => x.IsDeleted).IsModified = true;
-            return await _dbContext.SaveChangesAsync() > 0;
-        }        
+            try
+            {
+                return await _dbContext.SaveChangesAsync() > 0;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Row does not exist — EF expected 1 affected row but got 0.
+                return false;
+            }
+        }
                
     }
 }

@@ -33,7 +33,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.VehicleMovementRecordId)
                 .HasColumnName("VehicleMovementRecordId")
                 .HasColumnType("int")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.ReceivingTypeId)
                 .HasColumnName("ReceivingTypeId")
@@ -66,6 +66,33 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnName("NetWeight")
                 .HasColumnType("decimal(10,3)")
                 .IsRequired(false);
+
+            // Invoice / Delivery Challan (from supplier — all nullable)
+            builder.Property(t => t.InvoiceNo)
+                .HasColumnName("InvoiceNo")
+                .HasColumnType("nvarchar(200)")
+                .IsRequired(false);
+
+            builder.Property(t => t.InvoiceDate)
+                .HasColumnName("InvoiceDate")
+                .HasColumnType("datetimeoffset")
+                .IsRequired(false);
+
+            builder.Property(t => t.DcNo)
+                .HasColumnName("DcNo")
+                .HasColumnType("nvarchar(200)")
+                .IsRequired(false);
+
+            builder.Property(t => t.DcDate)
+                .HasColumnName("DcDate")
+                .HasColumnType("datetimeoffset")
+                .IsRequired(false);
+
+            // Destination warehouse — cross-module FK to WarehouseManagement, required, no DB FK
+            builder.Property(t => t.ReceivingWarehouseId)
+                .HasColumnName("ReceivingWarehouseId")
+                .HasColumnType("int")
+                .IsRequired();
 
             // QA
             builder.Property(t => t.QAInspectionRequired)
@@ -124,6 +151,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.UnitId);
             builder.HasIndex(t => t.PartyId);
             builder.HasIndex(t => t.ReceivingTypeId);
+            builder.HasIndex(t => t.ReceivingWarehouseId);
 
             // Same-module FKs
             builder.HasOne(t => t.VehicleMovementRecord)

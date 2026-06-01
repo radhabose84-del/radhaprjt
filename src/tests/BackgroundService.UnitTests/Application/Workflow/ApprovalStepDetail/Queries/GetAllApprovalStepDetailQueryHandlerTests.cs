@@ -21,7 +21,11 @@ namespace BackgroundService.UnitTests.Application.Workflow.ApprovalStepDetail.Qu
         {
             var entities = new List<BackgroundService.Domain.Entities.Workflow.ApprovalStepDetail>();
             for (int i = 0; i < count; i++)
-                entities.Add(new BackgroundService.Domain.Entities.Workflow.ApprovalStepDetail { Id = i + 1 });
+                entities.Add(new BackgroundService.Domain.Entities.Workflow.ApprovalStepDetail
+                {
+                    Id = i + 1,
+                    WorkflowType = new BackgroundService.Domain.Entities.Workflow.WorkflowType { MenuId = 0 }
+                });
 
             _mockQueryRepo
                 .Setup(r => r.GetAllApprovalStepDetailAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()))
@@ -34,6 +38,13 @@ namespace BackgroundService.UnitTests.Application.Workflow.ApprovalStepDetail.Qu
             _mockMapper
                 .Setup(m => m.Map<List<ApprovalStepDetailDto>>(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.ApprovalStepDetail>>()))
                 .Returns(dtos);
+
+            _mockIpService.Setup(s => s.GetUserId()).Returns(1);
+
+            // WorkflowType.MenuId on entities defaults to 0 — include 0 so they pass the access filter
+            _mockLookupRepo
+                .Setup(r => r.GetUserAccessibleMenuIdsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HashSet<int> { 0, 100 });
 
             _mockLookupRepo
                 .Setup(r => r.GetMenuNamesAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))

@@ -33,6 +33,13 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
                 .Setup(m => m.Map<List<WorkflowTypeDto>>(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()))
                 .Returns(dtos);
 
+            _mockIpService.Setup(s => s.GetUserId()).Returns(1);
+
+            // MenuId on entities defaults to 0 — include 0 so they pass the access filter
+            _mockLookupRepo
+                .Setup(r => r.GetUserAccessibleMenuIdsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HashSet<int> { 0, 100 });
+
             _mockLookupRepo
                 .Setup(r => r.GetMenuNamesAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new Dictionary<int, string> { { 100, "Test Menu" } });

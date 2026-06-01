@@ -20,6 +20,9 @@ namespace QCManagement.Domain.Entities
         // Reverse navigation for QualitySpecification (ApplicableLevel)
         public ICollection<QualitySpecification>? QualitySpecificationsAsApplicableLevel { get; set; }
 
+        // Reverse navigation for QualitySpecification (QcType)
+        public ICollection<QualitySpecification>? QualitySpecificationsAsQcType { get; set; }
+
         // Reverse navigation for QualitySpecificationParameter (ValidationType / Severity / FailureAction)
         public ICollection<QualitySpecificationParameter>? QualitySpecificationParametersAsValidationType { get; set; }
         public ICollection<QualitySpecificationParameter>? QualitySpecificationParametersAsSeverity { get; set; }

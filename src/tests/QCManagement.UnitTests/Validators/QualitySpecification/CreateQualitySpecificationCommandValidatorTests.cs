@@ -38,6 +38,7 @@ namespace QCManagement.UnitTests.Validators.QualitySpecification
         private void SetupHappyPath(CreateQualitySpecificationCommand command)
         {
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(command.SpecificationName!, null)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.QcTypeExistsAsync(command.QcTypeId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.ApplicableLevelExistsAsync(command.ApplicableLevelId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.GetApplicableLevelCodeAsync(command.ApplicableLevelId)).ReturnsAsync("ITEM CATEGORY");
             _mockQueryRepo.Setup(r => r.HasOverlappingActiveSpecAsync(

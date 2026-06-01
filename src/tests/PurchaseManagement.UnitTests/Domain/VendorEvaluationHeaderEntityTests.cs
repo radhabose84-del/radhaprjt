@@ -1,5 +1,4 @@
 using PurchaseManagement.Domain.Common;
-using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.VendorEvaluation;
 using static PurchaseManagement.Domain.Common.BaseEntity;
 

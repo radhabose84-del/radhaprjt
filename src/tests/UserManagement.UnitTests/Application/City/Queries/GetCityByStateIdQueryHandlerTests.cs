@@ -1,5 +1,4 @@
 using AutoMapper;
-using FluentValidation;
 using MediatR;
 using UserManagement.Application.City.Queries.GetCities;
 using UserManagement.Application.City.Queries.GetCityByStateId;
@@ -42,16 +41,16 @@ namespace UserManagement.UnitTests.Application.City.Queries
         }
 
         [Fact]
-        public async Task Handle_NoCitiesFound_ThrowsValidationException()
+        public async Task Handle_NoCitiesFound_ReturnsEmptyList()
         {
             _mockQueryRepo
                 .Setup(r => r.GetCityByStateIdAsync(999))
                 .ReturnsAsync(new List<UserManagement.Domain.Entities.Cities>());
 
-            Func<Task> act = () => CreateSut().Handle(
+            var result = await CreateSut().Handle(
                 new GetCityByStateIdQuery { Id = 999 }, CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>();
+            result.Should().BeEmpty();
         }
     }
 }

@@ -1,5 +1,6 @@
 using Contracts.Common;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
+using PurchaseManagement.Application.PurchaseOrder.BlanketPO.Commands.Create;
 using PurchaseManagement.Application.PurchaseOrder.ContractPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
@@ -94,6 +95,27 @@ namespace PurchaseManagement.Application.PurchaseOrder.CombinePO.Command.Create
 
                 var response = await _mediator.Send(
                     new CreateContractPOCommand(r.Contract), ct);
+
+                return response;
+            }
+
+            // ----------------- BLANKET PO -----------------
+            if (await _lookup.IsBlanketAsync(r.POMethodId, ct))
+            {
+                if (r.Blanket is null)
+                {
+                    return new ApiResponseDTO<int>
+                    {
+                        IsSuccess = false,
+                        Message = "Blanket PO details are required for Blanket POMethod.",
+                        Data = 0
+                    };
+                }
+
+                r.Blanket.POMethodId = r.POMethodId;
+
+                var response = await _mediator.Send(
+                    new CreateBlanketPOCommand(r.Blanket), ct);
 
                 return response;
             }

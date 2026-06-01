@@ -6,8 +6,8 @@ namespace GateEntryManagement.Domain.Entities
     {
         public string? GateEntryNo { get; set; }
 
-        // Linked VMR
-        public int VehicleMovementRecordId { get; set; }
+        // Linked VMR (optional — only set when Receiving Type = Vehicle)
+        public int? VehicleMovementRecordId { get; set; }
 
         // Cross-module FK (PartyManagement) — no DB FK constraint; validated via IPartyLookup
         public int? PartyId { get; set; }
@@ -22,6 +22,15 @@ namespace GateEntryManagement.Domain.Entities
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
         public decimal? NetWeight { get; set; }
+
+        // Invoice / Delivery Challan (from supplier — all nullable)
+        public string? InvoiceNo { get; set; }
+        public DateTimeOffset? InvoiceDate { get; set; }
+        public string? DcNo { get; set; }
+        public DateTimeOffset? DcDate { get; set; }
+
+        // Destination warehouse — cross-module FK (WarehouseManagement), no DB FK constraint, required
+        public int ReceivingWarehouseId { get; set; }
 
         // QA
         public bool QAInspectionRequired { get; set; }

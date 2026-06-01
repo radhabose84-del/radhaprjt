@@ -5,6 +5,7 @@ using Shared.Validation.Common;
 using UserManagement.Application.City.Commands.UpdateCity;
 using UserManagement.Infrastructure.Data;
 using UserManagement.Presentation.Validation.Common;
+using UserManagement.Presentation.Validation.City;
 using UserManagement.Presentation.Validation.Country;
 using UserManagement.UnitTests.TestData;
 using Contracts.Interfaces;

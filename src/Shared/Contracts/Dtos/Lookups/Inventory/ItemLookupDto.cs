@@ -15,6 +15,7 @@ namespace Contracts.Dtos.Lookups.Inventory
         public bool IsOnSpot { get; set; }
         public int SourceOfItem { get; set; }
         public int ItemCategoryId { get; set; }
+        public bool InspectionRequired { get; set; }
         public List<ItemVendorDto>? Vendors { get; set; }
     }
 }

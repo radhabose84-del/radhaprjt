@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Inventory;
 using MediatR;
 using QCManagement.Application.Common.Interfaces.IQualityTemplate;
 using QCManagement.Application.QualityTemplate.Dto;
@@ -11,9 +12,10 @@ namespace QCManagement.UnitTests.Application.QualityTemplate.Queries
     {
         private readonly Mock<IQualityTemplateQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
+        private readonly Mock<IUOMLookup> _mockUomLookup = new(MockBehavior.Loose);
 
         private GetQualityTemplateByIdQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMediator.Object);
+            new(_mockQueryRepo.Object, _mockMediator.Object, _mockUomLookup.Object);
 
         [Fact]
         public async Task Handle_ExistingId_ReturnsDto()

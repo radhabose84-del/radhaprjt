@@ -22,6 +22,61 @@ namespace QCManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("QCManagement.Domain.Entities.ActivityLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<string>("NewValue")
+                        .HasColumnType("varchar(max)");
+
+                    b.Property<string>("OldValue")
+                        .HasColumnType("varchar(max)");
+
+                    b.Property<string>("PropertyName")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Scope")
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("ScopeKey")
+                        .HasColumnType("varchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntityName", "EntityId", "CreatedDate")
+                        .HasDatabaseName("IX_ActivityLog_Entity_CreatedDate");
+
+                    b.ToTable("ActivityLog", "QC");
+                });
+
             modelBuilder.Entity("QCManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -164,6 +219,311 @@ namespace QCManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("MiscTypeMaster", "QC");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QcInspectionDtl", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActualValue")
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("ActualValue");
+
+                    b.Property<string>("AllowedValues")
+                        .HasColumnType("varchar(2000)")
+                        .HasColumnName("AllowedValues");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DataTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("DataTypeId");
+
+                    b.Property<string>("ExpectedValue")
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("ExpectedValue");
+
+                    b.Property<int>("FailureActionId")
+                        .HasColumnType("int")
+                        .HasColumnName("FailureActionId");
+
+                    b.Property<string>("InspectionResult")
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("InspectionResult");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<decimal?>("MaxValue")
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("MaxValue");
+
+                    b.Property<decimal?>("MinValue")
+                        .HasColumnType("decimal(18,4)")
+                        .HasColumnName("MinValue");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("ParameterCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("ParameterCode");
+
+                    b.Property<string>("ParameterName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ParameterName");
+
+                    b.Property<int>("QcInspectionHdrId")
+                        .HasColumnType("int")
+                        .HasColumnName("QcInspectionHdrId");
+
+                    b.Property<int>("QualityParameterId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualityParameterId");
+
+                    b.Property<int>("QualitySpecificationParameterId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualitySpecificationParameterId");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("Remarks");
+
+                    b.Property<string>("SeverityCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("SeverityCode");
+
+                    b.Property<int>("SeverityId")
+                        .HasColumnType("int")
+                        .HasColumnName("SeverityId");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("SortOrder");
+
+                    b.Property<string>("UomCode")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("UomCode");
+
+                    b.Property<int?>("UomId")
+                        .HasColumnType("int")
+                        .HasColumnName("UomId");
+
+                    b.Property<string>("ValidationTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("ValidationTypeCode");
+
+                    b.Property<int>("ValidationTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ValidationTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QcInspectionHdrId", "SortOrder");
+
+                    b.ToTable("QcInspectionDtl", "QC");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QcInspectionHdr", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AcceptedQuantity")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("AcceptedQuantity");
+
+                    b.Property<string>("BatchNumber")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("BatchNumber");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("DispositionByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("DispositionByName");
+
+                    b.Property<int?>("DispositionByUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("DispositionByUserId");
+
+                    b.Property<DateTimeOffset?>("DispositionDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("DispositionDate");
+
+                    b.Property<string>("DispositionRemarks")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("DispositionRemarks");
+
+                    b.Property<int>("GrnDetailId")
+                        .HasColumnType("int")
+                        .HasColumnName("GrnDetailId");
+
+                    b.Property<int>("GrnHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("GrnHeaderId");
+
+                    b.Property<DateTimeOffset>("InspectionDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("InspectionDate");
+
+                    b.Property<string>("InspectorName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("InspectorName");
+
+                    b.Property<int>("InspectorUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("InspectorUserId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<string>("LotNumber")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("LotNumber");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("QcInspectionNo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("QcInspectionNo");
+
+                    b.Property<int?>("QcStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("QcStatusId");
+
+                    b.Property<int>("QcTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("QcTypeId");
+
+                    b.Property<string>("QualitySpecificationCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("QualitySpecificationCode");
+
+                    b.Property<int>("QualitySpecificationId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualitySpecificationId");
+
+                    b.Property<string>("QualityTemplateCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("QualityTemplateCode");
+
+                    b.Property<int>("QualityTemplateId")
+                        .HasColumnType("int")
+                        .HasColumnName("QualityTemplateId");
+
+                    b.Property<decimal>("ReceivedQuantity")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("ReceivedQuantity");
+
+                    b.Property<int>("ReceivedUomId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivedUomId");
+
+                    b.Property<decimal?>("RejectedQuantity")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("RejectedQuantity");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchNumber");
+
+                    b.HasIndex("GrnDetailId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("GrnHeaderId");
+
+                    b.HasIndex("QcInspectionNo")
+                        .IsUnique();
+
+                    b.HasIndex("QcStatusId");
+
+                    b.HasIndex("InspectionDate", "QcStatusId");
+
+                    b.ToTable("QcInspectionHdr", "QC");
                 });
 
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityParameter", b =>
@@ -336,6 +696,10 @@ namespace QCManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<int>("QcTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("QcTypeId");
+
                     b.Property<int>("QualityTemplateId")
                         .HasColumnType("int")
                         .HasColumnName("QualityTemplateId");
@@ -359,6 +723,8 @@ namespace QCManagement.Infrastructure.Migrations
                     b.HasIndex("ItemCategoryId");
 
                     b.HasIndex("ItemId");
+
+                    b.HasIndex("QcTypeId");
 
                     b.HasIndex("QualityTemplateId");
 
@@ -670,6 +1036,27 @@ namespace QCManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
+            modelBuilder.Entity("QCManagement.Domain.Entities.QcInspectionDtl", b =>
+                {
+                    b.HasOne("QCManagement.Domain.Entities.QcInspectionHdr", "Hdr")
+                        .WithMany("Details")
+                        .HasForeignKey("QcInspectionHdrId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hdr");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QcInspectionHdr", b =>
+                {
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "QcStatus")
+                        .WithMany()
+                        .HasForeignKey("QcStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("QcStatus");
+                });
+
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityParameter", b =>
                 {
                     b.HasOne("QCManagement.Domain.Entities.MiscMaster", "DataType")
@@ -705,6 +1092,12 @@ namespace QCManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "QcType")
+                        .WithMany("QualitySpecificationsAsQcType")
+                        .HasForeignKey("QcTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("QCManagement.Domain.Entities.QualityTemplate", "QualityTemplate")
                         .WithMany("QualitySpecifications")
                         .HasForeignKey("QualityTemplateId")
@@ -712,6 +1105,8 @@ namespace QCManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicableLevel");
+
+                    b.Navigation("QcType");
 
                     b.Navigation("QualityTemplate");
                 });
@@ -799,12 +1194,19 @@ namespace QCManagement.Infrastructure.Migrations
 
                     b.Navigation("QualitySpecificationsAsApplicableLevel");
 
+                    b.Navigation("QualitySpecificationsAsQcType");
+
                     b.Navigation("QualityTemplateParametersAsInspectionMethod");
                 });
 
             modelBuilder.Entity("QCManagement.Domain.Entities.MiscTypeMaster", b =>
                 {
                     b.Navigation("MiscMasters");
+                });
+
+            modelBuilder.Entity("QCManagement.Domain.Entities.QcInspectionHdr", b =>
+                {
+                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityParameter", b =>

@@ -309,14 +309,16 @@ public sealed class MiscMasterQATests
     }
 
     [Fact, TestPriority(22)]
-    public async Task TC022_AutoComplete_NameOnly_Returns200()
+    public async Task TC022_AutoComplete_NameOnly_Returns400_MiscTypeCodeRequired()
     {
-        // MiscTypeCode missing → handler uses empty/null → still returns 200
+        // Live contract: the by-name action declares MiscTypeCode as a non-nullable
+        // query parameter, so [ApiController] treats it as required. Omitting it →
+        // 400 "The MiscTypeCode field is required." (model validation, before the handler).
         var resp = await _f.Client.GetAsync($"{BaseRoute}/by-name?name={_f.EntityCode}");
 
-        resp.StatusCode.Should().Be(HttpStatusCode.OK);
-        var doc = await ParseAsync(resp);
-        doc.RootElement.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Array);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var body = await resp.Content.ReadAsStringAsync();
+        body.Should().Contain("MiscTypeCode");
     }
 
     [Fact, TestPriority(23)]

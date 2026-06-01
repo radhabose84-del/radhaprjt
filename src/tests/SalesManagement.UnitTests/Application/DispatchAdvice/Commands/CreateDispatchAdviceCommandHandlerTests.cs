@@ -113,6 +113,11 @@ namespace SalesManagement.UnitTests.Application.DispatchAdvice.Commands
                 .Returns(new DispatchAdviceHeader());
             _mockMiscRepo.Setup(r => r.GetMiscMasterByName(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new SalesManagement.Domain.Entities.MiscMaster { Id = 1 });
+            // SalesOrder freight type must be "Prepaid" to open the dispatch-type-name resolution gate
+            _mockQueryRepo.Setup(r => r.GetSalesOrderFreightTypeIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(5);
+            _mockMiscRepo.Setup(r => r.GetByIdAsync(5))
+                .ReturnsAsync(new SalesManagement.Application.MiscMaster.Dto.MiscMasterDto { Id = 5, Description = "Prepaid" });
             _mockMiscRepo.Setup(r => r.GetByIdAsync(7))
                 .ReturnsAsync(new SalesManagement.Application.MiscMaster.Dto.MiscMasterDto { Id = 7, Description = "DirectToParty" });
             _mockIpService.Setup(s => s.GetUnitId()).Returns(1);

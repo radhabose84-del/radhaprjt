@@ -4,7 +4,7 @@ namespace GateEntryManagement.Application.GateInward.Dto
     {
         public int Id { get; set; }
         public string? GateEntryNo { get; set; }
-        public int VehicleMovementRecordId { get; set; }
+        public int? VehicleMovementRecordId { get; set; }
         public string? VehicleMovementId { get; set; }
         public string? VehicleNumber { get; set; }
         public string? DriverName { get; set; }
@@ -16,6 +16,17 @@ namespace GateEntryManagement.Application.GateInward.Dto
         public decimal? GrossWeight { get; set; }
         public decimal? TareWeight { get; set; }
         public decimal? NetWeight { get; set; }
+
+        // Invoice / Delivery Challan
+        public string? InvoiceNo { get; set; }
+        public DateTimeOffset? InvoiceDate { get; set; }
+        public string? DcNo { get; set; }
+        public DateTimeOffset? DcDate { get; set; }
+
+        // Destination warehouse (required); WarehouseName filled by the handler via lookup if available
+        public int ReceivingWarehouseId { get; set; }
+        public string? ReceivingWarehouseName { get; set; }
+
         public bool QAInspectionRequired { get; set; }
         public int? QAStatusId { get; set; }
         public string? QAStatusName { get; set; }

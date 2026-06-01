@@ -14,6 +14,7 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IPurchaseDocument;
 using PurchaseManagement.Application.PurchaseOrder.Dtos.ImportPO;
 using PurchaseManagement.Application.PurchaseOrder.ImportPO.Command.Create;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.PurchaseOrder;
 using PurchaseManagement.UnitTests.TestData;
 
@@ -101,6 +102,9 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.ImportPO.Comman
                 .ReturnsAsync(1);
             _mockDocSequence.Setup(d => d.GenerateDocumentNumber(1))
                 .ReturnsAsync(new List<string> { "IMP-001" });
+
+            _mockMisc.Setup(m => m.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending))
+                .ReturnsAsync(new PurchaseManagement.Domain.Entities.MiscMaster { Id = 5 });
 
             _mockRepo.Setup(r => r.CreateExecutionStrategy()).Returns(new ImmediateExecutionStrategy());
 

@@ -82,10 +82,19 @@ namespace QCManagement.Infrastructure.Repositories.QualityTemplate
                     im.Code AS InspectionMethodCode,
                     im.Description AS InspectionMethodName,
                     qtp.SampleSize, qtp.SampleUomId,
-                    qtp.IsGradeApplicable, qtp.Remarks, qtp.IsActive
+                    qtp.IsGradeApplicable, qtp.Remarks, qtp.IsActive,
+                    qp.DataTypeId       AS ParameterDataTypeId,
+                    dt.Code             AS ParameterDataTypeCode,
+                    dt.Description      AS ParameterDataTypeName,
+                    qp.ValidationTypeId AS ParameterValidationTypeId,
+                    vt.Code             AS ParameterValidationTypeCode,
+                    vt.Description      AS ParameterValidationTypeName,
+                    qp.UnitId           AS ParameterUnitId
                 FROM QC.QualityTemplateParameter qtp
                 LEFT JOIN QC.QualityParameter qp ON qtp.QualityParameterId = qp.Id AND qp.IsDeleted = 0
                 LEFT JOIN QC.MiscMaster im ON qtp.InspectionMethodId = im.Id AND im.IsDeleted = 0
+                LEFT JOIN QC.MiscMaster dt ON qp.DataTypeId       = dt.Id AND dt.IsDeleted = 0
+                LEFT JOIN QC.MiscMaster vt ON qp.ValidationTypeId = vt.Id AND vt.IsDeleted = 0
                 WHERE qtp.QualityTemplateId = @Id AND qtp.IsDeleted = 0
                 ORDER BY qtp.SequenceNo ASC;";
 

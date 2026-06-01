@@ -92,6 +92,14 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
+                    b.Property<DateTimeOffset?>("DcDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("DcDate");
+
+                    b.Property<string>("DcNo")
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("DcNo");
+
                     b.Property<string>("GateEntryNo")
                         .IsRequired()
                         .HasColumnType("varchar(20)")
@@ -101,6 +109,14 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(10,3)")
                         .HasColumnName("GrossWeight");
+
+                    b.Property<DateTimeOffset?>("InvoiceDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("InvoiceDate");
+
+                    b.Property<string>("InvoiceNo")
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("InvoiceNo");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -149,6 +165,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ReceivingTypeId");
 
+                    b.Property<int>("ReceivingWarehouseId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceivingWarehouseId");
+
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(250)")
                         .HasColumnName("Remarks");
@@ -162,7 +182,7 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UnitId");
 
-                    b.Property<int>("VehicleMovementRecordId")
+                    b.Property<int?>("VehicleMovementRecordId")
                         .HasColumnType("int")
                         .HasColumnName("VehicleMovementRecordId");
 
@@ -176,6 +196,8 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.HasIndex("QAStatusId");
 
                     b.HasIndex("ReceivingTypeId");
+
+                    b.HasIndex("ReceivingWarehouseId");
 
                     b.HasIndex("UnitId");
 
@@ -674,8 +696,7 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.HasOne("GateEntryManagement.Domain.Entities.VehicleMovementRecord", "VehicleMovementRecord")
                         .WithMany("GateInwardHeaders")
                         .HasForeignKey("VehicleMovementRecordId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("QAStatusMisc");
 
