@@ -351,8 +351,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         A.UnitId,
                         A.GateEntryId,
                         A.PartyId,
-                        C.GateEntryNo,
-                        C.GateEntryDate,
+                        -- GateEntryNo / GateEntryDate populated by the handler via IGateInwardLookup
+                        -- (Gate.GateInwardHdr is owned by GateEntryManagement — no cross-schema JOIN here).
                         A.InvoiceNo,
                         A.InvoiceDate,
                         A.DcNo,
@@ -398,9 +398,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
                     FROM Purchase.GrnHeader A
                     INNER JOIN Purchase.GrnDetail B ON A.Id = B.GrnId
-                    INNER JOIN Purchase.GateEntryHeader C ON A.GateEntryId = C.Id
-                    INNER JOIN Purchase.GateEntryDetail D ON C.Id = D.GateEntryHeaderId
-                    INNER JOIN Purchase.PurchaseOrderHeader E ON E.Id = D.PoId
+
+                    -- Purchase.GateEntryHeader / GateEntryDetail INNER JOINs dropped. They were
+                    -- filtering out new-flow GRNs whose GateEntryId points at Gate.GateInwardHdr.Id.
+                    -- The PO header (E) is now joined directly via B.PoId — GrnDetail already
+                    -- carries the PoId, so the previous D-mediated route was redundant.
+                    INNER JOIN Purchase.PurchaseOrderHeader E ON E.Id = B.PoId
 
                     -- ✔ Correct PO Method join (Local / Import)
                     INNER JOIN Purchase.MiscMaster MM 
@@ -627,7 +630,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                whereClause += " AND (A.GrnNo LIKE @SearchTerm OR A.Id LIKE @SearchTerm OR C.GateEntryNo LIKE @SearchTerm)";
+                // Search by GateEntryNo dropped — that column was sourced from Purchase.GateEntryHeader
+                // which is no longer joined. GrnNo + GrnId remain searchable.
+                whereClause += " AND (A.GrnNo LIKE @SearchTerm OR A.Id LIKE @SearchTerm)";
                 parameters.Add("SearchTerm", $"%{SearchTerm}%");
             }
 
@@ -636,7 +641,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             parameters.Add("Offset", offset);
             parameters.Add("PageSize", PageSize);
 
-            // Main query with pagination
+            // Main query with pagination.
+            // Purchase.GateEntryHeader INNER JOIN dropped — it filtered out new-flow GRNs whose
+            // GateEntryId points at Gate.GateInwardHdr.Id instead of the legacy table.
+            // GateEntryNo + GateEntryDate are populated by the handler via IGateInwardLookup
+            // (cross-module, cached) — no cross-schema JOIN here.
             var query = $@"
                 SELECT
                     A.Id AS GrnId,
@@ -645,8 +654,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                     A.UnitId,
                     A.GateEntryId,
                     A.PartyId,
-                    C.GateEntryNo,
-                    C.GateEntryDate,
                     A.InvoiceNo,
                     A.InvoiceDate,
                     A.DcNo,
@@ -667,14 +674,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                     A.IsQcApproved,
                     A.RejectedImage
                 FROM Purchase.GrnHeader A
-                INNER JOIN Purchase.GateEntryHeader C ON A.GateEntryId = C.Id
                 {whereClause}
                 ORDER BY A.CreatedDate DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT COUNT(1)
                 FROM Purchase.GrnHeader A
-                INNER JOIN Purchase.GateEntryHeader C ON A.GateEntryId = C.Id
                 {whereClause};
             ";
 
@@ -929,10 +934,17 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             //     WHERE gh.GateEntryId = geh.Id AND gh.UnitId = @UnitId
             // )
             // ORDER BY ged.PoId DESC;
+            // Restructured: query is now anchored on Purchase.PurchaseOrderHeader (poh) instead of
+            // Purchase.GateEntryHeader. Reason: GateEntryHeader/Detail are deprecated for the
+            // centralized Gate Inward flow, so the legacy version returned 0 rows for any new-flow
+            // gate inward id. The (@GateEntryId, @UnitId) values are still passed through to:
+            //   • the SELECT (echoed back so the DTO header still has GateEntryId / UnitId set)
+            //   • the NOT EXISTS check (still excludes POs already GRN'd against this gate entry)
+            // GateEntryNo + GateEntryDate are filled by the handler via IGateInwardLookup.
             var query = @"
                         WITH GrnSummary AS
                         (
-                            SELECT 
+                            SELECT
                                 PoId,
                                 ItemId,
                                 PoSlNoLocal,
@@ -940,42 +952,38 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             FROM Purchase.GrnDetail
                             GROUP BY PoId, ItemId, PoSlNoLocal
                         )
-                        SELECT 
-                            geh.Id AS GateEntryId,
-                            geh.UnitId,
+                        SELECT
+                            @GateEntryId AS GateEntryId,
+                            @UnitId      AS UnitId,
                             poh.VendorId AS PartyId,
-                            geh.GateEntryNo,
-                            geh.GateEntryDate,
+                            -- GateEntryNo / GateEntryDate populated by the handler via IGateInwardLookup
+                            -- (Gate.GateInwardHdr is owned by GateEntryManagement; no cross-schema JOIN).
 
-                            -- Local PO field (kept as-is)
+                            -- Local PO field (still kept as-is)
                             polh.IsPartialReceiptAllowed,
 
-                            ged.PoId,
+                            poh.Id       AS PoId,
                             poh.PONumber,
                             poh.POCategoryId,
                             poh.POMethodId,
 
                             -- Use Local if available, else Import
-                            COALESCE(pod.ItemSno, podi.ItemSno) AS PoSlNo,
-                            COALESCE(pod.ItemId, podi.ItemId) AS ItemId,
-                            COALESCE(pod.Quantity, podi.Quantity) AS OrderQuantity,
+                            COALESCE(pod.ItemSno, podi.ItemSno)                                  AS PoSlNo,
+                            COALESCE(pod.ItemId,  podi.ItemId)                                   AS ItemId,
+                            COALESCE(pod.Quantity, podi.Quantity)                                AS OrderQuantity,
 
-                            ISNULL(gs.TotalGrnQty, 0) AS TotalGrnQty,
-                            COALESCE(pod.Quantity, podi.Quantity) - ISNULL(gs.TotalGrnQty, 0) AS PendingQty
+                            ISNULL(gs.TotalGrnQty, 0)                                            AS TotalGrnQty,
+                            COALESCE(pod.Quantity, podi.Quantity) - ISNULL(gs.TotalGrnQty, 0)    AS PendingQty
 
-                        FROM Purchase.GateEntryHeader geh
-                        INNER JOIN Purchase.GateEntryDetail ged 
-                            ON geh.Id = ged.GateEntryHeaderId
-                        INNER JOIN Purchase.PurchaseOrderHeader poh 
-                            ON ged.PoId = poh.Id
+                        FROM Purchase.PurchaseOrderHeader poh
 
                         -- Existing Local PO joins (unchanged)
-                        LEFT JOIN Purchase.PurchaseLocalHeader polh 
+                        LEFT JOIN Purchase.PurchaseLocalHeader polh
                             ON poh.Id = polh.PurchaseOrderId
-                        LEFT JOIN Purchase.PurchaseLocalDetail pod 
+                        LEFT JOIN Purchase.PurchaseLocalDetail pod
                             ON polh.Id = pod.PurchaseLocalId
 
-                        --  Added Import PO joins (does NOT change Local PO logic)
+                        -- Import PO joins (does NOT change Local PO logic)
                         LEFT JOIN Purchase.PurchaseOrderImportHeader poih
                             ON poh.Id = poih.PurchaseOrderId
                         LEFT JOIN Purchase.PurchaseOrderImportDetail podi
@@ -983,27 +991,23 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
                         -- Grn Summary join (support both Local & Import)
                         LEFT JOIN GrnSummary gs
-                            ON gs.PoId = ged.PoId
-                            AND gs.ItemId = COALESCE(pod.ItemId, podi.ItemId)
-                            AND gs.PoSlNoLocal = COALESCE(pod.ItemSno, podi.ItemSno)
+                            ON gs.PoId       = poh.Id
+                           AND gs.ItemId     = COALESCE(pod.ItemId,  podi.ItemId)
+                           AND gs.PoSlNoLocal= COALESCE(pod.ItemSno, podi.ItemSno)
 
-                        WHERE geh.IsDeleted = 0
-                        AND geh.IsActive = 1
-                        AND geh.UnitId = @UnitId
-                        AND poh.VendorId = @PartyId
-                        AND ged.PoId = @PoId
-                        AND geh.Id = @GateEntryId
-                        AND poh.IsDeleted = 0
+                        WHERE poh.VendorId  = @PartyId
+                          AND poh.Id        = @PoId
+                          AND poh.IsDeleted = 0
 
-                        -- Keep same NOT EXISTS logic
+                        -- Same exclusion semantics: skip POs already GRN'd against THIS gate entry
                         AND NOT EXISTS (
                                 SELECT 1
                                 FROM Purchase.GrnHeader gh
-                                WHERE gh.GateEntryId = geh.Id AND gh.UnitId = @UnitId
+                                WHERE gh.GateEntryId = @GateEntryId
+                                  AND gh.UnitId      = @UnitId
                         )
 
-                        ORDER BY ged.PoId DESC;
-
+                        ORDER BY poh.Id DESC;
                 ";
 
             var grnDict = new Dictionary<int, GetGrnPendingDto>();
@@ -1078,66 +1082,68 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             //             WHERE gh.GateEntryId = geh.Id AND gh.UnitId = @UnitId
             //         )
             //         ORDER BY ged.PoId DESC;
+            // Tolerance check is source-agnostic: it only needs OrderQuantity (from PO line),
+            // accumulated TotalGrnQty (from past GrnDetail rows), and IsPartialReceiptAllowed.
+            // Previously this query INNER-joined Purchase.GateEntryHeader/Detail and added a
+            // NOT EXISTS against Purchase.GrnHeader by GateEntryId. Both were structurally wrong
+            // — they tied tolerance to a gate-entry record that the centralized GateInward flow
+            // doesn't populate, so the query silently returned 0 rows and the validator's
+            // ".Any()" guard skipped the check entirely. Rewritten below to UNION the LPO + IPO
+            // line tables and join GRN totals directly to the PO line.
             var query = @"
-                        WITH GrnSummary AS
-                        (
-                            SELECT 
-                                PoId,
-                                ItemId,
-                                PoSlNoLocal,
-                                SUM(DcQuantity) AS TotalGrnQty
-                            FROM Purchase.GrnDetail
-                            GROUP BY PoId, ItemId, PoSlNoLocal
-                        )
-                        SELECT 
-                            ged.PoId,
-                            pod.ItemSno AS PoSlNo,
-                            pod.ItemId,
-                            pod.Quantity AS OrderQuantity,
-                            ISNULL(gs.TotalGrnQty, 0) AS TotalGrnQty,
-                            pod.Quantity - ISNULL(gs.TotalGrnQty, 0) AS PendingQty,
-                            polh.IsPartialReceiptAllowed
-                        FROM Purchase.GateEntryHeader geh
-                        INNER JOIN Purchase.GateEntryDetail ged 
-                            ON geh.Id = ged.GateEntryHeaderId
-                        INNER JOIN Purchase.PurchaseOrderHeader poh 
-                            ON ged.PoId = poh.Id
+                WITH GrnSummary AS
+                (
+                    SELECT PoId, ItemId, PoSlNoLocal, SUM(DcQuantity) AS TotalGrnQty
+                    FROM Purchase.GrnDetail
+                    GROUP BY PoId, ItemId, PoSlNoLocal
+                ),
+                PoLines AS
+                (
+                    -- Local PO lines
+                    SELECT
+                        poh.Id          AS PoId,
+                        pod.ItemSno     AS PoSlNo,
+                        pod.ItemId,
+                        pod.Quantity    AS OrderQuantity,
+                        polh.IsPartialReceiptAllowed,
+                        poh.VendorId,
+                        poh.IsDeleted   AS PoIsDeleted
+                    FROM Purchase.PurchaseOrderHeader poh
+                    INNER JOIN Purchase.PurchaseLocalHeader polh ON poh.Id = polh.PurchaseOrderId
+                    INNER JOIN Purchase.PurchaseLocalDetail  pod  ON polh.Id = pod.PurchaseLocalId
 
-                        -- Local PO
-                        INNER JOIN Purchase.PurchaseLocalHeader polh 
-                            ON poh.Id = polh.PurchaseOrderId
-                        INNER JOIN Purchase.PurchaseLocalDetail pod 
-                            ON polh.Id = pod.PurchaseLocalId
-
-                        -- Import PO (added without affecting logic)
-                        LEFT JOIN Purchase.PurchaseOrderImportHeader imh 
-                            ON poh.Id = imh.PurchaseOrderId
-                        LEFT JOIN Purchase.PurchaseOrderImportDetail imd 
-                            ON imh.Id = imd.PurchaseHeaderId
-                            AND imd.ItemSno = pod.ItemSno   -- align line numbers
-                            AND imd.ItemId = pod.ItemId
-
-                        LEFT JOIN GrnSummary gs
-                            ON gs.PoId = ged.PoId
-                            AND gs.ItemId = pod.ItemId
-                            AND gs.PoSlNoLocal = pod.ItemSno
-
-                        WHERE geh.IsDeleted = 0
-                        AND geh.IsActive = 1
-                        AND geh.UnitId = @UnitId
-                        AND poh.VendorId = @PartyId
-                        AND ged.PoId = @PoId
-                        AND pod.ItemSno= @PoSlNo
-                        AND poh.IsDeleted = 0
-                        AND NOT EXISTS (
-                                SELECT 1
-                                FROM Purchase.GrnHeader gh
-                                WHERE gh.GateEntryId = geh.Id 
-                                AND gh.UnitId = @UnitId
-                            )
-                        ORDER BY ged.PoId DESC;
-
-                                ";
+                    UNION ALL
+                    -- Import PO lines
+                    SELECT
+                        poh.Id           AS PoId,
+                        poid.ItemSno     AS PoSlNo,
+                        poid.ItemId,
+                        poid.Quantity    AS OrderQuantity,
+                        poih.IsPartialReceiptAllowed,
+                        poh.VendorId,
+                        poh.IsDeleted    AS PoIsDeleted
+                    FROM Purchase.PurchaseOrderHeader poh
+                    INNER JOIN Purchase.PurchaseOrderImportHeader poih ON poh.Id  = poih.PurchaseOrderId
+                    INNER JOIN Purchase.PurchaseOrderImportDetail  poid ON poih.Id = poid.PurchaseHeaderId
+                )
+                SELECT
+                    pl.PoId,
+                    pl.PoSlNo,
+                    pl.ItemId,
+                    pl.OrderQuantity,
+                    ISNULL(gs.TotalGrnQty, 0)                       AS TotalGrnQty,
+                    pl.OrderQuantity - ISNULL(gs.TotalGrnQty, 0)    AS PendingQty,
+                    pl.IsPartialReceiptAllowed
+                FROM   PoLines pl
+                LEFT JOIN GrnSummary gs
+                       ON gs.PoId        = pl.PoId
+                      AND gs.ItemId      = pl.ItemId
+                      AND gs.PoSlNoLocal = pl.PoSlNo
+                WHERE pl.PoId      = @PoId
+                  AND pl.PoSlNo    = @PoSlNo
+                  AND pl.VendorId  = @PartyId
+                  AND pl.PoIsDeleted = 0;
+            ";
 
             var result = await _dbConnection.QueryAsync<ValidateToleranceDto>(
                 query,
@@ -1288,8 +1294,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                                 A.GateEntryId,
                                 A.PartyId,
 
-                                C.GateEntryNo,
-                                C.GateEntryDate,
+                                -- GateEntryNo / GateEntryDate populated by the handler via IGateInwardLookup
+                                -- (Gate.GateInwardHdr is owned by a different module).
 
                                 A.InvoiceNo,
                                 A.InvoiceDate,
@@ -1336,13 +1342,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             FROM Purchase.GrnHeader A
                             INNER JOIN Purchase.GrnDetail B ON A.Id = B.GrnId
 
-                            INNER JOIN Purchase.GateEntryHeader C 
-                                ON A.GateEntryId = C.Id
+                            -- Purchase.GateEntryHeader / GateEntryDetail INNER JOINs dropped — they were
+                            -- transitively filtering out new-flow GRNs whose GateEntryId points at
+                            -- Gate.GateInwardHdr.Id. GateEntryDetail D was unused in SELECT/WHERE.
 
-                            INNER JOIN Purchase.GateEntryDetail D 
-                                ON C.Id = D.GateEntryHeaderId
-
-                            INNER JOIN Purchase.PurchaseOrderHeader E 
+                            INNER JOIN Purchase.PurchaseOrderHeader E
                                 ON E.Id = B.PoId
 
                             LEFT JOIN Purchase.PurchaseLocalHeader F 

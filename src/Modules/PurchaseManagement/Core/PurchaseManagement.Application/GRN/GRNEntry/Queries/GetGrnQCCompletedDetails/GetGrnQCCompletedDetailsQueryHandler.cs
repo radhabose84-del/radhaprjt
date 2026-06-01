@@ -3,6 +3,7 @@ using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
 using PurchaseManagement.Domain.Events;
 using MediatR;
 using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.Gate;
 
 namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedDetails
 {
@@ -14,14 +15,16 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
         private readonly IMediator _mediator;
         private readonly IItemPurchaseToleranceLookup _itemPurchaseToleranceLookup;
         private readonly IPutawayRuleLookup _putawayRuleLookup;
+        private readonly IGateInwardLookup _gateInwardLookup;
 
-        public GetGrnQCCompletedDetailsQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator, IItemPurchaseToleranceLookup itemPurchaseToleranceLookup, IPutawayRuleLookup putawayRuleLookup)
+        public GetGrnQCCompletedDetailsQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator, IItemPurchaseToleranceLookup itemPurchaseToleranceLookup, IPutawayRuleLookup putawayRuleLookup, IGateInwardLookup gateInwardLookup)
         {
             _iGrnEntryQueryRepository = iGrnEntryQueryRepository;
             _mapper = mapper;
             _mediator = mediator;
             _itemPurchaseToleranceLookup = itemPurchaseToleranceLookup;
             _putawayRuleLookup = putawayRuleLookup;
+            _gateInwardLookup = gateInwardLookup;
         }
 
        public async Task<List<GetGrnQCCompletedDto>> Handle(GetGrnQCCompletedDetailsQuery request, CancellationToken cancellationToken)
@@ -29,6 +32,29 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
             // 1️⃣ Fetch GRN details from repository
             var result = await _iGrnEntryQueryRepository.GetGrnQcCompletedDetails(request.GrnId ??0,request.ItemId ??0);
             var pendingpoIds = _mapper.Map<List<GetGrnQCCompletedDto>>(result);
+
+            // 1.5️⃣ Cross-module: resolve GateEntryNo + GateEntryDate from Gate.GateInwardHdr
+            // Replaces the dropped INNER JOIN to Purchase.GateEntryHeader. Cached lookup.
+            var gateEntryIds = pendingpoIds
+                .Where(x => x.GateEntryId > 0)
+                .Select(x => x.GateEntryId)
+                .Distinct()
+                .ToList();
+
+            if (gateEntryIds.Count > 0)
+            {
+                var gateInwardResult = await _gateInwardLookup.GetByIdsAsync(gateEntryIds, cancellationToken);
+                var gateInwardMap = gateInwardResult.ToDictionary(g => g.Id, g => g);
+                foreach (var header in pendingpoIds)
+                {
+                    if (header.GateEntryId > 0 && gateInwardMap.TryGetValue(header.GateEntryId, out var gate))
+                    {
+                        header.GateEntryNo = gate.GateEntryNo;
+                        header.GateEntryDate = gate.GateEntryDate;
+                    }
+                }
+            }
+
           // ⭐ QcWarehouseId should come from DTO header
             var warehouseId = pendingpoIds.FirstOrDefault()?.QcWarehouseId ?? 0;
 

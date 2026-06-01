@@ -116,6 +116,12 @@ namespace GateEntryManagement.Infrastructure
             services.AddScoped<IGateInwardQueryRepository, GateInwardQueryRepository>();
             services.AddScoped<IGateInwardAttachmentFileStorage, GateInwardAttachmentFileStorage>();
 
+            // Cross-module lookup — exposes Gate.GateInwardHdr (Id, GateEntryNo, GateEntryDate)
+            // to other modules (e.g. PurchaseManagement's GRN pending list) without a cross-schema JOIN.
+            // Auto-cached by the global AddLookupCaching wrapper (type name ends with "Lookup").
+            services.AddScoped<Contracts.Interfaces.Lookups.Gate.IGateInwardLookup,
+                Repositories.Lookups.GateInwardLookupRepository>();
+
             return services;
         }
     }
