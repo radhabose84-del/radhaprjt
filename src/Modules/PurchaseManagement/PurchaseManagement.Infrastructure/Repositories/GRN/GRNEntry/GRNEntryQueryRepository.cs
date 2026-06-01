@@ -502,10 +502,15 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
             if (!string.IsNullOrEmpty(SearchTerm))
             {
-                whereClause += " AND (G.GrnNo LIKE @Search OR G.Id LIKE @Search OR C.GateEntryNo LIKE @Search OR G.PartyId LIKE @Search)";
+                // Search by GateEntryNo dropped — that column was sourced from Purchase.GateEntryHeader
+                // which is no longer joined. GrnNo / GrnId / PartyId remain searchable.
+                whereClause += " AND (G.GrnNo LIKE @Search OR G.Id LIKE @Search OR G.PartyId LIKE @Search)";
                 parameters.Add("Search", $"%{SearchTerm}%");
             }
 
+            // Purchase.GateEntryHeader INNER JOINs dropped (both paged + count queries) — they
+            // filtered out new-flow GRNs whose GateEntryId points at Gate.GateInwardHdr.Id.
+            // GateEntryNo / GateEntryDate are populated by the handler via IGateInwardLookup.
             var query = $@"
                     -- =========================================
                     -- 1️⃣ MAIN PAGED RESULT
@@ -518,8 +523,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             G.UnitId,
                             G.GateEntryId,
                             G.PartyId,
-                            C.GateEntryNo,
-                            C.GateEntryDate,
                             G.InvoiceNo,
                             G.InvoiceDate,
                             G.DcNo,
@@ -536,17 +539,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             ROW_NUMBER() OVER (ORDER BY G.GrnDate DESC) AS RowNum
                         FROM Purchase.GrnHeader G
                         INNER JOIN Purchase.GrnDetail D ON G.Id = D.GrnId
-                        INNER JOIN Purchase.GateEntryHeader C ON G.GateEntryId = C.Id
-                        LEFT JOIN Purchase.GrnPutAwayRule P 
-                            ON D.Id = P.GrnDetailId 
-                            AND D.GrnId = P.GrnId 
-                            AND D.PoId = P.PoId 
-                            AND D.PoSlNoLocal = P.PoSlNoLocal 
+                        LEFT JOIN Purchase.GrnPutAwayRule P
+                            ON D.Id = P.GrnDetailId
+                            AND D.GrnId = P.GrnId
+                            AND D.PoId = P.PoId
+                            AND D.PoSlNoLocal = P.PoSlNoLocal
                             AND D.ItemId = P.ItemId
                         {whereClause}
                         GROUP BY
                             G.Id, G.GrnNo, G.GrnDate, G.UnitId, G.GateEntryId, G.PartyId,
-                            C.GateEntryNo, C.GateEntryDate, G.InvoiceNo, G.InvoiceDate,
+                            G.InvoiceNo, G.InvoiceDate,
                             G.DcNo, G.DcDate, G.ReceivingWarehouseId, G.Remarks,
                             G.QcRemarks, G.QcStatusId, G.QcPersonName, G.QcDate,
                             G.QcWarehouseId, G.IsQcApproved, G.RejectedImage
@@ -563,12 +565,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         SELECT G.Id
                         FROM Purchase.GrnHeader G
                         INNER JOIN Purchase.GrnDetail D ON G.Id = D.GrnId
-                        INNER JOIN Purchase.GateEntryHeader C ON G.GateEntryId = C.Id
-                        LEFT JOIN Purchase.GrnPutAwayRule P 
-                            ON D.Id = P.GrnDetailId 
-                            AND D.GrnId = P.GrnId 
-                            AND D.PoId = P.PoId 
-                            AND D.PoSlNoLocal = P.PoSlNoLocal 
+                        LEFT JOIN Purchase.GrnPutAwayRule P
+                            ON D.Id = P.GrnDetailId
+                            AND D.GrnId = P.GrnId
+                            AND D.PoId = P.PoId
+                            AND D.PoSlNoLocal = P.PoSlNoLocal
                             AND D.ItemId = P.ItemId
                         {whereClause}
                         GROUP BY G.Id
