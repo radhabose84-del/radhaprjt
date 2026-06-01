@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Microsoft.Data.SqlClient;
@@ -15,7 +16,8 @@ public sealed class PurchaseReturnRepositoryTests
     private PurchaseReturnCommandRepository CreateCommandRepo()
     {
         var ctx = _fixture.CreateFreshDbContext();
-        return new PurchaseReturnCommandRepository(ctx);
+        var docSeqLookup = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose).Object;
+        return new PurchaseReturnCommandRepository(ctx, docSeqLookup);
     }
 
     private PurchaseReturnQueryRepository CreateQueryRepo()

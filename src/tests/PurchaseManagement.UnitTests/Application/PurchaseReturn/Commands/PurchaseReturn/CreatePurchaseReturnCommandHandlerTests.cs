@@ -35,7 +35,7 @@ public sealed class CreatePurchaseReturnCommandHandlerTests
         _mockDocSeqLookup
             .Setup(d => d.GenerateDocumentNumber(10))
             .ReturnsAsync(new List<string> { "RTV/2026/0001" });
-        _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<PurchaseReturnHeader>(), It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<PurchaseReturnHeader>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(entity);
         _mockQueryRepo.Setup(r => r.GetByIdAsync(newId, It.IsAny<CancellationToken>())).ReturnsAsync(PurchaseReturnBuilders.ValidHeaderDto(newId));
     }
 
@@ -46,6 +46,19 @@ public sealed class CreatePurchaseReturnCommandHandlerTests
         var result = await CreateSut().Handle(PurchaseReturnBuilders.ValidCreateCommand(), CancellationToken.None);
         result.Should().NotBeNull();
         result.RtvNumber.Should().Be("RTV/2026/0001");
+    }
+
+    [Fact]
+    public async Task Handle_ValidCommand_PassesResolvedTransactionTypeIdToCreate()
+    {
+        // Guards against the regression where the document sequence was never advanced:
+        // the handler must forward the resolved transaction type id so the repository can
+        // increment DocNo in the same transaction as the insert.
+        SetupHappyPath();
+        await CreateSut().Handle(PurchaseReturnBuilders.ValidCreateCommand(), CancellationToken.None);
+        _mockCommandRepo.Verify(
+            r => r.CreateAsync(It.IsAny<PurchaseReturnHeader>(), 10, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
