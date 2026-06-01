@@ -1,0 +1,694 @@
+# =============================================================================
+# MODULE  : UserManagement
+# ENTITY  : AccessPolicy
+# TABLE   : [AppSecurity].[AccessPolicy] | [AppSecurity].[RoleAccessPolicy]
+# =============================================================================
+#
+# ✅ FULLY AUTOMATED — change only these 3 lines per environment:
+#
+@baseUrl       = http://localhost:5239
+@loginUsername = testsales
+@loginPassword = Test@1234
+
+# Fixed — update only if your DB has different IDs
+@validRoleId   = 7
+@validValueId  = 1
+
+# Unique policy code — $timestamp makes every run distinct
+@policyCode       = POLT{{$timestamp}}
+
+# Sentinel values — replaced at request-time by .httpyac.js onRequest hook.
+# 11111111 → real createdId after TC17 succeeds
+# 22222222 → real roleAssignmentId after TC48 succeeds
+@createdId        = 11111111
+@roleAssignmentId = 22222222
+@token            = PLACEHOLDER
+
+
+# =============================================================================
+# TC-0 — FORCE LOGOUT (AllowAnonymous — no token needed)
+# Clears any existing session for loginUsername so TC00 can obtain a fresh token.
+# =============================================================================
+
+### TC-0 🔓 Force Logout (clear existing session)
+# Expected: 200 OK
+POST {{baseUrl}}/api/auth/deactivate-user-sessionByUsername
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+# =============================================================================
+# TC00 — AUTO LOGIN
+# .httpyac.js hook captures data.token → sets {{token}} for all requests below
+# =============================================================================
+
+### TC00 🔐 Auto Login
+# @name login
+# Expected: 200 OK | data.token = JWT string
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+# =============================================================================
+# SECTION 5 — CREATE ACCESS POLICY  (runs FIRST — hook captures createdId)
+# POST /api/usermanagement/AccessPolicy
+# =============================================================================
+
+### TC17 ✅ Create - Happy Path
+# @name createPolicy
+# Expected : 200 OK | isSuccess=true | message="Access Policy created successfully." | data=<newId>
+# Hook captures data → sets {{createdId}} automatically
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "{{policyCode}}",
+  "policyName": "Test Access Policy",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC18 ❌ Create - No Auth Token
+# Expected : 401 Unauthorized
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Content-Type: application/json
+
+{
+  "policyCode": "NOAUTH01",
+  "policyName": "Test Policy No Auth",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC19 ❌ Create - PolicyCode Empty
+# Expected : 400 Bad Request | errors contain "PolicyCode is required."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "",
+  "policyName": "Test Policy",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC20 ❌ Create - PolicyName Empty
+# Expected : 400 Bad Request | errors contain "PolicyName is required."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POLTEST03",
+  "policyName": "",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC21 ❌ Create - EntityName Empty
+# Expected : 400 Bad Request | errors contain "EntityName is required."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POLTEST04",
+  "policyName": "Test Policy",
+  "entityName": "",
+  "fieldName": "TestField"
+}
+
+### TC22 ❌ Create - FieldName Empty
+# Expected : 400 Bad Request | errors contain "FieldName is required."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POLTEST05",
+  "policyName": "Test Policy",
+  "entityName": "TestEntity",
+  "fieldName": ""
+}
+
+### TC23 ❌ Create - PolicyCode Contains Space
+# Expected : 400 Bad Request | errors contain "PolicyCode must be alphanumeric only."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POL TEST",
+  "policyName": "Test Policy",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC24 ❌ Create - PolicyCode Contains Special Character
+# Expected : 400 Bad Request | errors contain "PolicyCode must be alphanumeric only."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POL@TEST!",
+  "policyName": "Test Policy",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC25 ❌ Create - PolicyCode Exceeds MaxLength
+# Expected : 400 Bad Request | errors contain "PolicyCode cannot be longer than"
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345678901234567890XXXXX",
+  "policyName": "Test Policy",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC26 ❌ Create - PolicyName Exceeds MaxLength
+# Expected : 400 Bad Request | errors contain "PolicyName cannot be longer than"
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POLTEST06",
+  "policyName": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC27 ❌ Create - EntityName Exceeds MaxLength
+# Expected : 400 Bad Request | errors contain "EntityName cannot be longer than"
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POLTEST07",
+  "policyName": "Test Policy",
+  "entityName": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "fieldName": "TestField"
+}
+
+### TC28 ❌ Create - FieldName Exceeds MaxLength
+# Expected : 400 Bad Request | errors contain "FieldName cannot be longer than"
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "POLTEST08",
+  "policyName": "Test Policy",
+  "entityName": "TestEntity",
+  "fieldName": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+
+### TC29 ❌ Create - Duplicate PolicyCode (same as TC17)
+# Expected : 400 Bad Request | errors contain "PolicyCode already exists."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "policyCode": "{{policyCode}}",
+  "policyName": "Duplicate Policy",
+  "entityName": "TestEntity",
+  "fieldName": "TestField"
+}
+
+### TC30 ❌ Create - Empty Request Body
+# Expected : 400 Bad Request | multiple validation errors
+POST {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+
+# =============================================================================
+# SECTION 1 — GET ALL ACCESS POLICIES
+# GET /api/usermanagement/AccessPolicy?PageNumber=1&PageSize=15
+# =============================================================================
+
+### TC01 ✅ GetAll - Happy Path
+# Expected : 200 OK | data=array | TotalCount>=0 | PageNumber=1 | PageSize=15
+GET {{baseUrl}}/api/usermanagement/AccessPolicy?PageNumber=1&PageSize=15
+Authorization: Bearer {{token}}
+
+### TC02 ❌ GetAll - No Auth Token
+# Expected : 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/AccessPolicy?PageNumber=1&PageSize=15
+
+### TC03 🔍 GetAll - Search by Term
+# Expected : 200 OK | data contains records matching "POLT"
+GET {{baseUrl}}/api/usermanagement/AccessPolicy?PageNumber=1&PageSize=15&SearchTerm=POLT
+Authorization: Bearer {{token}}
+
+### TC04 📄 GetAll - Page 2 PageSize 5
+# Expected : 200 OK | PageNumber=2 | PageSize=5
+GET {{baseUrl}}/api/usermanagement/AccessPolicy?PageNumber=2&PageSize=5
+Authorization: Bearer {{token}}
+
+### TC05 ⚠️ GetAll - No Match Search
+# Expected : 200 OK | data=[] | TotalCount=0
+GET {{baseUrl}}/api/usermanagement/AccessPolicy?PageNumber=1&PageSize=15&SearchTerm=ZZZNOMATCH999
+Authorization: Bearer {{token}}
+
+
+# =============================================================================
+# SECTION 2 — GET BY ID
+# GET /api/usermanagement/AccessPolicy/{id}
+# =============================================================================
+
+### TC06 ✅ GetById - Valid ID
+# Expected : 200 OK | data.id = {{createdId}}
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/{{createdId}}
+Authorization: Bearer {{token}}
+
+### TC07 ❌ GetById - No Auth Token
+# Expected : 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/{{createdId}}
+
+### TC08 ⚠️ GetById - Non-Existent ID
+# Expected : 404 Not Found
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/999999
+Authorization: Bearer {{token}}
+
+### TC09 ⚠️ GetById - ID = 0
+# Expected : 404 Not Found
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/0
+Authorization: Bearer {{token}}
+
+
+# =============================================================================
+# SECTION 3 — AUTOCOMPLETE
+# GET /api/usermanagement/AccessPolicy/by-name?term=
+# =============================================================================
+
+### TC10 ✅ AutoComplete - With Term
+# Expected : 200 OK | data = array
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/by-name?term=POLT
+Authorization: Bearer {{token}}
+
+### TC11 ✅ AutoComplete - Empty Term
+# Expected : 200 OK | data = all active policies
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/by-name
+Authorization: Bearer {{token}}
+
+### TC12 ❌ AutoComplete - No Auth Token
+# Expected : 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/by-name?term=POLT
+
+
+# =============================================================================
+# SECTION 6 — UPDATE ACCESS POLICY
+# PUT /api/usermanagement/AccessPolicy
+# =============================================================================
+
+### TC31 ✅ Update - Happy Path
+# Expected : 200 OK | isSuccess=true | message="Access Policy updated successfully."
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "Updated Access Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC32 ✅ Update - Inactivate (IsActive = 0)
+# Expected : 200 OK | isSuccess=true
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "Updated Access Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 0
+}
+
+### TC31B ✅ Re-Activate Policy (needed before AssignRole section)
+# Expected : 200 OK | isActive restored to 1
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "Updated Access Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC33 ❌ Update - No Auth Token
+# Expected : 401 Unauthorized
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "Updated Access Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC34 ❌ Update - PolicyName Empty
+# Expected : 400 Bad Request | errors contain "PolicyName is required."
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC35 ❌ Update - EntityName Empty
+# Expected : 400 Bad Request | errors contain "EntityName is required."
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "Updated Policy",
+  "entityName": "",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC36 ❌ Update - FieldName Empty
+# Expected : 400 Bad Request | errors contain "FieldName is required."
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "Updated Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "",
+  "isActive": 1
+}
+
+### TC37 ❌ Update - PolicyName Exceeds MaxLength
+# Expected : 400 Bad Request | errors contain "PolicyName cannot be longer than"
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC38 ❌ Update - IsActive = 2 (invalid)
+# Expected : 400 Bad Request | errors contain "IsActive must be either 0 or 1."
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{createdId}},
+  "policyName": "Updated Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 2
+}
+
+### TC39 ❌ Update - Id = 0
+# Expected : 400 Bad Request | errors contain "Valid Id is required."
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 0,
+  "policyName": "Updated Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC40 ❌ Update - Non-Existent Id
+# Expected : 400 Bad Request | errors contain "AccessPolicy not found."
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 999999,
+  "policyName": "Updated Policy",
+  "entityName": "UpdatedEntity",
+  "fieldName": "UpdatedField",
+  "isActive": 1
+}
+
+### TC41 ❌ Update - Empty Request Body
+# Expected : 400 Bad Request | multiple validation errors
+PUT {{baseUrl}}/api/usermanagement/AccessPolicy
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### TC42 ✅ Verify PolicyCode Immutable After Update
+# Expected : 200 OK | data.policyCode = original POLT... value (unchanged)
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/{{createdId}}
+Authorization: Bearer {{token}}
+
+
+# =============================================================================
+# SECTION 8 — ASSIGN ROLE TO ACCESS POLICY  (runs before GetRoleAssignments)
+# POST /api/usermanagement/AccessPolicy/assign-role
+# .httpyac.js hook captures data → sets {{roleAssignmentId}} automatically
+# =============================================================================
+
+### TC48 ✅ AssignRole - Happy Path
+# @name assignRole
+# Expected : 200 OK | isSuccess=true | data=<newRoleAssignmentId>
+# Hook captures data → sets {{roleAssignmentId}} automatically
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "accessPolicyId": {{createdId}},
+  "roleId": {{validRoleId}},
+  "valueId": {{validValueId}}
+}
+
+### TC49 ❌ AssignRole - No Auth Token
+# Expected : 401 Unauthorized
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Content-Type: application/json
+
+{
+  "accessPolicyId": {{createdId}},
+  "roleId": {{validRoleId}},
+  "valueId": {{validValueId}}
+}
+
+### TC50 ❌ AssignRole - AccessPolicyId = 0
+# Expected : 400 Bad Request | errors contain "AccessPolicyId is required."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "accessPolicyId": 0,
+  "roleId": {{validRoleId}},
+  "valueId": {{validValueId}}
+}
+
+### TC51 ❌ AssignRole - RoleId = 0
+# Expected : 400 Bad Request | errors contain "RoleId is required."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "accessPolicyId": {{createdId}},
+  "roleId": 0,
+  "valueId": {{validValueId}}
+}
+
+### TC52 ❌ AssignRole - ValueId = 0
+# Expected : 400 Bad Request | errors contain "ValueId is required."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "accessPolicyId": {{createdId}},
+  "roleId": {{validRoleId}},
+  "valueId": 0
+}
+
+### TC53 ❌ AssignRole - Non-Existent AccessPolicyId
+# Expected : 400 Bad Request | errors contain "AccessPolicyId is inactive/deleted."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "accessPolicyId": 999999,
+  "roleId": {{validRoleId}},
+  "valueId": {{validValueId}}
+}
+
+### TC54 ❌ AssignRole - Non-Existent RoleId
+# Expected : 400 Bad Request | errors contain "RoleId is inactive/deleted."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "accessPolicyId": {{createdId}},
+  "roleId": 999999,
+  "valueId": {{validValueId}}
+}
+
+### TC55 ❌ AssignRole - Duplicate Assignment (same as TC48)
+# Expected : 400 Bad Request | errors contain "already exists."
+POST {{baseUrl}}/api/usermanagement/AccessPolicy/assign-role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "accessPolicyId": {{createdId}},
+  "roleId": {{validRoleId}},
+  "valueId": {{validValueId}}
+}
+
+
+# =============================================================================
+# SECTION 4 — GET ROLE ASSIGNMENTS  (after TC48 so data exists)
+# GET /api/usermanagement/AccessPolicy/{id}/role-assignments
+# =============================================================================
+
+### TC13 ✅ GetRoleAssignments - Happy Path
+# Expected : 200 OK | data = array (at least 1 row from TC48)
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/{{createdId}}/role-assignments
+Authorization: Bearer {{token}}
+
+### TC14 ✅ GetRoleAssignments - Filter by RoleId
+# Expected : 200 OK | data filtered to validRoleId
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/{{createdId}}/role-assignments?roleId={{validRoleId}}
+Authorization: Bearer {{token}}
+
+### TC15 ❌ GetRoleAssignments - No Auth Token
+# Expected : 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/{{createdId}}/role-assignments
+
+### TC16 ⚠️ GetRoleAssignments - Non-Existent Policy ID
+# Expected : 200 OK | data = []
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/999999/role-assignments
+Authorization: Bearer {{token}}
+
+
+# =============================================================================
+# SECTION 9 — REMOVE ROLE
+# DELETE /api/usermanagement/AccessPolicy/remove-role/{id}
+# =============================================================================
+
+### TC56 ✅ RemoveRole - Happy Path
+# Expected : 200 OK | isSuccess=true
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy/remove-role/{{roleAssignmentId}}
+Authorization: Bearer {{token}}
+
+### TC57 ❌ RemoveRole - No Auth Token
+# Expected : 401 Unauthorized
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy/remove-role/{{roleAssignmentId}}
+
+### TC58 ❌ RemoveRole - Id = 0
+# Expected : 400 Bad Request | errors contain "Id is required."
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy/remove-role/0
+Authorization: Bearer {{token}}
+
+### TC59 ❌ RemoveRole - Non-Existent Id
+# Expected : 400 Bad Request | errors contain "not found."
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy/remove-role/999999
+Authorization: Bearer {{token}}
+
+
+# =============================================================================
+# SECTION 7 — DELETE (SOFT DELETE)  ← ALWAYS LAST
+# DELETE /api/usermanagement/AccessPolicy?id={id}
+# =============================================================================
+
+### TC43 ✅ Delete - Happy Path (soft delete)
+# Expected : 200 OK | isSuccess=true
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy?id={{createdId}}
+Authorization: Bearer {{token}}
+
+### TC44 ❌ Delete - No Auth Token
+# Expected : 401 Unauthorized
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy?id={{createdId}}
+
+### TC45 ❌ Delete - Id = 0
+# Expected : 400 Bad Request | errors contain "Id is required."
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy?id=0
+Authorization: Bearer {{token}}
+
+### TC46 ❌ Delete - Non-Existent Id
+# Expected : 400 Bad Request | errors contain "AccessPolicy not found."
+DELETE {{baseUrl}}/api/usermanagement/AccessPolicy?id=999999
+Authorization: Bearer {{token}}
+
+### TC47 ⚠️ Verify Soft Delete — GetById returns 404
+# Expected : 404 Not Found  (record exists in DB with IsDeleted=1 but is hidden from API)
+GET {{baseUrl}}/api/usermanagement/AccessPolicy/{{createdId}}
+Authorization: Bearer {{token}}
+
+
+# =============================================================================
+# SQL VERIFY — run in SSMS against 192.168.1.126
+# =============================================================================
+
+# 1. Confirm created (after TC17)
+# SELECT Id, PolicyCode, PolicyName, IsActive, IsDeleted, CreatedBy, CreatedDate
+# FROM AppSecurity.AccessPolicy WHERE PolicyCode LIKE 'POLT%' ORDER BY Id DESC;
+
+# 2. Confirm soft delete (after TC43) — IsDeleted=1, record still exists
+# SELECT Id, PolicyCode, IsDeleted FROM AppSecurity.AccessPolicy
+# WHERE PolicyCode LIKE 'POLT%' ORDER BY Id DESC;
+
+# 3. Confirm role assignment (after TC48)
+# SELECT Id, AccessPolicyId, RoleId, ValueId FROM AppSecurity.RoleAccessPolicy
+# WHERE AccessPolicyId = <createdId>;
+
+# 4. Confirm role removed (after TC56)
+# SELECT COUNT(*) FROM AppSecurity.RoleAccessPolicy WHERE Id = <roleAssignmentId>;
+# Expected: 0

@@ -46,6 +46,9 @@ namespace UserManagement.Presentation.Controllers
         {
             var result = await Mediator.Send(new GetAccessPolicyByIdQuery { Id = id });
 
+            if (result == null)
+                return NotFound(new { StatusCode = StatusCodes.Status404NotFound, message = "Access Policy not found." });
+
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

@@ -1,0 +1,433 @@
+# =============================================================================
+# MODULE  : UserManagement
+# ENTITIES: MiscTypeMaster → MiscMaster  (FK chain — run in this order)
+# TABLES  : [UserManagement].[MiscTypeMaster] | [UserManagement].[MiscMaster]
+# ROUTES  : api/usermanagement/MiscTypeMaster | api/usermanagement/MiscMaster
+# =============================================================================
+#
+# ✅ FULLY AUTOMATED — change only these 3 lines per environment:
+#
+@baseUrl       = http://localhost:5239
+@loginUsername = testsales
+@loginPassword = Test@1234
+
+# Unique codes per run (random suffix avoids AlreadyExists collisions)
+@miscTypeCode = MT{{$randomInt 1000 9999}}
+@miscTypeDesc = Test MiscType {{$randomInt 1000 9999}}
+@miscCode     = MC{{$randomInt 1000 9999}}
+@miscDesc     = Test MiscItem {{$randomInt 1000 9999}}
+
+# Sentinels replaced at request-time by .httpyac.js onRequest hook:
+#   11111111 → real miscTypeId  (captured from createMiscType response)
+#   22222222 → real miscMasterId (captured from createMiscItem response)
+@miscTypeId   = 11111111
+@miscMasterId = 22222222
+@token        = PLACEHOLDER
+
+
+# =============================================================================
+# SETUP — Force logout then login to obtain JWT
+# =============================================================================
+
+### TC-0 🔓 Force Logout (clear existing session)
+# Expected: 200 OK
+POST {{baseUrl}}/api/auth/deactivate-user-sessionByUsername
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+### TC00 🔐 Auto Login
+# @name login
+# Expected: 200 OK | data.token = JWT string
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+# =============================================================================
+# SECTION 1 — MISC TYPE MASTER
+# POST   api/usermanagement/MiscTypeMaster
+# GET    api/usermanagement/MiscTypeMaster
+# GET    api/usermanagement/MiscTypeMaster/{id}
+# GET    api/usermanagement/MiscTypeMaster/by-name?name=
+# PUT    api/usermanagement/MiscTypeMaster
+# DELETE api/usermanagement/MiscTypeMaster/{id}
+# =============================================================================
+
+### TC01 ✅ Create MiscTypeMaster - Happy Path
+# @name createMiscType
+# Expected: 200 OK | isSuccess=true | data.id = <newId>
+# Hook captures data.id → sets miscTypeId (slot 0 → 11111111)
+POST {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeCode": "{{miscTypeCode}}",
+  "description": "{{miscTypeDesc}}"
+}
+
+
+### TC02 ❌ Create MiscTypeMaster - No Auth Token
+# Expected: 401 Unauthorized
+POST {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Content-Type: application/json
+
+{
+  "miscTypeCode": "{{miscTypeCode}}",
+  "description": "{{miscTypeDesc}}"
+}
+
+
+### TC03 ❌ Create MiscTypeMaster - Code Empty
+# Expected: 400 | MiscTypeCode is required.
+# Note: validator uses "NotFound" case name for NotEmpty logic
+POST {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeCode": "",
+  "description": "{{miscTypeDesc}}"
+}
+
+
+### TC04 ❌ Create MiscTypeMaster - Description Empty
+# Expected: 400 | Description is required.
+POST {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeCode": "{{miscTypeCode}}",
+  "description": ""
+}
+
+
+### TC05 ❌ Create MiscTypeMaster - Code Exceeds MaxLength (51 chars, max is 50)
+# Expected: 400 | MiscTypeCode cannot be longer than 50
+POST {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeCode": "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXY",
+  "description": "{{miscTypeDesc}}"
+}
+
+
+### TC06 ❌ Create MiscTypeMaster - Duplicate Code (same as TC01)
+# Expected: 400 | MiscTypeCode already exists.
+POST {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeCode": "{{miscTypeCode}}",
+  "description": "Another description"
+}
+
+
+### TC07 ✅ GetAll MiscTypeMasters - Happy Path
+# Expected: 200 OK | data array with TotalCount
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster?PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+
+### TC08 ❌ GetAll MiscTypeMasters - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster?PageNumber=1&PageSize=10
+
+
+### TC09 🔍 GetAll MiscTypeMasters - Search by Term
+# Expected: 200 OK | data contains only matching records
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster?PageNumber=1&PageSize=10&SearchTerm={{miscTypeCode}}
+Authorization: Bearer {{token}}
+
+
+### TC10 ✅ GetById MiscTypeMaster - Valid ID
+# Expected: 200 OK | data.id = miscTypeId
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster/{{miscTypeId}}
+Authorization: Bearer {{token}}
+
+
+### TC11 ❌ GetById MiscTypeMaster - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster/{{miscTypeId}}
+
+
+### TC12 ⚠️ GetById MiscTypeMaster - Non-Existent ID
+# Expected: 404 Not Found (controller returns NotFound when isSuccess=false)
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster/999999
+Authorization: Bearer {{token}}
+
+
+### TC13 ✅ AutoComplete MiscTypeMaster - With Term
+# Expected: 200 OK | array of matching lookup items
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster/by-name?name={{miscTypeCode}}
+Authorization: Bearer {{token}}
+
+
+### TC14 ❌ AutoComplete MiscTypeMaster - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster/by-name?name={{miscTypeCode}}
+
+
+### TC15 ✅ Update MiscTypeMaster - Happy Path
+# Expected: 200 OK | isSuccess=true
+PUT {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{miscTypeId}},
+  "miscTypeCode": "{{miscTypeCode}}",
+  "description": "Updated {{miscTypeDesc}}",
+  "isActive": 1
+}
+
+
+### TC16 ❌ Update MiscTypeMaster - No Auth Token
+# Expected: 401 Unauthorized
+PUT {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Content-Type: application/json
+
+{
+  "id": {{miscTypeId}},
+  "miscTypeCode": "{{miscTypeCode}}",
+  "description": "Updated {{miscTypeDesc}}",
+  "isActive": 1
+}
+
+
+### TC17 ⚠️ Update MiscTypeMaster - Non-Existent ID
+# Expected: 404 Not Found (controller does GetById check before updating)
+PUT {{baseUrl}}/api/usermanagement/MiscTypeMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 999999,
+  "miscTypeCode": "NOTEXIST",
+  "description": "Does not exist",
+  "isActive": 1
+}
+
+
+# =============================================================================
+# SECTION 2 — MISC MASTER  (requires miscTypeId from TC01)
+# POST   api/usermanagement/MiscMaster
+# GET    api/usermanagement/MiscMaster
+# GET    api/usermanagement/MiscMaster/{id}
+# GET    api/usermanagement/MiscMaster/by-name?name=&MiscTypeCode=
+# PUT    api/usermanagement/MiscMaster
+# DELETE api/usermanagement/MiscMaster/{id}
+# =============================================================================
+
+### TC21 ✅ Create MiscMaster - Happy Path
+# @name createMiscItem
+# Expected: 200 OK | data.id = <newMiscMasterId>
+# Hook captures data.id → sets miscMasterId (slot 1 → 22222222)
+POST {{baseUrl}}/api/usermanagement/MiscMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeId": {{miscTypeId}},
+  "code": "{{miscCode}}",
+  "description": "{{miscDesc}}"
+}
+
+
+### TC22 ❌ Create MiscMaster - No Auth Token
+# Expected: 401 Unauthorized
+POST {{baseUrl}}/api/usermanagement/MiscMaster
+Content-Type: application/json
+
+{
+  "miscTypeId": {{miscTypeId}},
+  "code": "{{miscCode}}",
+  "description": "{{miscDesc}}"
+}
+
+
+### TC23 ❌ Create MiscMaster - Code Empty
+# Expected: 400 | Code is required.
+POST {{baseUrl}}/api/usermanagement/MiscMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeId": {{miscTypeId}},
+  "code": "",
+  "description": "{{miscDesc}}"
+}
+
+
+### TC24 ❌ Create MiscMaster - Description Empty
+# Expected: 400 | Description is required.
+POST {{baseUrl}}/api/usermanagement/MiscMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeId": {{miscTypeId}},
+  "code": "{{miscCode}}",
+  "description": ""
+}
+
+
+### TC25 ❌ Create MiscMaster - MiscTypeId = 0
+# Expected: 400 | MiscTypeId is required.
+POST {{baseUrl}}/api/usermanagement/MiscMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeId": 0,
+  "code": "{{miscCode}}",
+  "description": "{{miscDesc}}"
+}
+
+
+### TC26 ❌ Create MiscMaster - Duplicate (same Code + same MiscTypeId as TC21)
+# Expected: 400 | already exists.  (composite key: Code + MiscTypeId)
+POST {{baseUrl}}/api/usermanagement/MiscMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "miscTypeId": {{miscTypeId}},
+  "code": "{{miscCode}}",
+  "description": "Another description"
+}
+
+
+### TC27 ✅ GetAll MiscMasters - Happy Path
+# Expected: 200 OK | data array with TotalCount
+GET {{baseUrl}}/api/usermanagement/MiscMaster?PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+
+### TC28 ❌ GetAll MiscMasters - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/MiscMaster?PageNumber=1&PageSize=10
+
+
+### TC29 🔍 GetAll MiscMasters - Search by Term
+# Expected: 200 OK | filtered results
+GET {{baseUrl}}/api/usermanagement/MiscMaster?PageNumber=1&PageSize=10&SearchTerm={{miscCode}}
+Authorization: Bearer {{token}}
+
+
+### TC30 ✅ GetById MiscMaster - Valid ID
+# Expected: 200 OK | data.id = miscMasterId
+GET {{baseUrl}}/api/usermanagement/MiscMaster/{{miscMasterId}}
+Authorization: Bearer {{token}}
+
+
+### TC31 ❌ GetById MiscMaster - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/MiscMaster/{{miscMasterId}}
+
+
+### TC32 ⚠️ GetById MiscMaster - Non-Existent ID
+# Expected: 200 OK | data = null (controller returns Ok regardless)
+GET {{baseUrl}}/api/usermanagement/MiscMaster/999999
+Authorization: Bearer {{token}}
+
+
+### TC33 ✅ AutoComplete MiscMaster - With Term and MiscTypeCode
+# Expected: 200 OK | array matching code + miscTypeCode filter
+GET {{baseUrl}}/api/usermanagement/MiscMaster/by-name?name={{miscCode}}&MiscTypeCode={{miscTypeCode}}
+Authorization: Bearer {{token}}
+
+
+### TC34 ❌ AutoComplete MiscMaster - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/usermanagement/MiscMaster/by-name?name={{miscCode}}&MiscTypeCode={{miscTypeCode}}
+
+
+### TC35 ✅ Update MiscMaster - Happy Path
+# Expected: 200 OK | Updated Successfully
+PUT {{baseUrl}}/api/usermanagement/MiscMaster
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{miscMasterId}},
+  "miscTypeId": {{miscTypeId}},
+  "code": "{{miscCode}}",
+  "description": "Updated {{miscDesc}}",
+  "sortOrder": 1,
+  "isActive": 1
+}
+
+
+### TC36 ❌ Update MiscMaster - No Auth Token
+# Expected: 401 Unauthorized
+PUT {{baseUrl}}/api/usermanagement/MiscMaster
+Content-Type: application/json
+
+{
+  "id": {{miscMasterId}},
+  "miscTypeId": {{miscTypeId}},
+  "code": "{{miscCode}}",
+  "description": "Updated {{miscDesc}}",
+  "sortOrder": 1,
+  "isActive": 1
+}
+
+
+# =============================================================================
+# SECTION 3 — DELETE SEQUENCE (reverse FK order: MiscMaster → MiscTypeMaster)
+# Validates FK-blocked deletes before happy-path deletes
+# =============================================================================
+
+### TC37 ❌ Delete MiscTypeMaster - Blocked (MiscMaster linked)
+# Expected: 400 | Cannot delete the relationship as it is active with another table.
+DELETE {{baseUrl}}/api/usermanagement/MiscTypeMaster/{{miscTypeId}}
+Authorization: Bearer {{token}}
+
+
+### TC38 ✅ Delete MiscMaster - Happy Path (soft delete)
+# Expected: 200 OK | Deleted successfully.
+DELETE {{baseUrl}}/api/usermanagement/MiscMaster/{{miscMasterId}}
+Authorization: Bearer {{token}}
+
+
+### TC39 ⚠️ Verify MiscMaster Soft Deleted - GetById returns null
+# Expected: 200 OK | data = null (record hidden after soft delete)
+GET {{baseUrl}}/api/usermanagement/MiscMaster/{{miscMasterId}}
+Authorization: Bearer {{token}}
+
+
+### TC40 ✅ Delete MiscTypeMaster - Happy Path (no MiscMasters linked now)
+# Expected: 200 OK | MiscTypeMaster deleted.
+DELETE {{baseUrl}}/api/usermanagement/MiscTypeMaster/{{miscTypeId}}
+Authorization: Bearer {{token}}
+
+
+### TC41 ⚠️ Verify MiscTypeMaster Soft Deleted - GetById returns 404
+# Expected: 404 Not Found (controller returns NotFound when isSuccess=false)
+GET {{baseUrl}}/api/usermanagement/MiscTypeMaster/{{miscTypeId}}
+Authorization: Bearer {{token}}
+
+
+### TC42 ❌ Delete MiscTypeMaster - Non-Existent ID
+# Expected: 400 | not found. (NotFound case in DeleteMiscTypeMasterCommandValidator)
+DELETE {{baseUrl}}/api/usermanagement/MiscTypeMaster/999999
+Authorization: Bearer {{token}}
+
+
+### TC43 ❌ Delete MiscTypeMaster - No Auth Token
+# Expected: 401 Unauthorized
+DELETE {{baseUrl}}/api/usermanagement/MiscTypeMaster/999999

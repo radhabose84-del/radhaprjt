@@ -1,0 +1,102 @@
+name: Deploy to QA and Run Tests
+
+on:
+  push:
+    branches:
+      - BSOFTERP_Dev_V0.1
+
+jobs:
+  deploy-and-test:
+    runs-on: self-hosted        # runs on QA server (198.168.1.130)
+
+    steps:
+
+      # ── Step 1: Get latest code ─────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ── Step 2: Setup .NET 8 ────────────────────────────────────────────
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      # ── Step 3: Restore packages ────────────────────────────────────────
+      - name: Restore packages
+        run: dotnet restore BSOFT.sln
+
+      # ── Step 4: Build ───────────────────────────────────────────────────
+      - name: Build BSOFT.Api
+        run: dotnet build src/BSOFT.Api/BSOFT.Api.csproj -c Release --no-restore
+
+      # ── Step 5: Publish ─────────────────────────────────────────────────
+      - name: Publish BSOFT.Api
+        run: dotnet publish src/BSOFT.Api/BSOFT.Api.csproj -c Release -o publish/api --no-build
+
+      # ── Step 6: Stop IIS App Pool ───────────────────────────────────────
+      - name: Stop IIS App Pool
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+          if ((Get-WebAppPoolState -Name "BsoftERP").Value -eq "Started") {
+            Stop-WebAppPool -Name "BsoftERP"
+            Write-Host "App pool stopped."
+            Start-Sleep -Seconds 3
+          }
+
+      # ── Step 7: Deploy files to QA server ──────────────────────────────
+      - name: Deploy to D:\Publish\BsoftERP
+        shell: powershell
+        run: |
+          robocopy publish\api D:\Publish\BsoftERP /MIR /NFL /NDL /NJH /NJS
+          Write-Host "Files deployed."
+
+      # ── Step 8: Start IIS App Pool ──────────────────────────────────────
+      - name: Start IIS App Pool
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+          Start-WebAppPool -Name "BsoftERP"
+          Write-Host "App pool started."
+
+      # ── Step 9: Wait for app to be ready ────────────────────────────────
+      - name: Wait for QA server to be ready
+        shell: powershell
+        run: |
+          Write-Host "Waiting 20 seconds for IIS to recycle..."
+          Start-Sleep -Seconds 20
+
+          # Verify server is responding
+          $ready = $false
+          for ($i = 1; $i -le 5; $i++) {
+            try {
+              Invoke-RestMethod "http://198.168.1.130/BsoftErp/api/auth/deactivate-user-sessionByUsername" `
+                -Method Post -ContentType "application/json" `
+                -Body '{"username":"testsales","password":"Test@1234"}' `
+                -ErrorAction Stop | Out-Null
+              $ready = $true
+              Write-Host "QA server is ready."
+              break
+            } catch {
+              Write-Host "Attempt $i/5 - waiting 5s..."
+              Start-Sleep -Seconds 5
+            }
+          }
+          if (-not $ready) { throw "QA server not responding after deployment." }
+
+      # ── Step 10: Run QA Tests ───────────────────────────────────────────
+      - name: Run QA Tests (60 test cases)
+        shell: powershell
+        run: |
+          dotnet test src/tests/UserManagement.QATests/UserManagement.QATests.csproj `
+            --logger "html;LogFileName=qa-report.html" `
+            --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 11: Save HTML report ───────────────────────────────────────
+      - name: Upload QA Test Report
+        uses: actions/upload-artifact@v3
+        if: always()      # upload even if tests fail
+        with:
+          name: QA-Test-Report
+          path: qa-reports/qa-report.html

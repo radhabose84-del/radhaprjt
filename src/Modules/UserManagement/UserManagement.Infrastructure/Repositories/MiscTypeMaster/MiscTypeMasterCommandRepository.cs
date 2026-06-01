@@ -22,30 +22,26 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
         }
 
 
-          public async Task<bool> UpdateAsync(int id,UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
+          public async Task<bool> UpdateAsync(int id, UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
-            var existingMiscTypeMaster =await _dbContext.MiscTypeMaster.FirstOrDefaultAsync(m =>m.Id == miscTypeMaster.Id);
-         
-            if (existingMiscTypeMaster != null)
-            {
-                existingMiscTypeMaster.MiscTypeCode = miscTypeMaster.MiscTypeCode;
-                existingMiscTypeMaster.Description = miscTypeMaster.Description;               
-                existingMiscTypeMaster.IsActive = miscTypeMaster.IsActive;
-
-                _dbContext.MiscTypeMaster.Update(existingMiscTypeMaster);
-                return await _dbContext.SaveChangesAsync() > 0;
-            }
-            return false;
+            var stub = new UserManagement.Domain.Entities.MiscTypeMaster { Id = miscTypeMaster.Id };
+            _dbContext.Attach(stub);
+            stub.MiscTypeCode = miscTypeMaster.MiscTypeCode;
+            stub.Description = miscTypeMaster.Description;
+            stub.IsActive = miscTypeMaster.IsActive;
+            _dbContext.Entry(stub).Property(x => x.MiscTypeCode).IsModified = true;
+            _dbContext.Entry(stub).Property(x => x.Description).IsModified = true;
+            _dbContext.Entry(stub).Property(x => x.IsActive).IsModified = true;
+            return await _dbContext.SaveChangesAsync() > 0;
         }
-        public async Task<bool> DeleteAsync(int id,UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
+
+        public async Task<bool> DeleteAsync(int id, UserManagement.Domain.Entities.MiscTypeMaster miscTypeMaster)
         {
-            var existingMiscTypemaster = await _dbContext.MiscTypeMaster.FirstOrDefaultAsync(u => u.Id == id);
-            if (existingMiscTypemaster != null)
-            {
-                existingMiscTypemaster.IsDeleted = miscTypeMaster.IsDeleted;
-                return await _dbContext.SaveChangesAsync() >0;
-            }
-            return false; 
+            var stub = new UserManagement.Domain.Entities.MiscTypeMaster { Id = id };
+            _dbContext.Attach(stub);
+            stub.IsDeleted = miscTypeMaster.IsDeleted;
+            _dbContext.Entry(stub).Property(x => x.IsDeleted).IsModified = true;
+            return await _dbContext.SaveChangesAsync() > 0;
         }        
                
     }

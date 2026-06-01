@@ -30,8 +30,7 @@ namespace UserManagement.Application.Currency.Queries.GetCurrencyById
             if (newcurrency is null)
             {
                 _logger.LogWarning($"No Currency Record {request.CurrencyId} not found in DB.");
-                throw new ValidationException($"Currency ID {request.CurrencyId} not found.");
-           
+                return null;
             }
             var currencylist = _mapper.Map<CurrencyDto>(newcurrency);
             _logger.LogInformation($"Fetching Currency Request Completed: {currencylist.Id}");

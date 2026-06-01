@@ -58,10 +58,23 @@ namespace UserManagement.Infrastructure.Data.Configurations
                   .HasConversion(isDeleteConverter)
                   .IsRequired();
 
+            var dateTimeOffsetConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTimeOffset>(
+                    v => new DateTimeOffset(v, TimeSpan.Zero),
+                    v => v.DateTime);
+
+            builder.Property(b => b.CreatedAt)
+                    .HasColumnName("CreatedDate")
+                    .HasColumnType("datetimeoffset")
+                    .HasConversion(dateTimeOffsetConverter);
+
+            builder.Property(b => b.ModifiedAt)
+                    .HasColumnName("ModifiedDate")
+                    .HasColumnType("datetimeoffset")
+                    .HasConversion(dateTimeOffsetConverter);
+
             builder.Property(b => b.CreatedByName)
                     .IsRequired()
                     .HasColumnType("varchar(50)");
-
 
             builder.Property(b => b.CreatedIP)
                     .IsRequired()

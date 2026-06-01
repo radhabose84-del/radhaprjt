@@ -30,6 +30,13 @@ namespace UserManagement.Presentation.Validation.Currency
                             .WithMessage($"{nameof(DeleteCurrencyCommand.Id)} {rule.Error}");
                         break;
 
+                    case "NotFound":
+                        RuleFor(x => x.Id)
+                            .GreaterThan(0).WithMessage("Valid Id is required.")
+                            .MustAsync(async (id, ct) => !await _currencyQueryRepository.NotFoundAsync(id))
+                            .WithMessage($"Currency {rule.Error}");
+                        break;
+
                     case "SoftDelete":
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) => !await _currencyQueryRepository.SoftDeleteValidationAsync(id))

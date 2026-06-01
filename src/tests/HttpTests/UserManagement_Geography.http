@@ -1,0 +1,753 @@
+# =============================================================================
+# MODULE  : UserManagement
+# ENTITIES: Country → State → City  (FK chain — must run in this order)
+# TABLES  : [Location].[Countries] | [Location].[States] | [Location].[Cities]
+# =============================================================================
+#
+# ✅ FULLY AUTOMATED — change only these 3 lines per environment:
+#
+@baseUrl       = http://localhost:5239
+@loginUsername = testsales
+@loginPassword = Test@1234
+
+# Unique codes per run (5-char max — C/S/Y prefix + 4 random digits)
+@countryCode = C{{$randomInt 1000 9999}}
+@stateName   = TestState{{$randomInt 1000 9999}}
+@stateCode   = S{{$randomInt 1000 9999}}
+@cityName    = TestCity{{$randomInt 1000 9999}}
+@cityCode    = Y{{$randomInt 1000 9999}}
+
+# Sentinel values — replaced at request-time by .httpyac.js onRequest hook:
+#   11111111 → real countryId  (captured from createCountry response)
+#   22222222 → real stateId    (captured from createState response)
+#   33333333 → real cityId     (captured from createCity response)
+@countryId = 11111111
+@stateId   = 22222222
+@cityId    = 33333333
+@token     = PLACEHOLDER
+
+
+# =============================================================================
+# SETUP — Force logout then login to obtain JWT
+# =============================================================================
+
+### TC-0 🔓 Force Logout (clear existing session)
+# Expected: 200 OK
+POST {{baseUrl}}/api/auth/deactivate-user-sessionByUsername
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+### TC00 🔐 Auto Login
+# @name login
+# Expected: 200 OK | data.token = JWT string
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+# =============================================================================
+# SECTION 1 — COUNTRY
+# POST   api/usermanagement/Country
+# GET    api/usermanagement/Country
+# GET    api/usermanagement/Country/{id}
+# GET    api/usermanagement/Country/by-name?name=
+# PUT    api/usermanagement/Country
+# DELETE api/usermanagement/Country/{id}
+# =============================================================================
+
+### TC01 ✅ Create Country - Happy Path
+# @name createCountry
+# Expected: 200 OK | isSuccess=true | data=<newId>
+# Hook captures data → sets countryId (slot 0 → 11111111)
+POST {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "countryCode": "{{countryCode}}",
+  "countryName": "TestCountry {{countryCode}}"
+}
+
+
+### TC02 ❌ Create Country - No Auth Token
+# Expected: 401 Unauthorized
+POST {{baseUrl}}/api/Country
+Content-Type: application/json
+
+{
+  "countryCode": "{{countryCode}}",
+  "countryName": "TestCountry {{countryCode}}"
+}
+
+
+### TC03 ❌ Create Country - Code Empty
+# Expected: 400 | CountryCode is required.
+POST {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "countryCode": "",
+  "countryName": "TestCountry {{countryCode}}"
+}
+
+
+### TC04 ❌ Create Country - Name Empty
+# Expected: 400 | CountryName is required.
+POST {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "countryCode": "{{countryCode}}",
+  "countryName": ""
+}
+
+
+### TC05 ❌ Create Country - Code Exceeds MaxLength (6 chars, max is 5)
+# Expected: 400 | CountryCode cannot be longer than 5 characters.
+POST {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "countryCode": "ABCDEF",
+  "countryName": "TestCountry {{countryCode}}"
+}
+
+
+### TC06 ❌ Create Country - Name Exceeds MaxLength (51 chars, max is 50)
+# Expected: 400 | CountryName cannot be longer than 50 characters.
+POST {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "countryCode": "{{countryCode}}",
+  "countryName": "ThisCountryNameIsExactlyFiftyOneCharactersLongXXXXXX"
+}
+
+
+### TC07 ❌ Create Country - Duplicate Code (same as TC01)
+# Expected: 400 | CountryCode already exists.
+POST {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "countryCode": "{{countryCode}}",
+  "countryName": "Another Country"
+}
+
+
+### TC08 ✅ GetAll Countries - Happy Path
+# Expected: 200 OK | data array with TotalCount
+GET {{baseUrl}}/api/Country?PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+
+### TC09 ❌ GetAll Countries - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/Country?PageNumber=1&PageSize=10
+
+
+### TC10 🔍 GetAll Countries - Search by Term
+# Expected: 200 OK | data contains only matching records
+GET {{baseUrl}}/api/Country?PageNumber=1&PageSize=10&SearchTerm={{countryCode}}
+Authorization: Bearer {{token}}
+
+
+### TC11 ✅ GetById Country - Valid ID
+# Expected: 200 OK | data.id = countryId
+GET {{baseUrl}}/api/Country/{{countryId}}
+Authorization: Bearer {{token}}
+
+
+### TC12 ❌ GetById Country - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/Country/{{countryId}}
+
+
+### TC13 ⚠️ GetById Country - Non-Existent ID
+# Expected: 200 OK | data = null (soft behavior)
+GET {{baseUrl}}/api/Country/999999
+Authorization: Bearer {{token}}
+
+
+### TC14 ✅ AutoComplete Country - With Term
+# Expected: 200 OK | array of matching country lookup items
+GET {{baseUrl}}/api/Country/by-name?name={{countryCode}}
+Authorization: Bearer {{token}}
+
+
+### TC15 ❌ AutoComplete Country - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/Country/by-name?name={{countryCode}}
+
+
+### TC16 ✅ Update Country - Happy Path
+# Expected: 200 OK | isSuccess=true
+PUT {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{countryId}},
+  "countryCode": "{{countryCode}}",
+  "countryName": "Updated Country {{countryCode}}",
+  "isActive": 1
+}
+
+
+### TC17 ❌ Update Country - No Auth Token
+# Expected: 401 Unauthorized
+PUT {{baseUrl}}/api/Country
+Content-Type: application/json
+
+{
+  "id": {{countryId}},
+  "countryCode": "{{countryCode}}",
+  "countryName": "Updated Country {{countryCode}}",
+  "isActive": 1
+}
+
+
+### TC18 ❌ Update Country - Id = 0
+# Expected: 400 | Valid Id is required.
+PUT {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 0,
+  "countryCode": "{{countryCode}}",
+  "countryName": "Updated Country",
+  "isActive": 1
+}
+
+
+### TC19 ❌ Update Country - Name Empty
+# Expected: 400 | CountryName is required.
+PUT {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{countryId}},
+  "countryCode": "{{countryCode}}",
+  "countryName": "",
+  "isActive": 1
+}
+
+
+### TC20 ❌ Update Country - IsActive Invalid (not 0 or 1)
+# Expected: 400 | IsActive must be either 0 or 1.
+PUT {{baseUrl}}/api/Country
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{countryId}},
+  "countryCode": "{{countryCode}}",
+  "countryName": "Updated Country {{countryCode}}",
+  "isActive": 2
+}
+
+
+# =============================================================================
+# SECTION 2 — STATE  (requires countryId from TC01)
+# POST   api/usermanagement/State
+# GET    api/usermanagement/State
+# GET    api/usermanagement/State/{id}
+# GET    api/usermanagement/State/by-name?name=
+# GET    api/usermanagement/State/by-country/{countryid}
+# PUT    api/usermanagement/State
+# DELETE api/usermanagement/State/{id}
+# =============================================================================
+
+### TC21 ✅ Create State - Happy Path
+# @name createState
+# Expected: 200 OK | isSuccess=true | data=<newStateId>
+# Hook captures data → sets stateId (slot 1 → 22222222)
+POST {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stateCode": "{{stateCode}}",
+  "stateName": "{{stateName}}",
+  "countryId": {{countryId}}
+}
+
+
+### TC22 ❌ Create State - No Auth Token
+# Expected: 401 Unauthorized
+POST {{baseUrl}}/api/State
+Content-Type: application/json
+
+{
+  "stateCode": "{{stateCode}}",
+  "stateName": "{{stateName}}",
+  "countryId": {{countryId}}
+}
+
+
+### TC23 ❌ Create State - Code Empty
+# Expected: 400 | StateCode is required.
+POST {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stateCode": "",
+  "stateName": "{{stateName}}",
+  "countryId": {{countryId}}
+}
+
+
+### TC24 ❌ Create State - Name Empty
+# Expected: 400 | StateName is required.
+POST {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stateCode": "{{stateCode}}",
+  "stateName": "",
+  "countryId": {{countryId}}
+}
+
+
+### TC25 ❌ Create State - Code Exceeds MaxLength (6 chars, max is 5)
+# Expected: 400 | StateCode cannot be longer than 5 characters.
+POST {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stateCode": "ABCDEF",
+  "stateName": "{{stateName}}",
+  "countryId": {{countryId}}
+}
+
+
+### TC26 ❌ Create State - CountryId = 0
+# Expected: 400 | CountryId is required.
+POST {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stateCode": "{{stateCode}}",
+  "stateName": "{{stateName}}",
+  "countryId": 0
+}
+
+
+### TC27 ❌ Create State - Non-Existent CountryId
+# Expected: 400 | CountryId is inactive/deleted.
+POST {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "stateCode": "{{stateCode}}",
+  "stateName": "{{stateName}}",
+  "countryId": 999999
+}
+
+
+### TC28 ✅ GetAll States - Happy Path
+# Expected: 200 OK | data array
+GET {{baseUrl}}/api/State?PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+
+### TC29 ❌ GetAll States - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/State?PageNumber=1&PageSize=10
+
+
+### TC30 🔍 GetAll States - Search by Term
+# Expected: 200 OK | filtered results
+GET {{baseUrl}}/api/State?PageNumber=1&PageSize=10&SearchTerm={{stateCode}}
+Authorization: Bearer {{token}}
+
+
+### TC31 ✅ GetById State - Valid ID
+# Expected: 200 OK | data.id = stateId
+GET {{baseUrl}}/api/State/{{stateId}}
+Authorization: Bearer {{token}}
+
+
+### TC32 ❌ GetById State - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/State/{{stateId}}
+
+
+### TC33 ⚠️ GetById State - Non-Existent ID
+# Expected: 200 OK | data = null
+GET {{baseUrl}}/api/State/999999
+Authorization: Bearer {{token}}
+
+
+### TC34 ✅ GetStatesByCountry - Valid CountryId
+# Expected: 200 OK | states belonging to countryId
+GET {{baseUrl}}/api/State/by-country/{{countryId}}
+Authorization: Bearer {{token}}
+
+
+### TC35 ❌ GetStatesByCountry - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/State/by-country/{{countryId}}
+
+
+### TC36 ✅ AutoComplete State - With Term
+# Expected: 200 OK | matching lookup list
+GET {{baseUrl}}/api/State/by-name?name={{stateCode}}
+Authorization: Bearer {{token}}
+
+
+### TC37 ✅ Update State - Happy Path
+# Expected: 200 OK | isSuccess=true
+PUT {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{stateId}},
+  "stateCode": "{{stateCode}}",
+  "stateName": "Updated {{stateName}}",
+  "countryId": {{countryId}},
+  "isActive": 1
+}
+
+
+### TC38 ❌ Update State - No Auth Token
+# Expected: 401 Unauthorized
+PUT {{baseUrl}}/api/State
+Content-Type: application/json
+
+{
+  "id": {{stateId}},
+  "stateCode": "{{stateCode}}",
+  "stateName": "Updated {{stateName}}",
+  "countryId": {{countryId}},
+  "isActive": 1
+}
+
+
+### TC39 ❌ Update State - Id = 0
+# Expected: 400 | Valid Id is required.
+PUT {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 0,
+  "stateCode": "{{stateCode}}",
+  "stateName": "{{stateName}}",
+  "countryId": {{countryId}},
+  "isActive": 1
+}
+
+
+### TC40 ❌ Update State - IsActive Invalid
+# Expected: 400 | IsActive must be either 0 or 1.
+PUT {{baseUrl}}/api/State
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{stateId}},
+  "stateCode": "{{stateCode}}",
+  "stateName": "{{stateName}}",
+  "countryId": {{countryId}},
+  "isActive": 2
+}
+
+
+# =============================================================================
+# SECTION 3 — CITY  (requires stateId from TC21)
+# POST   api/usermanagement/City
+# GET    api/usermanagement/City
+# GET    api/usermanagement/City/{id}
+# GET    api/usermanagement/City/by-name?name=
+# GET    api/usermanagement/City/by-state/{stateid}
+# PUT    api/usermanagement/City
+# DELETE api/usermanagement/City/{id}
+# =============================================================================
+
+### TC41 ✅ Create City - Happy Path
+# @name createCity
+# Expected: 200 OK | isSuccess=true | data=<newCityId>
+# Hook captures data → sets cityId (slot 2 → 33333333)
+POST {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cityCode": "{{cityCode}}",
+  "cityName": "{{cityName}}",
+  "stateId": {{stateId}}
+}
+
+
+### TC42 ❌ Create City - No Auth Token
+# Expected: 401 Unauthorized
+POST {{baseUrl}}/api/City
+Content-Type: application/json
+
+{
+  "cityCode": "{{cityCode}}",
+  "cityName": "{{cityName}}",
+  "stateId": {{stateId}}
+}
+
+
+### TC43 ❌ Create City - Code Empty
+# Expected: 400 | CityCode is required.
+POST {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cityCode": "",
+  "cityName": "{{cityName}}",
+  "stateId": {{stateId}}
+}
+
+
+### TC44 ❌ Create City - Name Empty
+# Expected: 400 | CityName is required.
+POST {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cityCode": "{{cityCode}}",
+  "cityName": "",
+  "stateId": {{stateId}}
+}
+
+
+### TC45 ❌ Create City - Code Exceeds MaxLength (6 chars, max is 5)
+# Expected: 400 | CityCode cannot be longer than 5 characters.
+POST {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cityCode": "ABCDEF",
+  "cityName": "{{cityName}}",
+  "stateId": {{stateId}}
+}
+
+
+### TC46 ❌ Create City - StateId = 0
+# Expected: 400 | StateId is required.
+POST {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cityCode": "{{cityCode}}",
+  "cityName": "{{cityName}}",
+  "stateId": 0
+}
+
+
+### TC47 ❌ Create City - Non-Existent StateId
+# Expected: 400 | StateId is inactive/deleted.
+POST {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "cityCode": "{{cityCode}}",
+  "cityName": "{{cityName}}",
+  "stateId": 999999
+}
+
+
+### TC48 ✅ GetAll Cities - Happy Path
+# Expected: 200 OK | data array
+GET {{baseUrl}}/api/City?PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+
+### TC49 ❌ GetAll Cities - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/City?PageNumber=1&PageSize=10
+
+
+### TC50 🔍 GetAll Cities - Search by Term
+# Expected: 200 OK | filtered results
+GET {{baseUrl}}/api/City?PageNumber=1&PageSize=10&SearchTerm={{cityCode}}
+Authorization: Bearer {{token}}
+
+
+### TC51 ✅ GetById City - Valid ID
+# Expected: 200 OK | data.id = cityId
+GET {{baseUrl}}/api/City/{{cityId}}
+Authorization: Bearer {{token}}
+
+
+### TC52 ❌ GetById City - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/City/{{cityId}}
+
+
+### TC53 ⚠️ GetById City - Non-Existent ID
+# Expected: 200 OK | data = null
+GET {{baseUrl}}/api/City/999999
+Authorization: Bearer {{token}}
+
+
+### TC54 ✅ GetCitiesByState - Valid StateId
+# Expected: 200 OK | cities belonging to stateId
+GET {{baseUrl}}/api/City/by-state/{{stateId}}
+Authorization: Bearer {{token}}
+
+
+### TC55 ❌ GetCitiesByState - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/City/by-state/{{stateId}}
+
+
+### TC56 ✅ AutoComplete City - With Term
+# Expected: 200 OK | matching lookup list
+GET {{baseUrl}}/api/City/by-name?name={{cityCode}}
+Authorization: Bearer {{token}}
+
+
+### TC57 ✅ Update City - Happy Path
+# Expected: 200 OK | isSuccess=true
+PUT {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{cityId}},
+  "cityCode": "{{cityCode}}",
+  "cityName": "Updated {{cityName}}",
+  "stateId": {{stateId}},
+  "isActive": 1
+}
+
+
+### TC58 ❌ Update City - No Auth Token
+# Expected: 401 Unauthorized
+PUT {{baseUrl}}/api/City
+Content-Type: application/json
+
+{
+  "id": {{cityId}},
+  "cityCode": "{{cityCode}}",
+  "cityName": "Updated {{cityName}}",
+  "stateId": {{stateId}},
+  "isActive": 1
+}
+
+
+### TC59 ❌ Update City - Id = 0
+# Expected: 400 | Valid Id is required.
+PUT {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 0,
+  "cityCode": "{{cityCode}}",
+  "cityName": "{{cityName}}",
+  "stateId": {{stateId}},
+  "isActive": 1
+}
+
+
+### TC60 ❌ Update City - IsActive Invalid
+# Expected: 400 | IsActive must be either 0 or 1.
+PUT {{baseUrl}}/api/City
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{cityId}},
+  "cityCode": "{{cityCode}}",
+  "cityName": "{{cityName}}",
+  "stateId": {{stateId}},
+  "isActive": 5
+}
+
+
+# =============================================================================
+# SECTION 4 — DELETE SEQUENCE (reverse FK order: City → State → Country)
+# Validates FK-blocked deletes before happy-path deletes
+# =============================================================================
+
+### TC61 ❌ Delete Country - Blocked (State linked)
+# Expected: 400 | This master is linked with other records. You cannot delete this record.
+DELETE {{baseUrl}}/api/Country/{{countryId}}
+Authorization: Bearer {{token}}
+
+
+### TC62 ❌ Delete State - Blocked (City linked)
+# Expected: 400 | This master is linked with other records. You cannot delete this record.
+DELETE {{baseUrl}}/api/State/{{stateId}}
+Authorization: Bearer {{token}}
+
+
+### TC63 ✅ Delete City - Happy Path (soft delete)
+# Expected: 200 OK | isSuccess=true
+DELETE {{baseUrl}}/api/City/{{cityId}}
+Authorization: Bearer {{token}}
+
+
+### TC64 ⚠️ Verify City Soft Deleted - GetById returns null
+# Expected: 200 OK | data = null (city hidden after soft delete)
+GET {{baseUrl}}/api/City/{{cityId}}
+Authorization: Bearer {{token}}
+
+
+### TC65 ✅ Delete State - Happy Path (no cities linked now)
+# Expected: 200 OK | isSuccess=true
+DELETE {{baseUrl}}/api/State/{{stateId}}
+Authorization: Bearer {{token}}
+
+
+### TC66 ⚠️ Verify State Soft Deleted - GetById returns null
+# Expected: 200 OK | data = null
+GET {{baseUrl}}/api/State/{{stateId}}
+Authorization: Bearer {{token}}
+
+
+### TC67 ✅ Delete Country - Happy Path (no states linked now)
+# Expected: 200 OK | isSuccess=true
+DELETE {{baseUrl}}/api/Country/{{countryId}}
+Authorization: Bearer {{token}}
+
+
+### TC68 ⚠️ Verify Country Soft Deleted - GetById returns null
+# Expected: 200 OK | data = null
+GET {{baseUrl}}/api/Country/{{countryId}}
+Authorization: Bearer {{token}}
+
+
+### TC69 ❌ Delete Country - Non-Existent ID
+# Expected: 400 | Country not found.
+DELETE {{baseUrl}}/api/Country/999999
+Authorization: Bearer {{token}}
+
+
+### TC70 ❌ Delete Country - No Auth Token
+# Expected: 401 Unauthorized
+DELETE {{baseUrl}}/api/Country/999999

@@ -1,0 +1,313 @@
+# =============================================================================
+# MODULE  : UserManagement
+# ENTITY  : Currency
+# TABLE   : [UserManagement].[Currency]
+# ROUTE   : api/Currency
+# =============================================================================
+#
+# ✅ SELF-CLEANING — creates code "TST" at TC01 and deletes it at TC22.
+# ⚠️  If interrupted before TC22, TST remains in DB; delete it manually before re-running.
+#
+# ✅ FULLY AUTOMATED — change only these 3 lines per environment:
+#
+@baseUrl       = http://localhost:5239
+@loginUsername = testsales
+@loginPassword = Test@1234
+
+# Currency code: 3–6 alphabetic chars only (AlphabeticOnly validator, MinLength=3, MaxLength=6)
+@currencyCode = TST
+@currencyName = Test Currency
+
+# Sentinel — replaced at request-time by .httpyac.js onRequest hook:
+#   11111111 → real currencyId (captured from createCurrency response)
+@currencyId = 11111111
+@token      = PLACEHOLDER
+
+
+# =============================================================================
+# SETUP — Force logout then login to obtain JWT
+# =============================================================================
+
+### TC-0 🔓 Force Logout (clear existing session)
+# Expected: 200 OK
+POST {{baseUrl}}/api/auth/deactivate-user-sessionByUsername
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+### TC00 🔐 Auto Login
+# @name login
+# Expected: 200 OK | data.token = JWT string
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{loginUsername}}",
+  "password": "{{loginPassword}}"
+}
+
+
+# =============================================================================
+# SECTION 1 — CREATE
+# POST api/Currency
+# =============================================================================
+
+### TC01 ✅ Create Currency - Happy Path
+# @name createCurrency
+# Expected: 200 OK | data = <newCurrencyId (int)>
+# Hook captures data (int) → sets currencyId (slot 0 → 11111111)
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "{{currencyCode}}",
+  "name": "{{currencyName}}"
+}
+
+
+### TC02 ❌ Create Currency - No Auth Token
+# Expected: 401 Unauthorized
+POST {{baseUrl}}/api/Currency
+Content-Type: application/json
+
+{
+  "code": "{{currencyCode}}",
+  "name": "{{currencyName}}"
+}
+
+
+### TC03 ❌ Create Currency - Code Empty
+# Expected: 400 | Code is required.
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "",
+  "name": "{{currencyName}}"
+}
+
+
+### TC04 ❌ Create Currency - Name Empty
+# Expected: 400 | Name is required.
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "{{currencyCode}}",
+  "name": ""
+}
+
+
+### TC05 ❌ Create Currency - Code Too Short (2 chars, min is 3)
+# Expected: 400 | Code cannot be smaller than 3
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "TS",
+  "name": "{{currencyName}}"
+}
+
+
+### TC06 ❌ Create Currency - Code Too Long (7 chars, max is 6)
+# Expected: 400 | Code cannot be longer than 6
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "ABCDEFG",
+  "name": "{{currencyName}}"
+}
+
+
+### TC07 ❌ Create Currency - Name Too Long (51 chars, max is 50)
+# Expected: 400 | Name cannot be longer than 50
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "{{currencyCode}}",
+  "name": "ThisCurrencyNameIsExactlyFiftyOneCharactersLongXXXX"
+}
+
+
+### TC08 ❌ Create Currency - Code Non-Alphabetic (digit in code)
+# Expected: 400 | Code must contain only alphabetic characters.
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "TS1",
+  "name": "{{currencyName}}"
+}
+
+
+### TC09 ❌ Create Currency - Name With Special Character
+# Expected: 400 | Name must contain only alphabetic characters and spaces.
+POST {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "{{currencyCode}}",
+  "name": "Test$Currency"
+}
+
+
+# =============================================================================
+# SECTION 2 — READ
+# GET api/Currency | api/Currency/{id} | api/Currency/by-name
+# =============================================================================
+
+### TC10 ✅ GetAll Currencies - Happy Path
+# Expected: 200 OK | data array with TotalCount
+GET {{baseUrl}}/api/Currency?PageNumber=1&PageSize=10
+Authorization: Bearer {{token}}
+
+
+### TC11 ❌ GetAll Currencies - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/Currency?PageNumber=1&PageSize=10
+
+
+### TC12 🔍 GetAll Currencies - Search by Term
+# Expected: 200 OK | data contains only matching records
+GET {{baseUrl}}/api/Currency?PageNumber=1&PageSize=10&SearchTerm={{currencyCode}}
+Authorization: Bearer {{token}}
+
+
+### TC13 ✅ GetById Currency - Valid ID
+# Expected: 200 OK | data.id = currencyId
+GET {{baseUrl}}/api/Currency/{{currencyId}}
+Authorization: Bearer {{token}}
+
+
+### TC14 ❌ GetById Currency - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/Currency/{{currencyId}}
+
+
+### TC15 ⚠️ GetById Currency - Non-Existent ID
+# Expected: 200 OK | data = null (controller always returns Ok)
+GET {{baseUrl}}/api/Currency/999999
+Authorization: Bearer {{token}}
+
+
+### TC16 ✅ AutoComplete Currency - With Term
+# Expected: 200 OK | array of matching currency lookup items
+GET {{baseUrl}}/api/Currency/by-name?CurrencyName={{currencyCode}}
+Authorization: Bearer {{token}}
+
+
+### TC17 ❌ AutoComplete Currency - No Auth Token
+# Expected: 401 Unauthorized
+GET {{baseUrl}}/api/Currency/by-name?CurrencyName={{currencyCode}}
+
+
+# =============================================================================
+# SECTION 3 — UPDATE
+# PUT api/Currency
+# =============================================================================
+
+### TC18 ✅ Update Currency - Happy Path
+# Expected: 200 OK | Currency Updated Successfully
+PUT {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{currencyId}},
+  "name": "Updated {{currencyName}}",
+  "isActive": 1
+}
+
+
+### TC19 ❌ Update Currency - No Auth Token
+# Expected: 401 Unauthorized
+PUT {{baseUrl}}/api/Currency
+Content-Type: application/json
+
+{
+  "id": {{currencyId}},
+  "name": "Updated {{currencyName}}",
+  "isActive": 1
+}
+
+
+### TC20 ❌ Update Currency - Name Empty
+# Expected: 400 | Name is required.
+PUT {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{currencyId}},
+  "name": "",
+  "isActive": 1
+}
+
+
+### TC21 ❌ Update Currency - Name Too Long (51 chars)
+# Expected: 400 | Name cannot be longer than 50
+PUT {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{currencyId}},
+  "name": "ThisCurrencyNameIsExactlyFiftyOneCharactersLongXXXX",
+  "isActive": 1
+}
+
+
+### TC22 ❌ Update Currency - IsActive Invalid (not 0 or 1)
+# Expected: 400 | IsActive must be either 0 or 1.
+# ⚠️  Known gap: UpdateCurrencyCommandValidator has no ByteValue case → likely returns 200
+PUT {{baseUrl}}/api/Currency
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": {{currencyId}},
+  "name": "{{currencyName}}",
+  "isActive": 2
+}
+
+
+# =============================================================================
+# SECTION 4 — DELETE  (runs last — self-cleaning)
+# DELETE api/Currency/{id}
+# =============================================================================
+
+### TC23 ❌ Delete Currency - No Auth Token
+# Expected: 401 Unauthorized
+DELETE {{baseUrl}}/api/Currency/{{currencyId}}
+
+
+### TC24 ❌ Delete Currency - Non-Existent ID
+# Expected: 400 | not found  (DeleteCurrencyCommandValidator has no NotFound case → may return 200)
+DELETE {{baseUrl}}/api/Currency/999999
+Authorization: Bearer {{token}}
+
+
+### TC25 ✅ Delete Currency - Happy Path (soft delete)
+# Expected: 200 OK | Currency Deleted Successfully
+DELETE {{baseUrl}}/api/Currency/{{currencyId}}
+Authorization: Bearer {{token}}
+
+
+### TC26 ⚠️ Verify Currency Soft Deleted - GetById returns null
+# Expected: 200 OK | data = null (soft-deleted record hidden)
+GET {{baseUrl}}/api/Currency/{{currencyId}}
+Authorization: Bearer {{token}}

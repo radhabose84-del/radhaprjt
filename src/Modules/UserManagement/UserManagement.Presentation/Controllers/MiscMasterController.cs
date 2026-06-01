@@ -57,12 +57,12 @@ namespace UserManagement.Presentation.Controllers
         [ActionName(nameof(GetByIdAsync))]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
-           
-            var miscmaster = await Mediator.Send(new GetMiscMasterByIdQuery() { Id = id});
-          
-            return Ok(new { StatusCode=StatusCodes.Status200OK, data = miscmaster,message=miscmaster});
-        
-           
+            var miscmaster = await Mediator.Send(new GetMiscMasterByIdQuery() { Id = id });
+
+            if (miscmaster == null)
+                return NotFound(new { StatusCode = StatusCodes.Status404NotFound, message = $"MiscMaster ID {id} not found.", errors = "" });
+
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = miscmaster });
         }
             [HttpGet("by-name")]
         public async Task<IActionResult> GetMiscMaster([FromQuery] string? name,[FromQuery] string MiscTypeCode)
