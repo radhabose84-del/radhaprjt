@@ -13,24 +13,25 @@ namespace PurchaseManagement.Application.Common.Mappings.GRN.GRNEntry
     {
         public GRNEntryProfile()
         {
-           // Map header, ignore GrnDetails (we'll handle manually)
+           // Map header, ignore GrnDetails (we'll handle manually). QC fields moved to detail.
         CreateMap<CreateGRNEntryDto, GrnHeader>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.IsGrnGenerated, opt => opt.MapFrom(src => src.IsGrnGenerated == 1))
-            .ForMember(dest => dest.IsQcApproved, opt => opt.MapFrom(src => false))
             .ForMember(dest => dest.GrnDetails, opt => opt.Ignore()); // ignore
 
-        // Map detail if needed (optional, mostly for simple properties)
+        // Map detail — IsQcApproved defaults to false on create; per-line QC happens later via UpdateGRNEntry.
         CreateMap<CreateGRNDetailsDto, GrnDetail>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.GrnId, opt => opt.Ignore());
+            .ForMember(dest => dest.GrnId, opt => opt.Ignore())
+            .ForMember(dest => dest.IsQcApproved, opt => opt.MapFrom(src => false));
 
             CreateMap<UpdateGRNEntryDto, GrnHeader>()
             .ForMember(dest => dest.IsGrnGenerated, opt => opt.MapFrom(src => src.IsGrnGenerated == 1 ? true : false))
-            .ForMember(dest => dest.IsQcApproved, opt => opt.MapFrom(src => src.IsQcApproved == 1 ? true : false))
             //.ForMember(dest => dest.GrnDetails, opt => opt.MapFrom(src => src.UpdateGRNDetailsDtos));
             .ForMember(dest => dest.GrnDetails, opt => opt.Ignore());
-            CreateMap<UpdateGRNDetailsDto, GrnDetail>();
+            // Update detail map — IsQcApproved now per-line, byte → bool conversion happens here.
+            CreateMap<UpdateGRNDetailsDto, GrnDetail>()
+                .ForMember(dest => dest.IsQcApproved, opt => opt.MapFrom(src => src.IsQcApproved == 1 ? true : false));
 
             CreateMap<CreateGRNPutawayDto, GrnPutAwayRule>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

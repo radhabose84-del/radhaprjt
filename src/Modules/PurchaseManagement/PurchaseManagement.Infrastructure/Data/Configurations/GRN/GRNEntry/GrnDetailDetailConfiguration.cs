@@ -133,8 +133,41 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.GRN.GRNEntry
                  .HasColumnName("GrnDetailImage")
                  .HasColumnType("nvarchar(250)");
 
+            // QC sign-off — moved from GrnHeader; QC is now per-line.
+            // No DB FK on QcStatusId per design decision #6 — value-only int (matches prior pattern).
+            builder.Property(b => b.QcRemarks)
+                 .HasColumnName("QcRemarks")
+                 .HasColumnType("varchar(250)")
+                 .IsRequired(false);
 
-           
+            builder.Property(b => b.QcPersonName)
+                 .HasColumnName("QcPersonName")
+                 .HasColumnType("varchar(50)")
+                 .IsRequired(false);
+
+            builder.Property(m => m.QcStatusId)
+                 .HasColumnName("QcStatusId")
+                 .HasColumnType("int")
+                 .IsRequired(false);
+
+            builder.Property(b => b.QcDate)
+                 .HasColumnName("QcDate")
+                 .HasColumnType("datetimeoffset")
+                 .IsRequired(false);
+
+            builder.Property(b => b.QcApprovedIp)
+                 .HasColumnName("QcApprovedIp")
+                 .HasColumnType("varchar(20)")
+                 .IsRequired(false);
+
+            builder.Property(b => b.IsQcApproved)
+                 .HasColumnName("IsQcApproved")
+                 .HasColumnType("bit")
+                 .HasDefaultValue(false)
+                 .IsRequired();
+
+            // Ignore the navigation so EF Core does not generate a DB FK (decision #6).
+            builder.Ignore(m => m.GrnQcStatus);
 
         }
 

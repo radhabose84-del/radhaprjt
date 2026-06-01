@@ -31,13 +31,8 @@ namespace PurchaseManagement.Domain.Entities.GRN.GRNEntry
         public DateTimeOffset? ModifiedDate { get; set; }
         public string? ModifiedByName { get; set; }
         public string? ModifiedIP { get; set; }
-        public string? QcRemarks { get; set; }
-        public string? QcPersonName { get; set; }
-        public int? QcStatusId { get; set; }
-        public MiscMaster? GrnQcStatus { get; set; }
-        public DateTimeOffset? QcDate { get; set; }
-        public string? QcApprovedIp { get; set; }
-        public bool IsQcApproved { get; set; }
+        // QC fields moved to GrnDetail — QC is now per-line.
+        // Header keeps only QcWarehouseId and RejectedImage (below).
         public int? QcWarehouseId { get; set; }
         public string? RejectedImage { get; set; }
         public decimal? ItemsTotal { get; set; }

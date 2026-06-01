@@ -25,6 +25,15 @@ namespace PurchaseManagement.Domain.Entities.GRN.GRNEntry
         public decimal? QcAcceptedQuantity { get; set; }
         public decimal? QcRejectedQuantity { get; set; }
         public string? QcRejectedRemarks { get; set; }
+
+        // QC sign-off — per item line (moved from GrnHeader; QC is now line-level).
+        public string? QcPersonName { get; set; }
+        public string? QcRemarks { get; set; }
+        public int? QcStatusId { get; set; }
+        public MiscMaster? GrnQcStatus { get; set; }
+        public DateTimeOffset? QcDate { get; set; }
+        public string? QcApprovedIp { get; set; }
+        public bool IsQcApproved { get; set; }
         public decimal? ItemValue { get; set; }
         public decimal? UnitPrice { get; set; }
         public decimal? DiscountValue { get; set; }

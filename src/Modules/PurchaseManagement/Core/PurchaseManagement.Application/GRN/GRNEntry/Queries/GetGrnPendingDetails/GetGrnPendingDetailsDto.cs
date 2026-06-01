@@ -23,11 +23,9 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
         public string? CreatedByName { get; set; }
         public DateTimeOffset? ModifiedDate { get; set; }
         public string? ModifiedByName { get; set; }
-        public string? QcRemarks { get; set; }
-        public int? QcStatusId { get; set; }
-        public string? QcPersonName { get; set; }
-        public DateTimeOffset? QcDate { get; set; }
+        // QC display fields moved per-line (see GetGateEntryPendingDetailsGRNDto below).
         public int? QcWarehouseId { get; set; }
+        // Computed AND aggregate: true only when every detail line is QC-approved.
         public bool? IsQcApproved { get; set; }
         public string? RejectedImage { get; set; }
         // Details 
@@ -52,10 +50,16 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
             public decimal ReceivedQuantity { get; set; }
             public DateTimeOffset? ExpiryDate { get; set; }
             public string? BatchNumber { get; set; }
-            // QC fields 
+            // QC fields — per-line
             public decimal? QcAcceptedQuantity { get; set; }
             public decimal? QcRejectedQuantity { get; set; }
             public string? QcRejectedRemarks { get; set; }
+            public string? QcPersonName { get; set; }
+            public string? QcRemarks { get; set; }
+            public int? QcStatusId { get; set; }
+            public DateTimeOffset? QcDate { get; set; }
+            public string? QcApprovedIp { get; set; }
+            public bool IsQcApproved { get; set; }
             public string? GrnDetailImage { get; set; }
 
             // Calculated
