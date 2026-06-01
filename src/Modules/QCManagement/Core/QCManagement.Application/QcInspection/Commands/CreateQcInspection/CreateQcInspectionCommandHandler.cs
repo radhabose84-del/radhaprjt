@@ -4,13 +4,14 @@ using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
 using MediatR;
 using QCManagement.Application.Common.Interfaces.IQcInspection;
+using QCManagement.Application.QcInspection.Dto;
 using QCManagement.Domain.Entities;
 using QCManagement.Domain.Events;
 using static QCManagement.Domain.Common.BaseEntity;
 
 namespace QCManagement.Application.QcInspection.Commands.CreateQcInspection
 {
-    public class CreateQcInspectionCommandHandler : IRequestHandler<CreateQcInspectionCommand, ApiResponseDTO<int>>
+    public class CreateQcInspectionCommandHandler : IRequestHandler<CreateQcInspectionCommand, ApiResponseDTO<QcInspectionDto>>
     {
         private readonly IQcInspectionCommandRepository _commandRepository;
         private readonly IQcInspectionQueryRepository _queryRepository;
@@ -35,7 +36,7 @@ namespace QCManagement.Application.QcInspection.Commands.CreateQcInspection
             _ipAddressService = ipAddressService;
         }
 
-        public async Task<ApiResponseDTO<int>> Handle(CreateQcInspectionCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponseDTO<QcInspectionDto>> Handle(CreateQcInspectionCommand request, CancellationToken cancellationToken)
         {
             var grn = await _grnLookup.GetByGrnDetailIdAsync(request.GrnDetailId, cancellationToken);
             if (grn == null)
@@ -114,11 +115,14 @@ namespace QCManagement.Application.QcInspection.Commands.CreateQcInspection
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 
-            return new ApiResponseDTO<int>
+            // Return the full inspection (header + snapshotted parameters) so the UI opens in one call.
+            var created = await _queryRepository.GetByIdAsync(newId);
+
+            return new ApiResponseDTO<QcInspectionDto>
             {
                 IsSuccess = true,
                 Message = "QC Inspection created successfully.",
-                Data = newId
+                Data = created
             };
         }
     }

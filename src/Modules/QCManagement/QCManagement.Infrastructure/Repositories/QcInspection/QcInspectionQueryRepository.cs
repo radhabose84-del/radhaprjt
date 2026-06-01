@@ -30,92 +30,24 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             _categoryLookup = categoryLookup;
         }
 
-        public async Task<(List<QcInspectionListDto>, int)> GetAllAsync(
-            int pageNumber, int pageSize, string? searchTerm,
-            int? qcStatusId, DateTimeOffset? fromDate, DateTimeOffset? toDate)
+        public async Task<IReadOnlyList<QcInspectionSummaryDto>> GetInspectionSummariesByGrnDetailIdsAsync(IEnumerable<int> grnDetailIds)
         {
-            var where = "h.IsDeleted = 0";
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-                where += " AND (h.QcInspectionNo LIKE @Search OR h.BatchNumber LIKE @Search)";
-            if (qcStatusId.HasValue)
-                where += " AND h.QcStatusId = @QcStatusId";
-            if (fromDate.HasValue)
-                where += " AND h.InspectionDate >= @FromDate";
-            if (toDate.HasValue)
-                where += " AND h.InspectionDate <= @ToDate";
+            var ids = grnDetailIds?.Distinct().ToList() ?? new List<int>();
+            if (ids.Count == 0)
+                return new List<QcInspectionSummaryDto>();
 
-            var sql = $@"
-                DECLARE @TotalCount INT;
-                SELECT @TotalCount = COUNT(*) FROM QC.QcInspectionHdr h WHERE {where};
-
+            const string sql = @"
                 SELECT
-                    h.Id, h.QcInspectionNo, h.GrnHeaderId, h.GrnDetailId, h.BatchNumber,
-                    h.ReceivedQuantity, h.AcceptedQuantity, h.RejectedQuantity,
+                    h.Id, h.GrnDetailId, h.QcInspectionNo,
                     h.QcStatusId, ms.Code AS QcStatusCode, ms.Description AS QcStatusName,
-                    h.InspectionDate, h.IsActive, h.IsDeleted,
-                    h.CreatedBy, h.CreatedDate, h.CreatedByName,
-                    h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
+                    h.AcceptedQuantity, h.RejectedQuantity, h.InspectionDate,
+                    h.CreatedDate, h.CreatedByName, h.ModifiedDate, h.ModifiedByName
                 FROM QC.QcInspectionHdr h
                 LEFT JOIN QC.MiscMaster ms ON h.QcStatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE {where}
-                ORDER BY h.Id DESC
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+                WHERE h.GrnDetailId IN @Ids AND h.IsDeleted = 0";
 
-                SELECT @TotalCount AS TotalCount;";
-
-            var parameters = new
-            {
-                Search = $"%{searchTerm}%",
-                QcStatusId = qcStatusId,
-                FromDate = fromDate,
-                ToDate = toDate,
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
-            };
-
-            using var multi = await _dbConnection.QueryMultipleAsync(sql, parameters);
-            var list = (await multi.ReadAsync<QcInspectionListDto>()).ToList();
-            var totalCount = await multi.ReadFirstAsync<int>();
-
-            if (list.Count > 0)
-            {
-                // Resolve GRN No / Supplier / Item via cross-module lookups (no JOIN).
-                var grnDict = (await _grnLookup.GetByGrnDetailIdsAsync(list.Select(x => x.GrnDetailId)))
-                    .GroupBy(g => g.GrnDetailId)
-                    .ToDictionary(g => g.Key, g => g.First());
-
-                foreach (var row in list)
-                {
-                    if (grnDict.TryGetValue(row.GrnDetailId, out var grn))
-                    {
-                        row.GrnNo = grn.GrnNo;
-                        row.SupplierId = grn.SupplierId;
-                        row.ItemId = grn.ItemId;
-                    }
-                }
-
-                var itemIds = list.Where(x => x.ItemId > 0).Select(x => x.ItemId).Distinct().ToList();
-                var itemDict = itemIds.Count > 0
-                    ? (await _itemLookup.GetByIdsAsync(itemIds)).ToDictionary(i => i.Id)
-                    : new();
-
-                var supplierNames = new Dictionary<int, string?>();
-                foreach (var sid in list.Where(x => x.SupplierId > 0).Select(x => x.SupplierId).Distinct())
-                {
-                    var s = await _supplierLookup.GetActiveSupplierByIdAsync(sid);
-                    supplierNames[sid] = s?.VendorName;
-                }
-
-                foreach (var row in list)
-                {
-                    if (row.ItemId > 0 && itemDict.TryGetValue(row.ItemId, out var item))
-                        row.ItemName = item.ItemName;
-                    if (row.SupplierId > 0 && supplierNames.TryGetValue(row.SupplierId, out var sn))
-                        row.SupplierName = sn;
-                }
-            }
-
-            return (list, totalCount);
+            var rows = await _dbConnection.QueryAsync<QcInspectionSummaryDto>(sql, new { Ids = ids });
+            return rows.ToList();
         }
 
         public async Task<QcInspectionDto?> GetByIdAsync(int id)
@@ -137,9 +69,13 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                     d.Id, d.QualitySpecificationParameterId, d.QualityParameterId, d.ParameterCode, d.ParameterName,
                     d.DataTypeId, d.ValidationTypeId, d.ValidationTypeCode, d.UomId, d.UomCode,
                     d.MinValue, d.MaxValue, d.ExpectedValue, d.AllowedValues AS AllowedValuesRaw,
-                    d.SeverityId, d.SeverityCode, d.FailureActionId, d.SortOrder,
+                    d.SeverityId, d.SeverityCode, sev.Description AS SeverityName,
+                    d.FailureActionId, fa.Code AS FailureActionCode, fa.Description AS FailureActionName,
+                    d.SortOrder,
                     d.ActualValue, d.InspectionResult, d.Remarks
                 FROM QC.QcInspectionDtl d
+                LEFT JOIN QC.MiscMaster sev ON d.SeverityId = sev.Id
+                LEFT JOIN QC.MiscMaster fa ON d.FailureActionId = fa.Id
                 WHERE d.QcInspectionHdrId = @Id AND d.IsDeleted = 0
                 ORDER BY d.SortOrder ASC, d.Id ASC;";
 
@@ -170,7 +106,10 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                     : ((string)r.AllowedValuesRaw).Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
                 SeverityId = (int)r.SeverityId,
                 SeverityCode = (string?)r.SeverityCode,
+                SeverityName = (string?)r.SeverityName,
                 FailureActionId = (int)r.FailureActionId,
+                FailureActionCode = (string?)r.FailureActionCode,
+                FailureActionName = (string?)r.FailureActionName,
                 SortOrder = (int)r.SortOrder,
                 ActualValue = (string?)r.ActualValue,
                 InspectionResult = (string?)r.InspectionResult,
@@ -424,19 +363,6 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<GrnQcStatusDto>(sql, new { Id = grnHeaderId });
             return result ?? new GrnQcStatusDto { GrnHeaderId = grnHeaderId };
-        }
-
-        public async Task<IReadOnlyList<int>> GetInspectedGrnDetailIdsAsync(IEnumerable<int> grnDetailIds)
-        {
-            var ids = grnDetailIds?.Distinct().ToList() ?? new List<int>();
-            if (ids.Count == 0)
-                return new List<int>();
-
-            const string sql = @"
-                SELECT GrnDetailId FROM QC.QcInspectionHdr
-                WHERE GrnDetailId IN @Ids AND IsDeleted = 0";
-            var rows = await _dbConnection.QueryAsync<int>(sql, new { Ids = ids });
-            return rows.ToList();
         }
     }
 }
