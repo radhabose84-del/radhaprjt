@@ -12,7 +12,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
         public int PartyId { get; set; }
         // QC display fields (QcRemarks, QcStatusId, QcPersonName, QcDate) moved per-line.
         public int? QcWarehouseId { get; set; }
-        // Computed AND aggregate: true only when every detail line is QC-approved.
+        // Computed OR aggregate: true if ANY detail line is QC-approved.
+        // Only QC-approved lines are returned in GrnDetails (see GetGrnQcCompletedDetails SQL filter).
         public bool? IsQcApproved { get; set; }
         public List<GetGrnQCCompletedDtoDetails> GrnDetails { get; set; } = new();
         public class GetGrnQCCompletedDtoDetails
