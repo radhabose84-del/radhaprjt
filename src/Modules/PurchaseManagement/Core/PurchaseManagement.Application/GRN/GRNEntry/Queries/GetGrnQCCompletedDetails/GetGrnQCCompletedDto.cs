@@ -7,12 +7,13 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
         public DateTimeOffset? GrnDate { get; set; }
         public int UnitId { get; set; }
         public int GateEntryId { get; set; }
+        public string? GateEntryNo { get; set; }
+        public DateTimeOffset? GateEntryDate { get; set; }
         public int PartyId { get; set; }
-        public string? QcRemarks { get; set; }
-        public int? QcStatusId { get; set; }
-        public string? QcPersonName { get; set; }
-        public DateTimeOffset? QcDate { get; set; }
+        // QC display fields (QcRemarks, QcStatusId, QcPersonName, QcDate) moved per-line.
         public int? QcWarehouseId { get; set; }
+        // Computed OR aggregate: true if ANY detail line is QC-approved.
+        // Only QC-approved lines are returned in GrnDetails (see GetGrnQcCompletedDetails SQL filter).
         public bool? IsQcApproved { get; set; }
         public List<GetGrnQCCompletedDtoDetails> GrnDetails { get; set; } = new();
         public class GetGrnQCCompletedDtoDetails
@@ -27,6 +28,13 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
             public string? ItemName { get; set; }
             public string? UOMName { get; set; }
             public decimal? QcAcceptedQuantity { get; set; }
+            // Per-line QC sign-off (moved from GrnHeader)
+            public string? QcPersonName { get; set; }
+            public string? QcRemarks { get; set; }
+            public int? QcStatusId { get; set; }
+            public DateTimeOffset? QcDate { get; set; }
+            public string? QcApprovedIp { get; set; }
+            public bool IsQcApproved { get; set; }
             public decimal? UnitPrice { get; set; }
             public string? GrnDetailImage { get; set; }
             public List<PutawayRuleDto>? PutawayRules { get; set; }

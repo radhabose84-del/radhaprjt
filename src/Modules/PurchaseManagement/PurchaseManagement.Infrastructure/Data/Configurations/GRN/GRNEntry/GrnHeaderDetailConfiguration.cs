@@ -119,36 +119,11 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.GRN.GRNEntry
             builder.Property(b => b.ModifiedIP)
                     .HasColumnType("varchar(20)");
 
-            builder.Property(b => b.QcRemarks)
-                    .HasColumnType("varchar(250)");
-
-            builder.Property(b => b.QcPersonName)
-                    .HasColumnType("varchar(50)");
-
-            builder.Property(m => m.QcStatusId)
-                 .HasColumnName("QcStatusId")
-                 .HasColumnType("int")
-                 .IsRequired(false);
-
-            // Foreign Key Relationship
-            builder.HasOne(m => m.GrnQcStatus)
-                .WithMany(t => t.GrnQcStatusMisc)
-                .HasForeignKey(m => m.QcStatusId) // Foreign Key property in PartyContact
-                .OnDelete(DeleteBehavior.Restrict); // Use .Cascade if needed
-
-            builder.Property(b => b.QcDate)
-                    .HasColumnName("QcDate")
-                    .IsRequired(false)
-                    .HasColumnType("DatetimeOffset");
-
-
-            builder.Property(b => b.QcApprovedIp)
-                    .HasColumnType("varchar(20)");
-
-            builder.Property(t => t.IsQcApproved)
-               .HasColumnName("IsQcApproved")
-               .HasColumnType("bit")
-               .IsRequired();
+            // QC sign-off fields (QcRemarks, QcPersonName, QcStatusId, QcDate, QcApprovedIp,
+            // IsQcApproved) moved to GrnDetailConfiguration — QC is now per-line.
+            // The FK to MiscMaster on QcStatusId is removed from the header side; if a per-line
+            // FK is desired, it would be added to GrnDetailConfiguration (not done here per design
+            // decision #6: no FK constraint, matches the prior pattern).
 
             builder.Property(m => m.QcWarehouseId)
                  .HasColumnName("QcWarehouseId")

@@ -4,6 +4,7 @@ using PurchaseManagement.Domain.Events;
 using MediatR;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Gate;
 using Contracts.Dtos.Lookups.Inventory;
 
 namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetails
@@ -15,15 +16,17 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
         private readonly IMediator _mediator;
         private readonly IItemPurchaseToleranceLookup _itemPurchaseToleranceLookup;
         private readonly IPartyLookup _partyLookup;
+        private readonly IGateInwardLookup _gateInwardLookup;
 
 
-        public GetGrnPendingDetailsQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator, IItemPurchaseToleranceLookup itemPurchaseToleranceLookup, IPartyLookup partyLookup)
+        public GetGrnPendingDetailsQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator, IItemPurchaseToleranceLookup itemPurchaseToleranceLookup, IPartyLookup partyLookup, IGateInwardLookup gateInwardLookup)
         {
             _iGrnEntryQueryRepository = iGrnEntryQueryRepository;
             _mapper = mapper;
             _mediator = mediator;
             _itemPurchaseToleranceLookup = itemPurchaseToleranceLookup;
             _partyLookup = partyLookup;
+            _gateInwardLookup = gateInwardLookup;
 
         }
 
@@ -46,6 +49,28 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
                 if (po.PartyId > 0 && partyMap.TryGetValue(po.PartyId, out var partyDetails))
                 {
                     po.PartyName = partyDetails.PartyName;
+                }
+            }
+
+            // 1.5) Cross-module: resolve GateEntryNo + GateEntryDate via the Gate lookup.
+            // Replaces the dropped INNER JOIN to Purchase.GateEntryHeader. Cached.
+            var gateEntryIds = pending
+                .Where(x => x.GateEntryId > 0)
+                .Select(x => x.GateEntryId)
+                .Distinct()
+                .ToList();
+
+            if (gateEntryIds.Count > 0)
+            {
+                var gateInwardResult = await _gateInwardLookup.GetByIdsAsync(gateEntryIds, cancellationToken);
+                var gateInwardMap = gateInwardResult.ToDictionary(g => g.Id, g => g);
+                foreach (var header in pending)
+                {
+                    if (header.GateEntryId > 0 && gateInwardMap.TryGetValue(header.GateEntryId, out var gate))
+                    {
+                        header.GateEntryNo = gate.GateEntryNo;
+                        header.GateEntryDate = gate.GateEntryDate;
+                    }
                 }
             }
 
