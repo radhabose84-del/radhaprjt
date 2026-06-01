@@ -23,7 +23,7 @@ namespace QCManagement.UnitTests.Application.QualitySpecification.Queries
         {
             var list = new List<QualitySpecificationListDto> { QualitySpecificationBuilders.ValidListDto() };
             _mockQueryRepo
-                .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null, null))
+                .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null, null, null))
                 .ReturnsAsync((list, 1));
             SetupMediator();
 
@@ -40,7 +40,7 @@ namespace QCManagement.UnitTests.Application.QualitySpecification.Queries
         {
             var list = new List<QualitySpecificationListDto> { QualitySpecificationBuilders.ValidListDto() };
             _mockQueryRepo
-                .Setup(r => r.GetAllAsync(2, 5, "search", null, null, null, null, null))
+                .Setup(r => r.GetAllAsync(2, 5, "search", null, null, null, null, null, null))
                 .ReturnsAsync((list, 11));
             SetupMediator();
 
@@ -57,7 +57,7 @@ namespace QCManagement.UnitTests.Application.QualitySpecification.Queries
         public async Task Handle_EmptyResult_ReturnsSuccess()
         {
             _mockQueryRepo
-                .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null, null))
+                .Setup(r => r.GetAllAsync(1, 10, null, null, null, null, null, null, null))
                 .ReturnsAsync((new List<QualitySpecificationListDto>(), 0));
             SetupMediator();
 
@@ -74,7 +74,7 @@ namespace QCManagement.UnitTests.Application.QualitySpecification.Queries
         {
             var list = new List<QualitySpecificationListDto> { QualitySpecificationBuilders.ValidListDto() };
             _mockQueryRepo
-                .Setup(r => r.GetAllAsync(1, 10, null, 1, 17, 5, null, true))
+                .Setup(r => r.GetAllAsync(1, 10, null, 1, 17, null, 5, null, true))
                 .ReturnsAsync((list, 1));
             SetupMediator();
 
@@ -89,7 +89,7 @@ namespace QCManagement.UnitTests.Application.QualitySpecification.Queries
                 },
                 CancellationToken.None);
 
-            _mockQueryRepo.Verify(r => r.GetAllAsync(1, 10, null, 1, 17, 5, null, true), Times.Once);
+            _mockQueryRepo.Verify(r => r.GetAllAsync(1, 10, null, 1, 17, null, 5, null, true), Times.Once);
         }
     }
 }

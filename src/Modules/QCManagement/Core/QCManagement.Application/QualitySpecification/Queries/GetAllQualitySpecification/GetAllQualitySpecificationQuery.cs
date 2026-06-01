@@ -11,6 +11,7 @@ namespace QCManagement.Application.QualitySpecification.Queries.GetAllQualitySpe
         public string? SearchTerm { get; set; }
         public int? QualityTemplateId { get; set; }
         public int? ApplicableLevelId { get; set; }
+        public int? QcTypeId { get; set; }
         public int? ItemCategoryId { get; set; }
         public int? ItemId { get; set; }
         public bool? IsActive { get; set; }

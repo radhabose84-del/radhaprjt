@@ -199,10 +199,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int>("CurrencyId")
                         .HasColumnType("int");
 
-                    b.Property<string>("DeliveryTerms")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -220,10 +216,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
                     b.Property<string>("ModifiedIP")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentTerms")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("ProcurementTypeId")
                         .HasColumnType("int");

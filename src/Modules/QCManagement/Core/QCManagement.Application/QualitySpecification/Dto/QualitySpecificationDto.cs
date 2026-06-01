@@ -11,6 +11,9 @@ namespace QCManagement.Application.QualitySpecification.Dto
         public int ApplicableLevelId { get; set; }
         public string? ApplicableLevelCode { get; set; }
         public string? ApplicableLevelName { get; set; }
+        public int QcTypeId { get; set; }
+        public string? QcTypeCode { get; set; }
+        public string? QcTypeName { get; set; }
         public int? ItemCategoryId { get; set; }
         public string? ItemCategoryName { get; set; }
         public int? ItemId { get; set; }

@@ -30,11 +30,12 @@ namespace QCManagement.Infrastructure.Repositories.QualitySpecification
             if (existing == null)
                 return 0;
 
-            // Update mutable header fields (Code, Template, Level, ItemCategory, Item are immutable)
+            // Update mutable header fields (Code, Template, Level, ItemCategory, Item are immutable; QcType is editable for re-classification)
             existing.SpecificationName = entity.SpecificationName;
             existing.Description = entity.Description;
             existing.EffectiveFrom = entity.EffectiveFrom;
             existing.EffectiveTo = entity.EffectiveTo;
+            existing.QcTypeId = entity.QcTypeId;
             existing.IsActive = entity.IsActive;
 
             // Per-row UPDATE strategy (validator already enforced Id set match)

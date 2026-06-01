@@ -33,7 +33,7 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.VehicleMovementRecordId)
                 .HasColumnName("VehicleMovementRecordId")
                 .HasColumnType("int")
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(t => t.ReceivingTypeId)
                 .HasColumnName("ReceivingTypeId")

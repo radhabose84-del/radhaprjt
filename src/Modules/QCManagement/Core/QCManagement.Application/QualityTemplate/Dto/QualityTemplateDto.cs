@@ -41,5 +41,14 @@ namespace QCManagement.Application.QualityTemplate.Dto
         public bool IsGradeApplicable { get; set; }
         public string? Remarks { get; set; }
         public bool IsActive { get; set; }
+        public int? ParameterDataTypeId { get; set; }
+        public string? ParameterDataTypeCode { get; set; }
+        public string? ParameterDataTypeName { get; set; }
+        public int? ParameterValidationTypeId { get; set; }
+        public string? ParameterValidationTypeCode { get; set; }
+        public string? ParameterValidationTypeName { get; set; }
+        public int? ParameterUnitId { get; set; }
+        public string? ParameterUnitCode { get; set; }
+        public string? ParameterUnitName { get; set; }
     }
 }

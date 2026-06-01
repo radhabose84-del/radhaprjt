@@ -10,16 +10,20 @@ using QCManagement.Application.Common.Interfaces.AuditLog;
 using QCManagement.Application.Common.Interfaces.IMiscMaster;
 using QCManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using QCManagement.Application.Common.Interfaces.IQualityParameter;
+using QCManagement.Application.Common.Interfaces.IQcInspection;
 using QCManagement.Application.Common.Interfaces.IQualitySpecification;
 using QCManagement.Application.Common.Interfaces.IQualityTemplate;
+using QCManagement.Application.Common.Services;
 using QCManagement.Infrastructure.Data;
 using QCManagement.Infrastructure.Persistence;
 using QCManagement.Infrastructure.Repositories.AuditLog;
 using QCManagement.Infrastructure.Repositories.MiscMaster;
 using QCManagement.Infrastructure.Repositories.MiscTypeMaster;
 using QCManagement.Infrastructure.Repositories.QualityParameter;
+using QCManagement.Infrastructure.Repositories.QcInspection;
 using QCManagement.Infrastructure.Repositories.QualitySpecification;
 using QCManagement.Infrastructure.Repositories.QualityTemplate;
+using QCManagement.Infrastructure.Logging;
 using QCManagement.Infrastructure.Services;
 using Serilog;
 
@@ -40,15 +44,19 @@ namespace QCManagement.Infrastructure
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found or is empty.");
 
+            // Field-level audit interceptor (Previous → New value capture)
+            services.AddScoped<ActivityLogSaveChangesInterceptor>();
+
             // Register ApplicationDbContext with SQL Server
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>((sp, options) =>
                 options.UseSqlServer(connectionString, sqlOptions =>
                 {
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorNumbersToAdd: null);
-                }));
+                })
+                .AddInterceptors(sp.GetRequiredService<ActivityLogSaveChangesInterceptor>()));
 
             // Register IDbConnection for Dapper
             services.AddTransient<IDbConnection>(sp => new SqlConnection(connectionString));
@@ -114,6 +122,11 @@ namespace QCManagement.Infrastructure
             // ── QualitySpecification ─────────────────────────────────────────
             services.AddScoped<IQualitySpecificationCommandRepository, QualitySpecificationCommandRepository>();
             services.AddScoped<IQualitySpecificationQueryRepository, QualitySpecificationQueryRepository>();
+
+            // ── QcInspection (SCRUM-1667) ────────────────────────────────────
+            services.AddScoped<IQcInspectionCommandRepository, QcInspectionCommandRepository>();
+            services.AddScoped<IQcInspectionQueryRepository, QcInspectionQueryRepository>();
+            services.AddSingleton<IInspectionEvaluator, InspectionEvaluator>();
 
             return services;
         }

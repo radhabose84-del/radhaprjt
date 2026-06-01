@@ -88,6 +88,9 @@ namespace QCManagement.Presentation.Validation.QualitySpecification
                         RuleFor(x => x.ApplicableLevelId)
                             .GreaterThan(0).WithMessage($"ApplicableLevelId {rule.Error}");
 
+                        RuleFor(x => x.QcTypeId)
+                            .GreaterThan(0).WithMessage($"QcTypeId {rule.Error}");
+
                         RuleForEach(x => x.Parameters).ChildRules(p =>
                         {
                             p.RuleFor(d => d.QualityParameterId)
@@ -112,6 +115,11 @@ namespace QCManagement.Presentation.Validation.QualitySpecification
                             .MustAsync(async (id, ct) => await _queryRepo.ApplicableLevelExistsAsync(id))
                             .WithMessage($"ApplicableLevelId {rule.Error}")
                             .When(x => x.ApplicableLevelId > 0);
+
+                        RuleFor(x => x.QcTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepo.QcTypeExistsAsync(id))
+                            .WithMessage($"QcTypeId {rule.Error}")
+                            .When(x => x.QcTypeId > 0);
 
                         RuleForEach(x => x.Parameters).ChildRules(p =>
                         {

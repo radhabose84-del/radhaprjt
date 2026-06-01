@@ -4,7 +4,7 @@ namespace GateEntryManagement.Application.GateInward.Dto
     {
         public int Id { get; set; }
         public string? GateEntryNo { get; set; }
-        public int VehicleMovementRecordId { get; set; }
+        public int? VehicleMovementRecordId { get; set; }
         public string? VehicleMovementId { get; set; }
         public string? VehicleNumber { get; set; }
         public string? DriverName { get; set; }

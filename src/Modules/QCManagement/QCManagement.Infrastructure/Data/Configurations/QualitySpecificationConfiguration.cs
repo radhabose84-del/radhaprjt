@@ -48,6 +48,11 @@ namespace QCManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
+            builder.Property(t => t.QcTypeId)
+                .HasColumnName("QcTypeId")
+                .HasColumnType("int")
+                .IsRequired();
+
             builder.Property(t => t.ItemCategoryId)
                 .HasColumnName("ItemCategoryId")
                 .HasColumnType("int");
@@ -96,6 +101,7 @@ namespace QCManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.SpecificationName);
             builder.HasIndex(t => t.QualityTemplateId);
             builder.HasIndex(t => t.ApplicableLevelId);
+            builder.HasIndex(t => t.QcTypeId);
             builder.HasIndex(t => t.ItemCategoryId);
             builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.EffectiveFrom);
@@ -110,6 +116,12 @@ namespace QCManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.ApplicableLevel)
                 .WithMany(m => m!.QualitySpecificationsAsApplicableLevel)
                 .HasForeignKey(t => t.ApplicableLevelId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // FK: QualitySpecification → MiscMaster (QcType, same module)
+            builder.HasOne(t => t.QcType)
+                .WithMany(m => m!.QualitySpecificationsAsQcType)
+                .HasForeignKey(t => t.QcTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Note: ItemCategoryId and ItemId reference Inventory module (cross-module) — no DB FK constraint per CLAUDE.md

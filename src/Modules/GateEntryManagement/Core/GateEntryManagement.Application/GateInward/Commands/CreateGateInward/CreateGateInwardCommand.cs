@@ -6,7 +6,7 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
 {
     public class CreateGateInwardCommand : IRequest<ApiResponseDTO<int>>
     {
-        public int VehicleMovementRecordId { get; set; }
+        public int? VehicleMovementRecordId { get; set; }
         public int? PartyId { get; set; }
         public int? ReceivingTypeId { get; set; }
         public string? CourierNumber { get; set; }

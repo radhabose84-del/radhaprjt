@@ -6,7 +6,7 @@ namespace QCManagement.Application.Common.Interfaces.IQualitySpecification
     {
         Task<(List<QualitySpecificationListDto>, int)> GetAllAsync(
             int pageNumber, int pageSize, string? searchTerm,
-            int? qualityTemplateId, int? applicableLevelId,
+            int? qualityTemplateId, int? applicableLevelId, int? qcTypeId,
             int? itemCategoryId, int? itemId, bool? isActive);
 
         Task<QualitySpecificationDto?> GetByIdAsync(int id);
@@ -16,6 +16,7 @@ namespace QCManagement.Application.Common.Interfaces.IQualitySpecification
         Task<bool> NotFoundAsync(int id);
 
         Task<bool> ApplicableLevelExistsAsync(int applicableLevelId);
+        Task<bool> QcTypeExistsAsync(int qcTypeId);
         Task<bool> ValidationTypeExistsAsync(int validationTypeId);
         Task<bool> SeverityExistsAsync(int severityId);
         Task<bool> FailureActionExistsAsync(int failureActionId);

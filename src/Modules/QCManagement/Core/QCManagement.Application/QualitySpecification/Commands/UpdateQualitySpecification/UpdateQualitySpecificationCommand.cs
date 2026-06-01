@@ -10,6 +10,7 @@ namespace QCManagement.Application.QualitySpecification.Commands.UpdateQualitySp
         public string? Description { get; set; }
         public DateTimeOffset EffectiveFrom { get; set; }
         public DateTimeOffset? EffectiveTo { get; set; }
+        public int QcTypeId { get; set; }
         public int IsActive { get; set; }
         public List<UpdateQualitySpecificationParameterDto>? Parameters { get; set; }
     }

@@ -182,7 +182,7 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UnitId");
 
-                    b.Property<int>("VehicleMovementRecordId")
+                    b.Property<int?>("VehicleMovementRecordId")
                         .HasColumnType("int")
                         .HasColumnName("VehicleMovementRecordId");
 
@@ -696,8 +696,7 @@ namespace GateEntryManagement.Infrastructure.Migrations
                     b.HasOne("GateEntryManagement.Domain.Entities.VehicleMovementRecord", "VehicleMovementRecord")
                         .WithMany("GateInwardHeaders")
                         .HasForeignKey("VehicleMovementRecordId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("QAStatusMisc");
 
