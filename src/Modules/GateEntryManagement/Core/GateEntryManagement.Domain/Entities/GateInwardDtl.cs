@@ -12,10 +12,12 @@ namespace GateEntryManagement.Domain.Entities
         //   • PoId          — links back to the Purchase Order. Null/0 = non-PO line (manual receipt).
         //   • PoSlNoLocal   — line index within the PO (same item can repeat across lines).
         //   • DcQuantity    — user-entered receipt quantity. Null when the line is not PO-backed.
-        // All three are nullable; the bridge skips lines lacking PoId or DcQuantity.
+        //   • ExpiryDate    — optional supplier-provided expiry; passes through to Purchase.GrnDetail.
+        // All four are nullable; the bridge skips lines lacking PoId or DcQuantity.
         public int? PoId { get; set; }
         public int? PoSlNoLocal { get; set; }
         public decimal? DcQuantity { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
 
         // Navigation
         public GateInwardHdr? GateInwardHdr { get; set; }
