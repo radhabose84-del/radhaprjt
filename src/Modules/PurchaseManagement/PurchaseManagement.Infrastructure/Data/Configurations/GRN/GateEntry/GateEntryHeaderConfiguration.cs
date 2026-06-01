@@ -121,8 +121,11 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.GRN.GateEntry
 
             builder.Property(b => b.ModifiedIP)
                     .HasColumnType("varchar(20)");
-                    
-            
+
+            // Ignore the reverse-nav collection — the FK relationship to GrnHeader was dropped
+            // when GrnHeader.GateEntryId became a nullable, unconstrained column. Without this,
+            // EF Core would try to generate a shadow FK to keep the navigation valid.
+            builder.Ignore(b => b.GrnGateEntries);
 
         }
     }
