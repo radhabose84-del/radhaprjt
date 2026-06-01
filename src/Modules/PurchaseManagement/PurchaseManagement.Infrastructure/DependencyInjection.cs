@@ -201,6 +201,11 @@ namespace PurchaseManagement.Infrastructure
             // One implementation per Finance.TransactionTypeMaster.Id within ModuleId = 21 (Purchase).
             services.AddScoped<Contracts.Interfaces.Gate.IPendingReferenceDocResolver, Repositories.GateInward.LocalPoPendingResolver>();
             services.AddScoped<Contracts.Interfaces.Gate.IPendingReferenceDocResolver, Repositories.GateInward.ImportPoPendingResolver>();
+
+            // Cross-module bridge — Gate Inward saves trigger GRN creation through the existing
+            // CreateGRNEntryCommand pipeline (no changes to GRN module). Pre-validation runs
+            // before Gate persists, so a tolerance breach aborts the Gate save.
+            services.AddScoped<Contracts.Interfaces.Purchase.IGateInwardGrnBridge, Services.GateInwardGrnBridge>();
             services.AddScoped<IPurchaseIndentCommand, PurchaseIndentCommandRepository>();
             services.AddScoped<ILogServiceCommand, LogServiceCommandRepository>();
             services.AddScoped<IPurchaseIndentQuery, PurchaseIndentQueryRepository>();
