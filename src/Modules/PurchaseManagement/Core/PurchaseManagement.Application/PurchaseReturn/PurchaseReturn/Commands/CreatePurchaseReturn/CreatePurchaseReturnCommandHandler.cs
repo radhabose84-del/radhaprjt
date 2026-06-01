@@ -57,7 +57,7 @@ public sealed class CreatePurchaseReturnCommandHandler : IRequestHandler<CreateP
         entity.RtvNumber = sequences.Count > 0 ? sequences[^1]
             : throw new ExceptionRules("No document sequence configured for Purchase Return.");
 
-        var created = await _commandRepo.CreateAsync(entity, ct);
+        var created = await _commandRepo.CreateAsync(entity, typeId.Value, ct);
 
         var fresh = await _queryRepo.GetByIdAsync(created.Id, ct);
 
