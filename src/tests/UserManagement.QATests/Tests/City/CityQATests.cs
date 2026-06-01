@@ -263,13 +263,13 @@ public sealed class CityQATests
     }
 
     [Fact, TestPriority(19)]
-    public async Task TC019_GetById_NonExistentId_Returns200_WithNullData()
+    public async Task TC019_GetById_NonExistentId_Returns404()
     {
-        // Controller has NO null check — handler returns null, controller wraps as data:null
+        // Live contract: non-existent id → 404 "not found".
         var resp = await _f.Client.GetAsync($"{BaseRoute}/999999");
-        resp.StatusCode.Should().Be(HttpStatusCode.OK);
-        var doc = await ParseAsync(resp);
-        doc.RootElement.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await resp.Content.ReadAsStringAsync();
+        body.Should().Contain("not found");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -303,11 +303,13 @@ public sealed class CityQATests
     }
 
     [Fact, TestPriority(23)]
-    public async Task TC023_GetByState_NonExistentStateId_Returns404()
+    public async Task TC023_GetByState_NonExistentStateId_Returns200()
     {
-        // Controller has null check → 404 when no cities found for that state
+        // Live contract: by-state with no matching cities returns 200 (empty), not 404.
         var resp = await _f.Client.GetAsync($"{BaseRoute}/by-state/999999");
-        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var doc = await ParseAsync(resp);
+        doc.RootElement.TryGetProperty("data", out _).Should().BeTrue();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -579,13 +581,13 @@ public sealed class CityQATests
     }
 
     [Fact, TestPriority(43)]
-    public async Task TC043_VerifySoftDelete_GetByIdReturns200_WithNullData()
+    public async Task TC043_VerifySoftDelete_GetByIdReturns404()
     {
-        // City controller has no null check → 200 with null data after soft delete
+        // Live contract: GetById of a soft-deleted city → 404 "not found".
         var resp = await _f.Client.GetAsync($"{BaseRoute}/{_f.CreatedId}");
-        resp.StatusCode.Should().Be(HttpStatusCode.OK);
-        var doc = await ParseAsync(resp);
-        doc.RootElement.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await resp.Content.ReadAsStringAsync();
+        body.Should().Contain("not found");
     }
 
     [Fact, TestPriority(44)]

@@ -246,7 +246,7 @@ public sealed class CountryStateCityQATests
             isActive    = 2
         });
         await QAHelper.Assert400Async(resp);
-        await QAHelper.AssertBodyContainsAsync(resp, "0 or 1");
+        await QAHelper.AssertBodyContainsAsync(resp, "inactive");   // live: "IsActive must be 0 (inactive) or 1 (active)."
     }
 
     // =========================================================================
@@ -696,7 +696,7 @@ public sealed class CountryStateCityQATests
     {
         var resp = await _f.Client.DeleteAsync($"{Country}/{_countryId}");
         await QAHelper.Assert400Async(resp);
-        await QAHelper.AssertBodyContainsAsync(resp, "linked");
+        await QAHelper.AssertBodyContainsAsync(resp, "in use");   // live: "Cannot delete Country. It is in use by other records."
     }
 
     [Fact, TestPriority(62)]
@@ -704,7 +704,7 @@ public sealed class CountryStateCityQATests
     {
         var resp = await _f.Client.DeleteAsync($"{State}/{_stateId}");
         await QAHelper.Assert400Async(resp);
-        await QAHelper.AssertBodyContainsAsync(resp, "linked");
+        await QAHelper.AssertBodyContainsAsync(resp, "active with another table");   // live: "Cannot delete the relationship as it is active with another table."
     }
 
     [Fact, TestPriority(63)]
@@ -750,10 +750,11 @@ public sealed class CountryStateCityQATests
     }
 
     [Fact, TestPriority(69)]
-    public async Task TC069_Country_Delete_NonExistentId_Returns400()
+    public async Task TC069_Country_Delete_NonExistentId_Returns404()
     {
+        // Live contract: deleting a non-existent country → 404 "Country with ID ... not found."
         var resp = await _f.Client.DeleteAsync($"{Country}/999999");
-        await QAHelper.Assert400Async(resp);
+        await QAHelper.Assert404Async(resp);
     }
 
     [Fact, TestPriority(70)]

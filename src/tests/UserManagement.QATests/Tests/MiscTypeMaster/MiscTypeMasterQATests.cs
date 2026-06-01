@@ -129,10 +129,13 @@ public sealed class MiscTypeMasterQATests
     [Fact, TestPriority(9)]
     public async Task TC009_Create_MiscTypeCodeAtMaxLength_Returns200()
     {
-        // Exactly 50 chars (boundary) — should pass
+        // Exactly 50 chars (boundary) — should pass. MiscTypeCode is unique-validated, so the
+        // 50-char code must be run-unique (the old fixed "A…Z" collided on re-runs). EntityCode's
+        // fast-varying chars come first, so the leading 50 chars stay unique per run.
+        var code = (_f.EntityCode + new string('A', 50)).Substring(0, 50);
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
-            miscTypeCode = new string('A', 49) + "Z",   // 50 chars unique
+            miscTypeCode = code,
             description  = "Max Length Code Test"
         });
 

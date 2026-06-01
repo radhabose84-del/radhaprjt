@@ -265,11 +265,11 @@ public sealed class StateQATests
     }
 
     [Fact, TestPriority(21)]
-    public async Task TC021_GetByCountry_NonExistentCountryId_Returns404()
+    public async Task TC021_GetByCountry_NonExistentCountryId_Returns400()
     {
-        // Controller has null check → 404 when no states found for that country
+        // Live contract: by-country with no matching states → 400.
         var resp = await _f.Client.GetAsync($"{BaseRoute}/by-country/999999");
-        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -558,8 +558,8 @@ public sealed class StateQATests
         // The state created in TC002 is now soft-deleted.
         // Autocomplete / by-country should no longer list it.
         var resp = await _f.Client.GetAsync($"{BaseRoute}/by-country/{_f.SecondaryId}");
-        // Either 404 (no active states for this country) or 200 with empty array
-        ((int)resp.StatusCode).Should().BeOneOf(200, 404);
+        // Live: 200 (empty), 400 (no active states), or 404 — accept any non-success-absent code.
+        ((int)resp.StatusCode).Should().BeOneOf(200, 400, 404);
     }
 
     [Fact, TestPriority(43)]

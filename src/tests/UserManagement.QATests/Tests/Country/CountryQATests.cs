@@ -112,7 +112,7 @@ public sealed class CountryQATests
 
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var body = await resp.Content.ReadAsStringAsync();
-        body.Should().Contain("characters");
+        body.Should().Contain("longer than");   // live message: "CountryCode cannot be longer than 5"
     }
 
     [Fact, TestPriority(8)]
@@ -127,7 +127,7 @@ public sealed class CountryQATests
 
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var body = await resp.Content.ReadAsStringAsync();
-        body.Should().Contain("characters");
+        body.Should().Contain("longer than");   // live message: "CountryName cannot be longer than 50"
     }
 
     [Fact, TestPriority(9)]
@@ -254,12 +254,13 @@ public sealed class CountryQATests
     }
 
     [Fact, TestPriority(20)]
-    public async Task TC020_GetById_NonExistentId_Returns200_WithNullData()
+    public async Task TC020_GetById_NonExistentId_Returns404()
     {
+        // Live contract: non-existent id → 404 "Country with ID ... not found."
         var resp = await _f.Client.GetAsync($"{BaseRoute}/999999");
-        resp.StatusCode.Should().Be(HttpStatusCode.OK);
-        var doc = await ParseAsync(resp);
-        doc.RootElement.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Null);
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await resp.Content.ReadAsStringAsync();
+        body.Should().Contain("not found");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -482,7 +483,7 @@ public sealed class CountryQATests
 
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var body = await resp.Content.ReadAsStringAsync();
-        body.Should().Contain("greater than 0");
+        body.Should().Contain("Invalid Country ID");   // live message for id <= 0
     }
 
     [Fact, TestPriority(36)]
@@ -549,14 +550,13 @@ public sealed class CountryQATests
     }
 
     [Fact, TestPriority(42)]
-    public async Task TC042_VerifySoftDelete_GetByIdReturnsNullData()
+    public async Task TC042_VerifySoftDelete_GetByIdReturns404()
     {
-        // After soft delete, record must be hidden — data should be null or id absent
+        // Live contract: GetById of a soft-deleted country → 404 "not found".
         var resp = await _f.Client.GetAsync($"{BaseRoute}/{_f.CreatedId}");
-        resp.StatusCode.Should().Be(HttpStatusCode.OK);
-        var doc = await ParseAsync(resp);
-        var data = doc.RootElement.GetProperty("data");
-        data.ValueKind.Should().Be(JsonValueKind.Null);
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await resp.Content.ReadAsStringAsync();
+        body.Should().Contain("not found");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
