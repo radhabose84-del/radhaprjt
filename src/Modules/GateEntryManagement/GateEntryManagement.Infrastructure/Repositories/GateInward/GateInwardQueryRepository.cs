@@ -102,7 +102,8 @@ namespace GateEntryManagement.Infrastructure.Repositories.GateInward
                 WHERE h.Id = @Id AND h.IsDeleted = 0";
 
             const string detailSql = @"
-                SELECT d.Id, d.GateInwardHdrId, d.ReferenceDocTypeId, d.ReferenceDocNo, d.PartyName
+                SELECT d.Id, d.GateInwardHdrId, d.ReferenceDocTypeId, d.ReferenceDocNo, d.PartyName,
+                    d.PoId, d.PoSlNoLocal, d.DcQuantity
                 FROM Gate.GateInwardDtl d
                 WHERE d.GateInwardHdrId = @Id";
 

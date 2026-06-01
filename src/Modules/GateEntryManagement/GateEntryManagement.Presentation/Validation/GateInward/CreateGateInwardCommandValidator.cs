@@ -111,6 +111,26 @@ namespace GateEntryManagement.Presentation.Validation.GateInward
                             .When(x => x.TareWeight.HasValue);
                         break;
 
+                    case "GreaterThan":
+                        RuleForEach(x => x.GateInwardDetails)
+                            .ChildRules(detail =>
+                            {
+                                // For PO-backed lines (user picked a PO) both PoId and DcQuantity must
+                                // be present and > 0 — the downstream GRN tolerance check needs them.
+                                // For non-PO lines (manual receipt) all three can be null/absent.
+                                detail.RuleFor(d => d.PoId)
+                                    .NotNull().WithMessage($"PoId {rule.Error}")
+                                    .GreaterThan(0).WithMessage($"PoId {rule.Error}")
+                                    .When(d => !string.IsNullOrWhiteSpace(d.ReferenceDocNo));
+
+                                detail.RuleFor(d => d.DcQuantity)
+                                    .NotNull().WithMessage($"DcQuantity {rule.Error}")
+                                    .GreaterThan(0).WithMessage($"DcQuantity {rule.Error}")
+                                    .When(d => d.PoId.HasValue && d.PoId.Value > 0);
+                            })
+                            .When(x => x.GateInwardDetails != null && x.GateInwardDetails.Count > 0);
+                        break;
+
                     default:
                         break;
                 }
