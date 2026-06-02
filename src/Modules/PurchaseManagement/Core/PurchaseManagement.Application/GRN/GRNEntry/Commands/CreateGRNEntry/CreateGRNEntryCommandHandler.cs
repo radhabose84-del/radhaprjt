@@ -2,8 +2,10 @@
 using AutoMapper;
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
 using PurchaseManagement.Domain.Events;
 using MediatR;
@@ -14,34 +16,54 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands
     {
         private readonly IGRNEntryCommandRepository _iGrnEntryCommandRepository;
         private readonly IGRNEntryQueryRepository _igrnEntryQueryRepository;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
 
-        public CreateGRNEntryCommandHandler(IGRNEntryCommandRepository iGrnEntryCommandRepository, IMapper mapper, IMediator mediator, IGRNEntryQueryRepository igrnEntryQueryRepository, IIPAddressService ipAddressService)
+        public CreateGRNEntryCommandHandler(
+            IGRNEntryCommandRepository iGrnEntryCommandRepository,
+            IMapper mapper,
+            IMediator mediator,
+            IGRNEntryQueryRepository igrnEntryQueryRepository,
+            IIPAddressService ipAddressService,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _iGrnEntryCommandRepository = iGrnEntryCommandRepository;
             _mapper = mapper;
             _mediator = mediator;
             _igrnEntryQueryRepository = igrnEntryQueryRepository;
             _ipAddressService = ipAddressService;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
         public async Task<int> Handle(CreateGRNEntryCommand request, CancellationToken cancellationToken)
         {
             var grnEntryHeader = _mapper.Map<GrnHeader>(request.GrnEntryCreate);
 
-            // ✅ Auto-generate GateEntryNo if not set
+            // Resolve the Finance.TransactionTypeMaster row for this unit so we can both produce
+            // the next GrnNo and advance the DocNo atomically inside the repo's transaction.
+            var unitId = _ipAddressService.GetUnitId() ?? request.GrnEntryCreate.UnitId;
+            var transactionTypeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
+                MiscEnumEntity.TransactionTypeGRN, MiscEnumEntity.ModulePurchase, unitId);
+
+            if (!transactionTypeId.HasValue)
+                throw new ExceptionRules($"Transaction Type '{MiscEnumEntity.TransactionTypeGRN}' not configured for Purchase module (Unit {unitId}).");
+
+            // Generate GrnNo via Finance.DocumentSequence (per-unit, per-financial-year)
+            // — only when the caller hasn't supplied one (Gate Inward bridge sends a blank).
             if (string.IsNullOrWhiteSpace(grnEntryHeader.GrnNo))
             {
-                grnEntryHeader.GrnNo = await _iGrnEntryCommandRepository
-                    .GenerateNextCodeAsync();  // Custom method for unique number
+                var sequences = await _documentSequenceLookup.GenerateDocumentNumber(transactionTypeId.Value);
+                if (sequences.Count == 0)
+                    throw new ExceptionRules($"No document sequence configured for '{MiscEnumEntity.TransactionTypeGRN}'.");
+
+                grnEntryHeader.GrnNo = sequences[^1];
                 grnEntryHeader.GrnDate = DateTime.Now;
                 grnEntryHeader.CreatedBy = _ipAddressService.GetUserId();
                 grnEntryHeader.CreatedDate = DateTime.Now;
                 grnEntryHeader.CreatedByName = _ipAddressService.GetUserName();
                 grnEntryHeader.CreatedIP = _ipAddressService.GetSystemIPAddress();
-
             }
               decimal totalMiscCharges = 0;
 
@@ -201,7 +223,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands
                 }
             }
 
-            var result = await _iGrnEntryCommandRepository.CreateAsync(grnEntryHeader);
+            var result = await _iGrnEntryCommandRepository.CreateAsync(grnEntryHeader, transactionTypeId.Value, cancellationToken);
 
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

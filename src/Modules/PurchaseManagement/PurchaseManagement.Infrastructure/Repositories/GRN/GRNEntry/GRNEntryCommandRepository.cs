@@ -1,6 +1,7 @@
 #nullable disable
 using System.Data;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Dapper;
 using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
@@ -18,20 +19,51 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IIPAddressService _ipAddressService;
         private readonly IDbConnection _dbConnection;
-        public GRNEntryCommandRepository(ApplicationDbContext applicationDbContext, IIPAddressService ipAddressService, IDbConnection dbConnection)
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
+
+        public GRNEntryCommandRepository(
+            ApplicationDbContext applicationDbContext,
+            IIPAddressService ipAddressService,
+            IDbConnection dbConnection,
+            IDocumentSequenceLookup documentSequenceLookup)
         {
             _applicationDbContext = applicationDbContext;
             _ipAddressService = ipAddressService;
             _dbConnection = dbConnection;
+            _documentSequenceLookup = documentSequenceLookup;
         }
 
 
-        public async Task<int> CreateAsync(GrnHeader grnHeader)
+        public async Task<int> CreateAsync(GrnHeader grnHeader, int transactionTypeId, CancellationToken ct = default)
         {
-            // First save the header so GrnId is generated
-            await _applicationDbContext.GrnHeader.AddAsync(grnHeader);
-            await _applicationDbContext.SaveChangesAsync();
-            return grnHeader.Id;
+            // Mirror PurchaseReturn: insert + DocNo advance in the same transaction so the GrnNo
+            // we just consumed can never be reused. Without the atomic increment, every GRN would
+            // be generated with the same DocNo.
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+            var newId = 0;
+
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var tx = await _applicationDbContext.Database.BeginTransactionAsync(ct);
+                try
+                {
+                    await _applicationDbContext.GrnHeader.AddAsync(grnHeader, ct);
+                    await _applicationDbContext.SaveChangesAsync(ct);
+
+                    var dbTx = tx.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbTx.Connection!, dbTx);
+
+                    await tx.CommitAsync(ct);
+                    newId = grnHeader.Id;
+                }
+                catch
+                {
+                    await tx.RollbackAsync(ct);
+                    throw;
+                }
+            });
+
+            return newId;
         }
 
         public async Task<int> CreatePutawayListAsync(List<GrnPutAwayRule> putawayList)
@@ -72,28 +104,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             return await _applicationDbContext.SaveChangesAsync();
         }
 
-        public async Task<string> GenerateNextCodeAsync(CancellationToken ct = default)
-        {
-            var unitId = _ipAddressService.GetUnitId() ?? 0;
-            var unitCode = unitId > 0 ? unitId.ToString() : "NA";
-            var prefix = $"GRN-{unitCode}-";
-
-            var recent = await _applicationDbContext.GrnHeader.AsNoTracking()
-                .Where(r => r.GrnNo.StartsWith(prefix))
-                .OrderByDescending(r => r.Id)
-                .Select(r => r.GrnNo)
-                .Take(100)
-                .ToListAsync(ct);
-
-            var max = 0;
-            foreach (var code in recent)
-            {
-                var suffix = code.Substring(prefix.Length);
-                if (int.TryParse(suffix, out var n) && n > max) max = n;
-            }
-
-            return $"{prefix}{(max + 1):D2}";
-        }
+        // GenerateNextCodeAsync removed — GrnNo is now produced by the handler through
+        // IDocumentSequenceLookup against Finance.DocumentSequence (per-unit, per-financial-year).
 
 
         public async Task<bool> UpdateAsync(int Id, GrnHeader grnHeader)
