@@ -6,5 +6,6 @@ namespace Contracts.Dtos.Lookups.Finance
         public string? TypeName { get; set; }
         public string? ShortName { get; set; }
         public string? Description { get; set; }
+        public bool IsGate { get; set; }
     }
 }

@@ -57,6 +57,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             int qcInspectionHdrId, int qcStatusId,
             decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
             int dispositionByUserId, string? dispositionByName,
+            string? qcApprovedIp, bool isQcApproved,
             int grnHeaderId, int grnDetailId)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
@@ -85,14 +86,14 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                     await _dbContext.SaveChangesAsync();
 
                     // Cross-module GRN write-back on the SAME connection + transaction (atomic).
+                    // QC is line-level: full disposition written to GrnDetail, located by Id.
                     var conn = _dbContext.Database.GetDbConnection();
                     var tx = transaction.GetDbTransaction();
 
-                    await _grnQcUpdate.UpdateGrnDetailQcQuantitiesAsync(
-                        grnDetailId, acceptedQty, rejectedQty, dispositionRemarks, conn, tx);
-
-                    await _grnQcUpdate.StampGrnHeaderQcAsync(
-                        grnHeaderId, dispositionByName ?? string.Empty, now, conn, tx);
+                    await _grnQcUpdate.UpdateGrnDetailQcAsync(
+                        grnDetailId, qcStatusId, acceptedQty, rejectedQty,
+                        dispositionRemarks, dispositionByName, qcApprovedIp, now, isQcApproved,
+                        conn, tx);
 
                     await transaction.CommitAsync();
                     return hdr.Id;
