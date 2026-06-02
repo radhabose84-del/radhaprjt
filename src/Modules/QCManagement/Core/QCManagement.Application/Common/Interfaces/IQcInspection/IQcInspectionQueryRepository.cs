@@ -17,7 +17,7 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
         Task<bool> HasCriticalFailureAsync(int id);
         Task<decimal?> GetReceivedQuantityAsync(int id);
         Task<bool> DetailBelongsToHeaderAsync(int detailId, int headerId);
-        Task<bool> QcStatusCodeExistsAsync(string qcStatusCode);
+        Task<bool> QcStatusIdExistsAsync(int qcStatusId);
 
         // ── create-time resolution ──
         Task<int> GetMaxInspectionSequenceAsync(int year);
@@ -26,7 +26,7 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
         Task<QcSpecSnapshotDto?> GetSpecSnapshotAsync(int qualitySpecificationId);
 
         // ── disposition support ──
-        Task<int?> GetQcStatusIdByCodeAsync(string qcStatusCode);
+        Task<string?> GetQcStatusCodeByIdAsync(int qcStatusId);
         Task<IReadOnlyList<QcInspectionDtlEvalDto>> GetDetailEvaluationRowsAsync(int qcInspectionHdrId);
         Task<QcDispositionContextDto?> GetDispositionContextAsync(int id);
 

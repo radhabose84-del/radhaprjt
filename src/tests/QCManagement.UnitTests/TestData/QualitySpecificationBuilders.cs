@@ -19,6 +19,7 @@ namespace QCManagement.UnitTests.TestData
         public const int SeverityCriticalId = 19;             // QP_SEVERITY: CRT
         public const int FailureActionAcceptId = 22;          // QP_FAILURE_ACTION: ACPT
         public const int FailureActionRejectId = 26;          // QP_FAILURE_ACTION: REJECT
+        public const int QcTypeId = 10;                        // QP_QC_TYPE: PG (Purchased Goods)
 
         public static CreateQualitySpecificationCommand ValidCreateCommand(
             string? name = "Cotton Yarn 40s — Standard Acceptance v1",
@@ -33,6 +34,7 @@ namespace QCManagement.UnitTests.TestData
             {
                 SpecificationName = name,
                 QualityTemplateId = qualityTemplateId,
+                QcTypeId = QcTypeId,
                 ApplicableLevelId = applicableLevelId,
                 ItemCategoryId = itemCategoryId,
                 ItemId = itemId,
@@ -77,6 +79,7 @@ namespace QCManagement.UnitTests.TestData
             {
                 Id = id,
                 SpecificationName = name,
+                QcTypeId = QcTypeId,
                 Description = "Updated description",
                 EffectiveFrom = effectiveFrom ?? new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero),
                 EffectiveTo = effectiveTo,

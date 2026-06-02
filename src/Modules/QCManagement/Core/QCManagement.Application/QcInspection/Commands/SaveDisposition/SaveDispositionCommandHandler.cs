@@ -31,21 +31,25 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
 
         public async Task<ApiResponseDTO<int>> Handle(SaveDispositionCommand request, CancellationToken cancellationToken)
         {
-            var statusCode = (request.QcStatusCode ?? string.Empty).Trim().ToUpperInvariant();
+            var qcStatusId = request.QcStatusId;
+            var statusCode = (await _queryRepository.GetQcStatusCodeByIdAsync(qcStatusId)
+                ?? throw new ExceptionRules("Invalid QC Status.")).Trim().ToUpperInvariant();
 
-            var qcStatusId = await _queryRepository.GetQcStatusIdByCodeAsync(statusCode)
-                ?? throw new ExceptionRules("Invalid QC Status.");
+            // Putaway-allowed statuses: Approved + Conditionally Approved.
+            var isQcApproved = statusCode is "APR" or "CAP";
 
             var ctx = await _queryRepository.GetDispositionContextAsync(request.QcInspectionHdrId)
                 ?? throw new ExceptionRules("Inspection not found.");
 
             var dispositionByUserId = _ipAddressService.GetUserId();
             var dispositionByName = _ipAddressService.GetUserName();
+            var qcApprovedIp = _ipAddressService.GetUserIPAddress();
 
             await _commandRepository.SaveDispositionAsync(
                 request.QcInspectionHdrId, qcStatusId,
                 request.AcceptedQuantity, request.RejectedQuantity, request.DispositionRemarks,
                 dispositionByUserId, dispositionByName,
+                qcApprovedIp, isQcApproved,
                 ctx.GrnHeaderId, ctx.GrnDetailId);
 
             var grn = await _grnLookup.GetByGrnDetailIdAsync(ctx.GrnDetailId, cancellationToken);
@@ -56,6 +60,7 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
                 GrnHeaderId: ctx.GrnHeaderId,
                 GrnDetailId: ctx.GrnDetailId,
                 ItemId: grn?.ItemId ?? 0,
+                QcStatusId: qcStatusId,
                 QcStatusCode: statusCode,
                 AcceptedQuantity: request.AcceptedQuantity,
                 RejectedQuantity: request.RejectedQuantity,
