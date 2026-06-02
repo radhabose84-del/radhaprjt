@@ -805,6 +805,12 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
 
+                    b.Property<bool>("IsQcApproved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsQcApproved");
+
                     b.Property<int>("ItemId")
                         .HasColumnType("int")
                         .HasColumnName("ItemId");
@@ -847,6 +853,18 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasDefaultValue(0.000m);
 
+                    b.Property<string>("QcApprovedIp")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("QcApprovedIp");
+
+                    b.Property<DateTimeOffset?>("QcDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("QcDate");
+
+                    b.Property<string>("QcPersonName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("QcPersonName");
+
                     b.Property<decimal?>("QcRejectedQuantity")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 6)
@@ -856,6 +874,14 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("QcRejectedRemarks")
                         .HasColumnType("nvarchar(250)")
                         .HasColumnName("QcRejectedRemarks");
+
+                    b.Property<string>("QcRemarks")
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("QcRemarks");
+
+                    b.Property<int?>("QcStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("QcStatusId");
 
                     b.Property<decimal>("ReceivedQuantity")
                         .ValueGeneratedOnAdd()
@@ -972,10 +998,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsGrnGenerated");
 
-                    b.Property<bool>("IsQcApproved")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsQcApproved");
-
                     b.Property<decimal?>("ItemsTotal")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
@@ -1005,23 +1027,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<decimal?>("PurchaseValue")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
-
-                    b.Property<string>("QcApprovedIp")
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<DateTimeOffset?>("QcDate")
-                        .HasColumnType("DatetimeOffset")
-                        .HasColumnName("QcDate");
-
-                    b.Property<string>("QcPersonName")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("QcRemarks")
-                        .HasColumnType("varchar(250)");
-
-                    b.Property<int?>("QcStatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("QcStatusId");
 
                     b.Property<int?>("QcWarehouseId")
                         .HasColumnType("int")
@@ -1056,8 +1061,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasColumnName("UnitId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("QcStatusId");
 
                     b.ToTable("GrnHeader", "Purchase");
                 });
@@ -6658,16 +6661,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("PoGrnMethodDetails");
                 });
 
-            modelBuilder.Entity("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnHeader", b =>
-                {
-                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "GrnQcStatus")
-                        .WithMany("GrnQcStatusMisc")
-                        .HasForeignKey("QcStatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("GrnQcStatus");
-                });
-
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnPutAwayRule", b =>
                 {
                     b.HasOne("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnDetail", "GrnHeaderPutAwayDetailsMaster")
@@ -7886,8 +7879,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("GrnDetailsPoCategory");
 
                     b.Navigation("GrnDetailsPoMethod");
-
-                    b.Navigation("GrnQcStatusMisc");
 
                     b.Navigation("ImportLCPayment");
 

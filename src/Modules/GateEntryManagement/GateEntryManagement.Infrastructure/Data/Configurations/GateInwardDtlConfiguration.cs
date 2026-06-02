@@ -50,6 +50,12 @@ namespace GateEntryManagement.Infrastructure.Data.Configurations
                 .HasColumnType("decimal(18,3)")
                 .IsRequired(false);
 
+            // Optional supplier-supplied expiry — passed straight through to Purchase.GrnDetail.
+            builder.Property(t => t.ExpiryDate)
+                .HasColumnName("ExpiryDate")
+                .HasColumnType("datetimeoffset")
+                .IsRequired(false);
+
             // Indexes
             builder.HasIndex(t => t.GateInwardHdrId);
             builder.HasIndex(t => t.PoId);

@@ -6,10 +6,8 @@ using QCManagement.Application.QcInspection.Commands.DeleteQcInspection;
 using QCManagement.Application.QcInspection.Commands.SaveDisposition;
 using QCManagement.Application.QcInspection.Commands.SaveParameterCollection;
 using QCManagement.Application.QcInspection.Queries.GetAllQcInspection;
-using QCManagement.Application.QcInspection.Queries.GetEligibleGrnLines;
 using QCManagement.Application.QcInspection.Queries.GetGrnQcStatus;
 using QCManagement.Application.QcInspection.Queries.GetQcInspectionById;
-using QCManagement.Application.QcInspection.Queries.ResolveSpec;
 
 namespace QCManagement.Presentation.Controllers
 {
@@ -51,28 +49,6 @@ namespace QCManagement.Presentation.Controllers
         public async Task<IActionResult> GetQcInspectionByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetQcInspectionByIdQuery { Id = id });
-            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
-        }
-
-        [HttpGet("eligible-grn-lines")]
-        public async Task<IActionResult> GetEligibleGrnLinesAsync(
-            [FromQuery] int? supplierId = null,
-            [FromQuery] DateTimeOffset? fromDate = null,
-            [FromQuery] DateTimeOffset? toDate = null)
-        {
-            var result = await Mediator.Send(new GetEligibleGrnLinesQuery
-            {
-                SupplierId = supplierId,
-                FromDate = fromDate,
-                ToDate = toDate
-            });
-            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
-        }
-
-        [HttpGet("resolve-spec/{grnDetailId}")]
-        public async Task<IActionResult> ResolveSpecAsync(int grnDetailId)
-        {
-            var result = await Mediator.Send(new ResolveSpecQuery { GrnDetailId = grnDetailId });
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 

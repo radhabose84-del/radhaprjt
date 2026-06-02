@@ -248,6 +248,38 @@ public sealed class PurchaseReturnQueryRepository : IPurchaseReturnQueryReposito
         return rows;
     }
 
+    public async Task<IReadOnlyList<PurchaseReturnPoLookupDto>> GetPosByVendorAsync(int vendorId, CancellationToken ct)
+    {
+        // POs for this vendor that have at least one GRN (goods received → returnable).
+        // GrnHeader.PartyId is the vendor; same-schema joins, so no cross-module lookup needed.
+        const string sql = @"
+            SELECT DISTINCT po.Id AS PoId, po.PONumber
+            FROM Purchase.GrnHeader gh WITH (NOLOCK)
+            JOIN Purchase.GrnDetail gd WITH (NOLOCK) ON gd.GrnId = gh.Id
+            JOIN Purchase.PurchaseOrderHeader po WITH (NOLOCK) ON po.Id = gd.PoId
+            WHERE gh.PartyId = @vendorId
+            ORDER BY po.Id DESC;";
+
+        var rows = (await _db.QueryAsync<PurchaseReturnPoLookupDto>(
+            new CommandDefinition(sql, new { vendorId }, cancellationToken: ct))).AsList();
+        return rows;
+    }
+
+    public async Task<IReadOnlyList<PurchaseReturnGrnLookupDto>> GetGrnsByVendorPoAsync(int vendorId, int poId, CancellationToken ct)
+    {
+        // GRNs for this vendor + PO (goods received → returnable). Same-schema join, no cross-module lookup.
+        const string sql = @"
+            SELECT DISTINCT gh.Id AS GrnHeaderId, gh.GrnNo, gh.GrnDate
+            FROM Purchase.GrnHeader gh WITH (NOLOCK)
+            JOIN Purchase.GrnDetail gd WITH (NOLOCK) ON gd.GrnId = gh.Id
+            WHERE gh.PartyId = @vendorId AND gd.PoId = @poId
+            ORDER BY gh.Id DESC;";
+
+        var rows = (await _db.QueryAsync<PurchaseReturnGrnLookupDto>(
+            new CommandDefinition(sql, new { vendorId, poId }, cancellationToken: ct))).AsList();
+        return rows;
+    }
+
     public async Task<bool> NotFoundAsync(int id)
     {
         const string sql = "SELECT COUNT(1) FROM Purchase.PurchaseReturnHeader WHERE Id = @id AND IsDeleted = 0;";
@@ -257,11 +289,13 @@ public sealed class PurchaseReturnQueryRepository : IPurchaseReturnQueryReposito
 
     public async Task<int?> GetStatusIdByCodeAsync(string statusCode)
     {
+        // Purchase Return uses the shared 'ApprovalStatus' MiscType (Pending/Approved/Rejected/Cancelled)
+        // so its StatusId values match the rest of the Purchase modules (PO, Indent, etc.).
         const string sql = @"
             SELECT mm.Id
             FROM Purchase.MiscMaster mm
             INNER JOIN Purchase.MiscTypeMaster mt ON mt.Id = mm.MiscTypeId
-            WHERE mt.MiscTypeCode = 'RtvStatus'
+            WHERE mt.MiscTypeCode = 'ApprovalStatus'
               AND mm.Code = @statusCode
               AND mm.IsDeleted = 0 AND mt.IsDeleted = 0;";
         return await _db.ExecuteScalarAsync<int?>(sql, new { statusCode });

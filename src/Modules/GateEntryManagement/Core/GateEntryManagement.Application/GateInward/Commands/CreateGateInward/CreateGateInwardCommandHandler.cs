@@ -210,7 +210,8 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
                     // poBackedLines is already filtered to HasValue + > 0 — safe to unwrap.
                     PoId = d.PoId!.Value,
                     PoSlNoLocal = d.PoSlNoLocal,
-                    DcQuantity = d.DcQuantity!.Value
+                    DcQuantity = d.DcQuantity!.Value,
+                    ExpiryDate = d.ExpiryDate
                 }).ToList()
             };
     }

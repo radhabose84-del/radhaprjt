@@ -32,6 +32,7 @@ namespace QCManagement.UnitTests.Application.QcInspection.Commands
             _qry.Setup(q => q.GetSpecSnapshotAsync(5)).ReturnsAsync(QcInspectionBuilders.ValidSnapshot());
             _qry.Setup(q => q.GetMaxInspectionSequenceAsync(It.IsAny<int>())).ReturnsAsync(0);
             _cmd.Setup(c => c.CreateAsync(It.IsAny<QcInspectionHdr>())).ReturnsAsync(newId);
+            _qry.Setup(q => q.GetByIdAsync(newId)).ReturnsAsync(QcInspectionBuilders.ValidDto(newId));
             _mediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
         }
@@ -45,11 +46,12 @@ namespace QCManagement.UnitTests.Application.QcInspection.Commands
         }
 
         [Fact]
-        public async Task Handle_Valid_ReturnsNewId()
+        public async Task Handle_Valid_ReturnsCreatedInspection()
         {
             SetupHappyPath(newId: 99);
             var result = await CreateSut().Handle(QcInspectionBuilders.ValidCreateCommand(), CancellationToken.None);
-            result.Data.Should().Be(99);
+            result.Data.Should().NotBeNull();
+            result.Data!.Id.Should().Be(99);
         }
 
         [Fact]
@@ -67,6 +69,7 @@ namespace QCManagement.UnitTests.Application.QcInspection.Commands
             _cmd.Setup(c => c.CreateAsync(It.IsAny<QcInspectionHdr>()))
                 .Callback<QcInspectionHdr>(e => captured = e)
                 .ReturnsAsync(88);
+            _qry.Setup(q => q.GetByIdAsync(88)).ReturnsAsync(QcInspectionBuilders.ValidDto(88));
             _mediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 

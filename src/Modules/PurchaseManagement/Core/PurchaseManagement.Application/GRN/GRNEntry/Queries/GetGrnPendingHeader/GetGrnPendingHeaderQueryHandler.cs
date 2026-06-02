@@ -5,6 +5,7 @@ using PurchaseManagement.Domain.Events;
 using MediatR;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.Gate;
 
 namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeader
 {
@@ -15,15 +16,17 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
         private readonly IMediator _mediator;
         private readonly IPartyLookup _partyLookup;
         private readonly IWarehouseLookup _warehouseLookup;
+        private readonly IGateInwardLookup _gateInwardLookup;
 
-        public GetGrnPendingHeaderQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator, 
-        IPartyLookup partyLookup, IWarehouseLookup warehouseLookup)
+        public GetGrnPendingHeaderQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator,
+        IPartyLookup partyLookup, IWarehouseLookup warehouseLookup, IGateInwardLookup gateInwardLookup)
         {
             _iGrnEntryQueryRepository = iGrnEntryQueryRepository;
             _mapper = mapper;
             _mediator = mediator;
             _partyLookup = partyLookup;
             _warehouseLookup = warehouseLookup;
+            _gateInwardLookup = gateInwardLookup;
         }
 
         
@@ -68,6 +71,21 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
         var partyResults = partyLookupResult.ToDictionary(p => p.Id, p => p);
         var warehouseResults = warehouseLookupResult.ToDictionary(w => w.Id, w => w);
 
+        // ── Cross-module: resolve GateEntryNo + GateEntryDate via the Gate lookup ──
+        // GateEntryId on the GRN row points at Gate.GateInwardHdr.Id (centralized flow).
+        // Replaces the dropped INNER JOIN to the legacy Purchase.GateEntryHeader table.
+        var gateEntryIds = pendingGrnList
+            .Where(x => x.GateEntryId > 0)
+            .Select(x => x.GateEntryId)
+            .Distinct()
+            .ToList();
+
+        var gateInwardLookupResult = gateEntryIds.Any()
+            ? await _gateInwardLookup.GetByIdsAsync(gateEntryIds, cancellationToken)
+            : Array.Empty<Contracts.Dtos.Lookups.Gate.GateInwardLookupDto>() as IReadOnlyList<Contracts.Dtos.Lookups.Gate.GateInwardLookupDto>;
+
+        var gateInwardResults = gateInwardLookupResult.ToDictionary(g => g.Id, g => g);
+
         // Enrich DTOs
         foreach (var po in pendingGrnList)
         {
@@ -90,6 +108,14 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
                 po.QcWarehouseName = qcWarehouse.WarehouseName;
             else
                 po.QcWarehouseName = "NA";
+
+            // 🚚 Gate Inward (centralized) — null when GateEntryId points at deprecated
+            // Purchase.GateEntryHeader rows or when the Gate row was soft-deleted.
+            if (po.GateEntryId > 0 && gateInwardResults.TryGetValue(po.GateEntryId, out var gateInward))
+            {
+                po.GateEntryNo = gateInward.GateEntryNo;
+                po.GateEntryDate = gateInward.GateEntryDate;
+            }
         }
              //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

@@ -318,7 +318,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                 var whereClause = "WHERE A.UnitId = @UnitId";
                 if (GrnId.HasValue) whereClause += " AND A.Id = @GrnId";
                 if (IsGrnGenerated.HasValue) whereClause += " AND A.IsGrnGenerated = @IsGrnGenerated";
-                if (IsQcGenerated.HasValue) whereClause += " AND A.IsQcApproved = @IsQcGenerated";
+                // IsQcGenerated filter — per-line semantics: "ALL detail lines QC-approved" (Decision 2).
+                if (IsQcGenerated.HasValue && IsQcGenerated.Value)
+                {
+                    whereClause += @" AND NOT EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
+                else if (IsQcGenerated.HasValue && !IsQcGenerated.Value)
+                {
+                    whereClause += @" AND EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
 
                 var query = $@"
                 WITH POMethodType AS (
@@ -351,8 +365,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         A.UnitId,
                         A.GateEntryId,
                         A.PartyId,
-                        C.GateEntryNo,
-                        C.GateEntryDate,
+                        -- GateEntryNo / GateEntryDate populated by the handler via IGateInwardLookup
+                        -- (Gate.GateInwardHdr is owned by GateEntryManagement — no cross-schema JOIN here).
                         A.InvoiceNo,
                         A.InvoiceDate,
                         A.DcNo,
@@ -365,11 +379,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         A.CreatedByName,
                         A.ModifiedDate,
                         A.ModifiedByName,
-                        A.QcRemarks,
-                        A.QcPersonName,
-                        A.QcStatusId,
-                        A.QcDate,
-                        A.IsQcApproved,
+                        -- QC display fields (QcRemarks, QcPersonName, QcStatusId, QcDate) moved per-line.
+                        -- Header IsQcApproved aggregate dropped from this parent-child view to avoid
+                        -- a CTE column-name collision with per-line B.IsQcApproved (below). The outer
+                        -- DTO's IsQcApproved stays null for this view; per-line columns are authoritative.
                         A.QcWarehouseId,
                         A.RejectedImage,
 
@@ -390,6 +403,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         B.QcAcceptedQuantity,
                         B.QcRejectedQuantity,
                         B.QcRejectedRemarks,
+                        -- Per-line QC sign-off (moved from header)
+                        B.QcPersonName,
+                        B.QcRemarks,
+                        B.QcStatusId,
+                        B.QcDate,
+                        B.QcApprovedIp,
+                        B.IsQcApproved,
                         B.GrnDetailImage,
 
                         (B.OrderQuantity - ISNULL(gs.TotalGrnQty, 0)) AS PendingQty,
@@ -398,9 +418,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
                     FROM Purchase.GrnHeader A
                     INNER JOIN Purchase.GrnDetail B ON A.Id = B.GrnId
-                    INNER JOIN Purchase.GateEntryHeader C ON A.GateEntryId = C.Id
-                    INNER JOIN Purchase.GateEntryDetail D ON C.Id = D.GateEntryHeaderId
-                    INNER JOIN Purchase.PurchaseOrderHeader E ON E.Id = D.PoId
+
+                    -- Purchase.GateEntryHeader / GateEntryDetail INNER JOINs dropped. They were
+                    -- filtering out new-flow GRNs whose GateEntryId points at Gate.GateInwardHdr.Id.
+                    -- The PO header (E) is now joined directly via B.PoId — GrnDetail already
+                    -- carries the PoId, so the previous D-mediated route was redundant.
+                    INNER JOIN Purchase.PurchaseOrderHeader E ON E.Id = B.PoId
 
                     -- ✔ Correct PO Method join (Local / Import)
                     INNER JOIN Purchase.MiscMaster MM 
@@ -499,10 +522,15 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
             if (!string.IsNullOrEmpty(SearchTerm))
             {
-                whereClause += " AND (G.GrnNo LIKE @Search OR G.Id LIKE @Search OR C.GateEntryNo LIKE @Search OR G.PartyId LIKE @Search)";
+                // Search by GateEntryNo dropped — that column was sourced from Purchase.GateEntryHeader
+                // which is no longer joined. GrnNo / GrnId / PartyId remain searchable.
+                whereClause += " AND (G.GrnNo LIKE @Search OR G.Id LIKE @Search OR G.PartyId LIKE @Search)";
                 parameters.Add("Search", $"%{SearchTerm}%");
             }
 
+            // Purchase.GateEntryHeader INNER JOINs dropped (both paged + count queries) — they
+            // filtered out new-flow GRNs whose GateEntryId points at Gate.GateInwardHdr.Id.
+            // GateEntryNo / GateEntryDate are populated by the handler via IGateInwardLookup.
             var query = $@"
                     -- =========================================
                     -- 1️⃣ MAIN PAGED RESULT
@@ -515,38 +543,37 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             G.UnitId,
                             G.GateEntryId,
                             G.PartyId,
-                            C.GateEntryNo,
-                            C.GateEntryDate,
                             G.InvoiceNo,
                             G.InvoiceDate,
                             G.DcNo,
                             G.DcDate,
                             G.ReceivingWarehouseId,
                             G.Remarks,
-                            G.QcRemarks,
-                            G.QcStatusId,
-                            G.QcPersonName,
-                            G.QcDate,
+                            -- QC display fields (QcRemarks, QcStatusId, QcPersonName, QcDate) moved per-line.
                             G.QcWarehouseId,
-                            G.IsQcApproved,
+                            -- IsQcApproved = computed OR aggregate (true if ANY detail line is QC-approved).
+                            -- Header surfaces as approved the moment the first line is signed off; the
+                            -- details view filters to only the approved lines for display.
+                            CAST(CASE WHEN EXISTS (
+                                SELECT 1 FROM Purchase.GrnDetail X
+                                WHERE X.GrnId = G.Id AND X.IsQcApproved = 1
+                            ) THEN 1 ELSE 0 END AS BIT) AS IsQcApproved,
                             G.RejectedImage,
                             ROW_NUMBER() OVER (ORDER BY G.GrnDate DESC) AS RowNum
                         FROM Purchase.GrnHeader G
                         INNER JOIN Purchase.GrnDetail D ON G.Id = D.GrnId
-                        INNER JOIN Purchase.GateEntryHeader C ON G.GateEntryId = C.Id
-                        LEFT JOIN Purchase.GrnPutAwayRule P 
-                            ON D.Id = P.GrnDetailId 
-                            AND D.GrnId = P.GrnId 
-                            AND D.PoId = P.PoId 
-                            AND D.PoSlNoLocal = P.PoSlNoLocal 
+                        LEFT JOIN Purchase.GrnPutAwayRule P
+                            ON D.Id = P.GrnDetailId
+                            AND D.GrnId = P.GrnId
+                            AND D.PoId = P.PoId
+                            AND D.PoSlNoLocal = P.PoSlNoLocal
                             AND D.ItemId = P.ItemId
                         {whereClause}
                         GROUP BY
                             G.Id, G.GrnNo, G.GrnDate, G.UnitId, G.GateEntryId, G.PartyId,
-                            C.GateEntryNo, C.GateEntryDate, G.InvoiceNo, G.InvoiceDate,
+                            G.InvoiceNo, G.InvoiceDate,
                             G.DcNo, G.DcDate, G.ReceivingWarehouseId, G.Remarks,
-                            G.QcRemarks, G.QcStatusId, G.QcPersonName, G.QcDate,
-                            G.QcWarehouseId, G.IsQcApproved, G.RejectedImage
+                            G.QcWarehouseId, G.RejectedImage
                     )
                     SELECT *
                     FROM FilteredGrn
@@ -560,12 +587,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                         SELECT G.Id
                         FROM Purchase.GrnHeader G
                         INNER JOIN Purchase.GrnDetail D ON G.Id = D.GrnId
-                        INNER JOIN Purchase.GateEntryHeader C ON G.GateEntryId = C.Id
-                        LEFT JOIN Purchase.GrnPutAwayRule P 
-                            ON D.Id = P.GrnDetailId 
-                            AND D.GrnId = P.GrnId 
-                            AND D.PoId = P.PoId 
-                            AND D.PoSlNoLocal = P.PoSlNoLocal 
+                        LEFT JOIN Purchase.GrnPutAwayRule P
+                            ON D.Id = P.GrnDetailId
+                            AND D.GrnId = P.GrnId
+                            AND D.PoId = P.PoId
+                            AND D.PoSlNoLocal = P.PoSlNoLocal
                             AND D.ItemId = P.ItemId
                         {whereClause}
                         GROUP BY G.Id
@@ -621,13 +647,28 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
             if (IsQcGenerated.HasValue)
             {
-                whereClause += " AND A.IsQcApproved = @IsQcGenerated";
-                parameters.Add("IsQcGenerated", IsQcGenerated.Value ? 1 : 0);
+                // Per-line semantics (Decision 2): "ALL detail lines QC-approved" when true; else "any line still un-approved".
+                if (IsQcGenerated.Value)
+                {
+                    whereClause += @" AND NOT EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
+                else
+                {
+                    whereClause += @" AND EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    )";
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                whereClause += " AND (A.GrnNo LIKE @SearchTerm OR A.Id LIKE @SearchTerm OR C.GateEntryNo LIKE @SearchTerm)";
+                // Search by GateEntryNo dropped — that column was sourced from Purchase.GateEntryHeader
+                // which is no longer joined. GrnNo + GrnId remain searchable.
+                whereClause += " AND (A.GrnNo LIKE @SearchTerm OR A.Id LIKE @SearchTerm)";
                 parameters.Add("SearchTerm", $"%{SearchTerm}%");
             }
 
@@ -636,7 +677,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             parameters.Add("Offset", offset);
             parameters.Add("PageSize", PageSize);
 
-            // Main query with pagination
+            // Main query with pagination.
+            // Purchase.GateEntryHeader INNER JOIN dropped — it filtered out new-flow GRNs whose
+            // GateEntryId points at Gate.GateInwardHdr.Id instead of the legacy table.
+            // GateEntryNo + GateEntryDate are populated by the handler via IGateInwardLookup
+            // (cross-module, cached) — no cross-schema JOIN here.
             var query = $@"
                 SELECT
                     A.Id AS GrnId,
@@ -645,8 +690,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                     A.UnitId,
                     A.GateEntryId,
                     A.PartyId,
-                    C.GateEntryNo,
-                    C.GateEntryDate,
                     A.InvoiceNo,
                     A.InvoiceDate,
                     A.DcNo,
@@ -659,22 +702,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                     A.CreatedByName,
                     A.ModifiedDate,
                     A.ModifiedByName,
-                    A.QcRemarks,
-                    A.QcStatusId,
-                    A.QcPersonName,
-                    A.QcDate,
+                    -- QC display fields (QcRemarks, QcStatusId, QcPersonName, QcDate) moved per-line.
                     A.QcWarehouseId,
-                    A.IsQcApproved,
+                    -- IsQcApproved = computed AND aggregate.
+                    CAST(CASE WHEN EXISTS (
+                        SELECT 1 FROM Purchase.GrnDetail X
+                        WHERE X.GrnId = A.Id AND ISNULL(X.IsQcApproved, 0) = 0
+                    ) THEN 0 ELSE 1 END AS BIT) AS IsQcApproved,
                     A.RejectedImage
                 FROM Purchase.GrnHeader A
-                INNER JOIN Purchase.GateEntryHeader C ON A.GateEntryId = C.Id
                 {whereClause}
                 ORDER BY A.CreatedDate DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT COUNT(1)
                 FROM Purchase.GrnHeader A
-                INNER JOIN Purchase.GateEntryHeader C ON A.GateEntryId = C.Id
                 {whereClause};
             ";
 
@@ -929,10 +971,17 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             //     WHERE gh.GateEntryId = geh.Id AND gh.UnitId = @UnitId
             // )
             // ORDER BY ged.PoId DESC;
+            // Restructured: query is now anchored on Purchase.PurchaseOrderHeader (poh) instead of
+            // Purchase.GateEntryHeader. Reason: GateEntryHeader/Detail are deprecated for the
+            // centralized Gate Inward flow, so the legacy version returned 0 rows for any new-flow
+            // gate inward id. The (@GateEntryId, @UnitId) values are still passed through to:
+            //   • the SELECT (echoed back so the DTO header still has GateEntryId / UnitId set)
+            //   • the NOT EXISTS check (still excludes POs already GRN'd against this gate entry)
+            // GateEntryNo + GateEntryDate are filled by the handler via IGateInwardLookup.
             var query = @"
                         WITH GrnSummary AS
                         (
-                            SELECT 
+                            SELECT
                                 PoId,
                                 ItemId,
                                 PoSlNoLocal,
@@ -940,42 +989,38 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             FROM Purchase.GrnDetail
                             GROUP BY PoId, ItemId, PoSlNoLocal
                         )
-                        SELECT 
-                            geh.Id AS GateEntryId,
-                            geh.UnitId,
+                        SELECT
+                            @GateEntryId AS GateEntryId,
+                            @UnitId      AS UnitId,
                             poh.VendorId AS PartyId,
-                            geh.GateEntryNo,
-                            geh.GateEntryDate,
+                            -- GateEntryNo / GateEntryDate populated by the handler via IGateInwardLookup
+                            -- (Gate.GateInwardHdr is owned by GateEntryManagement; no cross-schema JOIN).
 
-                            -- Local PO field (kept as-is)
+                            -- Local PO field (still kept as-is)
                             polh.IsPartialReceiptAllowed,
 
-                            ged.PoId,
+                            poh.Id       AS PoId,
                             poh.PONumber,
                             poh.POCategoryId,
                             poh.POMethodId,
 
                             -- Use Local if available, else Import
-                            COALESCE(pod.ItemSno, podi.ItemSno) AS PoSlNo,
-                            COALESCE(pod.ItemId, podi.ItemId) AS ItemId,
-                            COALESCE(pod.Quantity, podi.Quantity) AS OrderQuantity,
+                            COALESCE(pod.ItemSno, podi.ItemSno)                                  AS PoSlNo,
+                            COALESCE(pod.ItemId,  podi.ItemId)                                   AS ItemId,
+                            COALESCE(pod.Quantity, podi.Quantity)                                AS OrderQuantity,
 
-                            ISNULL(gs.TotalGrnQty, 0) AS TotalGrnQty,
-                            COALESCE(pod.Quantity, podi.Quantity) - ISNULL(gs.TotalGrnQty, 0) AS PendingQty
+                            ISNULL(gs.TotalGrnQty, 0)                                            AS TotalGrnQty,
+                            COALESCE(pod.Quantity, podi.Quantity) - ISNULL(gs.TotalGrnQty, 0)    AS PendingQty
 
-                        FROM Purchase.GateEntryHeader geh
-                        INNER JOIN Purchase.GateEntryDetail ged 
-                            ON geh.Id = ged.GateEntryHeaderId
-                        INNER JOIN Purchase.PurchaseOrderHeader poh 
-                            ON ged.PoId = poh.Id
+                        FROM Purchase.PurchaseOrderHeader poh
 
                         -- Existing Local PO joins (unchanged)
-                        LEFT JOIN Purchase.PurchaseLocalHeader polh 
+                        LEFT JOIN Purchase.PurchaseLocalHeader polh
                             ON poh.Id = polh.PurchaseOrderId
-                        LEFT JOIN Purchase.PurchaseLocalDetail pod 
+                        LEFT JOIN Purchase.PurchaseLocalDetail pod
                             ON polh.Id = pod.PurchaseLocalId
 
-                        --  Added Import PO joins (does NOT change Local PO logic)
+                        -- Import PO joins (does NOT change Local PO logic)
                         LEFT JOIN Purchase.PurchaseOrderImportHeader poih
                             ON poh.Id = poih.PurchaseOrderId
                         LEFT JOIN Purchase.PurchaseOrderImportDetail podi
@@ -983,27 +1028,23 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
 
                         -- Grn Summary join (support both Local & Import)
                         LEFT JOIN GrnSummary gs
-                            ON gs.PoId = ged.PoId
-                            AND gs.ItemId = COALESCE(pod.ItemId, podi.ItemId)
-                            AND gs.PoSlNoLocal = COALESCE(pod.ItemSno, podi.ItemSno)
+                            ON gs.PoId       = poh.Id
+                           AND gs.ItemId     = COALESCE(pod.ItemId,  podi.ItemId)
+                           AND gs.PoSlNoLocal= COALESCE(pod.ItemSno, podi.ItemSno)
 
-                        WHERE geh.IsDeleted = 0
-                        AND geh.IsActive = 1
-                        AND geh.UnitId = @UnitId
-                        AND poh.VendorId = @PartyId
-                        AND ged.PoId = @PoId
-                        AND geh.Id = @GateEntryId
-                        AND poh.IsDeleted = 0
+                        WHERE poh.VendorId  = @PartyId
+                          AND poh.Id        = @PoId
+                          AND poh.IsDeleted = 0
 
-                        -- Keep same NOT EXISTS logic
+                        -- Same exclusion semantics: skip POs already GRN'd against THIS gate entry
                         AND NOT EXISTS (
                                 SELECT 1
                                 FROM Purchase.GrnHeader gh
-                                WHERE gh.GateEntryId = geh.Id AND gh.UnitId = @UnitId
+                                WHERE gh.GateEntryId = @GateEntryId
+                                  AND gh.UnitId      = @UnitId
                         )
 
-                        ORDER BY ged.PoId DESC;
-
+                        ORDER BY poh.Id DESC;
                 ";
 
             var grnDict = new Dictionary<int, GetGrnPendingDto>();
@@ -1078,66 +1119,68 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             //             WHERE gh.GateEntryId = geh.Id AND gh.UnitId = @UnitId
             //         )
             //         ORDER BY ged.PoId DESC;
+            // Tolerance check is source-agnostic: it only needs OrderQuantity (from PO line),
+            // accumulated TotalGrnQty (from past GrnDetail rows), and IsPartialReceiptAllowed.
+            // Previously this query INNER-joined Purchase.GateEntryHeader/Detail and added a
+            // NOT EXISTS against Purchase.GrnHeader by GateEntryId. Both were structurally wrong
+            // — they tied tolerance to a gate-entry record that the centralized GateInward flow
+            // doesn't populate, so the query silently returned 0 rows and the validator's
+            // ".Any()" guard skipped the check entirely. Rewritten below to UNION the LPO + IPO
+            // line tables and join GRN totals directly to the PO line.
             var query = @"
-                        WITH GrnSummary AS
-                        (
-                            SELECT 
-                                PoId,
-                                ItemId,
-                                PoSlNoLocal,
-                                SUM(DcQuantity) AS TotalGrnQty
-                            FROM Purchase.GrnDetail
-                            GROUP BY PoId, ItemId, PoSlNoLocal
-                        )
-                        SELECT 
-                            ged.PoId,
-                            pod.ItemSno AS PoSlNo,
-                            pod.ItemId,
-                            pod.Quantity AS OrderQuantity,
-                            ISNULL(gs.TotalGrnQty, 0) AS TotalGrnQty,
-                            pod.Quantity - ISNULL(gs.TotalGrnQty, 0) AS PendingQty,
-                            polh.IsPartialReceiptAllowed
-                        FROM Purchase.GateEntryHeader geh
-                        INNER JOIN Purchase.GateEntryDetail ged 
-                            ON geh.Id = ged.GateEntryHeaderId
-                        INNER JOIN Purchase.PurchaseOrderHeader poh 
-                            ON ged.PoId = poh.Id
+                WITH GrnSummary AS
+                (
+                    SELECT PoId, ItemId, PoSlNoLocal, SUM(DcQuantity) AS TotalGrnQty
+                    FROM Purchase.GrnDetail
+                    GROUP BY PoId, ItemId, PoSlNoLocal
+                ),
+                PoLines AS
+                (
+                    -- Local PO lines
+                    SELECT
+                        poh.Id          AS PoId,
+                        pod.ItemSno     AS PoSlNo,
+                        pod.ItemId,
+                        pod.Quantity    AS OrderQuantity,
+                        polh.IsPartialReceiptAllowed,
+                        poh.VendorId,
+                        poh.IsDeleted   AS PoIsDeleted
+                    FROM Purchase.PurchaseOrderHeader poh
+                    INNER JOIN Purchase.PurchaseLocalHeader polh ON poh.Id = polh.PurchaseOrderId
+                    INNER JOIN Purchase.PurchaseLocalDetail  pod  ON polh.Id = pod.PurchaseLocalId
 
-                        -- Local PO
-                        INNER JOIN Purchase.PurchaseLocalHeader polh 
-                            ON poh.Id = polh.PurchaseOrderId
-                        INNER JOIN Purchase.PurchaseLocalDetail pod 
-                            ON polh.Id = pod.PurchaseLocalId
-
-                        -- Import PO (added without affecting logic)
-                        LEFT JOIN Purchase.PurchaseOrderImportHeader imh 
-                            ON poh.Id = imh.PurchaseOrderId
-                        LEFT JOIN Purchase.PurchaseOrderImportDetail imd 
-                            ON imh.Id = imd.PurchaseHeaderId
-                            AND imd.ItemSno = pod.ItemSno   -- align line numbers
-                            AND imd.ItemId = pod.ItemId
-
-                        LEFT JOIN GrnSummary gs
-                            ON gs.PoId = ged.PoId
-                            AND gs.ItemId = pod.ItemId
-                            AND gs.PoSlNoLocal = pod.ItemSno
-
-                        WHERE geh.IsDeleted = 0
-                        AND geh.IsActive = 1
-                        AND geh.UnitId = @UnitId
-                        AND poh.VendorId = @PartyId
-                        AND ged.PoId = @PoId
-                        AND pod.ItemSno= @PoSlNo
-                        AND poh.IsDeleted = 0
-                        AND NOT EXISTS (
-                                SELECT 1
-                                FROM Purchase.GrnHeader gh
-                                WHERE gh.GateEntryId = geh.Id 
-                                AND gh.UnitId = @UnitId
-                            )
-                        ORDER BY ged.PoId DESC;
-
-                                ";
+                    UNION ALL
+                    -- Import PO lines
+                    SELECT
+                        poh.Id           AS PoId,
+                        poid.ItemSno     AS PoSlNo,
+                        poid.ItemId,
+                        poid.Quantity    AS OrderQuantity,
+                        poih.IsPartialReceiptAllowed,
+                        poh.VendorId,
+                        poh.IsDeleted    AS PoIsDeleted
+                    FROM Purchase.PurchaseOrderHeader poh
+                    INNER JOIN Purchase.PurchaseOrderImportHeader poih ON poh.Id  = poih.PurchaseOrderId
+                    INNER JOIN Purchase.PurchaseOrderImportDetail  poid ON poih.Id = poid.PurchaseHeaderId
+                )
+                SELECT
+                    pl.PoId,
+                    pl.PoSlNo,
+                    pl.ItemId,
+                    pl.OrderQuantity,
+                    ISNULL(gs.TotalGrnQty, 0)                       AS TotalGrnQty,
+                    pl.OrderQuantity - ISNULL(gs.TotalGrnQty, 0)    AS PendingQty,
+                    pl.IsPartialReceiptAllowed
+                FROM   PoLines pl
+                LEFT JOIN GrnSummary gs
+                       ON gs.PoId        = pl.PoId
+                      AND gs.ItemId      = pl.ItemId
+                      AND gs.PoSlNoLocal = pl.PoSlNo
+                WHERE pl.PoId      = @PoId
+                  AND pl.PoSlNo    = @PoSlNo
+                  AND pl.VendorId  = @PartyId
+                  AND pl.PoIsDeleted = 0;
+            ";
 
             var result = await _dbConnection.QueryAsync<ValidateToleranceDto>(
                 query,
@@ -1288,8 +1331,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                                 A.GateEntryId,
                                 A.PartyId,
 
-                                C.GateEntryNo,
-                                C.GateEntryDate,
+                                -- GateEntryNo / GateEntryDate populated by the handler via IGateInwardLookup
+                                -- (Gate.GateInwardHdr is owned by a different module).
 
                                 A.InvoiceNo,
                                 A.InvoiceDate,
@@ -1303,11 +1346,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                                 A.CreatedByName,
                                 A.ModifiedDate,
                                 A.ModifiedByName,
-                                A.QcRemarks,
-                                A.QcPersonName,
-                                A.QcStatusId,
-                                A.QcDate,
-                                A.IsQcApproved,
+                                -- QC display fields (QcRemarks, QcPersonName, QcStatusId, QcDate) moved per-line.
+                                -- Header IsQcApproved aggregate dropped from this view — the WHERE-clause
+                                -- semantics already constrain to QC-completed rows; per-line columns below speak for themselves.
                                 A.QcWarehouseId,
                                 A.RejectedImage,
 
@@ -1320,6 +1361,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                                 B.DcQuantity,
                                 B.ReceivedQuantity,
                                 B.QcAcceptedQuantity,
+                                -- Per-line QC sign-off (moved from header)
+                                B.QcPersonName,
+                                B.QcRemarks,
+                                B.QcStatusId,
+                                B.QcDate,
+                                B.QcApprovedIp,
+                                B.IsQcApproved,
                                 B.GrnDetailImage,
 
                                 ISNULL(
@@ -1336,13 +1384,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             FROM Purchase.GrnHeader A
                             INNER JOIN Purchase.GrnDetail B ON A.Id = B.GrnId
 
-                            INNER JOIN Purchase.GateEntryHeader C 
-                                ON A.GateEntryId = C.Id
+                            -- Purchase.GateEntryHeader / GateEntryDetail INNER JOINs dropped — they were
+                            -- transitively filtering out new-flow GRNs whose GateEntryId points at
+                            -- Gate.GateInwardHdr.Id. GateEntryDetail D was unused in SELECT/WHERE.
 
-                            INNER JOIN Purchase.GateEntryDetail D 
-                                ON C.Id = D.GateEntryHeaderId
-
-                            INNER JOIN Purchase.PurchaseOrderHeader E 
+                            INNER JOIN Purchase.PurchaseOrderHeader E
                                 ON E.Id = B.PoId
 
                             LEFT JOIN Purchase.PurchaseLocalHeader F 
@@ -1370,6 +1416,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                             {whereClause}
                                 AND E.IsDeleted = 0
                                 AND B.QcAcceptedQuantity > 0
+                                AND B.IsQcApproved = 1  -- only QC-approved lines surface (OR semantics — header is approved if any line is, but only approved lines are listed)
                                 AND P.Id IS NULL
                         )
 

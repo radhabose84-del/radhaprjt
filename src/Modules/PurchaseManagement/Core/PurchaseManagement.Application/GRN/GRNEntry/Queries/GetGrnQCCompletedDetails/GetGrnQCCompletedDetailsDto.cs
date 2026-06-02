@@ -19,11 +19,10 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnQCCompletedD
         public int? ReceivingWarehouseId { get; set; }
         public string? ReceivingWarehouseName { get; set; }
         public string? Remarks { get; set; }
-        public string? QcRemarks { get; set; }
-        public string? QcPersonName { get; set; }
-        public DateTimeOffset? QcDate { get; set; }
+        // QC display fields (QcRemarks, QcPersonName, QcDate, QcStatusId) moved per-line.
         public int? QcWarehouseId { get; set; }
         public string? QcWarehouseName { get; set; }
+        // Computed OR aggregate: true if ANY detail line is QC-approved.
         public bool? IsQcApproved { get; set; }
         public string? RejectedImage { get; set; }
        

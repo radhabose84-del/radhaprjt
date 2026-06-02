@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Microsoft.Data.SqlClient;
@@ -15,7 +16,8 @@ public sealed class PurchaseReturnRepositoryTests
     private PurchaseReturnCommandRepository CreateCommandRepo()
     {
         var ctx = _fixture.CreateFreshDbContext();
-        return new PurchaseReturnCommandRepository(ctx);
+        var docSeqLookup = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose).Object;
+        return new PurchaseReturnCommandRepository(ctx, docSeqLookup);
     }
 
     private PurchaseReturnQueryRepository CreateQueryRepo()
@@ -66,5 +68,21 @@ public sealed class PurchaseReturnRepositoryTests
         await _fixture.ClearAllTablesAsync();
         var notFound = await CreateQueryRepo().NotFoundAsync(9999);
         notFound.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetPosByVendorAsync_Should_Return_Empty_When_NoData()
+    {
+        await _fixture.ClearAllTablesAsync();
+        var result = await CreateQueryRepo().GetPosByVendorAsync(9999, CancellationToken.None);
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetGrnsByVendorPoAsync_Should_Return_Empty_When_NoData()
+    {
+        await _fixture.ClearAllTablesAsync();
+        var result = await CreateQueryRepo().GetGrnsByVendorPoAsync(9999, 9999, CancellationToken.None);
+        result.Should().BeEmpty();
     }
 }

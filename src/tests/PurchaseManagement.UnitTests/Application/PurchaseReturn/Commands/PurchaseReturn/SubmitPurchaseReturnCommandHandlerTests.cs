@@ -20,9 +20,9 @@ public sealed class SubmitPurchaseReturnCommandHandlerTests
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockOutbox.Object, _mockIp.Object, _mockMediator.Object);
 
     [Fact]
-    public async Task Handle_DraftRtv_ReturnsTrue()
+    public async Task Handle_PendingRtv_ReturnsTrue()
     {
-        _mockQueryRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(PurchaseReturnBuilders.ValidHeaderDto(1, "Draft"));
+        _mockQueryRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(PurchaseReturnBuilders.ValidHeaderDto(1, "Pending"));
         _mockQueryRepo.Setup(r => r.GetStatusIdByCodeAsync(It.IsAny<string>())).ReturnsAsync(2);
         _mockQueryRepo.Setup(r => r.GetReturnTypeApprovalRoleCodeAsync(It.IsAny<int>())).ReturnsAsync("QcHead");
         _mockCommandRepo.Setup(r => r.SetStatusAsync(1, 2, It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -41,11 +41,11 @@ public sealed class SubmitPurchaseReturnCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_NotDraft_ThrowsExceptionRules()
+    public async Task Handle_NotPending_ThrowsExceptionRules()
     {
         _mockQueryRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(PurchaseReturnBuilders.ValidHeaderDto(1, "Approved"));
 
         Func<Task> act = async () => await CreateSut().Handle(PurchaseReturnBuilders.ValidSubmitCommand(1), CancellationToken.None);
-        await act.Should().ThrowAsync<ExceptionRules>().WithMessage("*Draft*");
+        await act.Should().ThrowAsync<ExceptionRules>().WithMessage("*Pending*");
     }
 }

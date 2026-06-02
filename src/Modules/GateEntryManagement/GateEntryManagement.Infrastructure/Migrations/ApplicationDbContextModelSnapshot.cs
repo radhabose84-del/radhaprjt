@@ -36,6 +36,10 @@ namespace GateEntryManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("DcQuantity");
 
+                    b.Property<DateTimeOffset?>("ExpiryDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ExpiryDate");
+
                     b.Property<int>("GateInwardHdrId")
                         .HasColumnType("int")
                         .HasColumnName("GateInwardHdrId");

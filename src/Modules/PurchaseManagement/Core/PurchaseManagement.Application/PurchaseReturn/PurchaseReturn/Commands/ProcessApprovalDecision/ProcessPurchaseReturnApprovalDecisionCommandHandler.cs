@@ -29,8 +29,8 @@ public sealed class ProcessPurchaseReturnApprovalDecisionCommandHandler
         if (currentStatus == null)
             throw new ExceptionRules("Purchase Return not found.");
 
-        // Idempotency: ignore if not currently PendingApproval
-        if (!string.Equals(currentStatus, MiscEnumEntity.RtvPendingApproval, StringComparison.OrdinalIgnoreCase))
+        // Idempotency: ignore if not currently Pending (shared ApprovalStatus)
+        if (!string.Equals(currentStatus, MiscEnumEntity.Pending, StringComparison.OrdinalIgnoreCase))
             return false;
 
         var targetCode = request.IsApproved ? MiscEnumEntity.Approved : MiscEnumEntity.Rejected;

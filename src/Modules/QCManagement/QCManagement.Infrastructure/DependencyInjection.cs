@@ -23,8 +23,10 @@ using QCManagement.Infrastructure.Repositories.QualityParameter;
 using QCManagement.Infrastructure.Repositories.QcInspection;
 using QCManagement.Infrastructure.Repositories.QualitySpecification;
 using QCManagement.Infrastructure.Repositories.QualityTemplate;
+using QCManagement.Infrastructure.Repositories.Lookups;
 using QCManagement.Infrastructure.Logging;
 using QCManagement.Infrastructure.Services;
+using Contracts.Interfaces.Lookups.QC;
 using Serilog;
 
 namespace QCManagement.Infrastructure
@@ -122,6 +124,11 @@ namespace QCManagement.Infrastructure
             // ── QualitySpecification ─────────────────────────────────────────
             services.AddScoped<IQualitySpecificationCommandRepository, QualitySpecificationCommandRepository>();
             services.AddScoped<IQualitySpecificationQueryRepository, QualitySpecificationQueryRepository>();
+
+            // Cross-module lookup — Purchase GRN flags lines that have a QC template available
+            // (by ItemId or ItemCategoryId) within the EffectiveFrom/EffectiveTo window.
+            // Cached automatically by AddLookupCaching() (interface name ends with "Lookup").
+            services.AddScoped<IQualitySpecificationLookup, QualitySpecificationLookupRepository>();
 
             // ── QcInspection (SCRUM-1667) ────────────────────────────────────
             services.AddScoped<IQcInspectionCommandRepository, QcInspectionCommandRepository>();

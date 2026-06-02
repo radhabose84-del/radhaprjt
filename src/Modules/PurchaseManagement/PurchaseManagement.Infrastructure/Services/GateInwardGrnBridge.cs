@@ -84,7 +84,7 @@ namespace PurchaseManagement.Infrastructure.Services
                     UpperTolerance = e.UpperTolerance,
                     LowerTolerance = e.LowerTolerance,
                     ReceivedQuantity = line.DcQuantity,   // default per design
-                    ExpiryDate = null,
+                    ExpiryDate = line.ExpiryDate,         // user-supplied; null = unknown
                     BatchNumber = null,
                     GrnDetailImage = null
                 });

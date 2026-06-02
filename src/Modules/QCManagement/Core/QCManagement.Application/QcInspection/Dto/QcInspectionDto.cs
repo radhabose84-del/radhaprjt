@@ -77,7 +77,10 @@ namespace QCManagement.Application.QcInspection.Dto
         public List<string> AllowedValues { get; set; } = new();
         public int SeverityId { get; set; }
         public string? SeverityCode { get; set; }
+        public string? SeverityName { get; set; }
         public int FailureActionId { get; set; }
+        public string? FailureActionCode { get; set; }
+        public string? FailureActionName { get; set; }
         public int SortOrder { get; set; }
         public string? ActualValue { get; set; }
         public string? InspectionResult { get; set; }

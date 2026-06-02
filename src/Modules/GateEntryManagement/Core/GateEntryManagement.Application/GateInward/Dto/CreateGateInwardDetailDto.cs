@@ -14,5 +14,6 @@ namespace GateEntryManagement.Application.GateInward.Dto
         public int? PoId { get; set; }
         public int? PoSlNoLocal { get; set; }
         public decimal? DcQuantity { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
     }
 }

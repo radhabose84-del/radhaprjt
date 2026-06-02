@@ -150,31 +150,38 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
                 existingHeader.IsGrnGenerated = grnHeader.IsGrnGenerated;
             }
 
-            // QC Stage: update only if QC not approved yet
-            if (!existingHeader.IsQcApproved && existingHeader.IsGrnGenerated)
+            // QC Stage: QC sign-off is now per-line (header-level QC columns moved to GrnDetail).
+            // Per-line gating "don't re-approve an already-approved line" replaces the prior
+            // header-level gate.
+            if (existingHeader.IsGrnGenerated)
             {
-                existingHeader.QcRemarks = grnHeader.QcRemarks;
-                existingHeader.QcPersonName = _ipAddressService.GetUserName();
-                existingHeader.QcStatusId = grnHeader.QcStatusId;
-                existingHeader.QcDate = DateTimeOffset.Now;
-                existingHeader.QcApprovedIp = _ipAddressService.GetUserIPAddress();
                 existingHeader.QcWarehouseId = grnHeader.QcWarehouseId;
                 existingHeader.RejectedImage = grnHeader.RejectedImage;
 
+                var userName = _ipAddressService.GetUserName();
+                var userIp = _ipAddressService.GetUserIPAddress();
 
-                // Always update GRN details
                 foreach (var detailDto in grnHeader.GrnDetails)
                 {
                     var existingDetail = existingHeader.GrnDetails.FirstOrDefault(d => d.Id == detailDto.Id && d.GrnId == Id && d.PoId == detailDto.PoId && d.PoSlNoLocal == detailDto.PoSlNoLocal);
-                    if (existingDetail != null)
+                    if (existingDetail == null) continue;
+
+                    // Qty / remarks always updatable while header is in QC stage.
+                    existingDetail.QcAcceptedQuantity = detailDto.QcAcceptedQuantity;
+                    existingDetail.QcRejectedQuantity = detailDto.QcRejectedQuantity;
+                    existingDetail.QcRejectedRemarks = detailDto.QcRejectedRemarks;
+
+                    // Per-line QC sign-off only updates on lines not already approved.
+                    if (!existingDetail.IsQcApproved)
                     {
-                        existingDetail.QcAcceptedQuantity = detailDto.QcAcceptedQuantity;
-                        existingDetail.QcRejectedQuantity = detailDto.QcRejectedQuantity;
-                        existingDetail.QcRejectedRemarks = detailDto.QcRejectedRemarks;
+                        existingDetail.QcRemarks    = detailDto.QcRemarks;
+                        existingDetail.QcPersonName = userName;
+                        existingDetail.QcStatusId   = detailDto.QcStatusId;
+                        existingDetail.QcDate       = DateTimeOffset.Now;
+                        existingDetail.QcApprovedIp = userIp;
+                        existingDetail.IsQcApproved = detailDto.IsQcApproved;
                     }
                 }
-
-                existingHeader.IsQcApproved = grnHeader.IsQcApproved; // always update flag
             }
 
             _applicationDbContext.GrnHeader.Update(existingHeader);
@@ -290,32 +297,38 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             }
 
             // --------------------------
-            // 2) QC UPDATE (Only QC values)
+            // 2) QC UPDATE — per-line (sign-off fields moved from header to GrnDetail)
             // --------------------------
-            if (!existingHeader.IsQcApproved && existingHeader.IsGrnGenerated)
+            if (existingHeader.IsGrnGenerated)
             {
-                existingHeader.QcRemarks = grnHeader.QcRemarks;
-                existingHeader.QcPersonName = _ipAddressService.GetUserName();
-                existingHeader.QcStatusId = grnHeader.QcStatusId;
-                existingHeader.QcDate = DateTimeOffset.Now;
-                existingHeader.QcApprovedIp = _ipAddressService.GetUserIPAddress();
                 existingHeader.QcWarehouseId = grnHeader.QcWarehouseId;
                 existingHeader.RejectedImage = grnHeader.RejectedImage;
 
-                // Update QC values
+                var userName = _ipAddressService.GetUserName();
+                var userIp = _ipAddressService.GetUserIPAddress();
+
                 foreach (var dto in detailDtos)
                 {
                     var detail = existingHeader.GrnDetails.FirstOrDefault(d => d.Id == dto.Id);
-                    if (detail != null)
+                    if (detail == null) continue;
+
+                    // Qty / remarks / expiry always updatable while header is in QC stage.
+                    detail.QcAcceptedQuantity = dto.QcAcceptedQuantity ?? 0;
+                    detail.QcRejectedQuantity = dto.QcRejectedQuantity ?? 0;
+                    detail.QcRejectedRemarks  = dto.QcRejectedRemarks;
+                    detail.ExpiryDate         = dto.ExpiryDate;
+
+                    // Per-line QC sign-off only updates on lines not already approved.
+                    if (!detail.IsQcApproved)
                     {
-                        detail.QcAcceptedQuantity = dto.QcAcceptedQuantity ?? 0;
-                        detail.QcRejectedQuantity = dto.QcRejectedQuantity ?? 0;
-                        detail.QcRejectedRemarks = dto.QcRejectedRemarks;
-                        detail.ExpiryDate = dto.ExpiryDate;
+                        detail.QcRemarks    = dto.QcRemarks;
+                        detail.QcPersonName = userName;
+                        detail.QcStatusId   = dto.QcStatusId;
+                        detail.QcDate       = DateTimeOffset.Now;
+                        detail.QcApprovedIp = userIp;
+                        detail.IsQcApproved = dto.IsQcApproved == 1;
                     }
                 }
-
-                existingHeader.IsQcApproved = grnHeader.IsQcApproved;
             }
 
             _applicationDbContext.GrnHeader.Update(existingHeader);

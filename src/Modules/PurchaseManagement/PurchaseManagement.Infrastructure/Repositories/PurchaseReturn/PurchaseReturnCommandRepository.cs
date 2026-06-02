@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseReturn;
@@ -10,13 +11,15 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseReturn;
 public sealed class PurchaseReturnCommandRepository : IPurchaseReturnCommandRepository
 {
     private readonly ApplicationDbContext _db;
+    private readonly IDocumentSequenceLookup _documentSequenceLookup;
 
-    public PurchaseReturnCommandRepository(ApplicationDbContext db)
+    public PurchaseReturnCommandRepository(ApplicationDbContext db, IDocumentSequenceLookup documentSequenceLookup)
     {
         _db = db;
+        _documentSequenceLookup = documentSequenceLookup;
     }
 
-    public async Task<PurchaseReturnHeader> CreateAsync(PurchaseReturnHeader entity, CancellationToken ct)
+    public async Task<PurchaseReturnHeader> CreateAsync(PurchaseReturnHeader entity, int transactionTypeId, CancellationToken ct)
     {
         var strategy = _db.Database.CreateExecutionStrategy();
         PurchaseReturnHeader saved = null!;
@@ -28,6 +31,13 @@ public sealed class PurchaseReturnCommandRepository : IPurchaseReturnCommandRepo
             {
                 _db.Set<PurchaseReturnHeader>().Add(entity);
                 await _db.SaveChangesAsync(ct);
+
+                // Advance the document sequence in the SAME transaction as the insert so
+                // the RtvNumber just consumed can never be reused. Without this the DocNo
+                // stays put and every Purchase Return is generated with the same number.
+                var dbTx = tx.GetDbTransaction();
+                await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, dbTx.Connection!, dbTx);
+
                 await tx.CommitAsync(ct);
                 saved = entity;
             }
