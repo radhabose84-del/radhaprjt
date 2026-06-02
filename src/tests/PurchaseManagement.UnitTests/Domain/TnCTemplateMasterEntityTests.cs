@@ -32,19 +32,17 @@ namespace PurchaseManagement.UnitTests.Domain
             var entity = new TnCTemplateMaster
             {
                 Id = 1,
-                TemplateCode = "TNC001",
+                TemplateCode = "PO-00001",
                 TemplateName = "Test Template",
-                TemplateTypeId = 1,
-                TermsHtml = "<p>Terms</p>",
-                ApprovalFlag = true
+                ModuleId = 1,
+                TermsHtml = "<p>Terms</p>"
             };
 
             entity.Id.Should().Be(1);
-            entity.TemplateCode.Should().Be("TNC001");
+            entity.TemplateCode.Should().Be("PO-00001");
             entity.TemplateName.Should().Be("Test Template");
-            entity.TemplateTypeId.Should().Be(1);
+            entity.ModuleId.Should().Be(1);
             entity.TermsHtml.Should().Be("<p>Terms</p>");
-            entity.ApprovalFlag.Should().BeTrue();
         }
 
         [Fact]
@@ -53,12 +51,10 @@ namespace PurchaseManagement.UnitTests.Domain
             var entity = new TnCTemplateMaster
             {
                 TemplateCode = null,
-                ApprovalFlag = null,
                 Applicabilities = null
             };
 
             entity.TemplateCode.Should().BeNull();
-            entity.ApprovalFlag.Should().BeNull();
             entity.Applicabilities.Should().BeNull();
         }
     }

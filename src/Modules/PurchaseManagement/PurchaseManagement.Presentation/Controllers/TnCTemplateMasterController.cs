@@ -91,10 +91,10 @@ namespace PurchaseManagement.Presentation.Controllers
         }  
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetPaymentTermMaster([FromQuery] int? templateTypeId,    [FromQuery] int? applicabilityId,    [FromQuery] string? searchPattern)
+        public async Task<IActionResult> GetPaymentTermMaster([FromQuery] int? moduleId,    [FromQuery] int? transactionTypeId,    [FromQuery] string? searchPattern)
         {
-          
-            var tncTemplateMaster = await Mediator.Send(new TnCTemplateAutoCompleteQuery { TemplateTypeId  = templateTypeId, ApplicabilityId = applicabilityId, SearchPattern   = searchPattern});
+
+            var tncTemplateMaster = await Mediator.Send(new TnCTemplateAutoCompleteQuery { ModuleId  = moduleId, TransactionTypeId = transactionTypeId, SearchPattern   = searchPattern});
             
             return Ok( new { StatusCode=StatusCodes.Status200OK, data = tncTemplateMaster });
             

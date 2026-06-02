@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
@@ -34,6 +35,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly IPartyBankLookup _partyBankLookup;
         private readonly IEInvoiceLookup _eInvoiceLookup;
         private readonly IEWaybillLookup _eWaybillLookup;
+        private readonly ITransactionTypeLookup _transactionTypeLookup;
+        private readonly ITnCTemplateLookup _tncTemplateLookup;
 
         public InvoiceQueryRepository(
             IDbConnection dbConnection,
@@ -52,7 +55,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             IPartyDetailLookup partyDetailLookup,
             IPartyBankLookup partyBankLookup,
             IEInvoiceLookup eInvoiceLookup,
-            IEWaybillLookup eWaybillLookup)
+            IEWaybillLookup eWaybillLookup,
+            ITransactionTypeLookup transactionTypeLookup,
+            ITnCTemplateLookup tncTemplateLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -71,6 +76,8 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _partyBankLookup = partyBankLookup;
             _eInvoiceLookup = eInvoiceLookup;
             _eWaybillLookup = eWaybillLookup;
+            _transactionTypeLookup = transactionTypeLookup;
+            _tncTemplateLookup = tncTemplateLookup;
         }
 
         public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? status = null)
@@ -1110,6 +1117,9 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 };
             }
 
+            // Terms & Conditions matched to the invoice transaction type (cross-module via lookups)
+            var termsHtml = await FetchTermsHtmlAsync();
+
             return new InvoicePrintDto
             {
                 Company = companyDto,
@@ -1121,8 +1131,24 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 Consignee = consigneeDto,
                 Items = printItems,
                 Totals = totalsDto,
-                Bank = bankDto
+                Bank = bankDto,
+                TermsHtml = termsHtml
             };
+        }
+
+        // Resolves the active T&C template's TermsHtml for an invoice by mapping the invoice to the
+        // "Invoice" Finance transaction type (name → id via lookup), then reading the Purchase-owned
+        // template via ITnCTemplateLookup. No cross-module/cross-schema SQL.
+        private async Task<string?> FetchTermsHtmlAsync()
+        {
+            var transactionTypes = await _transactionTypeLookup.GetAllTransactionTypeAsync();
+            var transactionType = transactionTypes.FirstOrDefault(t =>
+                string.Equals(t.TypeName, MiscEnumEntity.TransactionTypeInvoice, StringComparison.OrdinalIgnoreCase));
+            if (transactionType == null)
+                return null;
+
+            var template = await _tncTemplateLookup.GetByTransactionTypeAsync(transactionType.Id);
+            return template?.TermsHtml;
         }
 
 

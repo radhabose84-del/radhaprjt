@@ -15,6 +15,21 @@ namespace Contracts.Interfaces.Lookups.Budget
             int? financialYearId,
             CancellationToken ct = default);
 
+        /// <summary>
+        /// Approved + remaining allocation for a budget group/period. Used to compute
+        /// "% utilised" = (Approved - Remaining) / Approved and the Positive/Negative flag.
+        /// Returns null when no matching allocation row exists.
+        /// </summary>
+        Task<BudgetAllocationSummaryDto?> GetAllocationSummaryAsync(
+            int budgetGroupId,
+            DateOnly budgetDate,
+            int monthId,
+            int requestById,
+            int? projectId,
+            int? wbsId,
+            int? financialYearId,
+            CancellationToken ct = default);
+
         Task<bool> ApplyRemainingBalanceDeltaAsync(
             int budgetGroupId,
             DateOnly budgetDate,

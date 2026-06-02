@@ -8,6 +8,7 @@ using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -87,6 +88,12 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
             var eInvoice = new Mock<IEInvoiceLookup>(MockBehavior.Loose);
             var eWaybill = new Mock<IEWaybillLookup>(MockBehavior.Loose);
 
+            var transactionType = new Mock<ITransactionTypeLookup>(MockBehavior.Loose);
+            transactionType.Setup(t => t.GetAllTransactionTypeAsync())
+                .ReturnsAsync(new List<TransactionTypeLookupDto>());
+
+            var tncTemplate = new Mock<ITnCTemplateLookup>(MockBehavior.Loose);
+
             return new InvoiceQueryRepository(
                 new SqlConnection(_fixture.ConnectionString),
                 party.Object,
@@ -104,7 +111,9 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
                 partyDetail.Object,
                 partyBank.Object,
                 eInvoice.Object,
-                eWaybill.Object);
+                eWaybill.Object,
+                transactionType.Object,
+                tncTemplate.Object);
         }
 
         // ──────────────────────────────────────────────
