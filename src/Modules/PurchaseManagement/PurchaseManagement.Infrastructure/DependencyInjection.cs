@@ -204,10 +204,11 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<Contracts.Interfaces.Gate.IPendingReferenceDocResolver, Repositories.GateInward.LocalPoPendingResolver>();
             services.AddScoped<Contracts.Interfaces.Gate.IPendingReferenceDocResolver, Repositories.GateInward.ImportPoPendingResolver>();
 
-            // Cross-module bridge — Gate Inward saves trigger GRN creation through the existing
-            // CreateGRNEntryCommand pipeline (no changes to GRN module). Pre-validation runs
-            // before Gate persists, so a tolerance breach aborts the Gate save.
-            services.AddScoped<Contracts.Interfaces.Purchase.IGateInwardGrnBridge, Services.GateInwardGrnBridge>();
+            // Cross-module bridge (IGateInwardGrnBridge) registration moved to
+            // PurchaseManagement.Module.ModuleExtensions — it depends on IValidator<CreateGRNEntryCommand>
+            // which is only registered by AddValidatorsFromAssembly in the Module project. Registering
+            // the bridge here breaks DI build-time validation in BSOFT.Worker (which loads Infrastructure
+            // only, not the Presentation validators) and the Worker never invokes the bridge anyway.
             services.AddScoped<IPurchaseIndentCommand, PurchaseIndentCommandRepository>();
             services.AddScoped<ILogServiceCommand, LogServiceCommandRepository>();
             services.AddScoped<IPurchaseIndentQuery, PurchaseIndentQueryRepository>();
