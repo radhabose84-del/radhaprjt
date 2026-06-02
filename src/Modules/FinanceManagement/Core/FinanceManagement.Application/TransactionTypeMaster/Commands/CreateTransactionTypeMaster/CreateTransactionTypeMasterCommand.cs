@@ -10,5 +10,6 @@ namespace FinanceManagement.Application.TransactionTypeMaster.Commands.CreateTra
         public string? TypeName { get; set; }
         public string? ShortName { get; set; }
         public string? Description { get; set; }
+        public int IsGate { get; set; }   // 0 = No, 1 = Yes (default 0)
     }
 }
