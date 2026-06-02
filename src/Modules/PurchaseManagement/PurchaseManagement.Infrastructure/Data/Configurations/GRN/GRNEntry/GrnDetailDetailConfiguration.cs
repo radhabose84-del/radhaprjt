@@ -166,9 +166,7 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.GRN.GRNEntry
                  .HasDefaultValue(false)
                  .IsRequired();
 
-            // Ignore the navigation so EF Core does not generate a DB FK (decision #6).
-            builder.Ignore(m => m.GrnQcStatus);
-
+            // QcStatusId is now a plain int? column (no MiscMaster nav, no DB FK).
         }
 
     }
