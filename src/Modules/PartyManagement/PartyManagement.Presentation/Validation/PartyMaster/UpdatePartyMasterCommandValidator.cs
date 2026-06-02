@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces.Lookups.Party;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster;
 using PartyManagement.Domain.Common;
@@ -13,12 +14,14 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
         private readonly List<ValidationRule> _validationRules;
         private readonly IPartyMasterCommandRepository _iPartyMasterCommandRepository;
          private readonly IPartyMasterQueryRepository _iPartyMasterQueryRepository;
+        private readonly IBankAccountLookup _bankAccountLookup;
 
-        public UpdatePartyMasterCommandValidator(IPartyMasterCommandRepository iPartyMasterCommandRepository, IPartyMasterQueryRepository iPartyMasterQueryRepository)
+        public UpdatePartyMasterCommandValidator(IPartyMasterCommandRepository iPartyMasterCommandRepository, IPartyMasterQueryRepository iPartyMasterQueryRepository, IBankAccountLookup bankAccountLookup)
         {
             _validationRules = new List<ValidationRule>();
             _iPartyMasterCommandRepository = iPartyMasterCommandRepository;
             _iPartyMasterQueryRepository = iPartyMasterQueryRepository;
+            _bankAccountLookup = bankAccountLookup;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())
@@ -265,6 +268,12 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
                         .WithMessage("Duplicate TransportDetail: this combination of DefaultFreightType, VehicleType, and VehicleNo already exists with Status = 1.");
                 })
                 .When(x => x.UpdatePartyMaster.TransportDetailsUpdate != null && x.UpdatePartyMaster.TransportDetailsUpdate.Count > 0);
+
+            // BankAccountId (optional) must reference an active Party-type bank account
+            RuleFor(x => x.UpdatePartyMaster.BankAccountId)
+                .MustAsync(async (id, ct) => await _bankAccountLookup.ExistsForOwnerTypeAsync(id.Value, "Party", ct))
+                .WithMessage("BankAccountId is invalid or not a Party bank account.")
+                .When(x => x.UpdatePartyMaster.BankAccountId > 0);
         }
     }
 }

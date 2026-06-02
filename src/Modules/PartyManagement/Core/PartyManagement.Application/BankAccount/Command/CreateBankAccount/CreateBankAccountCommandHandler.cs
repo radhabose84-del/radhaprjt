@@ -28,7 +28,14 @@ public class CreateBankAccountCommandHandler : IRequestHandler<CreateBankAccount
             AccountHolderName = r.AccountHolderName.Trim(),
             IsDefaultAccount = r.IsDefaultAccount,
             IsPrimaryAccount = r.IsPrimaryAccount,
-            IBan = r.IBan?.Replace(" ", string.Empty).ToUpperInvariant()
+            IBan = r.IBan?.Replace(" ", string.Empty).ToUpperInvariant(),
+            OwnerTypeId = r.OwnerTypeId,
+            OwnerId = r.OwnerId,
+            AddressLine1 = r.AddressLine1?.Trim(),
+            AddressLine2 = r.AddressLine2?.Trim(),
+            CityId = r.CityId,
+            StateId = r.StateId,
+            Pincode = r.Pincode?.Trim()
         };
 
         var created = await _repo.AddAsync(entity, ct);

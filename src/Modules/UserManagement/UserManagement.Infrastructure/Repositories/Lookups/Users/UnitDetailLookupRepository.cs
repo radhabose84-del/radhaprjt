@@ -20,7 +20,8 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                 SELECT u.Id AS UnitId, u.UnitName, u.CINNO,
                     ua.AddressLine1, ua.AddressLine2,
                     ua.CityId, ua.StateId, ua.PinCode,
-                    ua.ContactNumber AS Phone
+                    ua.ContactNumber AS Phone,
+                    u.BankAccountId
                 FROM AppData.Unit u
                 LEFT JOIN AppData.UnitAddress ua ON ua.UnitId = u.Id
                 WHERE u.Id = @UnitId AND u.IsDeleted = 0";

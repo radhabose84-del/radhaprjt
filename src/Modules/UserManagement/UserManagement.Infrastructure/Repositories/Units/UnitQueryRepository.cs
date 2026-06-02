@@ -250,6 +250,7 @@ namespace UserManagement.Infrastructure.Repositories.Units
             C.SpindlesCapacity,
             C.UnitTypeId,
             MM.Description AS UnitTypeName,
+            C.BankAccountId,
             D.GstNumber AS GstNumber,
             A.CountryId,
             A.StateId,

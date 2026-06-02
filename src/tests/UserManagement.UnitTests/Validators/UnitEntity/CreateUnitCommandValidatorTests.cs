@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Party;
 using FluentValidation.TestHelper;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Application.Common.Interfaces;
@@ -15,6 +16,7 @@ namespace UserManagement.UnitTests.Validators.UnitEntity
     public sealed class CreateUnitCommandValidatorTests
     {
         private readonly Mock<IUnitQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IBankAccountLookup> _mockBankLookup = new(MockBehavior.Strict);
 
         private static MaxLengthProvider CreateMaxLengthProvider()
         {
@@ -28,7 +30,7 @@ namespace UserManagement.UnitTests.Validators.UnitEntity
         }
 
         private CreateUnitCommandValidator CreateValidator() =>
-            new(CreateMaxLengthProvider(), _mockQueryRepo.Object);
+            new(CreateMaxLengthProvider(), _mockQueryRepo.Object, _mockBankLookup.Object);
 
         private void SetupAllAsyncMocks(int unitTypeId = 1)
         {

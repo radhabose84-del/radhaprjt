@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Workflow;
 using FluentValidation.TestHelper;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
@@ -12,11 +13,12 @@ namespace PartyManagement.UnitTests.Validators.PartyMaster
         private readonly Mock<IPartyMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IPartyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IWorkflowLookup> _mockWorkflowLookup = new(MockBehavior.Loose);
+        private readonly Mock<IBankAccountLookup> _mockBankLookup = new(MockBehavior.Loose);
         private readonly Mock<MaxLengthProvider> _mockMaxLength = new(MockBehavior.Strict, new object[] { null! });
 
-        // Constructor: (IPartyMasterCommandRepository, MaxLengthProvider, IWorkflowLookup, IPartyMasterQueryRepository)
+        // Constructor: (IPartyMasterCommandRepository, MaxLengthProvider, IWorkflowLookup, IPartyMasterQueryRepository, IBankAccountLookup)
         private CreatePartyMasterCommandValidator CreateValidator() =>
-            new(_mockCommandRepo.Object, _mockMaxLength.Object, _mockWorkflowLookup.Object, _mockQueryRepo.Object);
+            new(_mockCommandRepo.Object, _mockMaxLength.Object, _mockWorkflowLookup.Object, _mockQueryRepo.Object, _mockBankLookup.Object);
 
         private void SetupHappyPath()
         {

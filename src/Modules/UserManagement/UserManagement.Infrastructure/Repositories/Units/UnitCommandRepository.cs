@@ -54,6 +54,7 @@ namespace UserManagement.Infrastructure.Repositories.Units
     existingUnit.IsMaintenanceStopStart=unit.IsMaintenanceStopStart;
     existingUnit.SpindlesCapacity=unit.SpindlesCapacity;
     existingUnit.UnitTypeId=unit.UnitTypeId;
+    existingUnit.BankAccountId=unit.BankAccountId;
 
 
     // Update the UnitAddress

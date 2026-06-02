@@ -64,6 +64,7 @@ namespace PartyManagement.Domain.Entities
         public int? SalesFreightId { get; set; }
         public int? PurchaseFreightId { get; set; }
         public string? FreightExpensesGl { get; set; }
+        public int? BankAccountId { get; set; }
         public ICollection<PartyContact>? PartyContactTypes { get; set; }
         public ICollection<PartyAddress>? PartyAddressTypes { get; set; }
         public ICollection<PartyType>? PartyTypes { get; set; }
