@@ -5,6 +5,7 @@ using MediatR;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Gate;
+using Contracts.Interfaces.Lookups.QC;
 using Contracts.Dtos.Lookups.Inventory;
 
 namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetails
@@ -17,9 +18,19 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
         private readonly IItemPurchaseToleranceLookup _itemPurchaseToleranceLookup;
         private readonly IPartyLookup _partyLookup;
         private readonly IGateInwardLookup _gateInwardLookup;
+        private readonly IItemLookup _itemLookup;
+        private readonly IQualitySpecificationLookup _qualitySpecificationLookup;
 
 
-        public GetGrnPendingDetailsQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator, IItemPurchaseToleranceLookup itemPurchaseToleranceLookup, IPartyLookup partyLookup, IGateInwardLookup gateInwardLookup)
+        public GetGrnPendingDetailsQueryHandler(
+            IGRNEntryQueryRepository iGrnEntryQueryRepository,
+            IMapper mapper,
+            IMediator mediator,
+            IItemPurchaseToleranceLookup itemPurchaseToleranceLookup,
+            IPartyLookup partyLookup,
+            IGateInwardLookup gateInwardLookup,
+            IItemLookup itemLookup,
+            IQualitySpecificationLookup qualitySpecificationLookup)
         {
             _iGrnEntryQueryRepository = iGrnEntryQueryRepository;
             _mapper = mapper;
@@ -27,6 +38,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
             _itemPurchaseToleranceLookup = itemPurchaseToleranceLookup;
             _partyLookup = partyLookup;
             _gateInwardLookup = gateInwardLookup;
+            _itemLookup = itemLookup;
+            _qualitySpecificationLookup = qualitySpecificationLookup;
 
         }
 
@@ -117,6 +130,37 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingDetai
                     detail.ItemCode = tol.ItemCode;
                 
                    
+                }
+            }
+
+            // 4.5) QC template availability — check Qc.QualitySpecification by ItemId OR ItemCategoryId
+            // for the items present in this GRN. ItemCategoryId is fetched once from Inventory via
+            // IItemLookup, then both dimensions are checked in a single QC lookup. Cached.
+            if (itemIdSet.Count > 0)
+            {
+                var itemDetails = await _itemLookup.GetByIdsAsync(itemIdSet, cancellationToken);
+                var itemCategoryMap = itemDetails.ToDictionary(i => i.Id, i => i.ItemCategoryId);
+                var categoryIds = itemCategoryMap.Values.Where(c => c > 0).Distinct().ToList();
+
+                var match = await _qualitySpecificationLookup.GetMatchingAsync(
+                    itemIdSet,
+                    categoryIds,
+                    cancellationToken);
+
+                foreach (var header in pending)
+                {
+                    if (header?.GrnDetails == null) continue;
+
+                    foreach (var detail in header.GrnDetails)
+                    {
+                        var itemMatched = match.MatchedItemIds.Contains(detail.ItemId);
+                        var categoryMatched =
+                            itemCategoryMap.TryGetValue(detail.ItemId, out var categoryId)
+                            && categoryId > 0
+                            && match.MatchedItemCategoryIds.Contains(categoryId);
+
+                        detail.IsTemplateAvailable = (itemMatched || categoryMatched) ? "Y" : "N";
+                    }
                 }
             }
 
