@@ -27,10 +27,8 @@ public sealed class CancelPurchaseReturnCommandHandler : IRequestHandler<CancelP
         var currentStatus = await _queryRepo.GetCurrentStatusCodeAsync(request.Id)
             ?? throw new ExceptionRules("Purchase Return not found.");
 
-        // Only Draft or PendingApproval can be cancelled
-        var isDraft = string.Equals(currentStatus, MiscEnumEntity.Draft, StringComparison.OrdinalIgnoreCase);
-        var isPending = string.Equals(currentStatus, MiscEnumEntity.RtvPendingApproval, StringComparison.OrdinalIgnoreCase);
-        if (!isDraft && !isPending)
+        // Only a Pending Purchase Return can be cancelled (no Draft state; shared ApprovalStatus)
+        if (!string.Equals(currentStatus, MiscEnumEntity.Pending, StringComparison.OrdinalIgnoreCase))
             throw new ExceptionRules($"Cannot cancel Purchase Return in status '{currentStatus}'.");
 
         var cancelledStatusId = await _queryRepo.GetStatusIdByCodeAsync(MiscEnumEntity.Cancelled)

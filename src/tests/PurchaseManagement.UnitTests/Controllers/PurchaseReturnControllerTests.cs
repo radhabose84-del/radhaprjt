@@ -6,7 +6,6 @@ using PurchaseManagement.Application.Common;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.CancelPurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.CreatePurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.DeletePurchaseReturn;
-using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.SubmitPurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.UpdatePurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Dto;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetAllPurchaseReturns;
@@ -94,15 +93,6 @@ public sealed class PurchaseReturnControllerTests
                      .ReturnsAsync(PurchaseReturnBuilders.ValidHeaderDto(1));
 
         var result = await CreateSut().Update(1, PurchaseReturnBuilders.ValidUpdateCommand(1));
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public async Task Submit_ReturnsOkResult()
-    {
-        _mockMediator.Setup(m => m.Send(It.IsAny<SubmitPurchaseReturnCommand>(), It.IsAny<CancellationToken>()))
-                     .ReturnsAsync(true);
-        var result = await CreateSut().Submit(1);
         result.Should().BeOfType<OkObjectResult>();
     }
 
