@@ -17,6 +17,7 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
             int qcInspectionHdrId, int qcStatusId,
             decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
             int dispositionByUserId, string? dispositionByName,
+            string? qcApprovedIp, bool isQcApproved,
             int grnHeaderId, int grnDetailId);
 
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);

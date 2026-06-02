@@ -13,6 +13,7 @@ namespace QCManagement.Domain.Events
         int GrnHeaderId,
         int GrnDetailId,
         int ItemId,
+        int QcStatusId,
         string QcStatusCode,
         decimal AcceptedQuantity,
         decimal RejectedQuantity,
