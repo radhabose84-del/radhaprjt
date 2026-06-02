@@ -33,6 +33,16 @@ namespace PurchaseManagement.Module
             // ✅ 4) Validators from API (register ALL validators)
             services.AddValidatorsFromAssembly(apiAssembly);
 
+            // ✅ 4a) Cross-module bridge (Gate Inward → GRN) — depends on IValidator<CreateGRNEntryCommand>
+            //        so it MUST be registered after AddValidatorsFromAssembly. Lives here (Module project)
+            //        rather than in AddPurchaseInfrastructureServices so BSOFT.Worker — which loads
+            //        Infrastructure only — does not fail DI build-time validation. The bridge is only
+            //        invoked from GateEntryManagement's CreateGateInward handler, which the Worker
+            //        does not register.
+            services.AddScoped<
+                Contracts.Interfaces.Purchase.IGateInwardGrnBridge,
+                PurchaseManagement.Infrastructure.Services.GateInwardGrnBridge>();
+
             // ✅ 5) Module-specific validation infrastructure (used by validators)
             services.AddScoped<MaxLengthProvider>();
             services.AddScoped<IMaxLengthProvider>(sp => sp.GetRequiredService<MaxLengthProvider>());
