@@ -138,6 +138,7 @@ namespace PartyManagement.Infrastructure
             services.AddScoped<ISubAgentLookup, SubAgentLookupRepository>();
             services.AddScoped<IPartyDetailLookup, PartyDetailLookupRepository>();
             services.AddScoped<IPartyBankLookup, PartyBankLookupRepository>();
+            services.AddScoped<IBankAccountLookup, BankAccountLookupRepository>();
 
             // Cross-module updates
             services.AddScoped<IPartyFreightUpdate, PartyFreightUpdateRepository>();

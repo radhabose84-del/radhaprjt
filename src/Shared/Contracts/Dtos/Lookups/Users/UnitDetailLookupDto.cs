@@ -11,5 +11,6 @@ namespace Contracts.Dtos.Lookups.Users
         public int StateId { get; set; }
         public int PinCode { get; set; }
         public string? Phone { get; set; }
+        public int? BankAccountId { get; set; }
     }
 }

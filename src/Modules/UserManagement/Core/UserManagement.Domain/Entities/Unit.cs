@@ -28,6 +28,7 @@ public int UnitTypeId { get; set; }
 public MiscMaster? UnitType { get; set; }
 public string? UnitTypeName { get; set; }
 public int? PinCode { get; set; }
+public int? BankAccountId { get; set; }
 
 }
 }

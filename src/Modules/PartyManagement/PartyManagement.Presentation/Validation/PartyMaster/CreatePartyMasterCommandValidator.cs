@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Workflow;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
@@ -15,13 +16,16 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
         private readonly IPartyMasterCommandRepository _iPartyMasterCommandRepository;
         private readonly IPartyMasterQueryRepository _iPartyMasterQueryRepository;
         private readonly IWorkflowLookup _workflowLookup;
+        private readonly IBankAccountLookup _bankAccountLookup;
         public CreatePartyMasterCommandValidator(IPartyMasterCommandRepository iPartyMasterCommandRepository, MaxLengthProvider maxLengthProvider
          , IWorkflowLookup workflowLookup
-        , IPartyMasterQueryRepository iPartyMasterQueryRepository)
+        , IPartyMasterQueryRepository iPartyMasterQueryRepository
+        , IBankAccountLookup bankAccountLookup)
         {
             _iPartyMasterCommandRepository = iPartyMasterCommandRepository;
              _workflowLookup = workflowLookup;
             _iPartyMasterQueryRepository = iPartyMasterQueryRepository;
+            _bankAccountLookup = bankAccountLookup;
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || !_validationRules.Any())
             {
@@ -269,7 +273,13 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
                         .WithMessage("Duplicate TransportDetail: this combination of DefaultFreightType, VehicleType, and VehicleNo already exists with Status = 1.");
                 })
                 .When(x => x.PartyMaster.TransportDetails != null && x.PartyMaster.TransportDetails.Count > 0);
+
+            // BankAccountId (optional) must reference an active Party-type bank account
+            RuleFor(x => x.PartyMaster.BankAccountId)
+                .MustAsync(async (id, ct) => await _bankAccountLookup.ExistsForOwnerTypeAsync(id.Value, "Party", ct))
+                .WithMessage("BankAccountId is invalid or not a Party bank account.")
+                .When(x => x.PartyMaster.BankAccountId > 0);
         }
-         
+
     }
 }

@@ -84,7 +84,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
             var companyDetail = new Mock<ICompanyDetailLookup>(MockBehavior.Loose);
             var unitDetail = new Mock<IUnitDetailLookup>(MockBehavior.Loose);
             var partyDetail = new Mock<IPartyDetailLookup>(MockBehavior.Loose);
-            var partyBank = new Mock<IPartyBankLookup>(MockBehavior.Loose);
+            var bankAccount = new Mock<IBankAccountLookup>(MockBehavior.Loose);
             var eInvoice = new Mock<IEInvoiceLookup>(MockBehavior.Loose);
             var eWaybill = new Mock<IEWaybillLookup>(MockBehavior.Loose);
 
@@ -109,7 +109,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Invoice
                 companyDetail.Object,
                 unitDetail.Object,
                 partyDetail.Object,
-                partyBank.Object,
+                bankAccount.Object,
                 eInvoice.Object,
                 eWaybill.Object,
                 transactionType.Object,

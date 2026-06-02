@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PartyManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PartyManagement.Infrastructure.Data;
 namespace PartyManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602120022_BankAccount_OwnerId")]
+    partial class BankAccount_OwnerId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,19 +109,10 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Property<int>("AccountTypeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("AddressLine1")
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("AddressLine2")
-                        .HasColumnType("nvarchar(250)");
-
                     b.Property<int>("BankId")
                         .HasColumnType("int");
 
                     b.Property<int>("BranchId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CityId")
                         .HasColumnType("int");
 
                     b.Property<int>("CreatedBy")
@@ -177,15 +171,9 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Property<int?>("OwnerTypeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Pincode")
-                        .HasColumnType("nvarchar(10)");
-
                     b.Property<string>("SWIFTCode")
                         .HasMaxLength(11)
                         .HasColumnType("nvarchar(11)");
-
-                    b.Property<int?>("StateId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -821,10 +809,6 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Property<string>("AlternateName")
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("AlternateName");
-
-                    b.Property<int?>("BankAccountId")
-                        .HasColumnType("int")
-                        .HasColumnName("BankAccountId");
 
                     b.Property<string>("CIN")
                         .HasColumnType("nvarchar(25)")
