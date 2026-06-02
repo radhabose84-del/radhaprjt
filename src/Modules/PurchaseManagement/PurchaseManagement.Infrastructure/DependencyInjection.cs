@@ -266,6 +266,9 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IPaymentTermLookup, PaymentTermLookupRepository>();
             services.AddScoped<IIncotermLookup, IncotermLookupRepository>();
 
+            // Cross-module T&C template read (e.g. Sales invoice printing)
+            services.AddScoped<ITnCTemplateLookup, TnCTemplateLookupRepository>();
+
             // QC inspection cross-module read + write-back (SCRUM-1667)
             services.AddScoped<IGrnLookup, GrnLookupRepository>();
             services.AddScoped<IGrnQcUpdate, GrnQcUpdateRepository>();

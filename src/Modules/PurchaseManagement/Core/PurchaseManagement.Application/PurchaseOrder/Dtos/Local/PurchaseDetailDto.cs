@@ -28,9 +28,10 @@ public sealed class PurchaseLocalDetailDto
     public decimal ItemValue { get; set; }
     public string? UOMName { get; set; }
     public string? ItemName { get; set; }
-    public string? DepartmentName { get; set; } 
+    public string? DepartmentName { get; set; }
     public string? IndentNumber { get; set; }
-    
+    public string? HSNCode { get; set; }
+
 }
 
 public sealed class PurchaseLocalHeaderDto
@@ -44,9 +45,11 @@ public sealed class PurchaseLocalHeaderDto
     public int? TermsId { get; set; }
     public string? TermDescription { get; set; }
     public string? DeliveryAddress { get; set; }
-    public string? BillingAddress { get; set; }    
-    public string? ImageUrl { get; set; }    
-    
+    public string? BillingAddress { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? IncotermsName { get; set; }
+    public string? ModeOfDispatchName { get; set; }
+
     public List<PurchaseLocalDetailDto> Details { get; set; } = new();
 }
 
@@ -189,11 +192,107 @@ public sealed class PurchaseOrderDetailDto : PurchaseOrderUpdateDto
 {
     public int UnitId { get; set; }
     public int StatusId { get; set; }
+    public string? StatusCode { get; set; }
+    public string? POMethodCode { get; set; }
+
+    // Vendor details panel (populated via IPartyDetailLookup)
+    public string? VendorCode { get; set; }
+    public string? VendorGSTIN { get; set; }
+    public string? VendorPhone { get; set; }
+    public string? VendorMobile { get; set; }
+    public int? VendorCreditDays { get; set; }
+
     public new List<PurchaseLocalHeaderDto> Headers { get; set; } = new();
     public new List<PurchasePaymentTermDto> PaymentTerms { get; set; } = new();
     #pragma warning disable CS0109
     public new List<LocalDocumentDto> DocumentsList { get; set; } = new();
     #pragma warning restore CS0109
+}
+
+// ----- PO Analysis detail summary panels (Outstanding / Budget / Approval / PO Progress) -----
+
+public sealed class PoOutstandingDto
+{
+    // Sum of PurchaseBillEntry grand totals for the PO. Paid amount / overdue are not shown
+    // because there is no exposed vendor-payment source.
+    public decimal InvoicedAmount { get; set; }
+}
+
+public sealed class PoBudgetDto
+{
+    public decimal? ApprovedAmount { get; set; }
+    public decimal? RemainingBalance { get; set; }
+    public decimal? UtilisedPercent { get; set; }   // (Approved - Remaining) / Approved * 100
+    public bool IsPositive { get; set; }             // RemainingBalance >= 0
+    public bool HasAllocation { get; set; }          // false when no allocation row matched
+}
+
+public sealed class PoApprovalDto
+{
+    public string? ApproverName { get; set; }
+    public string? Status { get; set; }              // PO header status code (Pending / Approved / ...)
+}
+
+public sealed class PoProgressStepDto
+{
+    public string Step { get; set; } = default!;     // PO Created / Approval / GRN Received / Invoice Matched / Payment Done
+    public string Status { get; set; } = default!;   // Completed / Awaiting / Pending / Rejected
+    public DateTimeOffset? Date { get; set; }
+    public string? Detail { get; set; }
+}
+
+public sealed class PoProgressDto
+{
+    public int PercentComplete { get; set; }
+    public List<PoProgressStepDto> Steps { get; set; } = new();
+}
+
+public sealed class PoSummaryDto
+{
+    public PoOutstandingDto Outstanding { get; set; } = new();
+    public PoBudgetDto Budget { get; set; } = new();
+    public PoApprovalDto Approval { get; set; } = new();
+    public PoProgressDto Progress { get; set; } = new();
+}
+
+public sealed class PurchaseOrderDetailWithSummaryDto
+{
+    public PurchaseOrderDetailDto Detail { get; set; } = new();
+    public PoSummaryDto Summary { get; set; } = new();
+}
+
+public sealed class PurchaseOrderAnalysisListItemDto
+{
+    public int Id { get; set; }
+    public string PONumber { get; set; } = default!;
+    public DateTimeOffset PODate { get; set; }
+
+    public int POMethodId { get; set; }
+    public string? POMethodCode { get; set; }
+
+    public int VendorId { get; set; }
+    public string? VendorName { get; set; }
+
+    public int UnitId { get; set; }
+    public string? UnitName { get; set; }
+
+    public int TotalItems { get; set; }
+    public decimal PurchaseValue { get; set; }
+    public string? CreatedByName { get; set; }
+
+    public int StatusId { get; set; }
+    public string? StatusCode { get; set; }
+
+    public int RevisionNo { get; set; }
+    public string? AmendmentReason { get; set; }
+
+    public int? BudgetGroupId { get; set; }
+    public string? BudgetGroupName { get; set; }
+    public int? ItemCategoryId { get; set; }
+    public string? ItemCategoryName { get; set; }
+
+    public bool IsCancelled { get; set; }
+    public bool IsForeclosed { get; set; }
 }
 
 public sealed class AutocompleteDto

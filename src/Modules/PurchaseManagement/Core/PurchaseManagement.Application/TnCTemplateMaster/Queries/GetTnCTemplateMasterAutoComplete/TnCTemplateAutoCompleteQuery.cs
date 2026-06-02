@@ -5,9 +5,9 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Queries.GetTnCTemplat
     public class TnCTemplateAutoCompleteQuery : IRequest<List<TnCAutoCompleteDto>>
     {
 
-        public int? TemplateTypeId { get; set; }     // 28=Purchase, 29=Sales (from your MiscMaster)
-        public int? ApplicabilityId { get; set; }    // 30=RFQ, 32=PO, ...
-        public string? SearchPattern { get; set; } 
+        public int? ModuleId { get; set; }            // AppData.Modules
+        public int? TransactionTypeId { get; set; }   // Finance.TransactionTypeMaster
+        public string? SearchPattern { get; set; }
         
     }
 }

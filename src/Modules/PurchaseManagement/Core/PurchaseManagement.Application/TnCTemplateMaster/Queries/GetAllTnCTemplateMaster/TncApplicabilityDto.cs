@@ -4,8 +4,8 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemp
     {
         public int Id { get; set; }            // TnCTemplateApplicability.Id  (junction PK)
         public int TnCTemplateMasterId { get; set; } // FK to master (optional but handy)
-        public int ApplicabilityId { get; set; }   // FK -> MiscMaster.Id
-        public string Code { get; set; } = null!;  // from MiscMaster
-        public string Description { get; set; } = null!;
+        public int TransactionTypeId { get; set; }   // cross-module FK -> Finance.TransactionTypeMaster.Id
+        public string? TypeName { get; set; }   // populated via ITransactionTypeLookup
+        public string? ShortName { get; set; }  // populated via ITransactionTypeLookup
     }
 }

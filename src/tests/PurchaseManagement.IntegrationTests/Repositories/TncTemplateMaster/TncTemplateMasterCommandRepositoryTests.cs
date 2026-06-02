@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Infrastructure.Data;
 using PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster;
@@ -17,62 +16,20 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
 
         private TncTemplateMasterCommandRepository CreateRepo(ApplicationDbContext ctx) => new(ctx);
 
-        private async Task<int> EnsureMiscTypeIdAsync(string code)
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var existing = await ctx.MiscTypeMaster.FirstOrDefaultAsync(t => t.MiscTypeCode == code);
-            if (existing != null) return existing.Id;
-            var t = new PurchaseManagement.Domain.Entities.MiscTypeMaster
-            {
-                MiscTypeCode = code,
-                Description = code,
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
-            };
-            await ctx.MiscTypeMaster.AddAsync(t);
-            await ctx.SaveChangesAsync();
-            return t.Id;
-        }
+        // ModuleId / TransactionTypeId are cross-module FKs with NO DB constraint,
+        // so plain integer values are valid for these tests.
+        private const int ModuleId = 1;
 
-        private async Task<int> EnsureMiscIdAsync(int miscTypeId, string code)
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var existing = await ctx.MiscMaster.FirstOrDefaultAsync(m => m.Code == code && m.MiscTypeId == miscTypeId);
-            if (existing != null) return existing.Id;
-            var m = new PurchaseManagement.Domain.Entities.MiscMaster
-            {
-                MiscTypeId = miscTypeId,
-                Code = code,
-                Description = code,
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
-            };
-            await ctx.MiscMaster.AddAsync(m);
-            await ctx.SaveChangesAsync();
-            return m.Id;
-        }
-
-        private async Task<TnCTemplateMaster> BuildEntityAsync(string templateName)
-        {
-            var typeId = await EnsureMiscTypeIdAsync("TNC_TT");
-            var typeRefId = await EnsureMiscIdAsync(typeId, "PURCHASE_TT");
-            return new TnCTemplateMaster
+        private static TnCTemplateMaster BuildEntity(string templateName, int moduleId = ModuleId) =>
+            new TnCTemplateMaster
             {
                 TemplateCode = $"TC_{Guid.NewGuid():N}".Substring(0, 12),
                 TemplateName = templateName,
-                TemplateTypeId = typeRefId,
+                ModuleId = moduleId,
                 TermsHtml = "<p>Sample terms</p>",
-                ApprovalFlag = false,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
-        }
-
-        private async Task<int> EnsureApplicabilityMiscAsync(string code)
-        {
-            var typeId = await EnsureMiscTypeIdAsync("TNC_APP_T");
-            return await EnsureMiscIdAsync(typeId, code);
-        }
 
         private async Task ClearAsync(ApplicationDbContext ctx) =>
             await _fixture.ClearAllTablesAsync();
@@ -85,7 +42,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
 
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("TC_C1"), CancellationToken.None);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity("TC_C1"), CancellationToken.None);
 
             id.Should().BeGreaterThan(0);
         }
@@ -96,19 +53,20 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
 
-            var entity = await BuildEntityAsync("TC_C2");
-            var appId = await EnsureApplicabilityMiscAsync("APP_C2");
+            var entity = BuildEntity("TC_C2");
+            const int txnTypeId = 101;
             entity.Applicabilities = new List<TnCTemplateApplicability>
             {
-                new() { ApplicabilityId = appId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+                new() { TransactionTypeId = txnTypeId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
             };
             var id = await CreateRepo(ctx).CreateAsync(entity, CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.TnCTemplateMaster.Include(t => t.Applicabilities).FirstAsync(x => x.Id == id);
             saved.TemplateName.Should().Be("TC_C2");
+            saved.ModuleId.Should().Be(ModuleId);
             saved.Applicabilities.Should().ContainSingle();
-            saved.Applicabilities!.First().ApplicabilityId.Should().Be(appId);
+            saved.Applicabilities!.First().TransactionTypeId.Should().Be(txnTypeId);
         }
 
         // --- UpdateAsync ---
@@ -118,7 +76,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            var ghost = await BuildEntityAsync("GH");
+            var ghost = BuildEntity("GH");
             ghost.Id = 9999999;
 
             var result = await CreateRepo(ctx).UpdateAsync(ghost, new List<TnCTemplateApplicability>());
@@ -131,13 +89,12 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("TC_U1"), CancellationToken.None);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity("TC_U1"), CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
-            var incoming = await BuildEntityAsync("TC_U1_New");
+            var incoming = BuildEntity("TC_U1_New", moduleId: 2);
             incoming.Id = id;
             incoming.TermsHtml = "<p>Updated</p>";
-            incoming.ApprovalFlag = true;
 
             var result = await CreateRepo(ctx).UpdateAsync(incoming, new List<TnCTemplateApplicability>());
             ctx.ChangeTracker.Clear();
@@ -145,8 +102,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
             result.Should().BeTrue();
             var reloaded = await ctx.TnCTemplateMaster.FirstAsync(x => x.Id == id);
             reloaded.TemplateName.Should().Be("TC_U1_New");
+            reloaded.ModuleId.Should().Be(2);
             reloaded.TermsHtml.Should().Be("<p>Updated</p>");
-            reloaded.ApprovalFlag.Should().BeTrue();
         }
 
         [Fact]
@@ -154,28 +111,28 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var entity = await BuildEntityAsync("TC_U2");
-            var oldAppId = await EnsureApplicabilityMiscAsync("APP_OLD");
+            var entity = BuildEntity("TC_U2");
+            const int oldTxnId = 201;
             entity.Applicabilities = new List<TnCTemplateApplicability>
             {
-                new() { ApplicabilityId = oldAppId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+                new() { TransactionTypeId = oldTxnId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
             };
             var id = await CreateRepo(ctx).CreateAsync(entity, CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
-            var newAppId = await EnsureApplicabilityMiscAsync("APP_NEW");
-            var incoming = await BuildEntityAsync("TC_U2");
+            const int newTxnId = 202;
+            var incoming = BuildEntity("TC_U2");
             incoming.Id = id;
             var newApps = new List<TnCTemplateApplicability>
             {
-                new() { ApplicabilityId = newAppId }
+                new() { TransactionTypeId = newTxnId }
             };
             await CreateRepo(ctx).UpdateAsync(incoming, newApps);
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.TnCTemplateMaster.Include(t => t.Applicabilities).FirstAsync(x => x.Id == id);
             saved.Applicabilities!.Should().ContainSingle();
-            saved.Applicabilities!.First().ApplicabilityId.Should().Be(newAppId);
+            saved.Applicabilities!.First().TransactionTypeId.Should().Be(newTxnId);
         }
 
         // --- SoftDeleteAsync ---
@@ -185,7 +142,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("TC_D1"), CancellationToken.None);
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity("TC_D1"), CancellationToken.None);
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).SoftDeleteAsync(id);
@@ -198,11 +155,10 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
         {
             await using var ctx = _fixture.CreateFreshDbContext();
             await ClearAsync(ctx);
-            var entity = await BuildEntityAsync("TC_D2");
-            var appId = await EnsureApplicabilityMiscAsync("APP_DEL");
+            var entity = BuildEntity("TC_D2");
             entity.Applicabilities = new List<TnCTemplateApplicability>
             {
-                new() { ApplicabilityId = appId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+                new() { TransactionTypeId = 301, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
             };
             var id = await CreateRepo(ctx).CreateAsync(entity, CancellationToken.None);
             ctx.ChangeTracker.Clear();
