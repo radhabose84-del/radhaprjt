@@ -5,12 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.CancelPurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.CreatePurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.DeletePurchaseReturn;
-using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.SubmitPurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.UpdatePurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetAllPurchaseReturns;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetPurchaseReturnAutoComplete;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetPurchaseReturnById;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnableQtyByGrn;
+using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnablePosByVendor;
+using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnableGrnsByVendorPo;
 
 namespace PurchaseManagement.Presentation.Controllers;
 
@@ -71,6 +72,20 @@ public class PurchaseReturnController : ApiControllerBase
         return Ok(new { StatusCode = StatusCodes.Status200OK, data });
     }
 
+    [HttpGet("pos")]
+    public async Task<IActionResult> GetPosByVendor([FromQuery] int vendorId)
+    {
+        var data = await Mediator.Send(new GetReturnablePosByVendorQuery(vendorId));
+        return Ok(new { StatusCode = StatusCodes.Status200OK, data });
+    }
+
+    [HttpGet("grns")]
+    public async Task<IActionResult> GetGrnsByVendorPo([FromQuery] int vendorId, [FromQuery] int poId)
+    {
+        var data = await Mediator.Send(new GetReturnableGrnsByVendorPoQuery(vendorId, poId));
+        return Ok(new { StatusCode = StatusCodes.Status200OK, data });
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(CreatePurchaseReturnCommand command)
     {
@@ -124,16 +139,10 @@ public class PurchaseReturnController : ApiControllerBase
         });
     }
 
-    [HttpPost("{id:int}/submit")]
-    public async Task<IActionResult> Submit(int id)
-    {
-        await Mediator.Send(new SubmitPurchaseReturnCommand(id));
-        return Ok(new
-        {
-            StatusCode = StatusCodes.Status200OK,
-            message = "Purchase Return submitted for approval."
-        });
-    }
+    // NOTE: No public "submit" endpoint. Create posts the RTV straight to approval
+    // (CreatePurchaseReturnCommandHandler sends SubmitPurchaseReturnCommand internally),
+    // so there is no Draft step to submit. Exposing submit would let an already-Pending
+    // RTV be re-submitted and create a duplicate approval request.
 
     [HttpPost("{id:int}/cancel")]
     public async Task<IActionResult> Cancel(int id)

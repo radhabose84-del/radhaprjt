@@ -37,12 +37,12 @@ public sealed class SubmitPurchaseReturnCommandHandler : IRequestHandler<SubmitP
         var header = await _queryRepo.GetByIdAsync(request.Id, ct)
             ?? throw new ExceptionRules("Purchase Return not found.");
 
-        if (!string.Equals(header.StatusCode, MiscEnumEntity.Draft, StringComparison.OrdinalIgnoreCase))
-            throw new ExceptionRules("Only Draft Purchase Returns can be submitted.");
+        if (!string.Equals(header.StatusCode, MiscEnumEntity.Pending, StringComparison.OrdinalIgnoreCase))
+            throw new ExceptionRules("Only Pending Purchase Returns can be submitted for approval.");
 
-        // Resolve PendingApproval status id
-        var pendingStatusId = await _queryRepo.GetStatusIdByCodeAsync(MiscEnumEntity.RtvPendingApproval)
-            ?? throw new ExceptionRules("RtvStatus 'PendingApproval' not found in MiscMaster.");
+        // Ensure status is the shared ApprovalStatus 'Pending' (idempotent — create already set it).
+        var pendingStatusId = await _queryRepo.GetStatusIdByCodeAsync(MiscEnumEntity.Pending)
+            ?? throw new ExceptionRules("Approval status 'Pending' not found in MiscMaster.");
 
         await _commandRepo.SetStatusAsync(request.Id, pendingStatusId, ct);
 

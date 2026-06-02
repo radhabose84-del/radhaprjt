@@ -69,4 +69,20 @@ public sealed class PurchaseReturnRepositoryTests
         var notFound = await CreateQueryRepo().NotFoundAsync(9999);
         notFound.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task GetPosByVendorAsync_Should_Return_Empty_When_NoData()
+    {
+        await _fixture.ClearAllTablesAsync();
+        var result = await CreateQueryRepo().GetPosByVendorAsync(9999, CancellationToken.None);
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetGrnsByVendorPoAsync_Should_Return_Empty_When_NoData()
+    {
+        await _fixture.ClearAllTablesAsync();
+        var result = await CreateQueryRepo().GetGrnsByVendorPoAsync(9999, 9999, CancellationToken.None);
+        result.Should().BeEmpty();
+    }
 }

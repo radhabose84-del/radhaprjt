@@ -15,12 +15,10 @@ public sealed class CancelPurchaseReturnCommandHandlerTests
     private CancelPurchaseReturnCommandHandler CreateSut() =>
         new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object);
 
-    [Theory]
-    [InlineData("Draft")]
-    [InlineData("PendingApproval")]
-    public async Task Handle_DraftOrPending_ReturnsTrue(string currentStatus)
+    [Fact]
+    public async Task Handle_Pending_ReturnsTrue()
     {
-        _mockQueryRepo.Setup(r => r.GetCurrentStatusCodeAsync(1)).ReturnsAsync(currentStatus);
+        _mockQueryRepo.Setup(r => r.GetCurrentStatusCodeAsync(1)).ReturnsAsync("Pending");
         _mockQueryRepo.Setup(r => r.GetStatusIdByCodeAsync(It.IsAny<string>())).ReturnsAsync(5);
         _mockCommandRepo.Setup(r => r.SetStatusAsync(1, 5, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 

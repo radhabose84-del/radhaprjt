@@ -5,6 +5,7 @@ using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseReturn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.CreatePurchaseReturn;
+using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.SubmitPurchaseReturn;
 using PurchaseManagement.Domain.Entities.PurchaseReturn;
 using PurchaseManagement.UnitTests.TestData;
 
@@ -62,14 +63,26 @@ public sealed class CreatePurchaseReturnCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_DraftStatusMissing_ThrowsExceptionRules()
+    public async Task Handle_ValidCommand_PostsStraightToApproval()
+    {
+        // Purchase Returns have no resting Draft state: create must immediately submit
+        // the new RTV so it lands on the approval screen.
+        SetupHappyPath(newId: 7);
+        await CreateSut().Handle(PurchaseReturnBuilders.ValidCreateCommand(), CancellationToken.None);
+        _mockMediator.Verify(
+            m => m.Send(It.Is<SubmitPurchaseReturnCommand>(c => c.Id == 7), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_PendingStatusMissing_ThrowsExceptionRules()
     {
         _mockMapper.Setup(m => m.Map<PurchaseReturnHeader>(It.IsAny<CreatePurchaseReturnCommand>()))
                    .Returns(PurchaseReturnBuilders.ValidHeaderEntity());
         _mockQueryRepo.Setup(r => r.GetStatusIdByCodeAsync(It.IsAny<string>())).ReturnsAsync((int?)null);
 
         Func<Task> act = async () => await CreateSut().Handle(PurchaseReturnBuilders.ValidCreateCommand(), CancellationToken.None);
-        await act.Should().ThrowAsync<ExceptionRules>().WithMessage("*Draft*");
+        await act.Should().ThrowAsync<ExceptionRules>().WithMessage("*Pending*");
     }
 
     [Fact]

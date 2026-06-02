@@ -18,7 +18,7 @@ public sealed class ProcessPurchaseReturnApprovalDecisionCommandHandlerTests
     [Fact]
     public async Task Handle_Approved_WritesStockLedger()
     {
-        _mockQueryRepo.Setup(r => r.GetCurrentStatusCodeAsync(1)).ReturnsAsync("PendingApproval");
+        _mockQueryRepo.Setup(r => r.GetCurrentStatusCodeAsync(1)).ReturnsAsync("Pending");
         _mockQueryRepo.Setup(r => r.GetStatusIdByCodeAsync("Approved")).ReturnsAsync(3);
         _mockCommandRepo.Setup(r => r.SetStatusAsync(1, 3, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
@@ -31,7 +31,7 @@ public sealed class ProcessPurchaseReturnApprovalDecisionCommandHandlerTests
     [Fact]
     public async Task Handle_Rejected_DoesNotWriteStockLedger()
     {
-        _mockQueryRepo.Setup(r => r.GetCurrentStatusCodeAsync(1)).ReturnsAsync("PendingApproval");
+        _mockQueryRepo.Setup(r => r.GetCurrentStatusCodeAsync(1)).ReturnsAsync("Pending");
         _mockQueryRepo.Setup(r => r.GetStatusIdByCodeAsync("Rejected")).ReturnsAsync(4);
         _mockCommandRepo.Setup(r => r.SetStatusAsync(1, 4, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 

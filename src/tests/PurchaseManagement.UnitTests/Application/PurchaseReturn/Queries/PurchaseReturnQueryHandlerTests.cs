@@ -5,6 +5,8 @@ using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetAl
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetPurchaseReturnAutoComplete;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetPurchaseReturnById;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnableQtyByGrn;
+using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnablePosByVendor;
+using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnableGrnsByVendorPo;
 using PurchaseManagement.UnitTests.TestData;
 
 namespace PurchaseManagement.UnitTests.Application.PurchaseReturn.Queries;
@@ -73,5 +75,62 @@ public sealed class PurchaseReturnQueryHandlerTests
         var result = await handler.Handle(new GetPurchaseReturnAutoCompleteQuery("RTV"), CancellationToken.None);
 
         result.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task GetPosByVendor_ReturnsPos()
+    {
+        var pos = new List<PurchaseReturnPoLookupDto>
+        {
+            new() { PoId = 59, PoNumber = "PO-KNIT-Loc-04" },
+            new() { PoId = 52, PoNumber = "PO-KNIT-Loc-01" }
+        };
+        _mockRepo.Setup(r => r.GetPosByVendorAsync(9, It.IsAny<CancellationToken>())).ReturnsAsync(pos);
+
+        var handler = new GetReturnablePosByVendorQueryHandler(_mockRepo.Object, _mockMediator.Object);
+        var result = await handler.Handle(new GetReturnablePosByVendorQuery(9), CancellationToken.None);
+
+        result.Should().HaveCount(2);
+        result[0].PoNumber.Should().Be("PO-KNIT-Loc-04");
+    }
+
+    [Fact]
+    public async Task GetPosByVendor_PassesVendorIdToRepository()
+    {
+        _mockRepo.Setup(r => r.GetPosByVendorAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                 .ReturnsAsync(new List<PurchaseReturnPoLookupDto>());
+
+        var handler = new GetReturnablePosByVendorQueryHandler(_mockRepo.Object, _mockMediator.Object);
+        await handler.Handle(new GetReturnablePosByVendorQuery(9), CancellationToken.None);
+
+        _mockRepo.Verify(r => r.GetPosByVendorAsync(9, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetGrnsByVendorPo_ReturnsGrns()
+    {
+        var grns = new List<PurchaseReturnGrnLookupDto>
+        {
+            new() { GrnHeaderId = 1024, GrnNo = "GRN-37-16" }
+        };
+        _mockRepo.Setup(r => r.GetGrnsByVendorPoAsync(9, 59, It.IsAny<CancellationToken>())).ReturnsAsync(grns);
+
+        var handler = new GetReturnableGrnsByVendorPoQueryHandler(_mockRepo.Object, _mockMediator.Object);
+        var result = await handler.Handle(new GetReturnableGrnsByVendorPoQuery(9, 59), CancellationToken.None);
+
+        result.Should().HaveCount(1);
+        result[0].GrnNo.Should().Be("GRN-37-16");
+    }
+
+    [Fact]
+    public async Task GetGrnsByVendorPo_PassesVendorAndPoToRepository()
+    {
+        _mockRepo.Setup(r => r.GetGrnsByVendorPoAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                 .ReturnsAsync(new List<PurchaseReturnGrnLookupDto>());
+
+        var handler = new GetReturnableGrnsByVendorPoQueryHandler(_mockRepo.Object, _mockMediator.Object);
+        await handler.Handle(new GetReturnableGrnsByVendorPoQuery(9, 59), CancellationToken.None);
+
+        _mockRepo.Verify(r => r.GetGrnsByVendorPoAsync(9, 59, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
