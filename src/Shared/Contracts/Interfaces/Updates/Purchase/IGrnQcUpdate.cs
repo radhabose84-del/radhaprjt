@@ -3,20 +3,18 @@ using System.Data;
 namespace Contracts.Interfaces.Updates.Purchase
 {
     /// <summary>
-    /// Cross-module write-back of QC results onto GRN tables, owned by PurchaseManagement.
-    /// Methods accept the caller's connection + transaction so the GRN update participates
-    /// in the QC disposition's atomic transaction.
+    /// Cross-module write-back of the QC disposition onto the GRN line. QC is line-level on GrnDetail
+    /// (QC columns were moved off GrnHeader). Accepts the caller's connection + transaction so the
+    /// update participates in the QC disposition's atomic transaction.
     /// </summary>
     public interface IGrnQcUpdate
     {
-        /// <summary>Writes accepted/rejected quantities and rejection remarks onto the GRN line.</summary>
-        Task UpdateGrnDetailQcQuantitiesAsync(
-            int grnDetailId, decimal acceptedQty, decimal rejectedQty, string? rejectionRemarks,
-            IDbConnection connection, IDbTransaction transaction);
-
-        /// <summary>Stamps QcDate + QcPersonName on the GRN header. Does NOT set QcStatusId/IsQcApproved (GRN-level aggregates).</summary>
-        Task StampGrnHeaderQcAsync(
-            int grnHeaderId, string inspectorName, DateTimeOffset whenUtc,
+        /// <summary>Writes status, quantities, remarks, person, IP, date and approved flag onto the GRN line.</summary>
+        Task UpdateGrnDetailQcAsync(
+            int grnDetailId, int qcStatusId,
+            decimal acceptedQty, decimal rejectedQty,
+            string? qcRemarks, string? qcPersonName, string? qcApprovedIp,
+            DateTimeOffset whenUtc, bool isQcApproved,
             IDbConnection connection, IDbTransaction transaction);
     }
 }

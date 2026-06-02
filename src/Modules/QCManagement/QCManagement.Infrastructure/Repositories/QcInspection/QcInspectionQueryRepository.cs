@@ -202,17 +202,17 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             return await _dbConnection.ExecuteScalarAsync<int>(sql, new { DetailId = detailId, HeaderId = headerId }) > 0;
         }
 
-        public async Task<bool> QcStatusCodeExistsAsync(string qcStatusCode)
+        public async Task<bool> QcStatusIdExistsAsync(int qcStatusId)
         {
             const string sql = @"
                 SELECT COUNT(1)
                 FROM QC.MiscMaster mm
                 INNER JOIN QC.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
-                WHERE mm.Code = @Code
+                WHERE mm.Id = @Id
                   AND mm.IsActive = 1 AND mm.IsDeleted = 0
                   AND mtm.IsDeleted = 0
                   AND mtm.MiscTypeCode = 'QP_QC_STATUS'";
-            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Code = qcStatusCode }) > 0;
+            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = qcStatusId }) > 0;
         }
 
         public async Task<int> GetMaxInspectionSequenceAsync(int year)
@@ -318,15 +318,15 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             return header;
         }
 
-        public async Task<int?> GetQcStatusIdByCodeAsync(string qcStatusCode)
+        public async Task<string?> GetQcStatusCodeByIdAsync(int qcStatusId)
         {
             const string sql = @"
-                SELECT TOP 1 mm.Id
+                SELECT TOP 1 mm.Code
                 FROM QC.MiscMaster mm
                 INNER JOIN QC.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
-                WHERE mm.Code = @Code AND mm.IsDeleted = 0
+                WHERE mm.Id = @Id AND mm.IsDeleted = 0
                   AND mtm.MiscTypeCode = 'QP_QC_STATUS'";
-            return await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Code = qcStatusCode });
+            return await _dbConnection.ExecuteScalarAsync<string?>(sql, new { Id = qcStatusId });
         }
 
         public async Task<IReadOnlyList<QcInspectionDtlEvalDto>> GetDetailEvaluationRowsAsync(int qcInspectionHdrId)

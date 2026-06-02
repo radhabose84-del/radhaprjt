@@ -20,9 +20,8 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Queries.GetTnCTemplat
 
             var items = await _tnCTemplateMasterQueryRepository.GetTnCTemplateAutoCompleteAsync(
                 search,
-                
-                request.TemplateTypeId,
-                request.ApplicabilityId
+                request.ModuleId,
+                request.TransactionTypeId
                 );
 
             return items  ;

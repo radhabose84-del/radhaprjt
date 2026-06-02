@@ -18,6 +18,7 @@ namespace QCManagement.UnitTests.Validators.QualitySpecification
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(command.Id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(command.SpecificationName!, command.Id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.QcTypeExistsAsync(command.QcTypeId)).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.GetExistingParameterRowIdsAsync(command.Id))
                 .ReturnsAsync(command.Parameters?.Select(p => p.Id).ToList() ?? new List<int>());
             _mockQueryRepo.Setup(r => r.GetSpecificationItemContextAsync(command.Id))

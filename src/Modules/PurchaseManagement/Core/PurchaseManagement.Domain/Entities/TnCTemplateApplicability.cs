@@ -8,10 +8,8 @@ namespace PurchaseManagement.Domain.Entities
         public int TnCTemplateMasterId { get; set; }
         public TnCTemplateMaster TnCTemplate { get; set; } = null!;
 
-        // points to Misc item like RFQ/PO/SO/Invoice etc.
-        public int ApplicabilityId { get; set; }
-        public MiscMaster Applicability { get; set; } = null!;
-
-
+        // Transaction type (cross-module FK to Finance.TransactionTypeMaster — no DB constraint,
+        // populated via ITransactionTypeLookup)
+        public int TransactionTypeId { get; set; }
     }
 }

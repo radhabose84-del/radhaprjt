@@ -39,9 +39,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster
             // -------- update scalars --------
             //  entity.TemplateCode   = incoming.TemplateCode;
             entity.TemplateName = incoming.TemplateName?.Trim();
-            entity.TemplateTypeId = incoming.TemplateTypeId;
+            entity.ModuleId = incoming.ModuleId;
             entity.TermsHtml = incoming.TermsHtml;
-            entity.ApprovalFlag = incoming.ApprovalFlag;
             entity.IsActive= incoming.IsActive;
 
 
@@ -55,7 +54,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster
 
             if (newApplicabilities != null && newApplicabilities.Count > 0)
             {
-                foreach (var child in newApplicabilities.OrderBy(c => c.ApplicabilityId))
+                foreach (var child in newApplicabilities.OrderBy(c => c.TransactionTypeId))
                 {
                     // fresh instance; EF will set FK via navigation
                     child.Id = 0;
@@ -75,11 +74,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster
             {
                 switch (s.Number)
                 {
-                    case 2601: // dup index (e.g., UX_TnC_Type_Name or UX_TnC_Template_App)
+                    case 2601: // dup index (e.g., UX_TnC_Module_Name or UX_TnC_Template_TxnType)
                     case 2627: // unique constraint
-                        throw new ExceptionRules("A template with this name already exists for the selected Template Type or there is a duplicate Applicability.");
+                        throw new ExceptionRules("A template with this name already exists for the selected Module or there is a duplicate Transaction Type.");
                     case 547:  // FK violation
-                        throw new ExceptionRules("Invalid reference. One of the selected Applicabilities or the Template Type does not exist.");
+                        throw new ExceptionRules("Invalid reference. One of the selected Transaction Types or the Module does not exist.");
                     default:
                         throw;
                 }

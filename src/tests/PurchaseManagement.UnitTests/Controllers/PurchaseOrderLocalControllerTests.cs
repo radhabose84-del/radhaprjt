@@ -6,6 +6,8 @@ using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Update;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseOrder;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
+using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderDetail;
+using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderAnalysis;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderAutocomplete;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
 using PurchaseManagement.Application.Common;
@@ -78,6 +80,44 @@ namespace PurchaseManagement.UnitTests.Controllers
             var result = await CreateSut().Autocomplete("test", null, null, CancellationToken.None);
 
             result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetDetail_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetPurchaseOrderDetailQuery>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult<PurchaseOrderDetailWithSummaryDto?>(new PurchaseOrderDetailWithSummaryDto()));
+
+            var result = await CreateSut().GetDetail(1, CancellationToken.None);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetAnalysis_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetPurchaseOrderAnalysisQuery>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new PagedResult<PurchaseOrderAnalysisListItemDto>()));
+
+            var result = await CreateSut().GetAnalysis();
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetAnalysis_CallsMediatorSend_Once()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetPurchaseOrderAnalysisQuery>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new PagedResult<PurchaseOrderAnalysisListItemDto>()));
+
+            await CreateSut().GetAnalysis(pageNumber: 2, pageSize: 10, statusId: 3, isAmendment: true);
+
+            _mockMediator.Verify(
+                m => m.Send(It.IsAny<GetPurchaseOrderAnalysisQuery>(), It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]

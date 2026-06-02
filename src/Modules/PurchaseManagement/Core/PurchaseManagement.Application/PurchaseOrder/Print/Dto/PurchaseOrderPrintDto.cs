@@ -18,6 +18,9 @@ public class PurchaseOrderPrintDto
     public POPrintImportDto? ImportDetails { get; set; }
     public POPrintContractDto? ContractDetails { get; set; }
     public POPrintServiceHeaderDto? ServiceDetails { get; set; }
+
+    // Terms & Conditions HTML resolved from TnCTemplateMaster by matching the PO's transaction type.
+    public string? TermsHtml { get; set; }
 }
 
 // ──────────────────────────── Section DTOs ────────────────────────────

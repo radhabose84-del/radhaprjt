@@ -27,8 +27,8 @@ namespace PurchaseManagement.UnitTests.Application.TnCTemplateMaster.Commands
                 .Returns(entity);
 
             _mockCodeGenerator
-                .Setup(g => g.GenerateAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("TNC001");
+                .Setup(g => g.GenerateAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("PO-00001");
 
             _mockCommandRepo
                 .Setup(r => r.CreateAsync(It.IsAny<PurchaseManagement.Domain.Entities.TnCTemplateMaster>(), It.IsAny<CancellationToken>()))
@@ -53,7 +53,7 @@ namespace PurchaseManagement.UnitTests.Application.TnCTemplateMaster.Commands
             await CreateSut().Handle(TnCTemplateMasterBuilders.ValidCreateCommand(), CancellationToken.None);
 
             _mockCodeGenerator.Verify(
-                g => g.GenerateAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                g => g.GenerateAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 

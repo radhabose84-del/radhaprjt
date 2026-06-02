@@ -1,7 +1,11 @@
+using Contracts.Dtos.Lookups.Finance;
+using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using PurchaseManagement.Domain.Entities;
-using PurchaseManagement.Infrastructure.Data;
 using PurchaseManagement.Infrastructure.Repositories.TncTemplateMaster;
 using PurchaseManagement.IntegrationTests.Common;
 using static PurchaseManagement.Domain.Common.BaseEntity;
@@ -15,73 +19,76 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
 
         public TncTemplateMasterQueryRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
-        private TncTemplateMasterQueryRepository CreateRepo() =>
-            new(new SqlConnection(_fixture.ConnectionString));
+        // ModuleId / TransactionTypeId are cross-module FKs (no DB constraint) — plain ints.
+        private const int ModuleId = 1;
 
-        private async Task<int> EnsureMiscTypeAsync(string code)
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var existing = await ctx.MiscTypeMaster.FirstOrDefaultAsync(t => t.MiscTypeCode == code);
-            if (existing != null) return existing.Id;
-            var t = new PurchaseManagement.Domain.Entities.MiscTypeMaster
+        private static Mock<IModuleLookup> BuildModuleLookup() =>
+            BuildModuleLookup(new List<ModuleLookupDto>
             {
-                MiscTypeCode = code,
-                Description = code,
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
-            };
-            await ctx.MiscTypeMaster.AddAsync(t);
-            await ctx.SaveChangesAsync();
-            return t.Id;
+                new() { ModuleId = ModuleId, ModuleName = "Purchase" }
+            });
+
+        private static Mock<IModuleLookup> BuildModuleLookup(List<ModuleLookupDto> modules)
+        {
+            var mock = new Mock<IModuleLookup>(MockBehavior.Loose);
+            mock.Setup(m => m.GetAllModuleAsync()).ReturnsAsync(modules);
+            return mock;
         }
 
-        private async Task<int> EnsureMiscAsync(int miscTypeId, string code)
+        private static Mock<ITransactionTypeLookup> BuildTransactionTypeLookup(
+            params TransactionTypeLookupDto[] types)
         {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var existing = await ctx.MiscMaster.FirstOrDefaultAsync(m => m.Code == code && m.MiscTypeId == miscTypeId);
-            if (existing != null) return existing.Id;
-            var m = new PurchaseManagement.Domain.Entities.MiscMaster
-            {
-                MiscTypeId = miscTypeId,
-                Code = code,
-                Description = code,
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
-            };
-            await ctx.MiscMaster.AddAsync(m);
-            await ctx.SaveChangesAsync();
-            return m.Id;
+            var mock = new Mock<ITransactionTypeLookup>(MockBehavior.Loose);
+            mock.Setup(t => t.GetAllTransactionTypeAsync())
+                .ReturnsAsync(types.ToList());
+            mock.Setup(t => t.GetByIdsAsync(It.IsAny<IEnumerable<int>>()))
+                .ReturnsAsync((IEnumerable<int> ids) =>
+                {
+                    var set = ids.ToHashSet();
+                    return types.Where(x => set.Contains(x.Id)).ToList();
+                });
+            return mock;
+        }
+
+        private TncTemplateMasterQueryRepository CreateRepo(
+            Mock<IModuleLookup>? moduleLookup = null,
+            Mock<ITransactionTypeLookup>? txnLookup = null)
+        {
+            moduleLookup ??= BuildModuleLookup();
+            txnLookup ??= BuildTransactionTypeLookup();
+            return new TncTemplateMasterQueryRepository(
+                new SqlConnection(_fixture.ConnectionString),
+                moduleLookup.Object,
+                txnLookup.Object);
         }
 
         private async Task<int> SeedTemplateAsync(
             string templateName,
             string templateCode,
-            int? typeId = null,
-            int? applicabilityId = null,
+            int moduleId = ModuleId,
+            int? transactionTypeId = null,
             Status active = Status.Active,
             IsDelete deleted = IsDelete.NotDeleted)
         {
-            typeId ??= await EnsureMiscAsync(await EnsureMiscTypeAsync("TNCQ_TT"), "PURCH_QT");
             await using var ctx = _fixture.CreateFreshDbContext();
             var t = new TnCTemplateMaster
             {
                 TemplateCode = templateCode,
                 TemplateName = templateName,
-                TemplateTypeId = typeId.Value,
+                ModuleId = moduleId,
                 TermsHtml = "<p>Sample</p>",
-                ApprovalFlag = false,
                 IsActive = active,
                 IsDeleted = deleted
             };
             await ctx.TnCTemplateMaster.AddAsync(t);
             await ctx.SaveChangesAsync();
 
-            if (applicabilityId.HasValue)
+            if (transactionTypeId.HasValue)
             {
                 await ctx.TnCTemplateApplicability.AddAsync(new TnCTemplateApplicability
                 {
                     TnCTemplateMasterId = t.Id,
-                    ApplicabilityId = applicabilityId.Value,
+                    TransactionTypeId = transactionTypeId.Value,
                     IsActive = Status.Active,
                     IsDeleted = IsDelete.NotDeleted
                 });
@@ -106,6 +113,34 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
 
             rows.Should().HaveCount(1);
             total.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GetAllTncTemplateAsync_Should_Populate_ModuleName()
+        {
+            await ClearAsync();
+            await SeedTemplateAsync("TQ_Mod", "TQ_MOD1");
+
+            var (rows, _) = await CreateRepo().GetAllTncTemplateAsync(1, 10, null!);
+
+            rows[0].ModuleName.Should().Be("Purchase");
+        }
+
+        [Fact]
+        public async Task GetAllTncTemplateAsync_Should_Populate_TransactionTypeNames()
+        {
+            await ClearAsync();
+            await SeedTemplateAsync("TQ_Txn", "TQ_TXN1", transactionTypeId: 50);
+
+            var txnLookup = BuildTransactionTypeLookup(
+                new TransactionTypeLookupDto { Id = 50, TypeName = "Purchase Order", ShortName = "PO" });
+
+            var (rows, _) = await CreateRepo(txnLookup: txnLookup).GetAllTncTemplateAsync(1, 10, null!);
+
+            var app = rows[0].Applicabilities.Should().ContainSingle().Subject;
+            app.TransactionTypeId.Should().Be(50);
+            app.ShortName.Should().Be("PO");
+            app.TypeName.Should().Be("Purchase Order");
         }
 
         [Fact]
@@ -149,9 +184,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
         public async Task GetByIdAsync_Should_Return_Matching_With_Children()
         {
             await ClearAsync();
-            var typeId = await EnsureMiscAsync(await EnsureMiscTypeAsync("TNCQ_TT"), "PURCH_QT");
-            var appId = await EnsureMiscAsync(await EnsureMiscTypeAsync("TNCQ_APP_T"), "APP_GBI");
-            var id = await SeedTemplateAsync("TQ_GBI", "TQ_GBI", typeId: typeId, applicabilityId: appId);
+            var id = await SeedTemplateAsync("TQ_GBI", "TQ_GBI", transactionTypeId: 60);
 
             var result = await CreateRepo().GetByIdAsync(id);
 
@@ -178,48 +211,62 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
             result.Should().BeNull();
         }
 
-        // --- ExistsByTypeAndNameAsync ---
+        // --- ExistsByModuleAndNameAsync ---
 
         [Fact]
-        public async Task ExistsByTypeAndNameAsync_Should_Return_True_For_Duplicate()
+        public async Task ExistsByModuleAndNameAsync_Should_Return_True_For_Duplicate()
         {
             await ClearAsync();
-            var typeId = await EnsureMiscAsync(await EnsureMiscTypeAsync("TNCQ_TT"), "PURCH_QT");
-            await SeedTemplateAsync("TQ_DUP", "TQ_DUP", typeId: typeId);
+            await SeedTemplateAsync("TQ_DUP", "TQ_DUP", moduleId: ModuleId);
 
-            var result = await CreateRepo().ExistsByTypeAndNameAsync(typeId, "TQ_DUP");
+            var result = await CreateRepo().ExistsByModuleAndNameAsync(ModuleId, "TQ_DUP");
 
             result.Should().BeTrue();
         }
 
         [Fact]
-        public async Task ExistsByTypeAndNameAsync_Should_Exclude_Self()
+        public async Task ExistsByModuleAndNameAsync_Should_Exclude_Self()
         {
             await ClearAsync();
-            var typeId = await EnsureMiscAsync(await EnsureMiscTypeAsync("TNCQ_TT"), "PURCH_QT");
-            var id = await SeedTemplateAsync("TQ_SELF", "TQ_SELF", typeId: typeId);
+            var id = await SeedTemplateAsync("TQ_SELF", "TQ_SELF", moduleId: ModuleId);
 
-            var result = await CreateRepo().ExistsByTypeAndNameAsync(typeId, "TQ_SELF", excludeId: id);
+            var result = await CreateRepo().ExistsByModuleAndNameAsync(ModuleId, "TQ_SELF", excludeId: id);
 
             result.Should().BeFalse();
         }
 
-        // --- ApplicabilitiesExistAsync ---
+        // --- TransactionTypesExistAsync (validated via the cross-module lookup) ---
 
         [Fact]
-        public async Task ApplicabilitiesExistAsync_Should_Return_False_For_Empty_Input()
+        public async Task TransactionTypesExistAsync_Should_Return_False_For_Empty_Input()
         {
-            var result = await CreateRepo().ApplicabilitiesExistAsync(Array.Empty<int>());
+            var result = await CreateRepo().TransactionTypesExistAsync(Array.Empty<int>());
             result.Should().BeFalse();
         }
 
         [Fact]
-        public async Task ApplicabilitiesExistAsync_Should_Return_False_When_Some_Missing()
+        public async Task TransactionTypesExistAsync_Should_Return_False_When_Some_Missing()
         {
-            // Pass a known-bad id; even if matching MiscTypeId 9 lookup is wrong on test DB,
-            // a non-existent id is guaranteed to fail the count check.
-            var result = await CreateRepo().ApplicabilitiesExistAsync(new[] { 9999999 });
+            var txnLookup = BuildTransactionTypeLookup(
+                new TransactionTypeLookupDto { Id = 70, TypeName = "PO", ShortName = "PO" });
+
+            var result = await CreateRepo(txnLookup: txnLookup)
+                .TransactionTypesExistAsync(new[] { 70, 9999999 });
+
             result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task TransactionTypesExistAsync_Should_Return_True_When_All_Present()
+        {
+            var txnLookup = BuildTransactionTypeLookup(
+                new TransactionTypeLookupDto { Id = 80, TypeName = "PO", ShortName = "PO" },
+                new TransactionTypeLookupDto { Id = 81, TypeName = "RFQ", ShortName = "RFQ" });
+
+            var result = await CreateRepo(txnLookup: txnLookup)
+                .TransactionTypesExistAsync(new[] { 80, 81 });
+
+            result.Should().BeTrue();
         }
 
         // --- IsUsedInTransactionsAsync ---
@@ -259,9 +306,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.TncTemplateMaster
         public async Task SoftDeleteValidationAsync_Should_Return_True_When_Children_Exist()
         {
             await ClearAsync();
-            var typeId = await EnsureMiscAsync(await EnsureMiscTypeAsync("TNCQ_TT"), "PURCH_QT");
-            var appId = await EnsureMiscAsync(await EnsureMiscTypeAsync("TNCQ_APP_T"), "APP_SDV");
-            var id = await SeedTemplateAsync("TQ_SDV2", "TQ_SDV2", typeId: typeId, applicabilityId: appId);
+            var id = await SeedTemplateAsync("TQ_SDV2", "TQ_SDV2", transactionTypeId: 90);
 
             var result = await CreateRepo().SoftDeleteValidationAsync(id);
 

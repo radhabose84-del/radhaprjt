@@ -1,4 +1,5 @@
 using AutoMapper;
+using PurchaseManagement.Application.TnCTemplateMaster.Command;
 using PurchaseManagement.Application.TnCTemplateMaster.Command.CreateTnCTemplateMasterCommand;
 using PurchaseManagement.Application.TnCTemplateMaster.Command.UpdateTnCTemplateMasterCommand;
 using PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster;
@@ -18,7 +19,7 @@ namespace PurchaseManagement.Application.Common.Mappings
                .ForMember(d => d.TemplateCode, opt => opt.Ignore())
                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted))
-               .ForMember(d => d.Applicabilities, opt => opt.MapFrom(s => s.Applicabilities ?? new List<TncApplicabilityDto>()));
+               .ForMember(d => d.Applicabilities, opt => opt.MapFrom(s => s.Applicabilities ?? new List<TncApplicabilityRequestDto>()));
                
 
                 // Update – only safe fields
@@ -32,7 +33,7 @@ namespace PurchaseManagement.Application.Common.Mappings
             //    CreateMap<UpdateTnCTemplateMasterCommand, PurchaseManagement.Domain.Entities.TnCTemplateMaster>()
             //    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == 1 ? Status.Active : Status.Inactive));  
 
-            CreateMap<TncApplicabilityDto, PurchaseManagement.Domain.Entities.TnCTemplateApplicability>()
+            CreateMap<TncApplicabilityRequestDto, PurchaseManagement.Domain.Entities.TnCTemplateApplicability>()
                 .ForMember(d => d.Id, opt => opt.Ignore())
                 .ForMember(d => d.TnCTemplateMasterId, opt => opt.Ignore());
             

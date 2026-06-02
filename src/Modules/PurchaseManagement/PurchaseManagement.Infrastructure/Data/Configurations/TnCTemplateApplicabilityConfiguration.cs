@@ -28,25 +28,20 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations
             builder.Property(x => x.TnCTemplateMasterId)
                    .IsRequired();
 
-            // FK to MiscMaster
-            builder.Property(x => x.ApplicabilityId)
+            // Cross-module FK to Finance.TransactionTypeMaster — plain column, NO DB FK constraint / navigation
+            builder.Property(x => x.TransactionTypeId)
                    .IsRequired();
 
-            // Relations
+            // Relations (same-module master only)
             builder.HasOne(x => x.TnCTemplate)
              .WithMany(t => t.Applicabilities)
              .HasForeignKey(x => x.TnCTemplateMasterId)
              .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(x => x.Applicability)
-             .WithMany(m => m.TncApplicabilities)   // or .WithMany() if you didn’t add the back-collection
-             .HasForeignKey(x => x.ApplicabilityId)
-             .OnDelete(DeleteBehavior.Restrict);
-
-            // Prevent duplicate applicability per template (respect soft-delete)
-            builder.HasIndex(x => new { x.TnCTemplateMasterId, x.ApplicabilityId })
+            // Prevent duplicate transaction type per template (respect soft-delete)
+            builder.HasIndex(x => new { x.TnCTemplateMasterId, x.TransactionTypeId })
              .IsUnique()
-             .HasDatabaseName("UX_TnC_Template_App")
+             .HasDatabaseName("UX_TnC_Template_TxnType")
              .HasFilter("[IsDeleted] = 0");
 
             // BaseEntity fields mapping (adjust names/types to your BaseEntity)
