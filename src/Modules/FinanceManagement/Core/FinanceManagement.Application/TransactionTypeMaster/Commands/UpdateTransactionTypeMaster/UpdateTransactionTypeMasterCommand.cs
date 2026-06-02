@@ -11,6 +11,7 @@ namespace FinanceManagement.Application.TransactionTypeMaster.Commands.UpdateTra
         public string? TypeName { get; set; }
         public string? ShortName { get; set; }
         public string? Description { get; set; }
+        public int IsGate { get; set; }     // 0 = No, 1 = Yes
         public int IsActive { get; set; }
     }
 }

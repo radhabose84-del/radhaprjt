@@ -54,7 +54,7 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
                 {{searchClause}};
 
                 SELECT Id, UnitId, ModuleId, MenuId, TypeName, ShortName, Description,
-                       IsActive, IsDeleted,
+                       IsGate, IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[TransactionTypeMaster]
@@ -94,7 +94,7 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
 
             const string sql = @"
                 SELECT Id, UnitId, ModuleId, MenuId, TypeName, ShortName, Description,
-                       IsActive, IsDeleted,
+                       IsGate, IsActive, IsDeleted,
                        CreatedBy, CreatedDate, CreatedByName, CreatedIP,
                        ModifiedBy, ModifiedDate, ModifiedByName, ModifiedIP
                 FROM [Finance].[TransactionTypeMaster]
@@ -123,7 +123,7 @@ namespace FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster
             var unitId = _ipAddressService.GetUnitId() ?? 0;
 
             const string sql = @"
-                SELECT Id, TypeName, ShortName
+                SELECT Id, TypeName, ShortName, IsGate
                 FROM [Finance].[TransactionTypeMaster]
                 WHERE IsDeleted = 0 AND IsActive = 1 AND UnitId = @UnitId
                 AND (TypeName LIKE @Term OR ShortName LIKE @Term)
