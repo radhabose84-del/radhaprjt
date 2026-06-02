@@ -6,10 +6,8 @@ using QCManagement.Application.QcInspection.Commands.SaveDisposition;
 using QCManagement.Application.QcInspection.Commands.SaveParameterCollection;
 using QCManagement.Application.QcInspection.Dto;
 using QCManagement.Application.QcInspection.Queries.GetAllQcInspection;
-using QCManagement.Application.QcInspection.Queries.GetEligibleGrnLines;
 using QCManagement.Application.QcInspection.Queries.GetGrnQcStatus;
 using QCManagement.Application.QcInspection.Queries.GetQcInspectionById;
-using QCManagement.Application.QcInspection.Queries.ResolveSpec;
 using QCManagement.Presentation.Controllers;
 
 namespace QCManagement.UnitTests.Controllers
@@ -49,22 +47,6 @@ namespace QCManagement.UnitTests.Controllers
         }
 
         [Fact]
-        public async Task EligibleGrnLines_ReturnsOk()
-        {
-            _mockMediator.Setup(m => m.Send(It.IsAny<GetEligibleGrnLinesQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<EligibleGrnLineDto>() as IReadOnlyList<EligibleGrnLineDto>);
-            (await CreateSut().GetEligibleGrnLinesAsync()).Should().BeOfType<OkObjectResult>();
-        }
-
-        [Fact]
-        public async Task ResolveSpec_ReturnsOk()
-        {
-            _mockMediator.Setup(m => m.Send(It.IsAny<ResolveSpecQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ResolveSpecPreviewDto { Found = true });
-            (await CreateSut().ResolveSpecAsync(4321)).Should().BeOfType<OkObjectResult>();
-        }
-
-        [Fact]
         public async Task GrnStatus_ReturnsOk()
         {
             _mockMediator.Setup(m => m.Send(It.IsAny<GetGrnQcStatusQuery>(), It.IsAny<CancellationToken>()))
@@ -76,7 +58,7 @@ namespace QCManagement.UnitTests.Controllers
         public async Task Create_ReturnsOk()
         {
             _mockMediator.Setup(m => m.Send(It.IsAny<CreateQcInspectionCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 1 });
+                .ReturnsAsync(new ApiResponseDTO<QcInspectionDto> { IsSuccess = true, Data = new QcInspectionDto { Id = 1 } });
             (await CreateSut().CreateQcInspection(new CreateQcInspectionCommand())).Should().BeOfType<OkObjectResult>();
         }
 

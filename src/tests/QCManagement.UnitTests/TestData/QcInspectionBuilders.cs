@@ -101,14 +101,14 @@ namespace QCManagement.UnitTests.TestData
         public static QcInspectionListDto ValidListDto(int id = 1) =>
             new()
             {
-                Id = id,
+                InspectionId = id,
                 QcInspectionNo = "QCI-2026-00001",
                 GrnHeaderId = 100,
                 GrnDetailId = 4321,
                 ReceivedQuantity = 1000m,
-                InspectionDate = DateTimeOffset.UtcNow,
-                IsActive = true,
-                IsDeleted = false
+                QcStatusCode = "APR",
+                QcStatusName = "Approved",
+                InspectionDate = DateTimeOffset.UtcNow
             };
 
         public static QcInspectionDto ValidDto(int id = 88) =>

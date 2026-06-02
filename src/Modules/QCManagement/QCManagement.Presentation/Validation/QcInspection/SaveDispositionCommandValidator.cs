@@ -22,10 +22,7 @@ namespace QCManagement.Presentation.Validation.QcInspection
                 .WithMessage("Inspection not found.")
                 .When(x => x.QcInspectionHdrId > 0);
 
-            RuleFor(x => x.QcInspectionHdrId)
-                .MustAsync(async (id, ct) => !await queryRepo.IsDisposedAsync(id))
-                .WithMessage("This inspection has already been disposed.")
-                .When(x => x.QcInspectionHdrId > 0);
+            // Disposition is re-editable (Hold→Approve, Reject→CAP, etc.) — no "already disposed" lock.
 
             RuleFor(x => x.QcInspectionHdrId)
                 .MustAsync(async (id, ct) => await queryRepo.AllParametersEvaluatedAsync(id))

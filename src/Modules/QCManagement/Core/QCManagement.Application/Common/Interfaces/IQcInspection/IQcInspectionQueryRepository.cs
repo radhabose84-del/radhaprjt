@@ -4,11 +4,10 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
 {
     public interface IQcInspectionQueryRepository
     {
-        Task<(List<QcInspectionListDto>, int)> GetAllAsync(
-            int pageNumber, int pageSize, string? searchTerm,
-            int? qcStatusId, DateTimeOffset? fromDate, DateTimeOffset? toDate);
-
         Task<QcInspectionDto?> GetByIdAsync(int id);
+
+        /// <summary>Inspection summaries for a set of GRN detail lines — used to build the unified grid.</summary>
+        Task<IReadOnlyList<QcInspectionSummaryDto>> GetInspectionSummariesByGrnDetailIdsAsync(IEnumerable<int> grnDetailIds);
 
         // ── validation / existence helpers ──
         Task<bool> NotFoundAsync(int id);
@@ -31,9 +30,8 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
         Task<IReadOnlyList<QcInspectionDtlEvalDto>> GetDetailEvaluationRowsAsync(int qcInspectionHdrId);
         Task<QcDispositionContextDto?> GetDispositionContextAsync(int id);
 
-        // ── GRN-level derivation + eligibility ──
+        // ── GRN-level derivation ──
         /// <summary>QC-side disposition counts for a GRN header (TotalLines + DerivedStatus are filled by the handler).</summary>
         Task<GrnQcStatusDto> GetGrnStatusCountsAsync(int grnHeaderId);
-        Task<IReadOnlyList<int>> GetInspectedGrnDetailIdsAsync(IEnumerable<int> grnDetailIds);
     }
 }

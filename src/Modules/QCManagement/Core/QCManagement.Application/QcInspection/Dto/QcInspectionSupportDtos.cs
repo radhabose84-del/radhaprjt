@@ -1,34 +1,5 @@
 namespace QCManagement.Application.QcInspection.Dto
 {
-    /// <summary>Eligible GRN line for a new inspection (un-inspected + QC-required).</summary>
-    public class EligibleGrnLineDto
-    {
-        public int GrnHeaderId { get; set; }
-        public int GrnDetailId { get; set; }
-        public string? GrnNo { get; set; }
-        public DateTimeOffset GrnDate { get; set; }
-        public int SupplierId { get; set; }
-        public string? SupplierName { get; set; }
-        public int ItemId { get; set; }
-        public string? ItemCode { get; set; }
-        public string? ItemName { get; set; }
-        public string? BatchNumber { get; set; }
-        public decimal ReceivedQuantity { get; set; }
-        public int? ReceivedUomId { get; set; }
-    }
-
-    /// <summary>Preview of which Quality Specification will be resolved for a GRN line.</summary>
-    public class ResolveSpecPreviewDto
-    {
-        public bool Found { get; set; }
-        public int? QualitySpecificationId { get; set; }
-        public string? QualitySpecificationCode { get; set; }
-        public int? QualityTemplateId { get; set; }
-        public string? QualityTemplateCode { get; set; }
-        public int ParameterCount { get; set; }
-        public string? Message { get; set; }
-    }
-
     /// <summary>GRN-level derived QC status (computed on demand).</summary>
     public class GrnQcStatusDto
     {
@@ -83,5 +54,23 @@ namespace QCManagement.Application.QcInspection.Dto
         public decimal? MaxValue { get; set; }
         public string? ExpectedValue { get; set; }
         public string? AllowedValues { get; set; }
+    }
+
+    /// <summary>Inspection summary keyed by GRN detail line — merged into the unified grid.</summary>
+    public class QcInspectionSummaryDto
+    {
+        public int Id { get; set; }
+        public int GrnDetailId { get; set; }
+        public string? QcInspectionNo { get; set; }
+        public int? QcStatusId { get; set; }
+        public string? QcStatusCode { get; set; }
+        public string? QcStatusName { get; set; }
+        public decimal? AcceptedQuantity { get; set; }
+        public decimal? RejectedQuantity { get; set; }
+        public DateTimeOffset? InspectionDate { get; set; }
+        public DateTimeOffset? CreatedDate { get; set; }
+        public string? CreatedByName { get; set; }
+        public DateTimeOffset? ModifiedDate { get; set; }
+        public string? ModifiedByName { get; set; }
     }
 }

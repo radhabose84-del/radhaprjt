@@ -1,8 +1,13 @@
 namespace QCManagement.Application.QcInspection.Dto
 {
+    /// <summary>
+    /// Unified grid row — one per QC-required GRN line. A line with no inspection yet
+    /// is "Pending QC" (InspectionId / QcInspectionNo null); an inspected line carries its status.
+    /// Status text for pending rows is set by the query handler, not defaulted here.
+    /// </summary>
     public class QcInspectionListDto
     {
-        public int Id { get; set; }
+        public int? InspectionId { get; set; }
         public string? QcInspectionNo { get; set; }
         public int GrnHeaderId { get; set; }
         public int GrnDetailId { get; set; }
@@ -18,14 +23,9 @@ namespace QCManagement.Application.QcInspection.Dto
         public int? QcStatusId { get; set; }
         public string? QcStatusCode { get; set; }
         public string? QcStatusName { get; set; }
-        public DateTimeOffset InspectionDate { get; set; }
-        public bool IsActive { get; set; }
-        public bool IsDeleted { get; set; }
-
-        public int CreatedBy { get; set; }
+        public DateTimeOffset? InspectionDate { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }
         public string? CreatedByName { get; set; }
-        public int? ModifiedBy { get; set; }
         public DateTimeOffset? ModifiedDate { get; set; }
         public string? ModifiedByName { get; set; }
     }
