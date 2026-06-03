@@ -22,6 +22,9 @@ namespace UserManagement.Application.Companies.Queries.GetCompanyById
         {
            
             var result = await _companyRepository.GetByIdAsync(request.CompanyId);
+            if (result == null)
+                return null;
+
             string logoBase64 = null;
              if (!string.IsNullOrEmpty(result.Logo) && File.Exists(result.Logo))
              {

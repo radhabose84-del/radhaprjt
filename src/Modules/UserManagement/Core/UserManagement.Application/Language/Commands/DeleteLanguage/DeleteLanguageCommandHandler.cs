@@ -30,6 +30,8 @@ namespace UserManagement.Application.Language.Commands.DeleteLanguage
                 
                    
               
+                // Idempotent delete: only audit when a row was actually soft-deleted.
+                // A no-op (already deleted / non-existent id) returns false → controller 200, not a 500.
                 if(languageresult)
                 {
                      var domainEvent = new AuditLogsDomainEvent(
@@ -38,13 +40,12 @@ namespace UserManagement.Application.Language.Commands.DeleteLanguage
                         actionName:"",
                         details: $"Language '{language.Id}' was deleted.",
                         module:"Language"
-                    );               
-                    await _mediator.Publish(domainEvent, cancellationToken); 
-
-                    return languageresult;
+                    );
+                    await _mediator.Publish(domainEvent, cancellationToken);
                 }
-                throw new Exception("Language not deleted.");
-                
+
+                return languageresult;
+
         }
     }
 }

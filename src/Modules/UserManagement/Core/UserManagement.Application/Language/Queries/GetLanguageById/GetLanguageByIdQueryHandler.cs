@@ -22,6 +22,9 @@ namespace UserManagement.Application.Language.Queries.GetLanguageById
         public async Task<LanguageDTO> Handle(GetLanguageByIdQuery request, CancellationToken cancellationToken)
         {
              var result = await _languageQuery.GetByIdAsync(request.Id);
+             if (result == null)
+                 return null;
+
              var language = _mapper.Map<LanguageDTO>(result);
 
           
