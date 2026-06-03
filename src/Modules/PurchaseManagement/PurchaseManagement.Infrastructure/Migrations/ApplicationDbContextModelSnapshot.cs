@@ -5966,9 +5966,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ApplicabilityId")
-                        .HasColumnType("int");
-
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
@@ -6006,13 +6003,14 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int>("TnCTemplateMasterId")
                         .HasColumnType("int");
 
+                    b.Property<int>("TransactionTypeId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicabilityId");
-
-                    b.HasIndex("TnCTemplateMasterId", "ApplicabilityId")
+                    b.HasIndex("TnCTemplateMasterId", "TransactionTypeId")
                         .IsUnique()
-                        .HasDatabaseName("UX_TnC_Template_App")
+                        .HasDatabaseName("UX_TnC_Template_TxnType")
                         .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("TnCTemplateApplicability", "Purchase");
@@ -6063,6 +6061,9 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("ModifiedIP")
                         .HasColumnType("varchar(20)");
 
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TemplateCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(50)");
@@ -6071,18 +6072,15 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("TemplateTypeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("TermsHtml")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TemplateTypeId", "TemplateName")
+                    b.HasIndex("ModuleId", "TemplateName")
                         .IsUnique()
-                        .HasDatabaseName("UX_TnC_Type_Name")
+                        .HasDatabaseName("UX_TnC_Module_Name")
                         .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("TnCTemplateMaster", "Purchase");
@@ -7686,32 +7684,13 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateApplicability", b =>
                 {
-                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "Applicability")
-                        .WithMany("TncApplicabilities")
-                        .HasForeignKey("ApplicabilityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("PurchaseManagement.Domain.Entities.TnCTemplateMaster", "TnCTemplate")
                         .WithMany("Applicabilities")
                         .HasForeignKey("TnCTemplateMasterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Applicability");
-
                     b.Navigation("TnCTemplate");
-                });
-
-            modelBuilder.Entity("PurchaseManagement.Domain.Entities.TnCTemplateMaster", b =>
-                {
-                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "TemplateType")
-                        .WithMany("TncTemplatesByType")
-                        .HasForeignKey("TemplateTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("TemplateType");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.VendorEvaluation.VendorEvaluationCriteria", b =>
@@ -7971,10 +7950,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("StatusHeader");
 
                     b.Navigation("StatusWorkflow");
-
-                    b.Navigation("TncApplicabilities");
-
-                    b.Navigation("TncTemplatesByType");
 
                     b.Navigation("VendorCriteriaRatingImpact");
 

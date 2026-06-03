@@ -88,7 +88,7 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
                 whereClause += " AND ttm.MenuId = @MenuId";
 
             var sql = $@"
-                SELECT DISTINCT ttm.Id, ttm.TypeName, ttm.ShortName, ttm.Description
+                SELECT DISTINCT ttm.Id, ttm.TypeName, ttm.ShortName, ttm.Description, ttm.IsGate
                 FROM [Finance].[TransactionTypeMaster] ttm
                 INNER JOIN [Finance].[DocumentSequence] ds ON ds.TransactionTypeId = ttm.Id AND ds.IsDeleted = 0
                 WHERE {whereClause}
@@ -111,7 +111,7 @@ namespace FinanceManagement.Infrastructure.Repositories.Lookups.Finance
         public async Task<IReadOnlyList<TransactionTypeLookupDto>> GetTransactionTypesByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
         {
             const string sql = @"
-                SELECT Id, TypeName, ShortName, Description
+                SELECT Id, TypeName, ShortName, Description, IsGate
                 FROM [Finance].[TransactionTypeMaster]
                 WHERE Id IN @Ids AND IsDeleted = 0";
 

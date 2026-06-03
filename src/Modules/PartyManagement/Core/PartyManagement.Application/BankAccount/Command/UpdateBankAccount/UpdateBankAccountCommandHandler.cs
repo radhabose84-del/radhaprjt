@@ -39,6 +39,13 @@ namespace PartyManagement.Application.Party.BankAccounts.Commands.UpdateBankAcco
             entity.IsPrimaryAccount = r.IsPrimaryAccount;
             entity.IsActive        =r.IsActive;
             entity.IBan             = r.IBan?.Replace(" ", string.Empty).ToUpperInvariant();
+            entity.OwnerTypeId      = r.OwnerTypeId;
+            entity.OwnerId          = r.OwnerId;
+            entity.AddressLine1     = r.AddressLine1?.Trim();
+            entity.AddressLine2     = r.AddressLine2?.Trim();
+            entity.CityId           = r.CityId;
+            entity.StateId          = r.StateId;
+            entity.Pincode          = r.Pincode?.Trim();
             entity.ModifiedDate     = DateTime.UtcNow;
             entity.ModifiedByName   = _ipAddressService.GetUserName();
             entity.ModifiedBy       = _ipAddressService.GetUserId();

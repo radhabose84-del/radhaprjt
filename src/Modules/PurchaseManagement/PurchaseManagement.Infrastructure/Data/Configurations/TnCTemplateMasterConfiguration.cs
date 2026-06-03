@@ -35,33 +35,24 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations
             .HasColumnType("nvarchar(200)")
             .IsRequired();
 
-            builder.Property(x => x.TemplateTypeId)
+            // Cross-module FK to AppData.Modules — plain column, NO DB FK constraint / navigation
+            builder.Property(x => x.ModuleId)
             .HasColumnType("int")
             .IsRequired();
-
-            builder.HasOne(x => x.TemplateType)
-            .WithMany(m => m.TncTemplatesByType)
-            .HasForeignKey(x => x.TemplateTypeId)
-            .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(x => x.TermsHtml)
              .HasColumnType("nvarchar(max)")
                 .IsRequired();
-
-            // Optional ApprovalFlag
-            builder.Property(x => x.ApprovalFlag)
-               .HasColumnType("bit");
-              
 
             builder.HasMany(x => x.Applicabilities)
                 .WithOne(x => x.TnCTemplate)
                 .HasForeignKey(x => x.TnCTemplateMasterId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasIndex(x => new { x.TemplateTypeId, x.TemplateName })
+            builder.HasIndex(x => new { x.ModuleId, x.TemplateName })
                 .IsUnique()
-                .HasDatabaseName("UX_TnC_Type_Name")
-                .HasFilter("[IsDeleted] = 0");  // Filter deleted records  
+                .HasDatabaseName("UX_TnC_Module_Name")
+                .HasFilter("[IsDeleted] = 0");  // Filter deleted records
 
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")

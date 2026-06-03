@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.Purchase;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using SalesManagement.Application.Common.Interfaces.IInvoice;
@@ -31,9 +32,11 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
         private readonly ICompanyDetailLookup _companyDetailLookup;
         private readonly IUnitDetailLookup _unitDetailLookup;
         private readonly IPartyDetailLookup _partyDetailLookup;
-        private readonly IPartyBankLookup _partyBankLookup;
+        private readonly IBankAccountLookup _bankAccountLookup;
         private readonly IEInvoiceLookup _eInvoiceLookup;
         private readonly IEWaybillLookup _eWaybillLookup;
+        private readonly ITransactionTypeLookup _transactionTypeLookup;
+        private readonly ITnCTemplateLookup _tncTemplateLookup;
 
         public InvoiceQueryRepository(
             IDbConnection dbConnection,
@@ -50,9 +53,11 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             ICompanyDetailLookup companyDetailLookup,
             IUnitDetailLookup unitDetailLookup,
             IPartyDetailLookup partyDetailLookup,
-            IPartyBankLookup partyBankLookup,
+            IBankAccountLookup bankAccountLookup,
             IEInvoiceLookup eInvoiceLookup,
-            IEWaybillLookup eWaybillLookup)
+            IEWaybillLookup eWaybillLookup,
+            ITransactionTypeLookup transactionTypeLookup,
+            ITnCTemplateLookup tncTemplateLookup)
         {
             _dbConnection = dbConnection;
             _partyLookup = partyLookup;
@@ -68,9 +73,11 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             _companyDetailLookup = companyDetailLookup;
             _unitDetailLookup = unitDetailLookup;
             _partyDetailLookup = partyDetailLookup;
-            _partyBankLookup = partyBankLookup;
+            _bankAccountLookup = bankAccountLookup;
             _eInvoiceLookup = eInvoiceLookup;
             _eWaybillLookup = eWaybillLookup;
+            _transactionTypeLookup = transactionTypeLookup;
+            _tncTemplateLookup = tncTemplateLookup;
         }
 
         public async Task<(List<InvoiceHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, string? status = null)
@@ -844,9 +851,10 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             var ewayBillNo = eway?.EWBNumber;
             var ewayDate = eway?.GeneratedDate;
 
-            // 13. Fetch seller bank via lookup (PartyManagement module — keyed by Company GSTIN)
-            var bank = company?.GstNumber != null
-                ? await _partyBankLookup.GetDefaultBankByGstAsync(company.GstNumber)
+            // 13. Fetch seller bank from the invoice unit's designated bank account
+            //     (AppData.Unit.BankAccountId → Party.BankAccount, cross-module via IBankAccountLookup).
+            var bank = unit?.BankAccountId is > 0
+                ? await _bankAccountLookup.GetByIdAsync(unit.BankAccountId.Value)
                 : null;
 
             // --- Resolve lookups ---
@@ -1101,14 +1109,23 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
             InvoicePrintBankDto? bankDto = null;
             if (bank != null)
             {
+                var bankAddrParts = new[]
+                {
+                    bank.AddressLine1, bank.AddressLine2, bank.CityName, bank.StateName, bank.Pincode
+                }.Where(p => !string.IsNullOrWhiteSpace(p));
+
                 bankDto = new InvoicePrintBankDto
                 {
                     Name = bank.BankName,
-                    Branch = bank.BankBranch,
-                    AccountNo = bank.BankAccountNumber,
+                    Branch = bank.BranchName,
+                    Address = string.Join(", ", bankAddrParts),
+                    AccountNo = bank.AccountNumber,
                     Ifsc = bank.IFSCCode
                 };
             }
+
+            // Terms & Conditions matched to the invoice transaction type (cross-module via lookups)
+            var termsHtml = await FetchTermsHtmlAsync();
 
             return new InvoicePrintDto
             {
@@ -1121,8 +1138,24 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                 Consignee = consigneeDto,
                 Items = printItems,
                 Totals = totalsDto,
-                Bank = bankDto
+                Bank = bankDto,
+                TermsHtml = termsHtml
             };
+        }
+
+        // Resolves the active T&C template's TermsHtml for an invoice by mapping the invoice to the
+        // "Invoice" Finance transaction type (name → id via lookup), then reading the Purchase-owned
+        // template via ITnCTemplateLookup. No cross-module/cross-schema SQL.
+        private async Task<string?> FetchTermsHtmlAsync()
+        {
+            var transactionTypes = await _transactionTypeLookup.GetAllTransactionTypeAsync();
+            var transactionType = transactionTypes.FirstOrDefault(t =>
+                string.Equals(t.TypeName, MiscEnumEntity.TransactionTypeInvoice, StringComparison.OrdinalIgnoreCase));
+            if (transactionType == null)
+                return null;
+
+            var template = await _tncTemplateLookup.GetByTransactionTypeAsync(transactionType.Id);
+            return template?.TermsHtml;
         }
 
 

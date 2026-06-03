@@ -164,6 +164,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             existingParty.SalesFreightId = partyMaster.SalesFreightId;
             existingParty.PurchaseFreightId = partyMaster.PurchaseFreightId;
             existingParty.FreightExpensesGl = partyMaster.FreightExpensesGl;
+            existingParty.BankAccountId = partyMaster.BankAccountId;
 
             // Check if any related collection has at least one record
             bool hasRelatedRecords =

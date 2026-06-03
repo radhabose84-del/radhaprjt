@@ -29,9 +29,14 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Command.CreateTnCTemp
 
 
              var entity = _mapper.Map<PurchaseManagement.Domain.Entities.TnCTemplateMaster>(request);
-            
+
+            // Prefix comes from the first selected applicability's TransactionType ShortName (e.g. "PO-00001")
+            var prefixTransactionTypeId = request.Applicabilities is { Count: > 0 }
+                ? request.Applicabilities.OrderBy(a => a.TransactionTypeId).First().TransactionTypeId
+                : 0;
+
             // Generate TemplateCode here (since command no longer has it)
-             entity.TemplateCode = await _codeGen.GenerateAsync(request.TemplateTypeId, request.TemplateName);
+             entity.TemplateCode = await _codeGen.GenerateAsync(prefixTransactionTypeId, cancellationToken);
 
 
             // persist (repo should save master + children in a transaction)

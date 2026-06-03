@@ -1,3 +1,4 @@
+using Contracts.Interfaces.Lookups.Party;
 using FluentValidation.TestHelper;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster;
@@ -10,10 +11,11 @@ namespace PartyManagement.UnitTests.Validators.PartyMaster
     {
         private readonly Mock<IPartyMasterCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IPartyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IBankAccountLookup> _mockBankLookup = new(MockBehavior.Loose);
 
-        // Constructor: (IPartyMasterCommandRepository, IPartyMasterQueryRepository)
+        // Constructor: (IPartyMasterCommandRepository, IPartyMasterQueryRepository, IBankAccountLookup)
         private UpdatePartyMasterCommandValidator CreateValidator() =>
-            new(_mockCommandRepo.Object, _mockQueryRepo.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockBankLookup.Object);
 
         private void SetupNoDuplicate(string partyName = "Updated Party", int id = 1)
         {

@@ -30,8 +30,6 @@ namespace PurchaseManagement.Domain.Entities
         public ICollection<RfqMaster> RfqStatuses { get; set; } = new List<RfqMaster>();
         public ICollection<RfqMaster> RfqInitiationTypes { get; set; } = new List<RfqMaster>();
         public ICollection<IndentHeader> StatusHeader { get; set; } = default!;
-        public ICollection<TnCTemplateMaster> TncTemplatesByType { get; set; } = new List<TnCTemplateMaster>();
-        public ICollection<TnCTemplateApplicability> TncApplicabilities { get; set; } = new List<TnCTemplateApplicability>();
         //Quotation Entry
         public ICollection<QuotationHeader> QuotationPaymentTerms { get; set; } = new List<QuotationHeader>();
         public ICollection<QuotationHeader> QuotationFreightMode { get; set; } = new List<QuotationHeader>();

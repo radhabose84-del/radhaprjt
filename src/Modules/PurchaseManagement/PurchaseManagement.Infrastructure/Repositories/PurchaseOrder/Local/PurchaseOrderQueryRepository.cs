@@ -250,11 +250,206 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         };
     }
 
+    public async Task<PagedResult<PurchaseOrderAnalysisListItemDto>> GetAnalysisAsync(
+        int page,
+        int size,
+        string? search,
+        int? poMethodId,
+        int? statusId,
+        DateTimeOffset? fromDate,
+        DateTimeOffset? toDate,
+        bool? isAmendment,
+        int? vendorPartyId,
+        CancellationToken ct)
+    {
+        const string sql = @"
+        -- Count
+        SELECT COUNT(1)
+        FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+        WHERE h.IsDeleted = 0
+          AND h.IsActive  = 1
+          AND (@VendorId IS NULL OR h.VendorId = @VendorId)
+          AND (@UnitId   IS NULL OR h.UnitId   = @UnitId)
+          AND (@Search IS NULL OR @Search = '' OR h.PONumber LIKE @LikeSearch)
+          AND (@PoMethodId    IS NULL OR h.POMethodId    = @PoMethodId)
+          AND (@StatusId      IS NULL OR h.StatusId      = @StatusId)
+          AND (@FromDate IS NULL OR h.PODate >= @FromDate)
+          AND (@ToDate   IS NULL OR h.PODate <  @ToDateExclusive)
+          AND (@IsAmendment IS NULL
+               OR (@IsAmendment = 1 AND h.RevisionNo > 0)
+               OR (@IsAmendment = 0 AND h.RevisionNo = 0));
+
+        -- Page
+        SELECT
+            h.Id, h.PONumber, h.PODate, h.VendorId, h.UnitId, h.StatusId,
+            h.PurchaseValue, h.CreatedByName,
+            h.RevisionNo, h.AmendmentReason,
+            h.BudgetGroupId, h.ItemCategoryId,
+            mStatus.Code AS StatusCode,
+            mMethod.Code AS POMethodCode, mMethod.Id AS POMethodId,
+            ISNULL(ti.TotalItems, 0) AS TotalItems,
+            CAST(CASE WHEN mStatus.Code = @Cancelled  THEN 1 ELSE 0 END AS BIT) AS IsCancelled,
+            CAST(CASE WHEN mStatus.Code = @ForeClosed THEN 1 ELSE 0 END AS BIT) AS IsForeclosed
+        FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+        LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
+        LEFT JOIN Purchase.MiscMaster mMethod WITH (NOLOCK) ON mMethod.Id = h.POMethodId
+        OUTER APPLY (
+            SELECT COUNT(1) AS TotalItems
+            FROM Purchase.PurchaseLocalDetail d WITH (NOLOCK)
+            JOIN Purchase.PurchaseLocalHeader lh WITH (NOLOCK) ON lh.Id = d.PurchaseLocalId AND lh.IsDeleted = 0
+            WHERE lh.PurchaseOrderId = h.Id AND d.IsDeleted = 0
+        ) ti
+        WHERE h.IsDeleted = 0
+          AND h.IsActive  = 1
+          AND (@VendorId IS NULL OR h.VendorId = @VendorId)
+          AND (@UnitId   IS NULL OR h.UnitId   = @UnitId)
+          AND (@Search IS NULL OR @Search = '' OR h.PONumber LIKE @LikeSearch)
+          AND (@PoMethodId    IS NULL OR h.POMethodId    = @PoMethodId)
+          AND (@StatusId      IS NULL OR h.StatusId      = @StatusId)
+          AND (@FromDate IS NULL OR h.PODate >= @FromDate)
+          AND (@ToDate   IS NULL OR h.PODate <  @ToDateExclusive)
+          AND (@IsAmendment IS NULL
+               OR (@IsAmendment = 1 AND h.RevisionNo > 0)
+               OR (@IsAmendment = 0 AND h.RevisionNo = 0))
+        ORDER BY h.Id DESC
+        OFFSET @off ROWS FETCH NEXT @size ROWS ONLY;";
+
+        var like = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+
+        // Buyer scope = filter by UnitId; supplier scope = filter by VendorId.
+        int? unitId = vendorPartyId.HasValue ? (int?)null : (_ip.GetUnitId() ?? 0);
+
+        using var multi = await _conn.QueryMultipleAsync(new CommandDefinition(sql, new
+        {
+            VendorId = vendorPartyId,
+            UnitId = unitId,
+            Search = search,
+            LikeSearch = like,
+            PoMethodId = poMethodId,
+            StatusId = statusId,
+            FromDate = fromDate,
+            ToDateExclusive = toDate?.AddDays(1),
+            ToDate = toDate,
+            IsAmendment = isAmendment.HasValue ? (isAmendment.Value ? 1 : 0) : (int?)null,
+            off = Math.Max(0, (page - 1) * size),
+            size,
+            Cancelled = MiscEnumEntity.Cancelled,
+            ForeClosed = MiscEnumEntity.ForeClosed
+        }, cancellationToken: ct));
+
+        var total = await multi.ReadFirstAsync<int>();
+        var items = (await multi.ReadAsync<PurchaseOrderAnalysisListItemDto>()).ToList();
+
+        return new PagedResult<PurchaseOrderAnalysisListItemDto>
+        {
+            Page = page,
+            PageSize = size,
+            Total = total,
+            Items = items,
+        };
+    }
+
+    // ORIGINAL local-only detail — retained as-is for the existing GET api/PurchaseOrderLocal/{id}.
     public async Task<PurchaseOrderDetailDto?> GetByIdAsync(int id, CancellationToken ct)
     {
         // header
         var header = await _conn.QueryFirstOrDefaultAsync<PurchaseOrderDetailDto>(
             "SELECT * FROM Purchase.PurchaseOrderHeader WHERE Id=@id AND IsDeleted=0;", new { id });
+
+        if (header is null) return null;
+
+        // payment terms
+        var terms = await _conn.QueryAsync<PurchasePaymentTermDto>(
+            "SELECT * FROM Purchase.PurchasePaymentTerm WHERE PurchaseOrderId=@id AND IsDeleted=0 ORDER BY Id;", new { id });
+        header.PaymentTerms = terms.ToList();
+
+        // documents
+        const string docSqlLocal = @"
+        SELECT
+            d.DocumentId,
+            mm.Code AS DocumentName,
+            d.FileName,
+            d.UploadedDate
+        FROM Purchase.PurchaseDocuments AS d WITH (NOLOCK)
+        JOIN Purchase.MiscMaster AS mm ON mm.Id = d.DocumentId
+        WHERE d.POId = @id
+        ORDER BY d.Id;";
+
+        header.DocumentsList = (await _conn.QueryAsync<LocalDocumentDto>(docSqlLocal, new { id })).ToList();
+
+        // local headers
+        var localHeaders = (await _conn.QueryAsync<PurchaseLocalHeaderDto>(
+            @"SELECT lh.*
+            FROM Purchase.PurchaseLocalHeader lh
+            WHERE lh.PurchaseOrderId = @id AND lh.IsDeleted = 0
+            ORDER BY lh.Id;",
+            new { id }
+        )).ToList();
+
+        header.Headers = localHeaders;
+
+        var hasGrnLocal = await HasAnyGrnAsync(id, ct);
+        var statusCodeLocal = await GetStatusCodeAsync(id, ct) ?? "";
+        var (editFlagLocal, editReasonLocal) = ComputeEditGate(hasGrnLocal, statusCodeLocal);
+
+        header.Edit = editFlagLocal;
+        header.EditReason = editReasonLocal;
+
+        if (localHeaders.Count > 0)
+        {
+            var localIds = localHeaders.Where(l => l.Id.HasValue).Select(l => l.Id!.Value).ToArray();
+            var localDetails = (await _conn.QueryAsync<PurchaseLocalDetailDto>(
+                "SELECT * FROM Purchase.PurchaseLocalDetail WHERE IsDeleted=0 AND PurchaseLocalId IN @ids ORDER BY Id;",
+                new { ids = localIds })).ToList();
+
+            if (localDetails.Count == 0)
+                return header;
+
+            var localIndentIds = localDetails.Select(x => x.IndentId ?? 0).Where(x => x > 0).Distinct().ToArray();
+            if (localIndentIds.Length > 0)
+            {
+                var indentRows = await _conn.QueryAsync(
+                    @"SELECT Id, IndentNumber
+                    FROM Purchase.IndentHeader
+                    WHERE IsDeleted = 0 AND Id IN @ids;",
+                    new { ids = localIndentIds });
+
+                var indentMap = new Dictionary<int, string>();
+                foreach (var r in indentRows)
+                {
+                    int rid = (int)r.Id;
+                    string num = (string)r.IndentNumber;
+                    indentMap[rid] = num;
+                }
+
+                foreach (var d in localDetails)
+                    if (d.IndentId is > 0 && indentMap.TryGetValue(d.IndentId.Value, out var indentNo))
+                        d.IndentNumber = indentNo;
+            }
+
+            var localLookup = localDetails.GroupBy(d => d.PurchaseLocalId).ToDictionary(g => g.Key, g => g.ToList());
+            foreach (var lh in localHeaders)
+            {
+                if (lh.Id is null) continue;
+                if (localLookup.TryGetValue(lh.Id.Value, out var list))
+                    lh.Details = list;
+            }
+        }
+
+        return header;
+    }
+
+    // All-PO-types unified detail (Local | Import | Contract | Blanket | Service) — used by the
+    // PO Analysis detail endpoint (GET api/PurchaseOrderLocal/{id}/detail).
+    public async Task<PurchaseOrderDetailDto?> GetDetailByIdAsync(int id, CancellationToken ct)
+    {
+        // header (with PO method + status codes for the summary panels)
+        var header = await _conn.QueryFirstOrDefaultAsync<PurchaseOrderDetailDto>(
+            @"SELECT h.*, mMethod.Code AS POMethodCode, mStatus.Code AS StatusCode
+              FROM Purchase.PurchaseOrderHeader h WITH (NOLOCK)
+              LEFT JOIN Purchase.MiscMaster mMethod WITH (NOLOCK) ON mMethod.Id = h.POMethodId
+              LEFT JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
+              WHERE h.Id = @id AND h.IsDeleted = 0;", new { id });
 
         if (header is null) return null;
 
@@ -278,14 +473,72 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
         var rows = await _conn.QueryAsync<LocalDocumentDto>(docSql, new { id });
         header.DocumentsList = rows.ToList();
 
-        // local headers
-        var locals = (await _conn.QueryAsync<PurchaseLocalHeaderDto>(
-            @"SELECT lh.*
-            FROM Purchase.PurchaseLocalHeader lh
+        // PO-type headers — a PO is exactly one method (Local | Import | Contract | Blanket | Service);
+        // Emergency is a category overlay on Local/Import/Contract, so it is covered here too.
+        // All five types are projected into the unified PurchaseLocalHeaderDto shape (type-specific
+        // fields that don't apply are NULL), with same-module Incoterms / Mode-of-Dispatch names.
+        const string headerSql = @"
+            -- Local
+            SELECT lh.Id, lh.PurchaseOrderId, lh.IsPartialReceiptAllowed,
+                   lh.IncotermsId, lh.ModeOfDispatchId, lh.FreightCharges,
+                   lh.TermsId, lh.TermDescription, lh.DeliveryAddress, lh.BillingAddress,
+                   inc.Code AS IncotermsName, md.Code AS ModeOfDispatchName
+            FROM Purchase.PurchaseLocalHeader lh WITH (NOLOCK)
+            LEFT JOIN Purchase.MiscMaster inc WITH (NOLOCK) ON inc.Id = lh.IncotermsId
+            LEFT JOIN Purchase.MiscMaster md  WITH (NOLOCK) ON md.Id  = lh.ModeOfDispatchId
             WHERE lh.PurchaseOrderId = @id AND lh.IsDeleted = 0
-            ORDER BY lh.Id;",
-            new { id }
-        )).ToList();
+
+            UNION ALL
+
+            -- Contract
+            SELECT ch.Id, ch.PurchaseOrderId, ch.IsPartialReceiptAllowed,
+                   ch.IncotermsId, ch.ModeOfDispatchId, ch.FreightCharges,
+                   ch.TermsId, ch.TermDescription, ch.DeliveryAddress, ch.BillingAddress,
+                   inc.Code, md.Code
+            FROM Purchase.PurchaseContractHeader ch WITH (NOLOCK)
+            LEFT JOIN Purchase.MiscMaster inc WITH (NOLOCK) ON inc.Id = ch.IncotermsId
+            LEFT JOIN Purchase.MiscMaster md  WITH (NOLOCK) ON md.Id  = ch.ModeOfDispatchId
+            WHERE ch.PurchaseOrderId = @id AND ch.IsDeleted = 0
+
+            UNION ALL
+
+            -- Blanket
+            SELECT bh.Id, bh.PurchaseOrderId, bh.IsPartialReceiptAllowed,
+                   bh.IncotermsId, bh.ModeOfDispatchId, bh.FreightCharges,
+                   bh.TermsId, bh.TermDescription, bh.DeliveryAddress, bh.BillingAddress,
+                   inc.Code, md.Code
+            FROM Purchase.PurchaseBlanketHeader bh WITH (NOLOCK)
+            LEFT JOIN Purchase.MiscMaster inc WITH (NOLOCK) ON inc.Id = bh.IncotermsId
+            LEFT JOIN Purchase.MiscMaster md  WITH (NOLOCK) ON md.Id  = bh.ModeOfDispatchId
+            WHERE bh.PurchaseOrderId = @id AND bh.IsDeleted = 0
+
+            UNION ALL
+
+            -- Import
+            SELECT ih.Id, ih.PurchaseOrderId, ih.IsPartialReceiptAllowed,
+                   ih.IncotermId AS IncotermsId, CAST(NULL AS INT) AS ModeOfDispatchId,
+                   CAST(NULL AS DECIMAL(18,6)) AS FreightCharges,
+                   CAST(NULL AS INT) AS TermsId, CAST(NULL AS NVARCHAR(MAX)) AS TermDescription,
+                   CAST(NULL AS NVARCHAR(MAX)) AS DeliveryAddress, CAST(NULL AS NVARCHAR(MAX)) AS BillingAddress,
+                   inc.Code, CAST(NULL AS NVARCHAR(250))
+            FROM Purchase.PurchaseOrderImportHeader ih WITH (NOLOCK)
+            LEFT JOIN Purchase.MiscMaster inc WITH (NOLOCK) ON inc.Id = ih.IncotermId
+            WHERE ih.PurchaseOrderId = @id AND ih.IsDeleted = 0
+
+            UNION ALL
+
+            -- Service
+            SELECT sh.Id, sh.PurchaseOrderId, CAST(0 AS BIT) AS IsPartialReceiptAllowed,
+                   CAST(NULL AS INT) AS IncotermsId, sh.ModeOfDispatchId, sh.FreightCharges,
+                   sh.TermsId, sh.TermDescription, sh.DeliveryAddress, sh.BillingAddress,
+                   CAST(NULL AS NVARCHAR(250)), md.Code
+            FROM Purchase.PurchaseOrderServiceHeader sh WITH (NOLOCK)
+            LEFT JOIN Purchase.MiscMaster md WITH (NOLOCK) ON md.Id = sh.ModeOfDispatchId
+            WHERE sh.PurchaseOrderId = @id AND sh.IsDeleted = 0
+
+            ORDER BY Id;";
+
+        var locals = (await _conn.QueryAsync<PurchaseLocalHeaderDto>(headerSql, new { id })).ToList();
 
         header.Headers = locals;
 
@@ -298,11 +551,76 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
 
         if (locals.Count > 0)
         {
-            // fetch all details for these headers in one go
-            var localIds = locals.Where(l => l.Id.HasValue).Select(l => l.Id!.Value).ToArray();
-            var details = (await _conn.QueryAsync<PurchaseLocalDetailDto>(
-                "SELECT * FROM Purchase.PurchaseLocalDetail WHERE IsDeleted=0 AND PurchaseLocalId IN @ids ORDER BY Id;",
-                new { ids = localIds })).ToList();
+            // Unified detail lines for whichever PO type this PO uses. PurchaseLocalId carries the
+            // parent type-header id; service lines map ServiceDescription -> ItemName (ItemId = 0 so
+            // item-master enrichment is skipped).
+            const string detailSql = @"
+                -- Local
+                SELECT d.Id, d.PurchaseLocalId, d.IndentId, d.ItemId, d.ItemSno, d.UOMId,
+                       d.Quantity, d.UnitPrice, d.LastPOPrice, d.DiscountTypeId, d.DiscountValue,
+                       d.PandFType, d.PandFCharge, d.OtherCharge,
+                       d.GSTPercentage, d.CGSTPercentage, d.SGSTPercentage, d.IGSTPercentage,
+                       d.CGST, d.SGST, d.IGST, d.ScheduleDate, d.DepartmentId, d.ItemValue,
+                       CAST(NULL AS NVARCHAR(500)) AS ItemName
+                FROM Purchase.PurchaseLocalDetail d WITH (NOLOCK)
+                JOIN Purchase.PurchaseLocalHeader lh WITH (NOLOCK) ON lh.Id = d.PurchaseLocalId AND lh.IsDeleted = 0
+                WHERE d.IsDeleted = 0 AND lh.PurchaseOrderId = @id
+
+                UNION ALL
+
+                -- Contract
+                SELECT cd.Id, cd.PurchaseContractHeaderId, CAST(NULL AS INT),
+                       cd.ItemId, cd.ItemSno, cd.UOMId, cd.Quantity, cd.UnitPrice, CAST(NULL AS DECIMAL(18,6)),
+                       cd.DiscountTypeId, cd.DiscountValue, cd.PandFType, cd.PandFCharge, cd.OtherCharge,
+                       cd.GSTPercentage, cd.CGSTPercentage, cd.SGSTPercentage, cd.IGSTPercentage,
+                       cd.CGST, cd.SGST, cd.IGST, cd.ScheduleDate, cd.DepartmentId, cd.ItemValue,
+                       CAST(NULL AS NVARCHAR(500))
+                FROM Purchase.PurchaseContractDetail cd WITH (NOLOCK)
+                JOIN Purchase.PurchaseContractHeader ch WITH (NOLOCK) ON ch.Id = cd.PurchaseContractHeaderId AND ch.IsDeleted = 0
+                WHERE cd.IsDeleted = 0 AND ch.PurchaseOrderId = @id
+
+                UNION ALL
+
+                -- Blanket
+                SELECT bd.Id, bd.PurchaseBlanketHeaderId, CAST(NULL AS INT),
+                       bd.ItemId, bd.ItemSno, bd.UOMId, bd.Quantity, bd.UnitPrice, CAST(NULL AS DECIMAL(18,6)),
+                       bd.DiscountTypeId, bd.DiscountValue, bd.PandFType, bd.PandFCharge, bd.OtherCharge,
+                       bd.GSTPercentage, bd.CGSTPercentage, bd.SGSTPercentage, bd.IGSTPercentage,
+                       bd.CGST, bd.SGST, bd.IGST, bd.ScheduleDate, bd.DepartmentId, bd.ItemValue,
+                       CAST(NULL AS NVARCHAR(500))
+                FROM Purchase.PurchaseBlanketDetail bd WITH (NOLOCK)
+                JOIN Purchase.PurchaseBlanketHeader bh WITH (NOLOCK) ON bh.Id = bd.PurchaseBlanketHeaderId AND bh.IsDeleted = 0
+                WHERE bd.IsDeleted = 0 AND bh.PurchaseOrderId = @id
+
+                UNION ALL
+
+                -- Import
+                SELECT ipd.Id, ipd.PurchaseHeaderId, ipd.IndentId,
+                       ipd.ItemId, ipd.ItemSno, ipd.UomId, ipd.Quantity, ipd.UnitPrice, CAST(NULL AS DECIMAL(18,6)),
+                       CAST(NULL AS INT), CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS INT), CAST(NULL AS DECIMAL(18,6)), ipd.OtherCharges,
+                       CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DECIMAL(18,6)), ipd.IGSTPercentage,
+                       CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DECIMAL(18,6)), ipd.IGST, CAST(NULL AS DATETIMEOFFSET), CAST(NULL AS INT), ipd.TotalValue,
+                       CAST(NULL AS NVARCHAR(500))
+                FROM Purchase.PurchaseOrderImportDetail ipd WITH (NOLOCK)
+                JOIN Purchase.PurchaseOrderImportHeader iph WITH (NOLOCK) ON iph.Id = ipd.PurchaseHeaderId AND iph.IsDeleted = 0
+                WHERE iph.PurchaseOrderId = @id
+
+                UNION ALL
+
+                -- Service
+                SELECT sl.Id, sl.ServicePoHeaderId, CAST(NULL AS INT),
+                       CAST(0 AS INT) AS ItemId, sl.[LineNo], ISNULL(sl.UOMId, 0), sl.PlannedQuantity, sl.PlannedRate, CAST(NULL AS DECIMAL(18,6)),
+                       sl.DiscountId, sl.Discount, CAST(NULL AS INT), CAST(NULL AS DECIMAL(18,6)), sl.OtherCharges,
+                       sl.GstPercent, CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DECIMAL(18,6)),
+                       CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DECIMAL(18,6)), CAST(NULL AS DATETIMEOFFSET), CAST(NULL AS INT), sl.PlannedValue,
+                       sl.ServiceDescription
+                FROM Purchase.PurchaseOrderServiceLine sl WITH (NOLOCK)
+                JOIN Purchase.PurchaseOrderServiceHeader sh WITH (NOLOCK) ON sh.Id = sl.ServicePoHeaderId AND sh.IsDeleted = 0
+                WHERE sl.IsDeleted = 0 AND sh.PurchaseOrderId = @id
+
+                ORDER BY PurchaseLocalId, Id;";
+
+            var details = (await _conn.QueryAsync<PurchaseLocalDetailDto>(detailSql, new { id })).ToList();
 
             if (details.Count == 0)
                 return header;
@@ -869,6 +1187,29 @@ public class PurchaseOrderQueryRepository : IPurchaseOrderQueryRepository
                 WHERE g.PoId = @poId;";
 
         var exists = await _conn.ExecuteScalarAsync<int?>(sql, new { poId });
+        return exists.HasValue;
+    }
+
+    public async Task<decimal> GetInvoicedTotalAsync(int poId, CancellationToken ct)
+    {
+        const string sql = @"
+                SELECT ISNULL(SUM(GrandTotal), 0)
+                FROM Purchase.PurchaseBillEntryHeader WITH (NOLOCK)
+                WHERE PoId = @poId AND IsDeleted = 0;";
+
+        return await _conn.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(sql, new { poId }, cancellationToken: ct));
+    }
+
+    public async Task<bool> HasAnyBillEntryAsync(int poId, CancellationToken ct)
+    {
+        const string sql = @"
+                SELECT TOP 1 1
+                FROM Purchase.PurchaseBillEntryHeader WITH (NOLOCK)
+                WHERE PoId = @poId AND IsDeleted = 0;";
+
+        var exists = await _conn.ExecuteScalarAsync<int?>(
+            new CommandDefinition(sql, new { poId }, cancellationToken: ct));
         return exists.HasValue;
     }
 

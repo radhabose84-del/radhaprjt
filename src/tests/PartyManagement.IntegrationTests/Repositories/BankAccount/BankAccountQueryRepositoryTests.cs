@@ -1,3 +1,5 @@
+using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using PartyManagement.Domain.Common;
@@ -19,11 +21,24 @@ namespace PartyManagement.IntegrationTests.Repositories.BankAccount
             _fixture = fixture;
         }
 
-        private BankAccountQueryRepository CreateQueryRepo()
+        private BankAccountQueryRepository CreateQueryRepo(Mock<IUnitLookup>? unitLookup = null)
         {
             var ctx = _fixture.CreateFreshDbContext();
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new BankAccountQueryRepository(ctx, conn);
+            unitLookup ??= BuildDefaultUnitLookup();
+            var cityLookup = new Mock<ICityLookup>(MockBehavior.Loose);
+            var stateLookup = new Mock<IStateLookup>(MockBehavior.Loose);
+            return new BankAccountQueryRepository(ctx, conn, unitLookup.Object, cityLookup.Object, stateLookup.Object);
+        }
+
+        private static Mock<IUnitLookup> BuildDefaultUnitLookup()
+        {
+            var mock = new Mock<IUnitLookup>(MockBehavior.Loose);
+            mock.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<UnitLookupDto>());
+            mock.Setup(u => u.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((UnitLookupDto?)null);
+            return mock;
         }
 
         private async Task<int> SeedMiscTypeMasterAsync(string code)
@@ -92,6 +107,45 @@ namespace PartyManagement.IntegrationTests.Repositories.BankAccount
             return result.Id;
         }
 
+        private async Task<int> SeedBankAccountWithOwnerAsync(
+            int bankId, int miscId, int? ownerTypeId, int? ownerId, string accountNumber)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var repo = new BankAccountCommandRepository(ctx);
+            var result = await repo.AddAsync(new PartyManagement.Domain.Entities.BankAccount
+            {
+                BankId = bankId,
+                AccountNumber = accountNumber,
+                AccountHolderName = "Owner Holder",
+                AccountTypeId = miscId,
+                BranchId = miscId,
+                IFSCCode = "HDFC0001234",
+                OwnerTypeId = ownerTypeId,
+                OwnerId = ownerId,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            }, CancellationToken.None);
+            return result.Id;
+        }
+
+        private async Task<int> SeedPartyMasterAsync(string name, int registrationTypeId, int statusId)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var party = new PartyManagement.Domain.Entities.PartyMaster
+            {
+                PartyCode = "P" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper(),
+                PartyName = name,
+                RegistrationTypeId = registrationTypeId,
+                UnitId = 1,
+                StatusId = statusId,
+                IsActive = BaseEntity.Status.Active,
+                IsDeleted = BaseEntity.IsDelete.NotDeleted
+            };
+            ctx.PartyMaster.Add(party);
+            await ctx.SaveChangesAsync();
+            return party.Id;
+        }
+
         private async Task ClearTablesAsync() => await _fixture.ClearAllTablesAsync();
 
         // --- GET BY ID ---
@@ -137,6 +191,47 @@ namespace PartyManagement.IntegrationTests.Repositories.BankAccount
             var result = await CreateQueryRepo().GetByIdAsync(id, CancellationToken.None);
 
             result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Resolve_PartyOwnerName_Via_Join()
+        {
+            await ClearTablesAsync();
+            var miscTypeId = await SeedMiscTypeMasterAsync("BAQ_OWNER_P");
+            var miscId     = await SeedMiscMasterAsync(miscTypeId, "BAQ_MP");
+            var partyType  = await SeedMiscMasterAsync(miscTypeId, "Party");
+            var bankId     = await SeedBankMasterAsync("BAQ_BNKP", "Party Bank");
+            var partyId    = await SeedPartyMasterAsync("Acme Traders", miscId, miscId);
+            var id = await SeedBankAccountWithOwnerAsync(bankId, miscId, partyType, partyId, "5001");
+
+            var result = await CreateQueryRepo().GetByIdAsync(id, CancellationToken.None);
+
+            result.Should().NotBeNull();
+            result!.OwnerTypeName.Should().Be("Party");
+            result.OwnerId.Should().Be(partyId);
+            result.OwnerName.Should().Be("Acme Traders");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Resolve_UnitOwnerName_Via_Lookup()
+        {
+            await ClearTablesAsync();
+            var miscTypeId = await SeedMiscTypeMasterAsync("BAQ_OWNER_U");
+            var miscId     = await SeedMiscMasterAsync(miscTypeId, "BAQ_MU");
+            var unitType   = await SeedMiscMasterAsync(miscTypeId, "Unit");
+            var bankId     = await SeedBankMasterAsync("BAQ_BNKU", "Unit Bank");
+            var id = await SeedBankAccountWithOwnerAsync(bankId, miscId, unitType, 37, "6001");
+
+            var unitLookup = new Mock<IUnitLookup>(MockBehavior.Loose);
+            unitLookup.Setup(u => u.GetByIdAsync(37, It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(new UnitLookupDto { UnitId = 37, UnitName = "Spinning Unit" });
+
+            var result = await CreateQueryRepo(unitLookup).GetByIdAsync(id, CancellationToken.None);
+
+            result.Should().NotBeNull();
+            result!.OwnerTypeName.Should().Be("Unit");
+            result.OwnerId.Should().Be(37);
+            result.OwnerName.Should().Be("Spinning Unit");
         }
 
         // --- GET ALL ---

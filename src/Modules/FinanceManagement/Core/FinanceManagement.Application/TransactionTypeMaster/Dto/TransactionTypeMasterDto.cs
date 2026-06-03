@@ -12,6 +12,7 @@ namespace FinanceManagement.Application.TransactionTypeMaster.Dto
         public string? TypeName { get; set; }
         public string? ShortName { get; set; }
         public string? Description { get; set; }
+        public bool IsGate { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

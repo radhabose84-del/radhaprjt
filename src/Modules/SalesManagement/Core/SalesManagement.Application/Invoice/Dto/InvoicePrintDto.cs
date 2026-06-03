@@ -13,6 +13,10 @@ namespace SalesManagement.Application.Invoice.Dto
         public List<InvoicePrintItemDto>? Items { get; set; }
         public InvoicePrintTotalsDto? Totals { get; set; }
         public InvoicePrintBankDto? Bank { get; set; }
+
+        // Terms & Conditions HTML resolved from TnCTemplateMaster (Purchase module) by matching
+        // the invoice's transaction type. Populated via ITnCTemplateLookup (cross-module).
+        public string? TermsHtml { get; set; }
     }
 
     public class InvoicePrintCompanyDto

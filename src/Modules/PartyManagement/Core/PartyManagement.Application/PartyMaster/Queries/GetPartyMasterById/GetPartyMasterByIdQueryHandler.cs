@@ -1,4 +1,5 @@
 using AutoMapper;
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
 using PartyManagement.Domain.Common;
@@ -17,8 +18,9 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         private readonly ICountryLookup _countryLookup;
         private readonly ICompanyLookup _companyLookup;
         private readonly IUnitLookup _unitLookup;
+        private readonly IBankAccountLookup _bankAccountLookup;
 
-        public GetPartyMasterByIdQueryHandler(IPartyMasterQueryRepository ipartyMasterQueryRepository, IMapper mapper, IMediator mediator, ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup, ICompanyLookup companyLookup, IUnitLookup unitLookup)
+        public GetPartyMasterByIdQueryHandler(IPartyMasterQueryRepository ipartyMasterQueryRepository, IMapper mapper, IMediator mediator, ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup, ICompanyLookup companyLookup, IUnitLookup unitLookup, IBankAccountLookup bankAccountLookup)
         {
             _ipartyMasterQueryRepository = ipartyMasterQueryRepository;
             _mapper = mapper;
@@ -28,6 +30,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             _countryLookup = countryLookup;
             _companyLookup = companyLookup;
             _unitLookup = unitLookup;
+            _bankAccountLookup = bankAccountLookup;
         }
         public async Task<PartyMasterDto> Handle(GetPartyMasterByIdQuery request, CancellationToken cancellationToken)
         {
@@ -105,6 +108,17 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
 
             if (dto == null)
                 throw new KeyNotFoundException("PartyId not found");
+
+            // Populate the party's designated bank account display fields via cross-schema lookup
+            if (dto.BankAccountId is > 0)
+            {
+                var bankAccount = await _bankAccountLookup.GetByIdAsync(dto.BankAccountId.Value, cancellationToken);
+                if (bankAccount is not null)
+                {
+                    dto.BankAccountNumber = bankAccount.AccountNumber;
+                    dto.BankName = bankAccount.BankName;
+                }
+            }
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetById",

@@ -106,10 +106,19 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Property<int>("AccountTypeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("AddressLine1")
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("AddressLine2")
+                        .HasColumnType("nvarchar(250)");
+
                     b.Property<int>("BankId")
                         .HasColumnType("int");
 
                     b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CityId")
                         .HasColumnType("int");
 
                     b.Property<int>("CreatedBy")
@@ -162,15 +171,29 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Property<string>("ModifiedIP")
                         .HasColumnType("varchar(20)");
 
+                    b.Property<int?>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OwnerTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Pincode")
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("SWIFTCode")
                         .HasMaxLength(11)
                         .HasColumnType("nvarchar(11)");
+
+                    b.Property<int?>("StateId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AccountTypeId");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("OwnerTypeId");
 
                     b.ToTable("BankAccount", "Party");
                 });
@@ -799,6 +822,10 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("AlternateName");
 
+                    b.Property<int?>("BankAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccountId");
+
                     b.Property<string>("CIN")
                         .HasColumnType("nvarchar(25)")
                         .HasColumnName("CIN");
@@ -1291,7 +1318,14 @@ namespace PartyManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "BankAccountOwnerType")
+                        .WithMany("BankAccountOwnerType")
+                        .HasForeignKey("OwnerTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("BankAccountMisc");
+
+                    b.Navigation("BankAccountOwnerType");
 
                     b.Navigation("BankAccountType");
                 });
@@ -1581,6 +1615,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("AgentConfigSettlementCycle");
 
                     b.Navigation("BankAccountBranch");
+
+                    b.Navigation("BankAccountOwnerType");
 
                     b.Navigation("BankAccountType");
 

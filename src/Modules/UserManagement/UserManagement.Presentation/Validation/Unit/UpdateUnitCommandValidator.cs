@@ -1,4 +1,5 @@
 #nullable disable
+using Contracts.Interfaces.Lookups.Party;
 using FluentValidation;
 using UserManagement.Application.Units.Queries.GetUnits;
 using UserManagement.Application.Units.Commands.UpdateUnit;
@@ -12,10 +13,12 @@ namespace UserManagement.Presentation.Validation.Unit
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IUnitQueryRepository _queryRepo;
+        private readonly IBankAccountLookup _bankAccountLookup;
 
-        public UpdateUnitCommandValidator(MaxLengthProvider maxLengthProvider, IUnitQueryRepository queryRepo)
+        public UpdateUnitCommandValidator(MaxLengthProvider maxLengthProvider, IUnitQueryRepository queryRepo, IBankAccountLookup bankAccountLookup)
         {
             _queryRepo = queryRepo;
+            _bankAccountLookup = bankAccountLookup;
               _validationRules = ValidationRuleLoader.LoadValidationRules();
                 if (_validationRules == null || !_validationRules.Any())
             {
@@ -84,6 +87,10 @@ namespace UserManagement.Presentation.Validation.Unit
                             .MustAsync(async (id, ct) => await _queryRepo.MiscMasterExistsAsync(id))
                             .WithMessage($"{nameof(UpdateUnitsDto.UnitTypeId)} is inactive or deleted.")
                             .When(x => x.UpdateUnitDto.UnitTypeId > 0);
+                        RuleFor(x => x.UpdateUnitDto.BankAccountId)
+                            .MustAsync(async (id, ct) => await _bankAccountLookup.ExistsForOwnerTypeAsync(id.Value, "Unit", ct))
+                            .WithMessage($"{nameof(UpdateUnitsDto.BankAccountId)} is invalid or not a Unit bank account.")
+                            .When(x => x.UpdateUnitDto.BankAccountId > 0);
                         break;
                     case "MaxLength":
                         // Apply MaxLength validation using dynamic max length values

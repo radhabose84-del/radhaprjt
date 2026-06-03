@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
@@ -35,7 +36,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.GRN.GRNEntry
         private GRNEntryCommandRepository CreateRepo(ApplicationDbContext ctx)
         {
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new GRNEntryCommandRepository(ctx, _fixture.IpMock.Object, conn);
+            var docSeqLookup = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose).Object;
+            return new GRNEntryCommandRepository(ctx, _fixture.IpMock.Object, conn, docSeqLookup);
         }
 
         [Fact]

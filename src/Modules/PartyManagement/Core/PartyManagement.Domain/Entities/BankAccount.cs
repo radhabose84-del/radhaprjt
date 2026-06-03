@@ -15,5 +15,13 @@ public class BankAccount : BaseEntity
     public MiscMaster? BankAccountType { get; set; } = null!;
     public bool IsDefaultAccount { get; set; }
     public bool IsPrimaryAccount { get; set; }
-    public string? IBan { get; set; } 
+    public string? IBan { get; set; }
+    public int? OwnerTypeId { get; set; }
+    public MiscMaster? BankAccountOwnerType { get; set; }
+    public int? OwnerId { get; set; }
+    public string? AddressLine1 { get; set; }
+    public string? AddressLine2 { get; set; }
+    public int? CityId { get; set; }
+    public int? StateId { get; set; }
+    public string? Pincode { get; set; }
 }

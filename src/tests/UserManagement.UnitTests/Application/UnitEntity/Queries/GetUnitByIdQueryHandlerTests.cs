@@ -1,4 +1,6 @@
 using AutoMapper;
+using Contracts.Dtos.Lookups.Party;
+using Contracts.Interfaces.Lookups.Party;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Units.Queries.GetUnitById;
@@ -15,10 +17,11 @@ namespace UserManagement.UnitTests.Application.UnitEntity.Queries
         private readonly Mock<IUnitQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Strict);
+        private readonly Mock<IBankAccountLookup> _mockBankLookup = new(MockBehavior.Strict);
         private readonly Mock<ILogger<GetUnitByIdQueryHandler>> _mockLogger = new(MockBehavior.Loose);
 
         private GetUnitByIdQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object, _mockLogger.Object);
+            new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object, _mockBankLookup.Object, _mockLogger.Object);
 
         [Fact]
         public async Task Handle_ValidId_ReturnsDto()
@@ -89,6 +92,48 @@ namespace UserManagement.UnitTests.Application.UnitEntity.Queries
                         e.Module == "Unit"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_WithBankAccountId_PopulatesBankDisplayFields()
+        {
+            var dto = new GetUnitsByIdDto { Id = 1, UnitName = "Test Unit", BankAccountId = 5 };
+
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dto);
+            _mockMapper.Setup(m => m.Map<GetUnitsByIdDto>(dto)).Returns(dto);
+            _mockBankLookup
+                .Setup(l => l.GetByIdAsync(5, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BankAccountLookupDto { Id = 5, AccountNumber = "9999", BankName = "HDFC" });
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var result = await CreateSut().Handle(new GetUnitByIdQuery { Id = 1 }, CancellationToken.None);
+
+            result.BankAccountId.Should().Be(5);
+            result.BankAccountNumber.Should().Be("9999");
+            result.BankName.Should().Be("HDFC");
+            result.BankAccountDetails.Should().NotBeNull();
+            result.BankAccountDetails!.Id.Should().Be(5);
+            result.BankAccountDetails.AccountNumber.Should().Be("9999");
+        }
+
+        [Fact]
+        public async Task Handle_WithoutBankAccountId_DoesNotCallLookup()
+        {
+            var dto = new GetUnitsByIdDto { Id = 2, UnitName = "No Bank Unit", BankAccountId = null };
+
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(dto);
+            _mockMapper.Setup(m => m.Map<GetUnitsByIdDto>(dto)).Returns(dto);
+            _mockMediator
+                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await CreateSut().Handle(new GetUnitByIdQuery { Id = 2 }, CancellationToken.None);
+
+            _mockBankLookup.Verify(
+                l => l.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
     }
 }

@@ -15,7 +15,14 @@ public record UpdateBankAccountCommand(
     bool IsDefaultAccount,
     bool IsPrimaryAccount,
     string? IBan,
-    BaseEntity.Status IsActive
+    BaseEntity.Status IsActive,
+    int? OwnerTypeId = null,
+    int? OwnerId = null,
+    string? AddressLine1 = null,
+    string? AddressLine2 = null,
+    int? CityId = null,
+    int? StateId = null,
+    string? Pincode = null
 ) : IRequest<bool>, IRequirePermission
 {
     public PermissionType RequiredPermission => PermissionType.CanUpdate;

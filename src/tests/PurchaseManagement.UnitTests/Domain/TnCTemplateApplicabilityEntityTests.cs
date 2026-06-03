@@ -33,12 +33,12 @@ namespace PurchaseManagement.UnitTests.Domain
             {
                 Id = 1,
                 TnCTemplateMasterId = 5,
-                ApplicabilityId = 7
+                TransactionTypeId = 7
             };
 
             entity.Id.Should().Be(1);
             entity.TnCTemplateMasterId.Should().Be(5);
-            entity.ApplicabilityId.Should().Be(7);
+            entity.TransactionTypeId.Should().Be(7);
         }
     }
 }

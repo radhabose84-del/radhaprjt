@@ -17,6 +17,7 @@ namespace UserManagement.Application.Units.Commands.CreateUnit
     public bool IsMaintenanceStopStart { get; set; }
     public int? SpindlesCapacity { get; set; }
     public int UnitTypeId { get; set; }
+    public int? BankAccountId { get; set; }
     public UnitAddressDto? UnitAddressDto { get; set; }
     public UnitContactsDto? UnitContactsDto { get; set;}
     public PermissionType RequiredPermission => PermissionType.CanAdd;

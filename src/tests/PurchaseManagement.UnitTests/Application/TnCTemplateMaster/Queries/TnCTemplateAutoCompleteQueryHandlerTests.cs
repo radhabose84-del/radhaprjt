@@ -47,7 +47,7 @@ namespace PurchaseManagement.UnitTests.Application.TnCTemplateMaster.Queries
                 .ReturnsAsync(new List<TnCAutoCompleteDto>());
 
             await CreateSut().Handle(
-                new TnCTemplateAutoCompleteQuery { TemplateTypeId = 1, ApplicabilityId = 2 },
+                new TnCTemplateAutoCompleteQuery { ModuleId = 1, TransactionTypeId = 2 },
                 CancellationToken.None);
 
             _mockQueryRepo.Verify(

@@ -58,6 +58,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(255)")
                 .IsRequired(false);
 
+            builder.Property(t => t.IsGate)
+                .HasColumnName("IsGate")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")

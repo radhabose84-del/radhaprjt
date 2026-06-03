@@ -1,5 +1,6 @@
 
 using System.Data;
+using Contracts.Interfaces.Lookups.Users;
 using PartyManagement.Application.BankAccount;
 using PartyManagement.Application.BankAccount.Query.GetBankAutocomplete;
 using PartyManagement.Application.Common.Interfaces.IBankAccount;
@@ -14,19 +15,30 @@ namespace Infrastructure.Repositories.Party.BankAccounts;
 
 public class BankAccountQueryRepository : IBankAccountQueryRepository
 {
+    // Owner-type codes (MiscMaster.Code under the BankAccountOwnerType misc type)
+    private const string OwnerTypeUnit = "Unit";
+    private const string OwnerTypeParty = "Party";
+
     private readonly ApplicationDbContext _db;
     private readonly IDbConnection _dbConn;
-    public BankAccountQueryRepository(ApplicationDbContext db, IDbConnection dbConn)
+    private readonly IUnitLookup _unitLookup;   // cross-module (UserManagement) — no JOIN to AppData.Unit
+    private readonly ICityLookup _cityLookup;   // cross-module (UserManagement)
+    private readonly IStateLookup _stateLookup; // cross-module (UserManagement)
+    public BankAccountQueryRepository(ApplicationDbContext db, IDbConnection dbConn, IUnitLookup unitLookup, ICityLookup cityLookup, IStateLookup stateLookup)
     {
         _db = db;
-        _dbConn = dbConn;       
-    } 
+        _dbConn = dbConn;
+        _unitLookup = unitLookup;
+        _cityLookup = cityLookup;
+        _stateLookup = stateLookup;
+    }
 
     public async Task<BankAccountDto?> GetByIdAsync(int id, CancellationToken ct)
     {
         var bankAccounts = _db.Set<BankAccount>().AsNoTracking();
         var miscMasters  = _db.Set<MiscMaster>().AsNoTracking();
         var bankMasters  = _db.Set<BankMaster>().AsNoTracking();
+        var partyMasters = _db.Set<PartyManagement.Domain.Entities.PartyMaster>().AsNoTracking();
 
         var q =
             from b in bankAccounts
@@ -40,6 +52,12 @@ public class BankAccountQueryRepository : IBankAccountQueryRepository
             // Bank (left join)
             join bm in bankMasters on b.BankId equals bm.Id into gjBank
             from bm in gjBank.DefaultIfEmpty()
+            // OwnerType (left join, same-module MiscMaster)
+            join mOwner in miscMasters on b.OwnerTypeId equals (int?)mOwner.Id into gjOwner
+            from mOwner in gjOwner.DefaultIfEmpty()
+            // Party owner (left join, same-module PartyMaster) — used only when OwnerType = Party
+            join pm in partyMasters on b.OwnerId equals (int?)pm.Id into gjParty
+            from pm in gjParty.DefaultIfEmpty()
             select new BankAccountDto
             {
                 Id               = b.Id,
@@ -53,15 +71,39 @@ public class BankAccountQueryRepository : IBankAccountQueryRepository
                 IsDefaultAccount = b.IsDefaultAccount,
                 IsPrimaryAccount = b.IsPrimaryAccount,
                 IBan             = b.IBan,
-                IsActive         =  (int)b.IsActive, 
+                OwnerTypeId      = b.OwnerTypeId,
+                OwnerId          = b.OwnerId,
+                IsActive         =  (int)b.IsActive,
                 // Names/Codes from joins
                 AccountTypeName  = mType   != null ? mType.Code     : null,   // or mType.Description
                 BranchName       = mBranch != null ? mBranch.Code    : null,   // or mBranch.Description
                 BankName         = bm      != null ? bm.BankName     : null,
-                BankCode         = bm      != null ? bm.BankCode     : null
+                BankCode         = bm      != null ? bm.BankCode     : null,
+                OwnerTypeName    = mOwner  != null ? mOwner.Code     : null,
+                // Party name resolved here (same module); Unit name resolved via lookup below.
+                OwnerName        = (mOwner != null && mOwner.Code == OwnerTypeParty && pm != null) ? pm.PartyName : null,
+                AddressLine1     = b.AddressLine1,
+                AddressLine2     = b.AddressLine2,
+                CityId           = b.CityId,
+                StateId          = b.StateId,
+                Pincode          = b.Pincode
             };
 
-        return await q.FirstOrDefaultAsync(ct);
+        var dto = await q.FirstOrDefaultAsync(ct);
+
+        if (dto != null)
+        {
+            if (dto.OwnerId is > 0
+                && string.Equals(dto.OwnerTypeName, OwnerTypeUnit, StringComparison.OrdinalIgnoreCase))
+            {
+                var unit = await _unitLookup.GetByIdAsync(dto.OwnerId.Value, ct);
+                dto.OwnerName = unit?.UnitName;
+            }
+
+            await ResolveCityStateNamesAsync(new[] { dto }, ct);
+        }
+
+        return dto;
     }
 
    public async Task<(IReadOnlyList<BankAccountDto> Items, int Total)> GetAllAsync(
@@ -73,6 +115,7 @@ public class BankAccountQueryRepository : IBankAccountQueryRepository
         var bankAccounts = _db.Set<BankAccount>().AsNoTracking();
         var miscMasters  = _db.Set<MiscMaster>().AsNoTracking();
         var bankMasters  = _db.Set<BankMaster>().AsNoTracking();
+        var partyMasters = _db.Set<PartyManagement.Domain.Entities.PartyMaster>().AsNoTracking();
 
         var q =
             from b in bankAccounts
@@ -83,7 +126,11 @@ public class BankAccountQueryRepository : IBankAccountQueryRepository
             from mBranch in gjBranch.DefaultIfEmpty()
             join bm in bankMasters on b.BankId equals bm.Id into gjBank
             from bm in gjBank.DefaultIfEmpty()
-            select new { b, mType, mBranch, bm };
+            join mOwner in miscMasters on b.OwnerTypeId equals (int?)mOwner.Id into gjOwner
+            from mOwner in gjOwner.DefaultIfEmpty()
+            join pm in partyMasters on b.OwnerId equals (int?)pm.Id into gjParty
+            from pm in gjParty.DefaultIfEmpty()
+            select new { b, mType, mBranch, bm, mOwner, pm };
 
         if (bankId.HasValue)
             q = q.Where(x => x.b.BankId == bankId.Value);
@@ -124,47 +171,166 @@ public class BankAccountQueryRepository : IBankAccountQueryRepository
                 IsDefaultAccount = x.b.IsDefaultAccount,
                 IsPrimaryAccount = x.b.IsPrimaryAccount,
                 IBan             = x.b.IBan,
-                IsActive         =  (int)x.b.IsActive, 
+                OwnerTypeId      = x.b.OwnerTypeId,
+                OwnerId          = x.b.OwnerId,
+                IsActive         =  (int)x.b.IsActive,
                 AccountTypeName  = x.mType   != null ? x.mType.Code   : null,
                 BranchName       = x.mBranch != null ? x.mBranch.Code : null,
                 BankName         = x.bm      != null ? x.bm.BankName  : null,
-                BankCode         = x.bm      != null ? x.bm.BankCode  : null
+                BankCode         = x.bm      != null ? x.bm.BankCode  : null,
+                OwnerTypeName    = x.mOwner  != null ? x.mOwner.Code  : null,
+                OwnerName        = (x.mOwner != null && x.mOwner.Code == OwnerTypeParty && x.pm != null) ? x.pm.PartyName : null,
+                AddressLine1     = x.b.AddressLine1,
+                AddressLine2     = x.b.AddressLine2,
+                CityId           = x.b.CityId,
+                StateId          = x.b.StateId,
+                Pincode          = x.b.Pincode
             })
             .ToListAsync(ct);
+
+        await ResolveUnitOwnerNamesAsync(items, ct);
+        await ResolveCityStateNamesAsync(items, ct);
 
         return (items, total);
     }
 
     public async Task<IReadOnlyList<BankLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
-    {        
+    {
          term ??= string.Empty;
         const string sql = @"
-            SELECT 
+            SELECT
                 BankAccount.Id,
-                AccountNumber,
-                IFSCCode,
-                SWIFTCode,AccountHolderName
+                BankAccount.AccountNumber,
+                BankAccount.AccountHolderName,
+                BankMaster.BankName,
+                BankAccount.IFSCCode,
+                BankAccount.SWIFTCode,
+                BankAccount.OwnerTypeId,
+                ot.Code AS OwnerTypeName,
+                BankAccount.OwnerId,
+                CASE WHEN ot.Code = @PartyCode THEN pm.PartyName ELSE NULL END AS OwnerName,
+                BankAccount.AddressLine1,
+                BankAccount.AddressLine2,
+                BankAccount.CityId,
+                BankAccount.StateId,
+                BankAccount.Pincode
             FROM Party.BankAccount WITH (NOLOCK)
-            join Party.BankMaster WITH (NOLOCK) on BankAccount.BankId = BankMaster.Id
+            JOIN Party.BankMaster WITH (NOLOCK) on BankAccount.BankId = BankMaster.Id
+            LEFT JOIN Party.MiscMaster ot WITH (NOLOCK) on BankAccount.OwnerTypeId = ot.Id AND ot.IsDeleted = 0
+            LEFT JOIN Party.PartyMaster pm WITH (NOLOCK) on BankAccount.OwnerId = pm.Id AND pm.IsDeleted = 0
             WHERE BankAccount.IsActive = 1
             AND BankAccount.IsDeleted = 0
             AND (
-                    @term = '' OR                    
-                    AccountNumber LIKE @like
-                    OR AccountHolderName LIKE @like
-                    OR IFSCCode LIKE @like
-                    OR SWIFTCode LIKE @like
+                    @term = '' OR
+                    BankAccount.AccountNumber LIKE @like
+                    OR BankAccount.AccountHolderName LIKE @like
+                    OR BankAccount.IFSCCode LIKE @like
+                    OR BankAccount.SWIFTCode LIKE @like
                 )
-            ORDER BY Id;";
-                    
+            ORDER BY BankAccount.Id;";
+
              var param = new
         {
             term,
-            like = "%" + term + "%"
+            like = "%" + term + "%",
+            PartyCode = OwnerTypeParty
         };
 
         var cmd  = new CommandDefinition(sql, param, cancellationToken: ct);
-        var rows = await _dbConn.QueryAsync<BankLookupDto>(cmd);
-        return rows.AsList();
+        var rows = (await _dbConn.QueryAsync<BankLookupDto>(cmd)).AsList();
+
+        await ResolveUnitOwnerNamesAsync(rows, ct);
+        await ResolveCityStateNamesAsync(rows, ct);
+
+        return rows;
+    }
+
+    // Resolves OwnerName for Unit-type rows via the cross-module IUnitLookup (batched).
+    // Party-type rows already have OwnerName populated from the same-module PartyMaster JOIN.
+    private async Task ResolveUnitOwnerNamesAsync(IReadOnlyList<BankAccountDto> rows, CancellationToken ct)
+    {
+        var unitIds = rows
+            .Where(r => r.OwnerId is > 0 && string.Equals(r.OwnerTypeName, OwnerTypeUnit, StringComparison.OrdinalIgnoreCase))
+            .Select(r => r.OwnerId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (unitIds.Count == 0) return;
+
+        var units = await _unitLookup.GetByIdsAsync(unitIds, ct);
+        var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+        foreach (var r in rows)
+        {
+            if (r.OwnerId is > 0
+                && string.Equals(r.OwnerTypeName, OwnerTypeUnit, StringComparison.OrdinalIgnoreCase)
+                && unitDict.TryGetValue(r.OwnerId.Value, out var name))
+            {
+                r.OwnerName = name;
+            }
+        }
+    }
+
+    private async Task ResolveUnitOwnerNamesAsync(IReadOnlyList<BankLookupDto> rows, CancellationToken ct)
+    {
+        var unitIds = rows
+            .Where(r => r.OwnerId is > 0 && string.Equals(r.OwnerTypeName, OwnerTypeUnit, StringComparison.OrdinalIgnoreCase))
+            .Select(r => r.OwnerId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (unitIds.Count == 0) return;
+
+        var units = await _unitLookup.GetByIdsAsync(unitIds, ct);
+        var unitDict = units.ToDictionary(u => u.UnitId, u => u.UnitName);
+
+        foreach (var r in rows)
+        {
+            if (r.OwnerId is > 0
+                && string.Equals(r.OwnerTypeName, OwnerTypeUnit, StringComparison.OrdinalIgnoreCase)
+                && unitDict.TryGetValue(r.OwnerId.Value, out var name))
+            {
+                r.OwnerName = name;
+            }
+        }
+    }
+
+    // Resolves CityName / StateName from the cross-module City/State lookups (batched).
+    private async Task ResolveCityStateNamesAsync(IReadOnlyList<BankAccountDto> rows, CancellationToken ct)
+    {
+        var cityIds  = rows.Where(r => r.CityId  is > 0).Select(r => r.CityId!.Value).Distinct().ToList();
+        var stateIds = rows.Where(r => r.StateId is > 0).Select(r => r.StateId!.Value).Distinct().ToList();
+
+        var cityDict = cityIds.Count == 0
+            ? new Dictionary<int, string?>()
+            : (await _cityLookup.GetByIdsAsync(cityIds, ct)).ToDictionary(c => c.CityId, c => (string?)c.CityName);
+        var stateDict = stateIds.Count == 0
+            ? new Dictionary<int, string?>()
+            : (await _stateLookup.GetByIdsAsync(stateIds, ct)).ToDictionary(s => s.StateId, s => (string?)s.StateName);
+
+        foreach (var r in rows)
+        {
+            if (r.CityId is > 0 && cityDict.TryGetValue(r.CityId.Value, out var cn)) r.CityName = cn;
+            if (r.StateId is > 0 && stateDict.TryGetValue(r.StateId.Value, out var sn)) r.StateName = sn;
+        }
+    }
+
+    private async Task ResolveCityStateNamesAsync(IReadOnlyList<BankLookupDto> rows, CancellationToken ct)
+    {
+        var cityIds  = rows.Where(r => r.CityId  is > 0).Select(r => r.CityId!.Value).Distinct().ToList();
+        var stateIds = rows.Where(r => r.StateId is > 0).Select(r => r.StateId!.Value).Distinct().ToList();
+
+        var cityDict = cityIds.Count == 0
+            ? new Dictionary<int, string?>()
+            : (await _cityLookup.GetByIdsAsync(cityIds, ct)).ToDictionary(c => c.CityId, c => (string?)c.CityName);
+        var stateDict = stateIds.Count == 0
+            ? new Dictionary<int, string?>()
+            : (await _stateLookup.GetByIdsAsync(stateIds, ct)).ToDictionary(s => s.StateId, s => (string?)s.StateName);
+
+        foreach (var r in rows)
+        {
+            if (r.CityId is > 0 && cityDict.TryGetValue(r.CityId.Value, out var cn)) r.CityName = cn;
+            if (r.StateId is > 0 && stateDict.TryGetValue(r.StateId.Value, out var sn)) r.StateName = sn;
+        }
     }
 }

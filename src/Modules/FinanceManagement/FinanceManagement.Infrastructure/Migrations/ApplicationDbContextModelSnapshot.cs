@@ -639,6 +639,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
+                    b.Property<bool>("IsGate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsGate");
+
                     b.Property<int>("MenuId")
                         .HasColumnType("int")
                         .HasColumnName("MenuId");

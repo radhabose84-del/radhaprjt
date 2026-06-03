@@ -1,3 +1,4 @@
+using PurchaseManagement.Application.TnCTemplateMaster.Command;
 using PurchaseManagement.Application.TnCTemplateMaster.Command.CreateTnCTemplateMasterCommand;
 using PurchaseManagement.Application.TnCTemplateMaster.Command.DeleteTnCTemplateMasterCommand;
 using PurchaseManagement.Application.TnCTemplateMaster.Command.UpdateTnCTemplateMasterCommand;
@@ -11,37 +12,34 @@ namespace PurchaseManagement.UnitTests.TestData
     {
         public static CreateTnCTemplateMasterCommand ValidCreateCommand(
             string templateName = "Test Template",
-            int templateTypeId = 1,
-            string termsHtml = "<p>Test terms and conditions</p>",
-            bool? approvalFlag = false) =>
+            int moduleId = 1,
+            string termsHtml = "<p>Test terms and conditions</p>") =>
             new CreateTnCTemplateMasterCommand
             {
                 TemplateName = templateName,
-                TemplateTypeId = templateTypeId,
+                ModuleId = moduleId,
                 TermsHtml = termsHtml,
-                ApprovalFlag = approvalFlag,
-                Applicabilities = new List<TncApplicabilityDto>
+                Applicabilities = new List<TncApplicabilityRequestDto>
                 {
-                    new TncApplicabilityDto { ApplicabilityId = 1 }
+                    new TncApplicabilityRequestDto { TransactionTypeId = 1 }
                 }
             };
 
         public static UpdateTnCTemplateMasterCommand ValidUpdateCommand(
             int id = 1,
             string templateName = "Updated Template",
-            int templateTypeId = 1,
+            int moduleId = 1,
             byte isActive = 1) =>
             new UpdateTnCTemplateMasterCommand
             {
                 Id = id,
                 TemplateName = templateName,
-                TemplateTypeId = templateTypeId,
+                ModuleId = moduleId,
                 TermsHtml = "<p>Updated terms and conditions</p>",
-                ApprovalFlag = false,
                 IsActive = isActive,
                 Applicabilities = new List<TncApplicabilityDto>
                 {
-                    new TncApplicabilityDto { ApplicabilityId = 1 }
+                    new TncApplicabilityDto { TransactionTypeId = 1 }
                 }
             };
 
@@ -52,36 +50,33 @@ namespace PurchaseManagement.UnitTests.TestData
             new TncTemplateMasterDto
             {
                 Id = id,
-                TemplateCode = "TNC001",
+                TemplateCode = "PO-00001",
                 TemplateName = "Test Template",
-                TemplateTypeId = 1,
-                TemplateTypeCode = "PURCHASE",
-                TemplateTypeDescription = "Purchase Template",
+                ModuleId = 1,
+                ModuleName = "Purchase",
                 TermsHtml = "<p>Test terms</p>",
-                ApprovalFlag = false,
                 IsActive = true,
                 CreatedDate = DateTimeOffset.UtcNow,
                 Applicabilities = new List<TncApplicabilityDto>
                 {
-                    new TncApplicabilityDto { ApplicabilityId = 1 }
+                    new TncApplicabilityDto { TransactionTypeId = 1, TypeName = "Purchase Order", ShortName = "PO" }
                 }
             };
 
         public static List<TnCAutoCompleteDto> ValidAutoCompleteList() =>
             new List<TnCAutoCompleteDto>
             {
-                new TnCAutoCompleteDto { Id = 1, Code = "TNC001", TemplateName = "Test Template" }
+                new TnCAutoCompleteDto { Id = 1, Code = "PO-00001", TemplateName = "Test Template" }
             };
 
         public static PurchaseManagement.Domain.Entities.TnCTemplateMaster ValidEntity(int id = 1) =>
             new PurchaseManagement.Domain.Entities.TnCTemplateMaster
             {
                 Id = id,
-                TemplateCode = "TNC001",
+                TemplateCode = "PO-00001",
                 TemplateName = "Test Template",
-                TemplateTypeId = 1,
+                ModuleId = 1,
                 TermsHtml = "<p>Test terms</p>",
-                ApprovalFlag = false,
                 IsActive = DomainBase.Status.Active,
                 IsDeleted = DomainBase.IsDelete.NotDeleted
             };

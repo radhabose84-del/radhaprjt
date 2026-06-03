@@ -1933,6 +1933,10 @@ namespace UserManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BankAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("BankAccountId");
+
                     b.Property<string>("CINNO")
                         .IsRequired()
                         .HasColumnType("varchar(50)")
