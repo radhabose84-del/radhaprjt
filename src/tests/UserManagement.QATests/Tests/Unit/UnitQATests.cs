@@ -539,7 +539,7 @@ public sealed class UnitQATests
         int     pinCode       = 123456,
         string? addressLine1  = "QA Test Address Line 1") => new
     {
-        unitName          = unitName      ?? $"QA Unit {_f.EntityCode}",
+        unitName          = unitName      ?? $"QA Unit {_f.EntityCode}{Guid.NewGuid().ToString("N")[..6]}",
         shortName         = shortName     ?? _f.EntityCode[..6],
         companyId         = QACompanyId,
         divisionId        = QADivisionId,
@@ -580,7 +580,7 @@ public sealed class UnitQATests
     {
         updateUnitDto = new
         {
-            unitId            = unitId,
+            id                = unitId,   // UpdateUnitsDto property is Id (the handler reads UpdateUnitDto.Id)
             unitName          = unitName   ?? $"QA Unit Updated {_f.EntityCode}",
             shortName         = shortName  ?? _f.EntityCode[..6],
             companyId         = QACompanyId,
