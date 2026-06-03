@@ -21,6 +21,10 @@ using UserManagement.Infrastructure.Repositories.Currency;
 using UserManagement.Infrastructure.Repositories.CustomFields;
 using UserManagement.Infrastructure.Repositories.DepartmentGroup;
 using UserManagement.Infrastructure.Repositories.Departments;
+using UserManagement.Infrastructure.Repositories.Location;
+using UserManagement.Infrastructure.Repositories.Station;
+using UserManagement.Application.Common.Interfaces.ILocation;
+using UserManagement.Application.Common.Interfaces.IStation;
 using UserManagement.Infrastructure.Repositories.Divisions;
 using UserManagement.Infrastructure.Repositories.Entities;
 using UserManagement.Infrastructure.Repositories.FinancialYear;
@@ -318,6 +322,8 @@ namespace UserManagement.Infrastructure
             services.AddScoped<ICityQueryRepository, CityQueryRepository>();
             services.AddScoped<ICityLookup, CityLookupRepository>();
             services.AddScoped<ILocationLookup, LocationLookupRepository>();
+            services.AddScoped<ILocationMasterLookup, LocationMasterLookupRepository>();
+            services.AddScoped<IStationLookup, StationLookupRepository>();
             services.AddScoped<IDivisionUnitLookup, DivisionUnitLookupRepository>();
             services.AddScoped<IDivisionLookup, DivisionLookupRepository>();
             services.AddScoped<IMenuLookup, MenuLookupRepository>();
@@ -371,6 +377,12 @@ namespace UserManagement.Infrastructure
 
             services.AddScoped<IDepartmentGroupCommandRepository, DepartmentGroupCommandRepository>();
             services.AddScoped<IDepartmentGroupQueryRepository, DepartmentGroupQueryRepository>();
+
+            services.AddScoped<ILocationCommandRepository, LocationCommandRepository>();
+            services.AddScoped<ILocationQueryRepository, LocationQueryRepository>();
+
+            services.AddScoped<IStationCommandRepository, StationCommandRepository>();
+            services.AddScoped<IStationQueryRepository, StationQueryRepository>();
 
             services.AddScoped<IRoleItemGroupMappingCommandRepository, RoleItemGroupMappingCommandRepository>();
             services.AddScoped<IRoleItemGroupMappingQueryRepository, RoleItemGroupMappingQueryRepository>();

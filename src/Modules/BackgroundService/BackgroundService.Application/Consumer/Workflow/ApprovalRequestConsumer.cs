@@ -23,6 +23,7 @@ namespace BackgroundService.Application.Consumer.Workflow
         private readonly ILogger<ApprovalRequestConsumer> _logger;
         private readonly IInboxRepository _inbox;
         private readonly IEventPublisher _eventPublisher;
+        private readonly ILookupRepository _lookupRepository;
 
         public ApprovalRequestConsumer(
             IWorkflowTypeQuery workflowTypeQuery,
@@ -31,7 +32,8 @@ namespace BackgroundService.Application.Consumer.Workflow
             IMiscMasterQueryRepository miscMasterQuery,
             ILogger<ApprovalRequestConsumer> logger,
             IInboxRepository inbox,
-            IEventPublisher eventPublisher)
+            IEventPublisher eventPublisher,
+            ILookupRepository lookupRepository)
         {
             _workflowTypeQuery = workflowTypeQuery;
             _approvalRequestCommand = approvalRequestCommand;
@@ -40,6 +42,7 @@ namespace BackgroundService.Application.Consumer.Workflow
             _logger = logger;
             _inbox = inbox;
             _eventPublisher = eventPublisher;
+            _lookupRepository = lookupRepository;
         }
 
         public async Task Consume(ConsumeContext<CreateApprovalRequestCommand> context)
@@ -67,6 +70,24 @@ namespace BackgroundService.Application.Consumer.Workflow
                     context.Message.Payload,
                     context.Message.TransactionTypeId);
 
+                // ── Resolve the WorkflowType to match against ApprovalRequest ─────
+                // ApprovalRequest rows are keyed by the transaction type name when a
+                // TransactionTypeId is supplied (PO sub-types, OCR, etc.); fall back to
+                // ModuleTypeName when no TransactionTypeId is present.
+                var workflowType = context.Message.ModuleTypeName;
+                if (context.Message.TransactionTypeId.HasValue && context.Message.TransactionTypeId.Value > 0)
+                {
+                    var typeNames = await _lookupRepository.GetTransactionTypeNamesAsync(
+                        new[] { context.Message.TransactionTypeId.Value },
+                        context.CancellationToken);
+
+                    if (typeNames.TryGetValue(context.Message.TransactionTypeId.Value, out var typeName)
+                        && !string.IsNullOrWhiteSpace(typeName))
+                    {
+                        workflowType = typeName;
+                    }
+                }
+
                 // ── Auto-approve if no approval rules were found ──────────────────
                 // sp_EvaluateApproval may return without creating any ApprovalRequest
                 // rows when no matching approval rules are configured (e.g. EmergencyPO).
@@ -74,7 +95,7 @@ namespace BackgroundService.Application.Consumer.Workflow
                 // updates the transaction status to Approved automatically.
                 var hasApproval = await _approvalRequestQuery.HasApprovalRequestAsync(
                     context.Message.ModuleTransactionId,
-                    context.Message.ModuleTypeName,
+                    workflowType,
                     context.CancellationToken);
 
                 if (!hasApproval)
