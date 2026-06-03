@@ -69,7 +69,9 @@ namespace UserManagement.Infrastructure.Data
         public DbSet<RoleItemGroupMapping> RoleItemGroupMapping { get; set; }
         public DbSet<UserFavoriteMenu> UserFavoriteMenus { get; set; }
         public DbSet<UserSignature> UserSignature { get; set; }
-        public DbSet<AccessPolicy> AccessPolicies { get; set; }
+        public DbSet<Location> Location { get; set; }
+        public DbSet<Station> Station { get; set; }
+		public DbSet<AccessPolicy> AccessPolicies { get; set; }
         public DbSet<RoleAccessPolicy> RoleAccessPolicies { get; set; }
 
 
@@ -124,7 +126,9 @@ namespace UserManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new RoleItemGroupMappingConfiguration());
             modelBuilder.ApplyConfiguration(new UserFavoriteMenuConfiguration());
             modelBuilder.ApplyConfiguration(new UserSignatureConfiguration());
-            modelBuilder.ApplyConfiguration(new AccessPolicyConfiguration());
+            modelBuilder.ApplyConfiguration(new LocationConfiguration());
+            modelBuilder.ApplyConfiguration(new StationConfiguration());
+			modelBuilder.ApplyConfiguration(new AccessPolicyConfiguration());
             modelBuilder.ApplyConfiguration(new RoleAccessPolicyConfiguration());
 
 
@@ -184,3 +188,4 @@ namespace UserManagement.Infrastructure.Data
         }
     }
 }
+

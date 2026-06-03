@@ -4,6 +4,10 @@ using PurchaseManagement.Application.Common.Interfaces;
 using PurchaseManagement.Application.Common.Interfaces.AuditLog;
 using PurchaseManagement.Application.Common.Interfaces.ILogService;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
+using PurchaseManagement.Application.Common.Interfaces.IBarcodeSeries;
+using PurchaseManagement.Infrastructure.Repositories.BarcodeSeries;
+using PurchaseManagement.Application.Common.Interfaces.IBarcodeAllocation;
+using PurchaseManagement.Infrastructure.Repositories.BarcodeAllocation;
 using PurchaseManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IPartyMaster;
@@ -62,6 +66,8 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractP
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ImportPO;
 using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
+using PurchaseManagement.Application.Common.Interfaces.IOCREntry;
+using PurchaseManagement.Infrastructure.Repositories.OCREntry;
 //using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
@@ -198,6 +204,10 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IBarcodeSeriesCommandRepository, BarcodeSeriesCommandRepository>();
+            services.AddScoped<IBarcodeSeriesQueryRepository, BarcodeSeriesQueryRepository>();
+            services.AddScoped<IBarcodeAllocationCommandRepository, BarcodeAllocationCommandRepository>();
+            services.AddScoped<IBarcodeAllocationQueryRepository, BarcodeAllocationQueryRepository>();
 
             // Pending reference-document resolvers consumed by GateEntryManagement.GateInward.
             // One implementation per Finance.TransactionTypeMaster.Id within ModuleId = 21 (Purchase).
@@ -260,6 +270,8 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IImportPOCommandRepository, ImportPOCommandRepository>();
             services.AddScoped<IDutyMasterQueryRepository, DutyMasterQueryRepository>();
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
+            services.AddScoped<IOCREntryCommandRepository, OCREntryCommandRepository>();
+            services.AddScoped<IOCREntryQueryRepository, OCREntryQueryRepository>();
           //  services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             // StockLedger ownership moved to InventoryManagement (Pattern D: Shared Transaction)
             // services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();
