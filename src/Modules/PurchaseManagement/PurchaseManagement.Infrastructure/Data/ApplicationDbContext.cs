@@ -164,12 +164,20 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<DeliveryScoreRule> DeliveryScoreRules { get; set; }
         public DbSet<VendorEvaluationHeader> VendorEvaluationHeaders { get; set; }
         public DbSet<VendorEvaluationDetail> VendorEvaluationDetails { get; set; }
+
+        // Bale barcode series
+        public DbSet<BarcodeSeries> BarcodeSeries { get; set; }
+
+        // Bale barcode allocation
+        public DbSet<BarcodeAllocation> BarcodeAllocation { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // modelBuilder.ApplyConfiguration(new AssetGroupConfiguration());           
 
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new BarcodeSeriesConfiguration());
+            modelBuilder.ApplyConfiguration(new BarcodeAllocationConfiguration());
             modelBuilder.ApplyConfiguration(new IndentHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IndentDetailConfiguration());
             modelBuilder.ApplyConfiguration(new IndentLogConfiguration());
