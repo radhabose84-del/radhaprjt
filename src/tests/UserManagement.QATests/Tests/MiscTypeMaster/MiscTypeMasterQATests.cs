@@ -435,7 +435,9 @@ public sealed class MiscTypeMasterQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id           = _f.CreatedId,
-            miscTypeCode = new string('A', 49) + "Z",   // same as TC009
+            // TC009 created a record with exactly this code; updating a *different* record (CreatedId)
+            // to it must be rejected as a duplicate.
+            miscTypeCode = (_f.EntityCode + new string('A', 50)).Substring(0, 50),
             description  = "Duplicate code update",
             isActive     = (byte)1
         });

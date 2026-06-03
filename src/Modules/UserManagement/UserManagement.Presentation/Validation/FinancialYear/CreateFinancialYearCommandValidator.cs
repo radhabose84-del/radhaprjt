@@ -47,7 +47,9 @@ namespace UserManagement.Presentation.Validation.FinancialYear
                             break;
 
                         case "MaxLength":
-                            RuleFor(x => x.StartYear.ToString())
+                            // StartYear is already a string; the previous `.ToString()` NRE'd when it
+                            // was null (empty body) → HTTP 500. MaximumLength is null-safe.
+                            RuleFor(x => x.StartYear)
                                 .MaximumLength(startYearMaxLength)
                                 .WithMessage($"{nameof(CreateFinancialYearCommand.StartYear)} {rule.Error} {startYearMaxLength}");
 

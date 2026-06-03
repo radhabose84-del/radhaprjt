@@ -536,7 +536,7 @@ public sealed class UserRoleQATests
     // UserRole id returns HTTP 500 "Failed to delete UserRole" instead of a graceful
     // 404/400/200. Skipped rather than asserting the 500. Re-enable once the delete
     // path handles a missing row without throwing.
-    [Fact(Skip = "Known live bug: deleting a non-existent UserRole returns 500 'Failed to delete UserRole'; should be 404/400/200."), TestPriority(37)]
+    [Fact, TestPriority(37)]
     public async Task TC037_Delete_NonExistentId_Returns200()
     {
         var resp = await _f.Client.DeleteAsync($"{BaseRoute}/999999");

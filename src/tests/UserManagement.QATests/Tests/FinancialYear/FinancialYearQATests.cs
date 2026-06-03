@@ -163,7 +163,7 @@ public sealed class FinancialYearQATests
     // without a null guard → NullReferenceException → HTTP 500 instead of 400.
     // Skipped rather than asserting the crash as expected. Re-enable once the validator
     // adds a `.When(x => x.StartYear != null)` (or NotEmpty-first) guard.
-    [Fact(Skip = "Known live bug: empty-body create returns 500 (validator NRE on null StartYear); should be 400."), TestPriority(9)]
+    [Fact, TestPriority(9)]
     public async Task TC009_Create_EmptyBody_Returns400()
     {
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new { });

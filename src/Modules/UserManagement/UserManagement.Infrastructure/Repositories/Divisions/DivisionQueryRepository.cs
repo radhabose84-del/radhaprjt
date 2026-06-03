@@ -85,10 +85,10 @@ namespace UserManagement.Infrastructure.Repositories.Divisions
 
          public async Task<Division> GetByIdAsync(int id)
         {
-            
-                var CompanyId = _ipAddressService.GetCompanyId() ?? 0;
-             const string query = "SELECT * FROM AppData.Division WHERE Id = @Id AND IsDeleted = 0 AND CompanyId=@CompanyId";
-            return await _dbConnection.QueryFirstOrDefaultAsync<Division>(query, new { id,CompanyId });
+            // Look up by primary key only — do NOT company-scope a by-id fetch (consistent with
+            // Unit/Company/Language GetById). Company scoping belongs on list/search, not PK lookup.
+             const string query = "SELECT * FROM AppData.Division WHERE Id = @Id AND IsDeleted = 0";
+            return await _dbConnection.QueryFirstOrDefaultAsync<Division>(query, new { id });
         }
       
         public async Task<List<Division>>  GetDivision(string searchPattern)
