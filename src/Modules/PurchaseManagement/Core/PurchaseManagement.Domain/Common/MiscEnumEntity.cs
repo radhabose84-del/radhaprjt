@@ -60,6 +60,7 @@ namespace PurchaseManagement.Domain.Common
         public const string TransactionTypePurchaseReturn = "Purchase Return";
         public const string TransactionTypeGRN = "GRN";
         public const string TransactionTypeVendorEvaluation = "Vendor Evaluation";
+        public const string TransactionTypeOCR = "OCR";
         public const string ModulePurchase = "Purchase";
 
         // Purchase Return (RTV) — MiscMaster type codes (seeded via migration)
