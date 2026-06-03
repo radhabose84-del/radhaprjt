@@ -51,9 +51,9 @@ namespace FinanceManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetTransactionTypeMasterAutoCompleteAsync([FromQuery] string? term = null, [FromQuery] int? menuId = null)
+        public async Task<IActionResult> GetTransactionTypeMasterAutoCompleteAsync([FromQuery] string? term = null, [FromQuery] int? moduleId = null, [FromQuery] int? menuId = null)
         {
-            var result = await Mediator.Send(new GetTransactionTypeMasterAutoCompleteQuery(term ?? string.Empty, menuId));
+            var result = await Mediator.Send(new GetTransactionTypeMasterAutoCompleteQuery(term ?? string.Empty, moduleId, menuId));
 
             return Ok(new
             {
