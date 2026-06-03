@@ -118,6 +118,13 @@ namespace PurchaseManagement.Domain.Entities
         // Purchase Blanket Detail — Discount type
         public ICollection<PurchaseBlanketDetail>? PurchaseBlanketDetailDiscount { get; set; }
 
+        // Bale barcode series — reverse navs for Prefix & Status FKs
+        public ICollection<BarcodeSeries>? BarcodeSeriesPrefixes { get; set; }
+        public ICollection<BarcodeSeries>? BarcodeSeriesStatuses { get; set; }
+
+        // Bale barcode allocation — reverse nav for Status FK
+        public ICollection<BarcodeAllocation>? BarcodeAllocationStatuses { get; set; }
+
     }
     }
         

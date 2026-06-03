@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PurchaseManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PurchaseManagement.Infrastructure.Data;
 namespace PurchaseManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260603065106_BarcodeSeriesMaster")]
+    partial class BarcodeSeriesMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,106 +83,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasDatabaseName("IX_ActivityLog_Entity_CreatedDate");
 
                     b.ToTable("ActivityLog", "Purchase");
-                });
-
-            modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeAllocation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("AllocationDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("AllocationDate");
-
-                    b.Property<string>("AllocationNumber")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("AllocationNumber");
-
-                    b.Property<long>("BarcodeFrom")
-                        .HasColumnType("bigint")
-                        .HasColumnName("BarcodeFrom");
-
-                    b.Property<int>("BarcodeSeriesId")
-                        .HasColumnType("int")
-                        .HasColumnName("BarcodeSeriesId");
-
-                    b.Property<long>("BarcodeTo")
-                        .HasColumnType("bigint")
-                        .HasColumnName("BarcodeTo");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedByName")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CreatedIP")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("EmployeeName")
-                        .IsRequired()
-                        .HasColumnType("varchar(150)")
-                        .HasColumnName("EmployeeName");
-
-                    b.Property<string>("EmployeeNo")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("EmployeeNo");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("Remarks")
-                        .HasColumnType("varchar(250)")
-                        .HasColumnName("Remarks");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
-                    b.Property<int>("UsedQuantity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("UsedQuantity");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AllocationNumber")
-                        .IsUnique();
-
-                    b.HasIndex("BarcodeSeriesId");
-
-                    b.HasIndex("StatusId");
-
-                    b.ToTable("BarcodeAllocation", "Purchase");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeSeries", b =>
@@ -6702,25 +6605,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("PurchaseDocuments", "Purchase");
                 });
 
-            modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeAllocation", b =>
-                {
-                    b.HasOne("PurchaseManagement.Domain.Entities.BarcodeSeries", "BarcodeSeries")
-                        .WithMany("Allocations")
-                        .HasForeignKey("BarcodeSeriesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "Status")
-                        .WithMany("BarcodeAllocationStatuses")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("BarcodeSeries");
-
-                    b.Navigation("Status");
-                });
-
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeSeries", b =>
                 {
                     b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "Prefix")
@@ -7995,11 +7879,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("PODocumentId");
                 });
 
-            modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeSeries", b =>
-                {
-                    b.Navigation("Allocations");
-                });
-
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.BlanketMaster.BlanketDetail", b =>
                 {
                     b.Navigation("Schedules");
@@ -8074,8 +7953,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Navigation("ActivityTypes");
-
-                    b.Navigation("BarcodeAllocationStatuses");
 
                     b.Navigation("BarcodeSeriesPrefixes");
 
