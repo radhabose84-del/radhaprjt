@@ -1,5 +1,0 @@
-=== configureHooks 2026-05-30T06:18:51.513Z ===
-06:18:51.515 START
-06:18:51.516 onResponse.addHook registered
-06:18:51.516 onRequest.addHook registered
-06:18:51.517 DONE
