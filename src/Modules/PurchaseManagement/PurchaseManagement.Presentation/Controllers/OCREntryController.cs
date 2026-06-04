@@ -2,8 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry;
+using PurchaseManagement.Application.OCREntry.Commands.DeleteDocument;
 using PurchaseManagement.Application.OCREntry.Commands.DeleteOCREntry;
 using PurchaseManagement.Application.OCREntry.Commands.UpdateOCREntry;
+using PurchaseManagement.Application.OCREntry.Commands.UploadDocument;
 using PurchaseManagement.Application.OCREntry.Queries.GetAllOCREntry;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryAutoComplete;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryById;
@@ -91,6 +93,33 @@ namespace PurchaseManagement.Presentation.Controllers
                 isSuccess = result.IsSuccess,
                 message = result.Message,
                 data = result.Data
+            });
+        }
+
+        // UPLOAD DOCUMENT (multipart) — stages one file, returns metadata for inclusion in CREATE body
+        [HttpPost("upload-document")]
+        public async Task<IActionResult> UploadDocument([FromForm] UploadOCRDocumentCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = true,
+                message = "Document staged successfully.",
+                data = result
+            });
+        }
+
+        // DELETE DOCUMENT — deletes a document by its file name (e.g. "TEMP_...png" or "OCR-2026-0001.png")
+        [HttpDelete("document")]
+        public async Task<IActionResult> DeleteDocument([FromQuery] string fileName)
+        {
+            var result = await Mediator.Send(new DeleteOCRDocumentCommand(fileName));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result,
+                message = result ? "Document deleted successfully." : "Document not found."
             });
         }
 
