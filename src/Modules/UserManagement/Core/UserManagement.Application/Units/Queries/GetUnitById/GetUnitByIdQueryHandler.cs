@@ -1,5 +1,6 @@
 #nullable disable
 using AutoMapper;
+using Contracts.Interfaces.Lookups.Party;
 using UserManagement.Application.Common.Interfaces.IUnit;
 using UserManagement.Application.Units.Queries.GetUnits;
 using UserManagement.Domain.Events;
@@ -12,34 +13,49 @@ namespace UserManagement.Application.Units.Queries.GetUnitById
     //public class GetUnitByIdQueryHandler : IRequestHandler<GetUnitByIdQuery,UnitDto>
     public class GetUnitByIdQueryHandler : IRequestHandler<GetUnitByIdQuery,GetUnitsByIdDto>
     {
-         private readonly IUnitQueryRepository _unitRepository;        
+         private readonly IUnitQueryRepository _unitRepository;
         private readonly IMapper _mapper;
 
         private readonly IMediator _mediator;
 
+        private readonly IBankAccountLookup _bankAccountLookup;
+
          private readonly ILogger<GetUnitByIdQueryHandler> _logger;
 
-        public GetUnitByIdQueryHandler(IUnitQueryRepository unitRepository, IMapper mapper, IMediator mediator,ILogger<GetUnitByIdQueryHandler> logger)
+        public GetUnitByIdQueryHandler(IUnitQueryRepository unitRepository, IMapper mapper, IMediator mediator, IBankAccountLookup bankAccountLookup, ILogger<GetUnitByIdQueryHandler> logger)
         {
             _unitRepository = unitRepository;
             _mapper = mapper;
             _mediator = mediator;
+            _bankAccountLookup = bankAccountLookup;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
          public async Task<GetUnitsByIdDto> Handle(GetUnitByIdQuery request, CancellationToken cancellationToken)
         {
             _logger.LogInformation($"Fetching Unit Request started: {request.Id}");
-            var units = await _unitRepository.GetByIdAsync(request.Id);    
+            var units = await _unitRepository.GetByIdAsync(request.Id);
 
               if (units is null)
                 {
                     _logger.LogWarning($"No Unit Record {request.Id} not found in DB.");
                     throw new ValidationException("Unit not found.");
-                    
+
                 }
 
             var unitList = _mapper.Map<GetUnitsByIdDto>(units);
+
+            // Populate bank account display fields via cross-module lookup (rule #3 — no JOIN to Party schema)
+            if (unitList.BankAccountId is > 0)
+            {
+                var bankAccount = await _bankAccountLookup.GetByIdAsync(unitList.BankAccountId.Value, cancellationToken);
+                if (bankAccount is not null)
+                {
+                    unitList.BankAccountNumber = bankAccount.AccountNumber;
+                    unitList.BankName = bankAccount.BankName;
+                    unitList.BankAccountDetails = bankAccount;
+                }
+            }
             //Domain Event
                 var domainEvent = new AuditLogsDomainEvent(
                     actionDetail: "GetUnitByIdQuery",

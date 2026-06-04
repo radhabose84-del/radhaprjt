@@ -3,6 +3,7 @@ using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Dtos.Lookups.Party;
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -28,6 +29,7 @@ internal sealed class PurchaseOrderPrintQueryRepository : IPurchaseOrderPrintQue
     private readonly ICurrencyLookup _currencyLookup;
     private readonly IDepartmentLookup _departmentLookup;
     private readonly ICountryLookup _countryLookup;
+    private readonly ITransactionTypeLookup _transactionTypeLookup;
 
     public PurchaseOrderPrintQueryRepository(
         IDbConnection dbConnection,
@@ -42,7 +44,8 @@ internal sealed class PurchaseOrderPrintQueryRepository : IPurchaseOrderPrintQue
         IUOMLookup uomLookup,
         ICurrencyLookup currencyLookup,
         IDepartmentLookup departmentLookup,
-        ICountryLookup countryLookup)
+        ICountryLookup countryLookup,
+        ITransactionTypeLookup transactionTypeLookup)
     {
         _dbConnection = dbConnection;
         _ipAddressService = ipAddressService;
@@ -57,6 +60,7 @@ internal sealed class PurchaseOrderPrintQueryRepository : IPurchaseOrderPrintQue
         _currencyLookup = currencyLookup;
         _departmentLookup = departmentLookup;
         _countryLookup = countryLookup;
+        _transactionTypeLookup = transactionTypeLookup;
     }
 
     public async Task<PurchaseOrderPrintDto?> GetPrintDetailsAsync(int purchaseOrderId, CancellationToken ct = default)
@@ -239,8 +243,11 @@ internal sealed class PurchaseOrderPrintQueryRepository : IPurchaseOrderPrintQue
             originCountryName = country?.CountryName;
         }
 
-        // ── Step 6: Assemble DTO ──
-        return AssembleDto(
+        // ── Step 6: Terms & Conditions (matched by the PO's transaction type) ──
+        var termsHtml = await FetchTermsHtmlAsync(poType, ct);
+
+        // ── Step 7: Assemble DTO ──
+        var dto = AssembleDto(
             poType, header,
             localHeader, localDetails,
             contractHeader, contractDetails,
@@ -250,6 +257,43 @@ internal sealed class PurchaseOrderPrintQueryRepository : IPurchaseOrderPrintQue
             company, unit, vendor, currency, bank,
             items, uoms, depts, states, cities,
             originCountryName);
+
+        dto.TermsHtml = termsHtml;
+        return dto;
+    }
+
+    // Resolves the active T&C template's TermsHtml for this PO by mapping the PO type to a
+    // Finance transaction type (name → id via lookup, no cross-module JOIN), then matching
+    // the same-module TnCTemplateApplicability.
+    private async Task<string?> FetchTermsHtmlAsync(string poType, CancellationToken ct)
+    {
+        var transactionTypeName = poType switch
+        {
+            "Local" => MiscEnumEntity.TransactionTypeLPO,
+            "Import" => MiscEnumEntity.TransactionTypeIPO,
+            "Contract" => MiscEnumEntity.TransactionTypeCPO,
+            "Service" => MiscEnumEntity.TransactionTypeSPO,
+            "Blanket" => MiscEnumEntity.TransactionTypeBPO,
+            _ => null
+        };
+        if (transactionTypeName == null) return null;
+
+        var transactionTypes = await _transactionTypeLookup.GetAllTransactionTypeAsync();
+        var transactionType = transactionTypes.FirstOrDefault(t =>
+            string.Equals(t.TypeName, transactionTypeName, StringComparison.OrdinalIgnoreCase));
+        if (transactionType == null) return null;
+
+        const string sql = @"
+            SELECT TOP 1 t.TermsHtml
+            FROM Purchase.TnCTemplateMaster t WITH (NOLOCK)
+            INNER JOIN Purchase.TnCTemplateApplicability a WITH (NOLOCK)
+                   ON a.TnCTemplateMasterId = t.Id AND a.IsDeleted = 0 AND a.IsActive = 1
+            WHERE a.TransactionTypeId = @TransactionTypeId
+              AND t.IsDeleted = 0 AND t.IsActive = 1
+            ORDER BY t.ModifiedDate DESC, t.CreatedDate DESC, t.Id DESC";
+
+        return await _dbConnection.ExecuteScalarAsync<string?>(
+            new CommandDefinition(sql, new { TransactionTypeId = transactionType.Id }, cancellationToken: ct));
     }
 
     // ──────────────────── Type-Specific Data Fetchers ────────────────────

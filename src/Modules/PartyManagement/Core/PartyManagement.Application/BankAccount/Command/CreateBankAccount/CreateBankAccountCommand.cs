@@ -12,5 +12,12 @@ public record CreateBankAccountCommand(
         int AccountTypeId,
         bool IsDefaultAccount,
         bool IsPrimaryAccount,
-        string? IBan
+        string? IBan,
+        int? OwnerTypeId = null,
+        int? OwnerId = null,
+        string? AddressLine1 = null,
+        string? AddressLine2 = null,
+        int? CityId = null,
+        int? StateId = null,
+        string? Pincode = null
 ) : IRequest<int>; // returns new Id

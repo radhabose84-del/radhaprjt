@@ -41,9 +41,25 @@ public class BankAccountConfiguration : IEntityTypeConfiguration<BankAccount>
 
          b.HasOne(m => m.BankAccountMisc)
                 .WithMany(t => t.BankAccountBranch)
-                .HasForeignKey(m => m.BranchId) 
-                .OnDelete(DeleteBehavior.Restrict);                
-        
+                .HasForeignKey(m => m.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+        b.HasOne(m => m.BankAccountOwnerType)
+                .WithMany(t => t.BankAccountOwnerType)
+                .HasForeignKey(m => m.OwnerTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+        // OwnerId is polymorphic (UnitId / PartyId / EmployeeId per OwnerTypeId) — no FK constraint.
+        b.Property(x => x.OwnerId).HasColumnType("int");
+
+        // Bank branch address. CityId/StateId are cross-module (UserManagement) — no FK constraint;
+        // names resolved via ICityLookup / IStateLookup.
+        b.Property(x => x.AddressLine1).HasColumnType("nvarchar(250)");
+        b.Property(x => x.AddressLine2).HasColumnType("nvarchar(250)");
+        b.Property(x => x.CityId).HasColumnType("int");
+        b.Property(x => x.StateId).HasColumnType("int");
+        b.Property(x => x.Pincode).HasColumnType("nvarchar(10)");
+
         b.Property(x => x.IsDefaultAccount).HasDefaultValue(false);
         b.Property(x => x.IsPrimaryAccount).HasDefaultValue(false);
     

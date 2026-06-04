@@ -20,10 +20,10 @@ namespace QCManagement.UnitTests.Application.QcInspection.Commands
 
         private void SetupHappyPath()
         {
-            _qry.Setup(q => q.GetQcStatusIdByCodeAsync("APR")).ReturnsAsync(1);
+            _qry.Setup(q => q.GetQcStatusCodeByIdAsync(34)).ReturnsAsync("APR");
             _qry.Setup(q => q.GetDispositionContextAsync(88)).ReturnsAsync(QcInspectionBuilders.ValidContext());
-            _cmd.Setup(c => c.SaveDispositionAsync(88, 1, 1000m, 0m, null,
-                    It.IsAny<int>(), It.IsAny<string?>(), 100, 4321)).ReturnsAsync(88);
+            _cmd.Setup(c => c.SaveDispositionAsync(88, 34, 1000m, 0m, null,
+                    It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string?>(), true, 100, 4321)).ReturnsAsync(88);
             _grn.Setup(g => g.GetByGrnDetailIdAsync(4321, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(QcInspectionBuilders.ValidGrnLookup());
             _mediator.Setup(m => m.Publish(It.IsAny<QcDispositionCompletedDomainEvent>(), It.IsAny<CancellationToken>()))
@@ -46,8 +46,8 @@ namespace QCManagement.UnitTests.Application.QcInspection.Commands
             SetupHappyPath();
             await CreateSut().Handle(QcInspectionBuilders.ValidDispositionCommand(), CancellationToken.None);
 
-            _cmd.Verify(c => c.SaveDispositionAsync(88, 1, 1000m, 0m, null,
-                It.IsAny<int>(), It.IsAny<string?>(), 100, 4321), Times.Once);
+            _cmd.Verify(c => c.SaveDispositionAsync(88, 34, 1000m, 0m, null,
+                It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string?>(), true, 100, 4321), Times.Once);
         }
 
         [Fact]

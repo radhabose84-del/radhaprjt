@@ -19,6 +19,10 @@ namespace UserManagement.Application.Units.Queries.GetUnits
     public int? SpindlesCapacity { get; set; }
     public int UnitTypeId { get; set; }
     public string? UnitTypeName { get; set; }
+    public int? BankAccountId { get; set; }
+    public string? BankAccountNumber { get; set; }
+    public string? BankName { get; set; }
+    public Contracts.Dtos.Lookups.Party.BankAccountLookupDto? BankAccountDetails { get; set; }
     public UnitAddressDto? UnitAddressDto { get; set; }
     public UnitContactsDto? UnitContactsDto { get; set;}
     }

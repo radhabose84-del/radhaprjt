@@ -77,12 +77,13 @@ namespace QCManagement.UnitTests.TestData
                 }
             };
 
+        // qcStatusId 34 = APR (Approved) in QP_QC_STATUS misc.
         public static SaveDispositionCommand ValidDispositionCommand(
-            int hdrId = 88, string code = "APR", decimal acc = 1000m, decimal rej = 0m, string? remarks = null) =>
+            int hdrId = 88, int qcStatusId = 34, decimal acc = 1000m, decimal rej = 0m, string? remarks = null) =>
             new()
             {
                 QcInspectionHdrId = hdrId,
-                QcStatusCode = code,
+                QcStatusId = qcStatusId,
                 AcceptedQuantity = acc,
                 RejectedQuantity = rej,
                 DispositionRemarks = remarks

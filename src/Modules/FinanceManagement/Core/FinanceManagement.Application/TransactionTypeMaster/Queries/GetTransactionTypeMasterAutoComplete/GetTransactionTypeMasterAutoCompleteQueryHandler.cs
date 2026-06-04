@@ -24,7 +24,7 @@ namespace FinanceManagement.Application.TransactionTypeMaster.Queries.GetTransac
 
         public async Task<IReadOnlyList<TransactionTypeMasterLookupDto>> Handle(GetTransactionTypeMasterAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, request.MenuId, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, request.ModuleId, request.MenuId, cancellationToken);
             var dtos = _mapper.Map<List<TransactionTypeMasterLookupDto>>(result);
 
             var domainEvent = new AuditLogsDomainEvent(

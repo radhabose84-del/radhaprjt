@@ -50,6 +50,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public int? SalesFreightId { get; set; }
         public int? PurchaseFreightId { get; set; }
         public string? FreightExpensesGl { get; set; }
+        public int? BankAccountId { get; set; }
         public List<UpdatePartyUniCompanyDto>? PartyUnitCompaniesUpdate { get; set; }
         public List<UpdatePartyTypeDto>? PartyTypesUpdate { get; set; }
         public List<UpdatePartyContactDto>? PartyContactsUpdate { get; set; }

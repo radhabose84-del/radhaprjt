@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
@@ -18,11 +19,12 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
         private readonly Mock<ICountryLookup> _mockCountryLookup = new(MockBehavior.Loose);
         private readonly Mock<ICompanyLookup> _mockCompanyLookup = new(MockBehavior.Loose);
         private readonly Mock<IUnitLookup> _mockUnitLookup = new(MockBehavior.Loose);
+        private readonly Mock<IBankAccountLookup> _mockBankLookup = new(MockBehavior.Loose);
 
         private GetPartyMasterByIdQueryHandler CreateSut() =>
             new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object,
                 _mockCityLookup.Object, _mockStateLookup.Object, _mockCountryLookup.Object,
-                _mockCompanyLookup.Object, _mockUnitLookup.Object);
+                _mockCompanyLookup.Object, _mockUnitLookup.Object, _mockBankLookup.Object);
 
         private void SetupHappyPath(int id = 1)
         {

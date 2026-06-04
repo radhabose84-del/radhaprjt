@@ -60,6 +60,9 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         public string? PurchaseRateMethodName { get; set; }
         public decimal? PurchaseFreightRate { get; set; }
         public string? FreightExpensesGl { get; set; }
+        public int? BankAccountId { get; set; }
+        public string? BankAccountNumber { get; set; }
+        public string? BankName { get; set; }
         public List<PartyTypeDto>? PartyTypes { get; set; }
         public List<PartyContactDto>? PartyContacts { get; set; }
         public List<PartyAddressDto>? PartyAddresses { get; set; }

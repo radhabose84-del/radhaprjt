@@ -58,7 +58,9 @@ namespace PurchaseManagement.Domain.Common
         public const string TransactionTypeDutyMaster = "Duty Master";
 		public const string TransactionTypeContract = "Purchase Contract";
         public const string TransactionTypePurchaseReturn = "Purchase Return";
+        public const string TransactionTypeGRN = "GRN";
         public const string TransactionTypeVendorEvaluation = "Vendor Evaluation";
+        public const string TransactionTypeOCR = "OCR";
         public const string ModulePurchase = "Purchase";
 
         // Purchase Return (RTV) — MiscMaster type codes (seeded via migration)
@@ -79,6 +81,18 @@ namespace PurchaseManagement.Domain.Common
         // Blanket PO constants
         public const string Blanket = "Blanket";
         public const string TransactionTypeBlanket = "Blanket Master";
-        public const string TransactionTypeBPO = "Blanket Purchase Order";        
+        public const string TransactionTypeBPO = "Blanket Purchase Order";
+
+        // Bale barcode series — MiscMaster type codes (seeded via SQL).
+        // Default status value reuses the existing "Open" constant above.
+        public const string BarcodePrefix = "BarcodePrefix";
+        public const string BarcodeSeriesStatus = "BarcodeSeriesStatus";
+
+        // Bale barcode series status values (seeded under BarcodeSeriesStatus). Default "Open" reuses const above.
+        public const string BarcodeSeriesPartiallyAllocated = "PartiallyAllocated";
+        public const string BarcodeSeriesFullyAllocated = "FullyAllocated";
+
+        // Bale barcode allocation — MiscMaster type code + status values (seeded via SQL).
+        public const string BarcodeAllocationStatus = "BarcodeAllocationStatus";
     }
 }

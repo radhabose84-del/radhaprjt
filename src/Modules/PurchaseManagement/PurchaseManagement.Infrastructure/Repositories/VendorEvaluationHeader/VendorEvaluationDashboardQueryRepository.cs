@@ -183,7 +183,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.VendorEvaluationHeader
                 INNER JOIN Purchase.GrnDetail gd ON gd.GrnId = gh.Id
                 WHERE gh.PartyId = @VendorId
                   AND gh.GrnDate >= @StartDate AND gh.GrnDate < @EndDate
-                  AND gh.IsQcApproved = 1";
+                  AND gd.IsQcApproved = 1";
 
             return await _dbConnection.ExecuteScalarAsync<decimal>(sql, new
             {

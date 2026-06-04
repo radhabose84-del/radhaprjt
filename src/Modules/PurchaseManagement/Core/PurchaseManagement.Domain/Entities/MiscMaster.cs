@@ -30,8 +30,6 @@ namespace PurchaseManagement.Domain.Entities
         public ICollection<RfqMaster> RfqStatuses { get; set; } = new List<RfqMaster>();
         public ICollection<RfqMaster> RfqInitiationTypes { get; set; } = new List<RfqMaster>();
         public ICollection<IndentHeader> StatusHeader { get; set; } = default!;
-        public ICollection<TnCTemplateMaster> TncTemplatesByType { get; set; } = new List<TnCTemplateMaster>();
-        public ICollection<TnCTemplateApplicability> TncApplicabilities { get; set; } = new List<TnCTemplateApplicability>();
         //Quotation Entry
         public ICollection<QuotationHeader> QuotationPaymentTerms { get; set; } = new List<QuotationHeader>();
         public ICollection<QuotationHeader> QuotationFreightMode { get; set; } = new List<QuotationHeader>();
@@ -119,6 +117,13 @@ namespace PurchaseManagement.Domain.Entities
 
         // Purchase Blanket Detail — Discount type
         public ICollection<PurchaseBlanketDetail>? PurchaseBlanketDetailDiscount { get; set; }
+
+        // Bale barcode series — reverse navs for Prefix & Status FKs
+        public ICollection<BarcodeSeries>? BarcodeSeriesPrefixes { get; set; }
+        public ICollection<BarcodeSeries>? BarcodeSeriesStatuses { get; set; }
+
+        // Bale barcode allocation — reverse nav for Status FK
+        public ICollection<BarcodeAllocation>? BarcodeAllocationStatuses { get; set; }
 
     }
     }

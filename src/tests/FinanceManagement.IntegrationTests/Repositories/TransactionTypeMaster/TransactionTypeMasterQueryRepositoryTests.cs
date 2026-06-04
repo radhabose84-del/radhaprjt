@@ -239,7 +239,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await SeedEntityAsync("Invoice", "INV");
             await SeedEntityAsync("Payment", "PAY");
 
-            var results = await CreateQueryRepo().AutocompleteAsync("Inv", null, CancellationToken.None);
+            var results = await CreateQueryRepo().AutocompleteAsync("Inv", null, null, CancellationToken.None);
 
             results.Should().HaveCount(1);
             results[0].TypeName.Should().Be("Invoice");
@@ -255,7 +255,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             entity.IsActive = Status.Inactive;
             await ctx.SaveChangesAsync();
 
-            var results = await CreateQueryRepo().AutocompleteAsync("Invoice", null, CancellationToken.None);
+            var results = await CreateQueryRepo().AutocompleteAsync("Invoice", null, null, CancellationToken.None);
 
             results.Should().BeEmpty();
         }
@@ -267,7 +267,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TransactionTypeMaster
             await SeedEntityAsync("InvoiceU1", "IU1", unitId: 1);
             await SeedEntityAsync("InvoiceU2", "IU2", unitId: 2);
 
-            var results = await CreateQueryRepo(tokenUnitId: 1).AutocompleteAsync("Invoice", null, CancellationToken.None);
+            var results = await CreateQueryRepo(tokenUnitId: 1).AutocompleteAsync("Invoice", null, null, CancellationToken.None);
 
             results.Should().HaveCount(1);
             results[0].TypeName.Should().Be("InvoiceU1");

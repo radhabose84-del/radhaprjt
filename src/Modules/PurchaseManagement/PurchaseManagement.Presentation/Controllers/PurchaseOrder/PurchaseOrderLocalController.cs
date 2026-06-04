@@ -1,9 +1,11 @@
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Create;
 using PurchaseManagement.Application.PurchaseOrder.Local.Commands.Update;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetAllPurchaseOrder;
+using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderAnalysis;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPOLocalPending;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderAutocomplete;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderById;
+using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetPurchaseOrderDetail;
 using PurchaseManagement.Application.PurchaseOrder.Local.Queries.GetTotalPurchaseValue;
 using PurchaseManagement.Application.PurchaseOrder.POAmendment;
 using PurchaseManagement.Application.PurchaseOrder.Reports;
@@ -64,10 +66,36 @@ public class PurchaseOrderLocalController : ApiControllerBase
         return Ok(new { StatusCode = StatusCodes.Status200OK, message = "Fetched", data });
     }
 
+    [HttpGet("analysis")]
+    public async Task<IActionResult> GetAnalysis(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] int? poMethodId = null,
+        [FromQuery] int? statusId = null,
+        [FromQuery] DateTimeOffset? fromDate = null,
+        [FromQuery] DateTimeOffset? toDate = null,
+        [FromQuery] bool? isAmendment = null,
+        CancellationToken ct = default)
+    {
+        var data = await Mediator.Send(new GetPurchaseOrderAnalysisQuery(
+            pageNumber, pageSize, searchTerm, poMethodId, statusId,
+            fromDate, toDate, isAmendment), ct);
+        return Ok(new { StatusCode = StatusCodes.Status200OK, message = "Fetched", data });
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
         var data = await Mediator.Send(new GetPurchaseOrderByIdQuery(id), ct);
+        return Ok(new { StatusCode = data is null ? 404 : 200, message = data is null ? "Not found" : "Fetched", data });
+    }
+
+    // PO Analysis detail — all PO types + Outstanding / Budget / Approval / PO Progress panels.
+    [HttpGet("{id:int}/detail")]
+    public async Task<IActionResult> GetDetail(int id, CancellationToken ct)
+    {
+        var data = await Mediator.Send(new GetPurchaseOrderDetailQuery(id), ct);
         return Ok(new { StatusCode = data is null ? 404 : 200, message = data is null ? "Not found" : "Fetched", data });
     }
 

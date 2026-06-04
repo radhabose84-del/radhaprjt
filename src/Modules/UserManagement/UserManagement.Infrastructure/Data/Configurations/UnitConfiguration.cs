@@ -133,6 +133,13 @@ namespace UserManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(u => u.UnitTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Property(u => u.BankAccountId)
+                .HasColumnName("BankAccountId")
+                .HasColumnType("int")
+                .IsRequired(false);
+            // Cross-module reference to Party.BankAccount — no FK constraint (rule #3),
+            // validated/populated via IBankAccountLookup.
+
             builder.Ignore(u => u.UnitTypeName);
             builder.Ignore(u => u.PinCode);
 

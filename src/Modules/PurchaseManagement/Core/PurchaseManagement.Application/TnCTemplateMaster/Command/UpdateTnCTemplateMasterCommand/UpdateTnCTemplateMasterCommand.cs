@@ -1,4 +1,4 @@
-using PurchaseManagement.Application.TnCTemplateMaster.Queries.GetAllTnCTemplateMaster;
+using PurchaseManagement.Application.TnCTemplateMaster.Command;
 using MediatR;
 
 namespace PurchaseManagement.Application.TnCTemplateMaster.Command.UpdateTnCTemplateMasterCommand
@@ -8,10 +8,9 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Command.UpdateTnCTemp
         public int Id { get; set; }
         public string? TemplateCode { get; set; }
         public string TemplateName { get; set; } = null!;
-        public int TemplateTypeId { get; set; }
+        public int ModuleId { get; set; }
         public string TermsHtml { get; set; } = null!;
-        public bool? ApprovalFlag { get; set; }
         public byte IsActive { get; set; }
-        public List<TncApplicabilityDto>? Applicabilities { get; set; } 
+        public List<TncApplicabilityRequestDto>? Applicabilities { get; set; }
     }
 }

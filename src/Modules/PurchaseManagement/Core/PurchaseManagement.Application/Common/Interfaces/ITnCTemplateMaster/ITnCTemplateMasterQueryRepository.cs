@@ -7,12 +7,12 @@ namespace PurchaseManagement.Application.Common.Interfaces.ITnCTemplateMaster
     {
         Task<(List<TncTemplateMasterDto>, int)> GetAllTncTemplateAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<TncTemplateMasterDto> GetByIdAsync(int id);
-        Task<bool> ExistsByTypeAndNameAsync(int templateTypeId, string templateName, int? excludeId = null, CancellationToken ct = default);
+        Task<bool> ExistsByModuleAndNameAsync(int moduleId, string templateName, int? excludeId = null, CancellationToken ct = default);
 
-        Task<bool> ApplicabilitiesExistAsync(IEnumerable<int> ids, CancellationToken ct = default);
+        Task<bool> TransactionTypesExistAsync(IEnumerable<int> ids, CancellationToken ct = default);
         Task<bool> IsUsedInTransactionsAsync(int templateId, CancellationToken ct = default);
 
-        Task<List<TnCAutoCompleteDto>> GetTnCTemplateAutoCompleteAsync(string? search, int? templateTypeId, int? applicabilityId);
+        Task<List<TnCAutoCompleteDto>> GetTnCTemplateAutoCompleteAsync(string? search, int? moduleId, int? transactionTypeId);
         Task<bool> SoftDeleteValidationAsync(int id);
         Task<bool> IsTnCTemplateLinkedAsync(int id);
     }

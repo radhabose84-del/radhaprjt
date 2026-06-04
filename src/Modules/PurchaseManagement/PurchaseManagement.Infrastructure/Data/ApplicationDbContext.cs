@@ -80,6 +80,7 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<IndentLog> IndentLog { get; set; }
         public DbSet<PaymentTermMaster> PaymentTermMasters { get; set; }
         public DbSet<PaymentTermInstallment> PaymentTermInstallment { get; set; }
+        public DbSet<OCREntry> OCREntry { get; set; }
 
         //Rfq
         public DbSet<RfqMaster> Rfqs { get; set; }
@@ -163,12 +164,20 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<DeliveryScoreRule> DeliveryScoreRules { get; set; }
         public DbSet<VendorEvaluationHeader> VendorEvaluationHeaders { get; set; }
         public DbSet<VendorEvaluationDetail> VendorEvaluationDetails { get; set; }
+
+        // Bale barcode series
+        public DbSet<BarcodeSeries> BarcodeSeries { get; set; }
+
+        // Bale barcode allocation
+        public DbSet<BarcodeAllocation> BarcodeAllocation { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // modelBuilder.ApplyConfiguration(new AssetGroupConfiguration());           
 
             modelBuilder.ApplyConfiguration(new MiscTypeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new MiscMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new BarcodeSeriesConfiguration());
+            modelBuilder.ApplyConfiguration(new BarcodeAllocationConfiguration());
             modelBuilder.ApplyConfiguration(new IndentHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IndentDetailConfiguration());
             modelBuilder.ApplyConfiguration(new IndentLogConfiguration());
@@ -226,6 +235,7 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ImportPOHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new ImportPODetailConfiguration());
             modelBuilder.ApplyConfiguration(new DutyMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new OCREntryConfiguration());
             modelBuilder.ApplyConfiguration(new PurchaseDocumentConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnDetailConfiguration());

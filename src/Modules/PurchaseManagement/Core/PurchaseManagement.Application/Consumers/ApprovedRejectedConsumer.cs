@@ -14,6 +14,8 @@ using PurchaseManagement.Application.Common.Interfaces.IMRS;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.ServicePO;
 using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
+using PurchaseManagement.Application.Common.Interfaces.IBlanketMaster;
+using PurchaseManagement.Application.Common.Interfaces.IOCREntry;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.GRN.StockLedger;
@@ -52,7 +54,9 @@ namespace PurchaseManagement.Application.Consumers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IBudgetAllocationLookup _budgetAllocationLookup;
         private readonly IContractPOMasterCommandRepository _contractPOMasterCommandRepo;
+        private readonly IBlanketMasterCommandRepository _blanketMasterCommandRepo;
         private readonly ITransactionTypeLookup _transactionTypeLookup;
+        private readonly IOCREntryCommandRepository _ocrCommandRepo;
 
         public ApprovedRejectedConsumer(
             IPurchaseIndentCommand purchaseIndentCommand,
@@ -73,7 +77,9 @@ namespace PurchaseManagement.Application.Consumers
             IHttpContextAccessor httpContextAccessor,
             IBudgetAllocationLookup budgetAllocationLookup,
             IContractPOMasterCommandRepository contractPOMasterCommandRepo,
-            ITransactionTypeLookup transactionTypeLookup)
+            IBlanketMasterCommandRepository blanketMasterCommandRepo,
+            ITransactionTypeLookup transactionTypeLookup,
+            IOCREntryCommandRepository ocrCommandRepo)
         {
             _purchaseIndentCommand = purchaseIndentCommand;
             _imapper = mapper;
@@ -93,7 +99,9 @@ namespace PurchaseManagement.Application.Consumers
             _httpContextAccessor = httpContextAccessor;
             _budgetAllocationLookup = budgetAllocationLookup;
             _contractPOMasterCommandRepo = contractPOMasterCommandRepo;
+            _blanketMasterCommandRepo = blanketMasterCommandRepo;
             _transactionTypeLookup = transactionTypeLookup;
+            _ocrCommandRepo = ocrCommandRepo;
         }
 
         public async Task Consume(ConsumeContext<UpdateApprovedRejectedPurchaseCommand> context)
@@ -223,11 +231,15 @@ namespace PurchaseManagement.Application.Consumers
                 }
 
                 // -----------------------------
-                // PURCHASE ORDER (all types: LPO, IPO, CPO, EPO)
-                // All PO handlers publish with ModuleTypeName = POLocal ("Purchase Order").
+                // PURCHASE ORDER (all types: LPO, CPO, IPO, EPO, BPO)
+                // PO handlers publish with ModuleTypeName = the PO sub-type's TransactionType name.
                 // TransactionTypeId differentiates the PO sub-type.
                 // -----------------------------
-                if (msg.ModuleTypeName == MiscEnumEntity.POLocal)
+                if (msg.ModuleTypeName == MiscEnumEntity.TransactionTypeLPO
+                    || msg.ModuleTypeName == MiscEnumEntity.TransactionTypeCPO
+                    || msg.ModuleTypeName == MiscEnumEntity.TransactionTypeIPO
+                    || msg.ModuleTypeName == MiscEnumEntity.TransactionTypeEPO
+                    || msg.ModuleTypeName == MiscEnumEntity.TransactionTypeBPO)
                 {
                     var status = msg.Status;
                     var poId = msg.ModuleTransactionId;
@@ -634,6 +646,32 @@ namespace PurchaseManagement.Application.Consumers
                 }
 
                 // -----------------------------
+                // BLANKET MASTER
+                // -----------------------------
+                if (msg.ModuleTypeName == MiscEnumEntity.TransactionTypeBlanket)
+                {
+                    var status = msg.Status;
+                    var blanketId = msg.ModuleTransactionId;
+
+                    if (status == MiscEnumEntity.Approved || status == MiscEnumEntity.Rejected)
+                    {
+                        var approved = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Approved);
+                        var rejected = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Rejected);
+
+                        var finalStatusId = status == MiscEnumEntity.Approved ? approved.Id : rejected.Id;
+
+                        var updated = await _blanketMasterCommandRepo.UpdateBlanketApproveAsync(
+                            blanketId, finalStatusId, context.CancellationToken);
+
+                        if (!updated)
+                            throw new Exception($"Blanket Master approval update failed for Id={blanketId}");
+                    }
+
+                    await PublishCompletedAsync();
+                    return;
+                }
+
+                // -----------------------------
                 // PURCHASE RETURN (RTV)
                 // -----------------------------
                 if (msg.ModuleTypeName == MiscEnumEntity.RtvModuleTypeName)
@@ -648,6 +686,32 @@ namespace PurchaseManagement.Application.Consumers
                             IsApproved: status == MiscEnumEntity.Approved,
                             ApprovalRequestId: null,
                             ApproverRemarks: null), context.CancellationToken);
+                    }
+
+                    await PublishCompletedAsync();
+                    return;
+                }
+
+                // -----------------------------
+                // OCR ENTRY
+                // -----------------------------
+                if (msg.ModuleTypeName == MiscEnumEntity.TransactionTypeOCR)
+                {
+                    var status = msg.Status;
+                    var ocrId = msg.ModuleTransactionId;
+
+                    if (status == MiscEnumEntity.Approved || status == MiscEnumEntity.Rejected)
+                    {
+                        var approved = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Approved);
+                        var rejected = await _miscMasterQueryRepository.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Rejected);
+
+                        var finalStatusId = status == MiscEnumEntity.Approved ? approved.Id : rejected.Id;
+
+                        var updated = await _ocrCommandRepo.UpdateOcrApproveAsync(
+                            ocrId, finalStatusId, context.CancellationToken);
+
+                        if (!updated)
+                            throw new Exception($"OCR approval update failed for Id={ocrId}");
                     }
 
                     await PublishCompletedAsync();

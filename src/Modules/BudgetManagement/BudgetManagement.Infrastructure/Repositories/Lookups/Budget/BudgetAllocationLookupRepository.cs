@@ -105,6 +105,52 @@ namespace BudgetManagement.Infrastructure.Repositories.Lookups.Budget
             };
         }
 
+        public async Task<BudgetAllocationSummaryDto?> GetAllocationSummaryAsync(
+            int budgetGroupId,
+            DateOnly budgetDate,
+            int monthId,
+            int requestById,
+            int? projectId,
+            int? wbsId,
+            int? financialYearId,
+            CancellationToken ct = default)
+        {
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            projectId = (projectId.HasValue && projectId.Value <= 0) ? null : projectId;
+            wbsId = (wbsId.HasValue && wbsId.Value <= 0) ? null : wbsId;
+            int? monthIdNullable = monthId <= 0 ? null : monthId;
+            int? requestByIdNullable = requestById <= 0 ? null : requestById;
+
+            DateTime sqlDate = budgetDate.ToDateTime(TimeOnly.MinValue);
+
+            const string sql = @"
+                SELECT TOP 1 ApprovedAmount, ISNULL(RemainingBalance, 0) AS RemainingBalance
+                FROM Budget.BudgetAllocation
+                WHERE UnitId = @UnitId
+                AND BudgetGroupId = @BudgetGroupId
+                AND (@RequestById IS NULL OR RequestById = @RequestById)
+                AND @BudgetDate BETWEEN FromDate AND ToDate
+                AND (@MonthId IS NULL OR RequestMonthId = @MonthId)
+                AND (@ProjectId IS NULL OR ProjectId = @ProjectId)
+                AND (@WbsId IS NULL OR WBSId = @WbsId)
+                AND (@FinancialYearId IS NULL OR FinancialYearId = @FinancialYearId)
+                ORDER BY Id DESC;";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<BudgetAllocationSummaryDto>(
+                new CommandDefinition(sql, new
+                {
+                    UnitId = unitId,
+                    BudgetGroupId = budgetGroupId,
+                    MonthId = monthIdNullable,
+                    RequestById = requestByIdNullable,
+                    BudgetDate = sqlDate,
+                    ProjectId = projectId,
+                    WbsId = wbsId,
+                    FinancialYearId = financialYearId
+                }, cancellationToken: ct));
+        }
+
         public async Task<bool> ApplyRemainingBalanceDeltaAsync(
             int budgetGroupId,
             DateOnly budgetDate,

@@ -50,8 +50,9 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         public int? SalesFreightId { get; set; }
         public int? PurchaseFreightId { get; set; }
         public string? FreightExpensesGl { get; set; }
+        public int? BankAccountId { get; set; }
 
-        public List<PartyUnitCompanyDto>? PartyUnitCompanies { get; set; } 
+        public List<PartyUnitCompanyDto>? PartyUnitCompanies { get; set; }
         public List<PartyTypeDto>? PartyTypes { get; set; }
         public List<PartyContactDto>? PartyContacts { get; set; }
         public List<PartyAddressDto>? PartyAddresses { get; set; }

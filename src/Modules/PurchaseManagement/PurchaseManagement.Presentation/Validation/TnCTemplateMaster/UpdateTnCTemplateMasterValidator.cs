@@ -20,18 +20,18 @@ namespace PurchaseManagement.Presentation.Validation.TnCTemplateMaster
                 .NotEmpty().WithMessage("Template Name is required.")
                 .MaximumLength(200);
 
-            // Uniqueness within type, excluding the row being updated
+            // Uniqueness within module, excluding the row being updated
             RuleFor(x => x)
                 .MustAsync(async (cmd, ct) =>
-                    !await repo.ExistsByTypeAndNameAsync(
-                        cmd.TemplateTypeId,
+                    !await repo.ExistsByModuleAndNameAsync(
+                        cmd.ModuleId,
                         cmd.TemplateName?.Trim() ?? string.Empty,
                         cmd.Id,
                         ct))
-                .WithMessage("A template with this name already exists for the selected Template Type.");
+                .WithMessage("A template with this name already exists for the selected Module.");
 
-            RuleFor(x => x.TemplateTypeId)
-                .GreaterThan(0);
+            RuleFor(x => x.ModuleId)
+                .GreaterThan(0).WithMessage("Module is required.");
 
             RuleFor(x => x.TermsHtml)
                 .NotEmpty().WithMessage("Terms & Conditions content is required.")
@@ -42,7 +42,7 @@ namespace PurchaseManagement.Presentation.Validation.TnCTemplateMaster
                 .NotNull().WithMessage("At least one Applicability is required.")
                 .Must(list => list != null && list.Count > 0)
                     .WithMessage("At least one Applicability is required.")
-                .Must(list => list == null || list.Select(a => a.ApplicabilityId).Distinct().Count() == list.Count)
+                .Must(list => list == null || list.Select(a => a.TransactionTypeId).Distinct().Count() == list.Count)
                     .WithMessage("Duplicate Applicability values are not allowed.");
         }
 

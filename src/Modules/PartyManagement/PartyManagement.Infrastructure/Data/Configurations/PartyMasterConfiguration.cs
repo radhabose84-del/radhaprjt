@@ -345,6 +345,13 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnName("FreightExpensesGl")
                 .HasColumnType("nvarchar(50)");
 
+            // BankAccountId — party's designated bank account (Party.BankAccount, OwnerType = Party).
+            // Plain int (no DB FK) — validated/populated via IBankAccountLookup, consistent with Unit.BankAccountId.
+            builder.Property(m => m.BankAccountId)
+                .HasColumnName("BankAccountId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
         }
     }
 }

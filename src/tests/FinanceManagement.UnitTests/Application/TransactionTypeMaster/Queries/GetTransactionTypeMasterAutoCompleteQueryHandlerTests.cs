@@ -21,7 +21,7 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Queries
                 new() { Id = 1, TypeName = "Invoice", ShortName = "INV" }
             };
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync("Inv", It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync("Inv", It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(lookupList);
             _mockMapper
                 .Setup(m => m.Map<List<TransactionTypeMasterLookupDto>>(lookupList))
@@ -39,7 +39,7 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Queries
         {
             var emptyList = new List<TransactionTypeMasterLookupDto>();
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(emptyList);
             _mockMapper
                 .Setup(m => m.Map<List<TransactionTypeMasterLookupDto>>(emptyList))
@@ -57,7 +57,7 @@ namespace FinanceManagement.UnitTests.Application.TransactionTypeMaster.Queries
         {
             var lookupList = new List<TransactionTypeMasterLookupDto>();
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync("test", It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync("test", It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(lookupList);
             _mockMapper
                 .Setup(m => m.Map<List<TransactionTypeMasterLookupDto>>(lookupList))
