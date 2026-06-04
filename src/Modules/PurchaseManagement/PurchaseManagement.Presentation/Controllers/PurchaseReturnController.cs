@@ -12,6 +12,7 @@ using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetPu
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnableQtyByGrn;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnablePosByVendor;
 using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetReturnableGrnsByVendorPo;
+using PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Queries.GetPurchaseReturnPending;
 
 namespace PurchaseManagement.Presentation.Controllers;
 
@@ -84,6 +85,23 @@ public class PurchaseReturnController : ApiControllerBase
     {
         var data = await Mediator.Send(new GetReturnableGrnsByVendorPoQuery(vendorId, poId));
         return Ok(new { StatusCode = StatusCodes.Status200OK, data });
+    }
+
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetPending(
+        [FromQuery] int PageNumber = 1,
+        [FromQuery] int PageSize = 20,
+        [FromQuery] string? SearchTerm = null)
+    {
+        var result = await Mediator.Send(new GetPurchaseReturnPendingQuery(PageNumber, PageSize, SearchTerm));
+        return Ok(new
+        {
+            StatusCode = StatusCodes.Status200OK,
+            data = result.Items,
+            TotalCount = result.Total,
+            PageNumber,
+            PageSize
+        });
     }
 
     [HttpPost]
