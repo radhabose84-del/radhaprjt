@@ -41,13 +41,15 @@ public sealed class US_UM_01_OrgSetup_Tests
     private const string DivisionRoute  = "/api/Division";
     private const string UnitRoute      = "/api/Unit";
     private const string MiscTypeRoute  = "/api/usermanagement/MiscTypeMaster";
+    private const string MiscMastRoute  = "/api/usermanagement/MiscMaster";
     private const string DeptGroupRoute = "/api/DepartmentGroup";
     private const string DeptRoute      = "/api/Department";
 
     // Workflow state carried across ordered steps. xUnit builds a NEW instance per test
     // method, so cross-step state must be static (the collection runs the steps serially).
     private static int _companyId;
-    private static int _miscTypeId;
+    private static int _miscTypeId;     // MiscTypeMaster id (the UnitType *category*)
+    private static int _unitTypeId;     // MiscMaster id under _miscTypeId — this is the Unit's UnitTypeId FK
     private static int _divisionId;
     private static int _unitId;
     private static int _deptGroupId;
@@ -56,8 +58,11 @@ public sealed class US_UM_01_OrgSetup_Tests
     public US_UM_01_OrgSetup_Tests(QAServerFixture fixture) => _f = fixture;
 
     // Strict Indian PAN: ^[A-Z]{3}[CPHFATBLJG][A-Z][0-9]{4}[A-Z]$ — 4th char 'C' = company.
+    // EntityCode is REVERSED ticks (fastest-varying digits first), so take the FIRST 4 digits —
+    // they are run-unique. TakeLast(4) would grab the slow high-order tick digits, making the PAN
+    // effectively constant across runs → "PAN already exists" 400 on every run after the first.
     private string PanNumber =>
-        $"QATCA{new string(_f.EntityCode.Where(char.IsDigit).TakeLast(4).ToArray())}A";
+        $"QATCA{new string(_f.EntityCode.Where(char.IsDigit).Take(4).ToArray())}A";
 
     // STEP 1 — Create the Company (org root) -------------------------------------
     [Fact, TestPriority(1)]
@@ -100,19 +105,33 @@ public sealed class US_UM_01_OrgSetup_Tests
         _companyId.Should().BeGreaterThan(0, "the org-setup workflow starts by creating a company");
     }
 
-    // STEP 2 — Create a MiscTypeMaster to act as the Unit's UnitType (Unit FK) ----
+    // STEP 2 — Create the Unit's UnitType FK. The Unit's UnitTypeId is FK-validated against
+    //   AppData.MiscMaster (MiscMasterExistsAsync), NOT MiscTypeMaster. MiscMaster rows hang off
+    //   a MiscTypeMaster, so we create the type first, then a MiscMaster value under it — and it
+    //   is the MiscMaster id (_unitTypeId) that Step 4 feeds as the Unit's UnitTypeId.
     [Fact, TestPriority(2)]
     public async Task Step2_CreateUnitType_Returns200_AndCapturesId()
     {
-        var resp = await _f.Client.PostAsJsonAsync(MiscTypeRoute, new
+        var typeResp = await _f.Client.PostAsJsonAsync(MiscTypeRoute, new
         {
             miscTypeCode = $"F{_f.EntityCode[..9]}",
             description  = $"QA FT UnitType {_f.EntityCode}"
         });
 
-        resp.StatusCode.Should().Be(HttpStatusCode.OK);
-        _miscTypeId = (await ParseAsync(resp)).RootElement.CreatedId();
+        typeResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        _miscTypeId = (await ParseAsync(typeResp)).RootElement.CreatedId();
         _miscTypeId.Should().BeGreaterThan(0);
+
+        var valueResp = await _f.Client.PostAsJsonAsync(MiscMastRoute, new
+        {
+            miscTypeId  = _miscTypeId,
+            code        = $"M{_f.EntityCode[..9]}",
+            description = "QA FT UnitType Value"
+        });
+
+        valueResp.StatusCode.Should().Be(HttpStatusCode.OK);
+        _unitTypeId = (await ParseAsync(valueResp)).RootElement.CreatedId();
+        _unitTypeId.Should().BeGreaterThan(0, "the Unit's UnitTypeId FK resolves to a MiscMaster row");
     }
 
     // STEP 3 — Create a Division under the org root ------------------------------
@@ -136,7 +155,7 @@ public sealed class US_UM_01_OrgSetup_Tests
     public async Task Step4_CreateUnit_UnderDivision_CapturesId()
     {
         _divisionId.Should().BeGreaterThan(0, "Step 3 must have created the division first");
-        _miscTypeId.Should().BeGreaterThan(0, "Step 2 must have created the unit-type first");
+        _unitTypeId.Should().BeGreaterThan(0, "Step 2 must have created the unit-type (MiscMaster) first");
 
         var resp = await _f.Client.PostAsJsonAsync(UnitRoute, new
         {
@@ -149,7 +168,7 @@ public sealed class US_UM_01_OrgSetup_Tests
             oldUnitId  = "OLD001",
             isMaintenanceStopStart = false,
             spindlesCapacity = 100,
-            unitTypeId = _miscTypeId,                 // ← Unit linked to the new MiscType
+            unitTypeId = _unitTypeId,                 // ← Unit linked to the new MiscMaster value
             unitAddressDto = new
             {
                 countryId       = QACountryId,
