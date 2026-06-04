@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -11,13 +12,16 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
+        private readonly IIPAddressService _ipAddressService;
 
         public VehicleMovementRecordCommandRepository(
             ApplicationDbContext applicationDbContext,
-            IDocumentSequenceLookup documentSequenceLookup)
+            IDocumentSequenceLookup documentSequenceLookup,
+            IIPAddressService ipAddressService)
         {
             _applicationDbContext = applicationDbContext;
             _documentSequenceLookup = documentSequenceLookup;
+            _ipAddressService = ipAddressService;
         }
 
         public async Task<int> CreateAsync(Domain.Entities.VehicleMovementRecord entity, int transactionTypeId)
@@ -83,6 +87,23 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
 
             existing.IsDeleted = IsDelete.Deleted;
             _applicationDbContext.VehicleMovementRecord.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> UpdateStatusToExitedAsync(int vmrId, int exitedStatusId, CancellationToken ct)
+        {
+            var vmr = await _applicationDbContext.VehicleMovementRecord
+                .FirstOrDefaultAsync(v => v.Id == vmrId && v.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (vmr == null)
+                return false;
+
+            vmr.StatusId    = exitedStatusId;
+            vmr.GateOutTime = DateTimeOffset.UtcNow;
+            vmr.GateOutBy   = _ipAddressService.GetUserName();
+
+            _applicationDbContext.VehicleMovementRecord.Update(vmr);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }
