@@ -22,10 +22,11 @@ namespace PurchaseManagement.UnitTests.Application.OCREntry.Commands
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IMiscMasterQueryRepository> _mockMisc = new(MockBehavior.Loose);
+        private readonly Mock<IOCREntryFileStorage> _mockFileStorage = new(MockBehavior.Loose);
 
         private CreateOCREntryCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object,
-                _mockDocSeq.Object, _mockIp.Object, _mockOutbox.Object, _mockMisc.Object);
+                _mockDocSeq.Object, _mockIp.Object, _mockOutbox.Object, _mockMisc.Object, _mockFileStorage.Object);
 
         private void SetupHappyPath(int newId = 1, string generatedNumber = "OCR-2026-0001")
         {
@@ -115,6 +116,39 @@ namespace PurchaseManagement.UnitTests.Application.OCREntry.Commands
             _mockMediator.Verify(
                 m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_UploadedDocument_RenamedToOcrNumber()
+        {
+            SetupHappyPath(generatedNumber: "OCR-2026-0001");
+            var entity = OCREntryBuilders.ValidEntity();
+            entity.DocumentPath = "TEMP_abc.png"; // temp name returned by upload
+            _mockMapper
+                .Setup(m => m.Map<PurchaseManagement.Domain.Entities.OCREntry>(It.IsAny<object>()))
+                .Returns(entity);
+            _mockFileStorage
+                .Setup(s => s.RenameAsync("TEMP_abc.png", "OCR-2026-0001", It.IsAny<CancellationToken>()))
+                .ReturnsAsync("OCR-2026-0001.png");
+
+            await CreateSut().Handle(OCREntryBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            _mockFileStorage.Verify(
+                s => s.RenameAsync("TEMP_abc.png", "OCR-2026-0001", It.IsAny<CancellationToken>()),
+                Times.Once);
+            entity.DocumentPath.Should().Be("OCR-2026-0001.png");
+        }
+
+        [Fact]
+        public async Task Handle_NoDocument_DoesNotRename()
+        {
+            SetupHappyPath();
+            // ValidEntity has a null DocumentPath — nothing to rename.
+            await CreateSut().Handle(OCREntryBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            _mockFileStorage.Verify(
+                s => s.RenameAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
     }
 }

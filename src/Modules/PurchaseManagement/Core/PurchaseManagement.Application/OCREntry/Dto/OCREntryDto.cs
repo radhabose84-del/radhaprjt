@@ -50,6 +50,9 @@ namespace PurchaseManagement.Application.OCREntry.Dto
         public DateTimeOffset? ExpectedDispatchDate { get; set; }
         public string? DocumentPath { get; set; }
 
+        // Full retrievable path = OCRPath (MiscMaster) + company/unit + DocumentPath. Populated on GetById.
+        public string? DocumentFullPath { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 

@@ -105,6 +105,27 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             return true;
         }
 
+        public async Task<bool> ClearDocumentPathByFileNameAsync(string fileName, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            var existing = await _db.Set<Domain.Entities.OCREntry>()
+                .FirstOrDefaultAsync(x => x.DocumentPath == fileName && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing is null)
+                return false;
+
+            existing.DocumentPath = null;
+            existing.ModifiedBy = _ipAddressService.GetUserId();
+            existing.ModifiedByName = _ipAddressService.GetUserName();
+            existing.ModifiedIP = _ipAddressService.GetUserIPAddress();
+            existing.ModifiedDate = DateTimeOffset.UtcNow;
+
+            await _db.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task<bool> UpdateOcrApproveAsync(int id, int statusId, CancellationToken ct)
         {
             var existing = await _db.Set<Domain.Entities.OCREntry>()
