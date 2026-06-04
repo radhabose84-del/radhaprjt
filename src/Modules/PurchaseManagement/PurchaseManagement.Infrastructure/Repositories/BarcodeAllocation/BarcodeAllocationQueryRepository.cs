@@ -131,8 +131,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.BarcodeAllocation
             var searchFilter = string.IsNullOrEmpty(term) ? "" : "AND bs.BarcodeSeriesNumber LIKE @Search";
 
             var query = $@"
-                SELECT bs.Id, bs.BarcodeSeriesNumber, bs.BarcodeStartNumber, bs.BarcodeEndNumber, bs.AllocatedCount,
-                       (bs.BarcodeEndNumber - bs.BarcodeStartNumber + 1 - bs.AllocatedCount) AS BalanceCount
+                SELECT bs.Id, bs.BarcodeSeriesNumber, bs.BarcodeStartNumber, bs.BarcodeEndNumber,
+                       (bs.BarcodeEndNumber - bs.BarcodeStartNumber + 1) AS TotalBarcodeCount,
+                       bs.AllocatedCount,
+                       (bs.BarcodeEndNumber - bs.BarcodeStartNumber + 1 - bs.AllocatedCount) AS BalanceCount,
+                       (COALESCE((SELECT MAX(a.BarcodeTo) FROM Purchase.BarcodeAllocation a
+                                  WHERE a.BarcodeSeriesId = bs.Id AND a.IsDeleted = 0),
+                                 bs.BarcodeStartNumber - 1) + 1) AS NextFrom
                 FROM Purchase.BarcodeSeries bs
                 WHERE bs.IsDeleted = 0 AND bs.IsActive = 1
                     AND bs.AllocatedCount < (bs.BarcodeEndNumber - bs.BarcodeStartNumber + 1)

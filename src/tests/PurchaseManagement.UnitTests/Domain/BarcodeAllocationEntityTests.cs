@@ -62,7 +62,7 @@ namespace PurchaseManagement.UnitTests.Domain
                 EmployeeName = null,
                 Remarks = null,
                 BarcodeSeries = null,
-                Status = null
+                MiscStatus = null
             };
 
             entity.AllocationNumber.Should().BeNull();
@@ -76,11 +76,11 @@ namespace PurchaseManagement.UnitTests.Domain
             var entity = new BarcodeAllocation
             {
                 BarcodeSeries = new BarcodeSeries { Id = 1, BarcodeSeriesNumber = "BCS-2025-0001" },
-                Status = new MiscMaster { Id = 1202, Code = "Open" }
+                MiscStatus = new MiscMaster { Id = 1202, Code = "Open" }
             };
 
             entity.BarcodeSeries!.BarcodeSeriesNumber.Should().Be("BCS-2025-0001");
-            entity.Status!.Code.Should().Be("Open");
+            entity.MiscStatus!.Code.Should().Be("Open");
         }
     }
 }
