@@ -67,7 +67,7 @@ public sealed class TwoCompanyFixture : IAsyncLifetime
 
     private static async Task<HttpClient> LoginAsync(string baseUrl, string username, string password)
     {
-        var anon = new HttpClient { BaseAddress = new Uri(baseUrl) };
+        var anon = QaHttpClientFactory.Create(baseUrl);
         await anon.PostAsJsonAsync("/api/auth/deactivate-user-sessionByUsername",
             new { username, password });
 
@@ -77,7 +77,7 @@ public sealed class TwoCompanyFixture : IAsyncLifetime
         var doc   = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
         var token = doc.RootElement.GetProperty("data").GetProperty("token").GetString()!;
 
-        var client = new HttpClient { BaseAddress = new Uri(baseUrl) };
+        var client = QaHttpClientFactory.Create(baseUrl);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }

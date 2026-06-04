@@ -9,7 +9,9 @@ on:
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
 # same way if the QA test user differs.
 env:
-  QAServer__BaseUrl: http://198.168.1.130/BsoftErpDemo
+  # Runner and IIS are the same box (130), so localhost is the most reliable target
+  # and avoids any host/IP ambiguity. Change to the server IP if the runner ever moves.
+  QAServer__BaseUrl: http://localhost/BsoftErpDemo
 
 jobs:
   deploy-and-test:
@@ -139,7 +141,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set — skipping."; exit 0 }
+          if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set - skipping."; exit 0 }
 
           $failed = @(); $total = 0; $pass = 0; $fail = 0
           Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
@@ -155,8 +157,8 @@ jobs:
 
           $branch = "${{ github.ref_name }}"
           $sha    = "${{ github.sha }}".Substring(0,8)
-          $lines  = ($failed | Select-Object -First 20 | ForEach-Object { "• $_" }) -join "`n"
-          if ($failed.Count -gt 20) { $lines += "`n…and $($failed.Count - 20) more" }
+          $lines  = ($failed | Select-Object -First 20 | ForEach-Object { "- $_" }) -join "`n"
+          if ($failed.Count -gt 20) { $lines += "`n...and $($failed.Count - 20) more" }
           $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
                   "Passed: $pass  Failed: $fail  Total: $total`n" +
                   "*Failed tests:*`n$lines"
@@ -178,7 +180,7 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
         run: |
           if (-not $env:JIRA_EMAIL -or -not $env:JIRA_API_TOKEN) {
-            Write-Host "JIRA_EMAIL / JIRA_API_TOKEN secrets not set — skipping JIRA."; exit 0
+            Write-Host "JIRA_EMAIL / JIRA_API_TOKEN secrets not set - skipping JIRA."; exit 0
           }
 
           # Non-secret config from the documented qa-config shape (with safe fallbacks).
@@ -207,7 +209,7 @@ jobs:
             } catch { Write-Host "Could not parse $($_.Name): $_" }
           }
           $failed = $failed | Sort-Object Name -Unique
-          if ($failed.Count -eq 0) { Write-Host "No failed tests parsed — nothing to file."; exit 0 }
+          if ($failed.Count -eq 0) { Write-Host "No failed tests parsed - nothing to file."; exit 0 }
 
           $cap = 25
           if ($failed.Count -gt $cap) {

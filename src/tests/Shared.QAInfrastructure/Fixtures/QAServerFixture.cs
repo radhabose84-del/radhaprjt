@@ -48,7 +48,7 @@ public sealed class QAServerFixture : IAsyncLifetime
         var ticks = DateTimeOffset.UtcNow.Ticks.ToString();
         EntityCode = "Q" + new string(ticks.Reverse().ToArray());
 
-        AnonymousClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
+        AnonymousClient = QaHttpClientFactory.Create(BaseUrl);
 
         // Force logout — clear any existing session
         await AnonymousClient.PostAsJsonAsync(
@@ -66,7 +66,7 @@ public sealed class QAServerFixture : IAsyncLifetime
         var doc   = JsonDocument.Parse(await loginResp.Content.ReadAsStringAsync());
         var token = doc.RootElement.GetProperty("data").GetProperty("token").GetString()!;
 
-        Client = new HttpClient { BaseAddress = new Uri(BaseUrl) };
+        Client = QaHttpClientFactory.Create(BaseUrl);
         Client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
     }
