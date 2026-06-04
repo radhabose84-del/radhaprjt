@@ -164,7 +164,19 @@ namespace PurchaseManagement.Infrastructure.Repositories.MiscMaster
 
             var p = new { MiscTypeCode = miscTypeCode, MiscTypeName = miscTypeName };
             return await _dbConnection.QueryFirstOrDefaultAsync<PurchaseManagement.Domain.Entities.MiscMaster>(sql, p);
-        } 
+        }
+
+        public async Task<string> GetMiscTypeDescriptionAsync(string miscTypeCode)
+        {
+            const string sql = @"
+                SELECT TOP 1 Description
+                FROM Purchase.MiscTypeMaster
+                WHERE IsDeleted = 0 AND IsActive = 1
+                  AND LOWER(MiscTypeCode) = LOWER(@MiscTypeCode);";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<string>(sql, new { MiscTypeCode = miscTypeCode });
+        }
+
         public async Task<(int LocalId, int ImportId)> GetPoMethodIdsAsync(CancellationToken ct)
         {
             const string sql = @"

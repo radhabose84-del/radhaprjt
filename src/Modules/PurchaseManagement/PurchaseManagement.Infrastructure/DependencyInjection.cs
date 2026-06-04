@@ -272,6 +272,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
             services.AddScoped<IOCREntryCommandRepository, OCREntryCommandRepository>();
             services.AddScoped<IOCREntryQueryRepository, OCREntryQueryRepository>();
+            services.AddScoped<IOCREntryFileStorage, OCREntryFileStorage>();
           //  services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             // StockLedger ownership moved to InventoryManagement (Pattern D: Shared Transaction)
             // services.AddScoped<IStockLedgerLookup, StockLedgerLookupRepository>();

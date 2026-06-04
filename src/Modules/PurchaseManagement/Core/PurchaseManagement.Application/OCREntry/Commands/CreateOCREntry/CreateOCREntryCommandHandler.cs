@@ -23,6 +23,7 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
         private readonly IIPAddressService _ipAddressService;
         private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMiscMasterQueryRepository _misc;
+        private readonly IOCREntryFileStorage _fileStorage;
 
         public CreateOCREntryCommandHandler(
             IOCREntryCommandRepository commandRepository,
@@ -32,7 +33,8 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
             IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
             IOutboxEventPublisher outboxEventPublisher,
-            IMiscMasterQueryRepository misc)
+            IMiscMasterQueryRepository misc,
+            IOCREntryFileStorage fileStorage)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -42,6 +44,7 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
             _ipAddressService = ipAddressService;
             _outboxEventPublisher = outboxEventPublisher;
             _misc = misc;
+            _fileStorage = fileStorage;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateOCREntryCommand request, CancellationToken cancellationToken)
@@ -65,8 +68,30 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
                 ? sequences[^1]
                 : throw new InvalidOperationException("No document sequence configured for OCR.");
 
-            // Persist (IncrementDocNoAsync runs inside the repo transaction)
-            var created = await _commandRepository.CreateAsync(entity, transactionTypeId, cancellationToken);
+            // Rename the uploaded document (saved under a temp name during upload) to the OCR number,
+            // then persist. Wrapped in try/catch so a persist failure cleans up the renamed file.
+            Domain.Entities.OCREntry created;
+            string? savedFileName = null;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(entity.DocumentPath))
+                {
+                    savedFileName = await _fileStorage.RenameAsync(entity.DocumentPath, entity.OcrNumber, cancellationToken);
+                    entity.DocumentPath = savedFileName;
+                }
+
+                // Persist (IncrementDocNoAsync runs inside the repo transaction)
+                created = await _commandRepository.CreateAsync(entity, transactionTypeId, cancellationToken);
+            }
+            catch
+            {
+                if (savedFileName != null)
+                {
+                    try { await _fileStorage.DeleteAsync(savedFileName, CancellationToken.None); }
+                    catch { /* best-effort cleanup */ }
+                }
+                throw;
+            }
 
             // ── Approval request via outbox ──
             var correlationId = Guid.NewGuid();

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace UserManagement.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/usermanagement/[controller]")]
     public class LocationController : ApiControllerBase
     {
         public LocationController(ISender mediator) : base(mediator)

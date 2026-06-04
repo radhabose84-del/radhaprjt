@@ -151,6 +151,41 @@ namespace PurchaseManagement.IntegrationTests.Repositories.OCREntry
         }
 
         [Fact]
+        public async Task ClearDocumentPathByFileNameAsync_Should_Return_True_And_Null_Column()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (miscId, paymentTermId) = await SeedPrerequisitesAsync(ctx);
+            var entity = BuildEntity(miscId, paymentTermId, "OCR-2026-DOC1");
+            entity.DocumentPath = "OCR-2026-DOC1.png"; // file name stored in DocumentPath
+            var created = await CreateRepository(ctx).CreateAsync(entity, 0, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var cleared = await CreateRepository(ctx).ClearDocumentPathByFileNameAsync("OCR-2026-DOC1.png", CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            cleared.Should().BeTrue();
+            var saved = await ctx.Set<PurchaseManagement.Domain.Entities.OCREntry>().FirstAsync(x => x.Id == created.Id);
+            saved.DocumentPath.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ClearDocumentPathByFileNameAsync_Should_Return_False_When_NoMatch()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (miscId, paymentTermId) = await SeedPrerequisitesAsync(ctx);
+            // Saved with a different document name; the temp name matches nothing.
+            var entity = BuildEntity(miscId, paymentTermId, "OCR-2026-DOC2");
+            entity.DocumentPath = "OCR-2026-DOC2.png";
+            await CreateRepository(ctx).CreateAsync(entity, 0, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var cleared = await CreateRepository(ctx).ClearDocumentPathByFileNameAsync(
+                "TEMP_905dddb8-9bc5-4667-a2a4-ac9274946078.png", CancellationToken.None);
+
+            cleared.Should().BeFalse();
+        }
+
+        [Fact]
         public async Task UpdateOcrApproveAsync_Should_Update_StatusId()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
