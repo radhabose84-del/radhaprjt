@@ -95,6 +95,17 @@ builder.Services.AddSalesInfrastructureServices(builder.Configuration, builder.E
 // AddFinanceInfrastructureServices (above) registers repos + services only; handlers + mapper via below.
 builder.Services.AddFinanceApplicationServices();
 
+// ── Purchase Application — RTV approval-decision handler only ──────────────
+// The Purchase ApprovedRejectedConsumer dispatches ProcessPurchaseReturnApprovalDecisionCommand
+// via MediatR. Register ONLY that handler (not the whole assembly) — registering the full
+// PurchaseManagement.Application assembly would pull in GRN handlers that depend on services
+// not loaded in the Worker (e.g. IGateInwardLookup), failing DI validation on startup.
+builder.Services.AddTransient<
+    MediatR.IRequestHandler<
+        PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.ProcessApprovalDecision.ProcessPurchaseReturnApprovalDecisionCommand,
+        bool>,
+    PurchaseManagement.Application.PurchaseReturn.PurchaseReturn.Commands.ProcessApprovalDecision.ProcessPurchaseReturnApprovalDecisionCommandHandler>();
+
 // ── Hangfire server — BSOFT.Worker handles infrastructure jobs only ───────────
 //    BSOFT.Api runs its own Hangfire server for business-domain jobs (e.g. ScheduleWorkOrderJob)
 //    because those jobs require module DI (MediatR handlers, repos) loaded only in BSOFT.Api.

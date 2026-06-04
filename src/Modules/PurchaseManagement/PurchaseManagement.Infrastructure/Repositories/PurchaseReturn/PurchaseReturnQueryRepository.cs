@@ -280,6 +280,51 @@ public sealed class PurchaseReturnQueryRepository : IPurchaseReturnQueryReposito
         return rows;
     }
 
+    public async Task<IReadOnlyList<PurchaseReturnPendingDto>> GetPendingAsync(int page, int size, string? search, CancellationToken ct)
+    {
+        page = page <= 0 ? 1 : page;
+        size = size <= 0 ? 20 : size;
+        var off = (page - 1) * size;
+
+        // RTVs awaiting approval (status = Pending). Approver filtering is done in the handler
+        // against AppData.ApprovalRequest via IWorkflowLookup.
+        const string sql = @"
+            DECLARE @s NVARCHAR(200) = NULLIF(LTRIM(RTRIM(@search)), '');
+
+            SELECT
+                h.Id, h.RtvNumber, h.RtvDate,
+                h.VendorId,
+                h.PoId, po.PONumber AS PoNumber,
+                h.GrnHeaderId, gh.GrnNo,
+                h.ReturnTypeId, rt.Code AS ReturnTypeCode,
+                h.StatusId, mStatus.Code AS StatusCode
+            FROM Purchase.PurchaseReturnHeader h WITH (NOLOCK)
+            LEFT JOIN Purchase.PurchaseOrderHeader po WITH (NOLOCK) ON po.Id = h.PoId
+            LEFT JOIN Purchase.GrnHeader gh WITH (NOLOCK) ON gh.Id = h.GrnHeaderId
+            LEFT JOIN Purchase.ReturnType rt WITH (NOLOCK) ON rt.Id = h.ReturnTypeId
+            INNER JOIN Purchase.MiscMaster mStatus WITH (NOLOCK) ON mStatus.Id = h.StatusId
+            WHERE h.IsDeleted = 0
+              AND mStatus.Code = 'Pending'
+              AND (@s IS NULL OR h.RtvNumber LIKE '%' + @s + '%')
+            ORDER BY h.Id DESC
+            OFFSET @off ROWS FETCH NEXT @size ROWS ONLY;";
+
+        var rows = (await _db.QueryAsync<PurchaseReturnPendingDto>(
+            new CommandDefinition(sql, new { search, off, size }, cancellationToken: ct))).AsList();
+
+        if (rows.Count > 0)
+        {
+            var vendorIds = rows.Select(r => r.VendorId).Where(x => x > 0).Distinct().ToList();
+            var vendors = await _partyLookup.GetByIdsAsync(vendorIds, ct);
+            var vendorMap = vendors.ToDictionary(v => v.Id, v => v.PartyName ?? string.Empty);
+            foreach (var r in rows)
+                if (vendorMap.TryGetValue(r.VendorId, out var name))
+                    r.VendorName = name;
+        }
+
+        return rows;
+    }
+
     public async Task<bool> NotFoundAsync(int id)
     {
         const string sql = "SELECT COUNT(1) FROM Purchase.PurchaseReturnHeader WHERE Id = @id AND IsDeleted = 0;";
