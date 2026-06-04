@@ -165,3 +165,99 @@ jobs:
           $payload = @{ text = $text } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
           Write-Host "Slack notified."
+
+      # ── Step 15: Create or update JIRA bug on failure ───────────────────
+      # For each failed test: dedup-search JIRA for an open bug with the same label +
+      # summary; comment if found, else create a new Bug. Non-secret shape (BaseUrl,
+      # ProjectKey, Label) is read from src/tests/qa-config.example.json; credentials come
+      # from the JIRA_EMAIL / JIRA_API_TOKEN secrets. Skips gracefully if they're unset.
+      - name: Create or update JIRA bug on failure
+        if: failure()
+        shell: powershell
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          if (-not $env:JIRA_EMAIL -or -not $env:JIRA_API_TOKEN) {
+            Write-Host "JIRA_EMAIL / JIRA_API_TOKEN secrets not set — skipping JIRA."; exit 0
+          }
+
+          # Non-secret config from the documented qa-config shape (with safe fallbacks).
+          $jira = $null
+          if (Test-Path "src/tests/qa-config.example.json") {
+            try { $jira = (Get-Content "src/tests/qa-config.example.json" -Raw | ConvertFrom-Json).Jira } catch {}
+          }
+          $baseUrl    = if ($jira -and $jira.BaseUrl)    { $jira.BaseUrl }    else { "https://bannarimills.atlassian.net" }
+          $projectKey = if ($jira -and $jira.ProjectKey) { $jira.ProjectKey } else { "SCRUM" }
+          $label      = if ($jira -and $jira.Label)      { $jira.Label }      else { "QA-Automation" }
+          $issueType  = if ($jira -and $jira.IssueType)  { $jira.IssueType }  else { "Bug" }
+          $priority   = if ($jira -and $jira.Priority)   { $jira.Priority }   else { "High" }
+
+          # Collect failed tests from every .trx.
+          $failed = @()
+          Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+              [xml]$trx = Get-Content $_.FullName
+              $trx.TestRun.Results.UnitTestResult |
+                Where-Object { $_.outcome -eq 'Failed' } |
+                ForEach-Object {
+                  $msg = ""
+                  try { $msg = $_.Output.ErrorInfo.Message } catch {}
+                  $failed += [pscustomobject]@{ Name = $_.testName; Error = $msg }
+                }
+            } catch { Write-Host "Could not parse $($_.Name): $_" }
+          }
+          $failed = $failed | Sort-Object Name -Unique
+          if ($failed.Count -eq 0) { Write-Host "No failed tests parsed — nothing to file."; exit 0 }
+
+          $cap = 25
+          if ($failed.Count -gt $cap) {
+            Write-Host "Capping JIRA filing at $cap of $($failed.Count) failures."
+            $failed = $failed | Select-Object -First $cap
+          }
+
+          $auth    = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$($env:JIRA_EMAIL):$($env:JIRA_API_TOKEN)"))
+          $headers = @{ Authorization = "Basic $auth" }
+          $branch  = "${{ github.ref_name }}"
+          $sha     = "${{ github.sha }}".Substring(0,8)
+          $runUrl  = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          foreach ($t in $failed) {
+            $short = ($t.Name -split '\.')[-1]
+            $summary = "[QA] $short failing"
+            $err = "$($t.Error)"
+            if ($err.Length -gt 2000) { $err = $err.Substring(0,2000) + " ..." }
+
+            # Dedup: an OPEN bug with the same label + summary already exists?
+            $jql = "project = $projectKey AND labels = `"$label`" AND summary ~ `"$short`" AND statusCategory != Done"
+            $existingKey = $null
+            try {
+              $searchBody = @{ jql = $jql; maxResults = 1; fields = @("key") } | ConvertTo-Json
+              $res = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/search" -Method Post -Headers $headers -ContentType 'application/json' -Body $searchBody
+              if ($res.issues.Count -gt 0) { $existingKey = $res.issues[0].key }
+            } catch { Write-Host "JIRA search failed for $short : $_" }
+
+            if ($existingKey) {
+              $body = @{ body = "Still failing on ``$branch`` ($sha). CI run: $runUrl`n`n$err" } | ConvertTo-Json
+              try {
+                Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue/$existingKey/comment" -Method Post -Headers $headers -ContentType 'application/json' -Body $body | Out-Null
+                Write-Host "Commented on existing $existingKey for $short."
+              } catch { Write-Host "JIRA comment failed for $existingKey : $_" }
+            } else {
+              $desc = "Test: $($t.Name)`nBranch: $branch`nCommit: $sha`nCI run: $runUrl`n`nError:`n$err"
+              $createBody = @{
+                fields = @{
+                  project     = @{ key = $projectKey }
+                  summary     = $summary
+                  description = $desc
+                  issuetype   = @{ name = $issueType }
+                  priority    = @{ name = $priority }
+                  labels      = @($label)
+                }
+              } | ConvertTo-Json -Depth 6
+              try {
+                $created = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue" -Method Post -Headers $headers -ContentType 'application/json' -Body $createBody
+                Write-Host "Created $($created.key) for $short."
+              } catch { Write-Host "JIRA create failed for $short : $_" }
+            }
+          }
