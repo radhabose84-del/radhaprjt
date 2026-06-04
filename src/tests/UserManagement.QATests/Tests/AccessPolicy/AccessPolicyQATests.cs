@@ -235,6 +235,7 @@ public sealed class AccessPolicyQATests
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact, TestPriority(15)]
+    [Trait("Layer", "Smoke")]
     public async Task TC01_GetAll_HappyPath_Returns200()
     {
         var resp = await _f.Client.GetAsync($"{BaseRoute}?PageNumber=1&PageSize=15");

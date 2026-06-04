@@ -170,6 +170,7 @@ public sealed class CountryQATests
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact, TestPriority(12)]
+    [Trait("Layer", "Smoke")]
     public async Task TC012_GetAll_HappyPath_Returns200()
     {
         var resp = await _f.Client.GetAsync($"{BaseRoute}?PageNumber=1&PageSize=15");

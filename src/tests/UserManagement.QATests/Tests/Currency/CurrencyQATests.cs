@@ -184,6 +184,7 @@ public sealed class CurrencyQATests
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact, TestPriority(12)]
+    [Trait("Layer", "Smoke")]
     public async Task TC012_GetAll_HappyPath_Returns200()
     {
         // DB has pre-existing currencies → GetAll returns 200

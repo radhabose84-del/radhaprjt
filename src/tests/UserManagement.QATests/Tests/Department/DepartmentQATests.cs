@@ -186,6 +186,7 @@ public sealed class DepartmentQATests
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact, TestPriority(11)]
+    [Trait("Layer", "Smoke")]
     public async Task TC011_GetAll_HappyPath_Returns200()
     {
         // QA DB has pre-existing departments → GetAll returns 200
