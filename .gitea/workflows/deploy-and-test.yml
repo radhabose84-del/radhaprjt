@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - BSOFTERP_Dev_V0.1_BK_04062026
+  # Manual trigger: Gitea repo -> Actions -> this workflow -> "Run workflow".
+  workflow_dispatch:
 
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
@@ -51,14 +53,59 @@ jobs:
           Write-Host "app_offline.htm placed."
 
       # ── Step 7: Deploy files ────────────────────────────────────────────
-      # /XF app_offline.htm keeps the offline marker (so /MIR doesn't delete it) while the
-      # rest of the app is mirrored.
+      # /XF keeps the offline marker (so /MIR doesn't delete it) AND the hand-tuned web.config
+      # (which carries the per-app env vars: ASPNETCORE_ENVIRONMENT=qa, DATABASE_SERVER/USERID/
+      # PASSWORD). dotnet publish emits a default web.config with NO env vars, so without this
+      # exclusion /MIR would overwrite the live web.config and the app fails to start (500.30).
       - name: Deploy to D:\Publish\BsoftERPDemo
         shell: powershell
         run: |
-          robocopy publish\api D:\Publish\BsoftERPDemo /MIR /XF app_offline.htm /NFL /NDL /NJH /NJS
+          robocopy publish\api D:\Publish\BsoftERPDemo /MIR /XF app_offline.htm web.config /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" } else { $global:LASTEXITCODE = 0 }
           Write-Host "Files deployed."
+
+      # ── Step 7b: Generate web.config from secrets (no more manual edits) ─
+      # publish emits a default web.config WITHOUT the env vars the app needs (ASPNETCORE_ENVIRONMENT
+      # selects appsettings.QA.json; DATABASE_SERVER/USERID/PASSWORD feed the {SERVER}/{USER_ID}/
+      # {ENC_PASSWORD} connection-string substitution). We write it here from Gitea secrets so it is
+      # never hand-edited and is reproduced on a fresh server. If the secrets are unset, the existing
+      # web.config (preserved by /XF above) is left untouched, so nothing breaks.
+      - name: Configure web.config (runtime env vars)
+        shell: powershell
+        env:
+          DB_SERVER: ${{ secrets.DATABASE_SERVER }}
+          DB_USER: ${{ secrets.DATABASE_USERID }}
+          DB_PASS: ${{ secrets.DATABASE_PASSWORD }}
+        run: |
+          if (-not $env:DB_SERVER -or -not $env:DB_USER -or -not $env:DB_PASS) {
+            Write-Host "DB secrets not set - keeping existing web.config (preserved by /XF). Set DATABASE_SERVER / DATABASE_USERID / DATABASE_PASSWORD secrets to fully automate."
+          } else {
+            $s = [System.Security.SecurityElement]::Escape($env:DB_SERVER)
+            $u = [System.Security.SecurityElement]::Escape($env:DB_USER)
+            $p = [System.Security.SecurityElement]::Escape($env:DB_PASS)
+            $lines = @(
+              '<?xml version="1.0" encoding="utf-8"?>',
+              '<configuration>',
+              '  <location path="." inheritInChildApplications="false">',
+              '    <system.webServer>',
+              '      <handlers>',
+              '        <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />',
+              '      </handlers>',
+              '      <aspNetCore processPath="dotnet" arguments=".\BSOFT.Api.dll" stdoutLogEnabled="false" stdoutLogFile=".\logs\stdout" hostingModel="inprocess">',
+              '        <environmentVariables>',
+              '          <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="qa" />',
+              "          <environmentVariable name=""DATABASE_SERVER"" value=""$s"" />",
+              "          <environmentVariable name=""DATABASE_USERID"" value=""$u"" />",
+              "          <environmentVariable name=""DATABASE_PASSWORD"" value=""$p"" />",
+              '        </environmentVariables>',
+              '      </aspNetCore>',
+              '    </system.webServer>',
+              '  </location>',
+              '</configuration>'
+            )
+            Set-Content -Path "D:\Publish\BsoftERPDemo\web.config" -Value ($lines -join "`r`n") -Encoding utf8
+            Write-Host "web.config generated from secrets."
+          }
 
       # ── Step 8: Bring the app back online ───────────────────────────────
       - name: Bring BsoftErpDemo online
