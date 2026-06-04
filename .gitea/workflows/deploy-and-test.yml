@@ -5,6 +5,12 @@ on:
     branches:
       - BSOFTERP_Dev_V0.1
 
+# Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
+# which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
+# same way if the QA test user differs.
+env:
+  QAServer__BaseUrl: http://198.168.1.130/BsoftErp
+
 jobs:
   deploy-and-test:
     runs-on: self-hosted        # runs on QA server (198.168.1.130)
@@ -49,6 +55,7 @@ jobs:
         shell: powershell
         run: |
           robocopy publish\api D:\Publish\BsoftERP /MIR /NFL /NDL /NJH /NJS
+          if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" } else { $global:LASTEXITCODE = 0 }
           Write-Host "Files deployed."
 
       # ── Step 8: Start IIS App Pool ──────────────────────────────────────
@@ -65,12 +72,10 @@ jobs:
         run: |
           Write-Host "Waiting 20 seconds for IIS to recycle..."
           Start-Sleep -Seconds 20
-
-          # Verify server is responding
           $ready = $false
           for ($i = 1; $i -le 5; $i++) {
             try {
-              Invoke-RestMethod "http://198.168.1.130/BsoftErp/api/auth/deactivate-user-sessionByUsername" `
+              Invoke-RestMethod "$env:QAServer__BaseUrl/api/auth/deactivate-user-sessionByUsername" `
                 -Method Post -ContentType "application/json" `
                 -Body '{"username":"testsales","password":"Test@1234"}' `
                 -ErrorAction Stop | Out-Null
@@ -84,19 +89,79 @@ jobs:
           }
           if (-not $ready) { throw "QA server not responding after deployment." }
 
-      # ── Step 10: Run QA Tests ───────────────────────────────────────────
-      - name: Run QA Tests (60 test cases)
+      # ── Step 10: SMOKE GATE (fail fast) ─────────────────────────────────
+      # If the deployed app can't serve the critical read paths, stop here — no point
+      # running the full suite against a broken deploy. A failing step fails the job.
+      - name: Smoke gate
+        shell: powershell
+        run: |
+          dotnet test src/tests/UserManagement.QATests/UserManagement.QATests.csproj `
+            --filter "Layer=Smoke" `
+            --logger "trx;LogFileName=smoke.trx" `
+            --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 11: Full QA suite (CRUD + Security + Async) ────────────────
+      - name: Run QA suite
+        if: success()
         shell: powershell
         run: |
           dotnet test src/tests/UserManagement.QATests/UserManagement.QATests.csproj `
             --logger "html;LogFileName=qa-report.html" `
+            --logger "trx;LogFileName=qa.trx" `
             --logger "console;verbosity=normal" `
             --results-directory qa-reports
 
-      # ── Step 11: Save HTML report ───────────────────────────────────────
-      - name: Upload QA Test Report
+      # ── Step 12: Functional workflow tests ──────────────────────────────
+      - name: Run Functional tests
+        if: success()
+        shell: powershell
+        run: |
+          dotnet test src/tests/UserManagement.FunctionalTests/UserManagement.FunctionalTests.csproj `
+            --logger "html;LogFileName=functional-report.html" `
+            --logger "trx;LogFileName=functional.trx" `
+            --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 13: Upload all reports (always) ────────────────────────────
+      - name: Upload test reports
         uses: actions/upload-artifact@v3
-        if: always()      # upload even if tests fail
+        if: always()
         with:
-          name: QA-Test-Report
-          path: qa-reports/qa-report.html
+          name: QA-Test-Reports
+          path: qa-reports/
+
+      # ── Step 14: Notify Slack on failure ────────────────────────────────
+      # Parses every .trx for failed tests and posts a grouped summary. The failed test
+      # names carry their class (US_UM_01..., {Entity}QATests) so the owner is identifiable.
+      - name: Notify Slack on failure
+        if: failure()
+        shell: powershell
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set — skipping."; exit 0 }
+
+          $failed = @(); $total = 0; $pass = 0; $fail = 0
+          Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+              [xml]$trx = Get-Content $_.FullName
+              $c = $trx.TestRun.ResultSummary.Counters
+              if ($c) { $total += [int]$c.total; $pass += [int]$c.passed; $fail += [int]$c.failed }
+              $trx.TestRun.Results.UnitTestResult |
+                Where-Object { $_.outcome -eq 'Failed' } |
+                ForEach-Object { $failed += $_.testName }
+            } catch { Write-Host "Could not parse $($_.Name): $_" }
+          }
+
+          $branch = "${{ github.ref_name }}"
+          $sha    = "${{ github.sha }}".Substring(0,8)
+          $lines  = ($failed | Select-Object -First 20 | ForEach-Object { "• $_" }) -join "`n"
+          if ($failed.Count -gt 20) { $lines += "`n…and $($failed.Count - 20) more" }
+          $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
+                  "Passed: $pass  Failed: $fail  Total: $total`n" +
+                  "*Failed tests:*`n$lines"
+
+          $payload = @{ text = $text } | ConvertTo-Json -Depth 4
+          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
+          Write-Host "Slack notified."

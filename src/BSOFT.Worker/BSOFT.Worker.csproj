@@ -25,6 +25,10 @@
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.*" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+    <!-- Security pin (GHSA-pggp-6c3x-2xmx): force patched Snappier over MongoDB.Driver's
+         transitive 1.0.0 (uncatchable infinite-loop DoS on malformed Snappy streams).
+         Remove when MongoDB.Driver itself references Snappier >= 1.3.1. -->
+    <PackageReference Include="Snappier" Version="1.3.1" />
   </ItemGroup>
 
   <ItemGroup>

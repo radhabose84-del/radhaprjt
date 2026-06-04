@@ -47,3 +47,12 @@ public sealed class UserGroupCollection : ICollectionFixture<QAServerFixture> { 
 
 [CollectionDefinition("UserRoleCollection")]
 public sealed class UserRoleCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("SecurityCollection")]
+public sealed class SecurityCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("AsyncCollection")]
+public sealed class AsyncCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("IsolationCollection")]
+public sealed class IsolationCollection : ICollectionFixture<TwoCompanyFixture> { }

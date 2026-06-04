@@ -8,7 +8,6 @@ using UserManagement.Application.Common.Interfaces.IUnit;
 using UserManagement.Domain.Events;
 using DomainUnit = UserManagement.Domain.Entities.Unit;
 using UserManagement.UnitTests.TestData;
-using FluentValidation;
 
 namespace UserManagement.UnitTests.Application.UnitEntity.Queries
 {
@@ -76,7 +75,7 @@ namespace UserManagement.UnitTests.Application.UnitEntity.Queries
         }
 
         [Fact]
-        public async Task Handle_NoResults_ThrowsValidationException()
+        public async Task Handle_NoResults_ReturnsEmpty()
         {
             _mockIpService.Setup(s => s.GetGroupCode()).Returns("USER");
             _mockIpService.Setup(s => s.GetUserId()).Returns(1);
@@ -86,12 +85,12 @@ namespace UserManagement.UnitTests.Application.UnitEntity.Queries
                 .Setup(r => r.GetUnit("NoMatch", 1, 1))
                 .ReturnsAsync(emptyList);
 
-            Func<Task> act = async () => await CreateSut().Handle(
+            // No matches is a normal autocomplete outcome → returns an empty list (200), not a throw.
+            var result = await CreateSut().Handle(
                 new GetUnitAutoCompleteQuery { SearchPattern = "NoMatch", CompanyId = 1 },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*not found*");
+            result.Should().BeEmpty();
         }
     }
 }

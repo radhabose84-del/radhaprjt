@@ -1,6 +1,5 @@
 using AutoMapper;
 using Contracts.Interfaces;
-using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Common.Interfaces.IUnit;
@@ -47,17 +46,18 @@ namespace UserManagement.UnitTests.Application.Unit.Queries
         }
 
         [Fact]
-        public async Task Handle_NoResults_ThrowsValidationException()
+        public async Task Handle_NoResults_ReturnsEmpty()
         {
             _mockQueryRepo
                 .Setup(r => r.GetUnitByUserId(999, 1))
                 .ReturnsAsync(new List<UserManagement.Domain.Entities.Unit>());
 
-            Func<Task> act = () => CreateSut().Handle(
+            // No units for this user is a normal outcome → returns an empty list (200), not a throw.
+            var result = await CreateSut().Handle(
                 new GetUnitByUserIdQuery { UserId = 999, CompanyId = 1 },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>();
+            result.Should().BeEmpty();
         }
     }
 }

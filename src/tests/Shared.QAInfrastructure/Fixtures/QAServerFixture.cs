@@ -22,8 +22,12 @@ public sealed class QAServerFixture : IAsyncLifetime
 
     public QAServerFixture()
     {
+        // appsettings.QA.json holds local defaults (localhost:5239). Environment variables
+        // override them so CI can retarget the deployed QA app without editing the file —
+        // e.g. QAServer__BaseUrl=http://198.168.1.130/BsoftErp (also __Username, __Password).
         _config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.QA.json", optional: false)
+            .AddJsonFile("appsettings.QA.json", optional: true)
+            .AddEnvironmentVariables()
             .Build();
     }
 

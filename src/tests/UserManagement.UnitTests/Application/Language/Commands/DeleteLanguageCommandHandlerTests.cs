@@ -40,7 +40,7 @@ namespace UserManagement.UnitTests.Application.Language.Commands
         }
 
         [Fact]
-        public async Task Handle_DeleteFails_ThrowsException()
+        public async Task Handle_DeleteFails_ReturnsFalse_NoAudit()
         {
             var command = LanguageBuilders.ValidDeleteCommand(id: 999);
             var entity = new UserManagement.Domain.Entities.Language { Id = 999 };
@@ -54,10 +54,13 @@ namespace UserManagement.UnitTests.Application.Language.Commands
 
             var sut = CreateSut();
 
-            Func<Task> act = async () => await sut.Handle(command, CancellationToken.None);
+            // Idempotent delete: a no-op returns false and publishes NO audit event.
+            var result = await sut.Handle(command, CancellationToken.None);
 
-            await act.Should().ThrowAsync<Exception>()
-                .WithMessage("*not deleted*");
+            result.Should().BeFalse();
+            _mockMediator.Verify(
+                m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]

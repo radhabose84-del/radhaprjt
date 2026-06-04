@@ -6,7 +6,6 @@ using UserManagement.Domain.Entities;
 using UserManagement.Domain.Events;
 using UserManagement.UnitTests.TestData;
 using MediatR;
-using FluentValidation;
 
 namespace UserManagement.UnitTests.Application.State.Queries
 {
@@ -44,7 +43,7 @@ namespace UserManagement.UnitTests.Application.State.Queries
         }
 
         [Fact]
-        public async Task Handle_EmptyResult_ThrowsValidationException()
+        public async Task Handle_EmptyResult_ReturnsEmpty()
         {
             _mockQueryRepo
                 .Setup(r => r.GetByStateNameAsync("xyz"))
@@ -52,12 +51,12 @@ namespace UserManagement.UnitTests.Application.State.Queries
 
             var sut = CreateSut();
 
-            Func<Task> act = async () => await sut.Handle(
+            // No matches is a normal autocomplete outcome → returns an empty list (200), not a throw.
+            var result = await sut.Handle(
                 new GetStateAutoCompleteQuery { SearchPattern = "xyz" },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*No States found*");
+            result.Should().BeEmpty();
         }
 
         [Fact]

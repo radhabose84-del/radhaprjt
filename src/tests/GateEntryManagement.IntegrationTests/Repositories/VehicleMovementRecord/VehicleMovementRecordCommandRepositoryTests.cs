@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord;
 using GateEntryManagement.Infrastructure.Repositories.MiscTypeMaster;
@@ -19,7 +20,13 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
         private VehicleMovementRecordCommandRepository CreateRepository(ApplicationDbContext ctx)
         {
             var mockDocSeqLookup = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose);
-            return new VehicleMovementRecordCommandRepository(ctx, mockDocSeqLookup.Object);
+
+            var mockIpService = new Mock<IIPAddressService>(MockBehavior.Loose);
+            mockIpService.Setup(s => s.GetUserId()).Returns(1);
+            mockIpService.Setup(s => s.GetUserName()).Returns("test-user");
+            mockIpService.Setup(s => s.GetUserIPAddress()).Returns("127.0.0.1");
+
+            return new VehicleMovementRecordCommandRepository(ctx, mockDocSeqLookup.Object, mockIpService.Object);
         }
 
         private async Task<int> SeedPrerequisitesAndGetMiscIdAsync(ApplicationDbContext ctx)
