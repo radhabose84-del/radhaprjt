@@ -3,7 +3,7 @@ name: Deploy to QA and Run Tests
 on:
   push:
     branches:
-      - BSOFTERP_Dev_V0.1
+      - BSOFTERP_Dev_V0.1_BK_04062026
 
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
@@ -13,10 +13,9 @@ env:
 
 jobs:
   deploy-and-test:
-    runs-on: self-hosted        # runs on QA server (198.168.1.130)
+    runs-on: self-hosted # runs on QA server (198.168.1.130)
 
     steps:
-
       # ── Step 1: Get latest code ─────────────────────────────────────────
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,7 +24,7 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
 
       # ── Step 3: Restore packages ────────────────────────────────────────
       - name: Restore packages
