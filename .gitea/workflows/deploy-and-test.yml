@@ -9,7 +9,7 @@ on:
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
 # same way if the QA test user differs.
 env:
-  QAServer__BaseUrl: http://198.168.1.130/BsoftErp
+  QAServer__BaseUrl: http://198.168.1.130/BsoftErpDemo
 
 jobs:
   deploy-and-test:
@@ -38,32 +38,32 @@ jobs:
       - name: Publish BSOFT.Api
         run: dotnet publish src/BSOFT.Api/BSOFT.Api.csproj -c Release -o publish/api --no-build
 
-      # ── Step 6: Stop IIS App Pool ───────────────────────────────────────
-      - name: Stop IIS App Pool
+      # ── Step 6: Take the app offline (shared DefaultAppPool — do NOT stop the pool) ──
+      # app_offline.htm makes ASP.NET Core shut down and release file locks for THIS app
+      # only, so the deploy doesn't disturb anything else on DefaultAppPool.
+      - name: Take BsoftErpDemo offline
         shell: powershell
         run: |
-          Import-Module WebAdministration
-          if ((Get-WebAppPoolState -Name "BsoftERP").Value -eq "Started") {
-            Stop-WebAppPool -Name "BsoftERP"
-            Write-Host "App pool stopped."
-            Start-Sleep -Seconds 3
-          }
+          "Deploying - app temporarily offline." | Out-File -FilePath "D:\Publish\BsoftERPDemo\app_offline.htm" -Encoding utf8
+          Start-Sleep -Seconds 3
+          Write-Host "app_offline.htm placed."
 
-      # ── Step 7: Deploy files to QA server ──────────────────────────────
-      - name: Deploy to D:\Publish\BsoftERP
+      # ── Step 7: Deploy files ────────────────────────────────────────────
+      # /XF app_offline.htm keeps the offline marker (so /MIR doesn't delete it) while the
+      # rest of the app is mirrored.
+      - name: Deploy to D:\Publish\BsoftERPDemo
         shell: powershell
         run: |
-          robocopy publish\api D:\Publish\BsoftERP /MIR /NFL /NDL /NJH /NJS
+          robocopy publish\api D:\Publish\BsoftERPDemo /MIR /XF app_offline.htm /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" } else { $global:LASTEXITCODE = 0 }
           Write-Host "Files deployed."
 
-      # ── Step 8: Start IIS App Pool ──────────────────────────────────────
-      - name: Start IIS App Pool
+      # ── Step 8: Bring the app back online ───────────────────────────────
+      - name: Bring BsoftErpDemo online
         shell: powershell
         run: |
-          Import-Module WebAdministration
-          Start-WebAppPool -Name "BsoftERP"
-          Write-Host "App pool started."
+          Remove-Item "D:\Publish\BsoftERPDemo\app_offline.htm" -ErrorAction SilentlyContinue
+          Write-Host "app_offline.htm removed - app restarting on next request."
 
       # ── Step 9: Wait for app to be ready ────────────────────────────────
       - name: Wait for QA server to be ready
