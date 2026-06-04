@@ -167,19 +167,18 @@ public sealed class PurchaseReturnCommandRepository : IPurchaseReturnCommandRepo
     public async Task WriteStockLedgerOnApprovalAsync(int purchaseReturnHeaderId, CancellationToken ct)
     {
         // Insert one Purchase.StockLedger row per detail line.
-        // DocType='RTV', IssueQty=ReturnQty, WarehouseId=GrnHeader.ReceivingWarehouseId
+        // StockLedger is NOT a BaseEntity — it has no audit/status columns. Its columns are:
+        //   UnitId, DocType, DocNo, DocSlNo, DocDate, ItemId, UomId, WarehouseId, StorageTypeId,
+        //   TargetId, ReceivedQty, ReceivedValue, IssueQty, IssueValue.
+        // DocType='RTV', DocNo=header Id (int), IssueQty=ReturnQty, WarehouseId=GrnHeader.ReceivingWarehouseId.
         const string sql = @"
             INSERT INTO Purchase.StockLedger
-                (DocType, DocNo, DocSlNo, DocDate, ItemId, UomId, WarehouseId, StorageTypeId, TargetId,
-                 ReceivedQty, ReceivedValue, IssueQty, IssueValue,
-                 CreatedBy, CreatedDate, CreatedByName, CreatedIP,
-                 IsActive, IsDeleted)
+                (UnitId, DocType, DocNo, DocSlNo, DocDate, ItemId, UomId, WarehouseId, StorageTypeId, TargetId,
+                 ReceivedQty, ReceivedValue, IssueQty, IssueValue)
             SELECT
-                'RTV', h.RtvNumber, d.Id, h.RtvDate,
+                h.UnitId, 'RTV', h.Id, d.Id, h.RtvDate,
                 d.ItemId, d.UomId, gh.ReceivingWarehouseId, 0, 0,
-                0, 0, d.ReturnQty, ISNULL(d.LineValue, 0),
-                h.CreatedBy, SYSDATETIMEOFFSET(), h.CreatedByName, h.CreatedIP,
-                1, 0
+                0, 0, d.ReturnQty, ISNULL(d.LineValue, 0)
             FROM Purchase.PurchaseReturnDetail d
             INNER JOIN Purchase.PurchaseReturnHeader h ON h.Id = d.PurchaseReturnHeaderId
             INNER JOIN Purchase.GrnHeader gh ON gh.Id = h.GrnHeaderId
