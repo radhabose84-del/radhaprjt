@@ -6,6 +6,8 @@ using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Purchase;
 using FluentValidation;
 using GateEntryManagement.Application.Common.Interfaces.IGateInward;
+using GateEntryManagement.Application.Common.Interfaces.IMiscMaster;
+using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
 using GateEntryManagement.Application.GateInward.Dto;
 using GateEntryManagement.Domain.Common;
 using GateEntryManagement.Domain.Entities;
@@ -26,6 +28,8 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
         private readonly IIPAddressService _ipAddressService;
         private readonly IGateInwardAttachmentFileStorage _attachmentStorage;
         private readonly IGateInwardGrnBridge _grnBridge;
+        private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
+        private readonly IVehicleMovementRecordCommandRepository _vmrCommandRepository;
 
         public CreateGateInwardCommandHandler(
             IGateInwardCommandRepository commandRepository,
@@ -36,7 +40,9 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
             IMapper mapper,
             IIPAddressService ipAddressService,
             IGateInwardAttachmentFileStorage attachmentStorage,
-            IGateInwardGrnBridge grnBridge)
+            IGateInwardGrnBridge grnBridge,
+            IMiscMasterQueryRepository miscMasterQueryRepository,
+            IVehicleMovementRecordCommandRepository vmrCommandRepository)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -47,6 +53,8 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
             _ipAddressService = ipAddressService;
             _attachmentStorage = attachmentStorage;
             _grnBridge = grnBridge;
+            _miscMasterQueryRepository = miscMasterQueryRepository;
+            _vmrCommandRepository = vmrCommandRepository;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateGateInwardCommand request, CancellationToken cancellationToken)
@@ -164,6 +172,23 @@ namespace GateEntryManagement.Application.GateInward.Commands.CreateGateInward
 
                     throw;
                 }
+            }
+            // ─────────────────────────────────────────────────────────────────────────────
+
+            // ─── Mark the linked VMR as exited (OUT) ─────────────────────────────────────
+            // Runs after Gate Inward (and any auto-fired GRN) have succeeded, so a failure
+            // upstream leaves the VMR in IN state and the operator can retry. When the Gate
+            // Inward has no VMR (manual / courier flows), this is a no-op.
+            if (entity.VehicleMovementRecordId is > 0)
+            {
+                var outStatusId =
+                    (await _miscMasterQueryRepository.GetMiscMasterByName(
+                        MiscEnumEntity.VMRStatus, MiscEnumEntity.VMRStatusExited))?.Id
+                    ?? throw new ExceptionRules(
+                        $"VMR status '{MiscEnumEntity.VMRStatusExited}' is not configured in Gate.MiscMaster under type '{MiscEnumEntity.VMRStatus}'.");
+
+                await _vmrCommandRepository.UpdateStatusToExitedAsync(
+                    entity.VehicleMovementRecordId.Value, outStatusId, cancellationToken);
             }
             // ─────────────────────────────────────────────────────────────────────────────
 
