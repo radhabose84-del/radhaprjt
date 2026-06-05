@@ -29,6 +29,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
                 h.ProcurementDocumentTypeId, pdt.Description AS ProcurementDocumentTypeName,
                 h.StatusId, st.Description AS StatusName,
                 h.TaxableTotal, h.TotalGstAmount, h.NetTotal, h.Remarks,
+                h.CropYear, h.ArrivalType, h.PassingDate, h.CreditDays,
+                h.CottonApprovedBy, h.CottonApprovedOn, h.DocumentPath,
                 h.IsActive, h.IsDeleted,
                 h.CreatedBy, h.CreatedDate, h.CreatedByName,
                 h.ModifiedBy, h.ModifiedDate, h.ModifiedByName

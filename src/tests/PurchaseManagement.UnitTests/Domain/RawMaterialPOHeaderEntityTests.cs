@@ -62,5 +62,50 @@ namespace PurchaseManagement.UnitTests.Domain
 
             entity.RawMaterialPODetails.Should().HaveCount(1);
         }
+
+        [Fact]
+        public void RawMaterialPOHeader_CottonDetailFields_ShouldBeAssignable()
+        {
+            var passing = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
+            var approvedOn = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero);
+            var entity = new RawMaterialPOHeader
+            {
+                CropYear = "2024-2025",
+                ArrivalType = "Spot",
+                PassingDate = passing,
+                CreditDays = 30,
+                CottonApprovedBy = "QA Lead",
+                CottonApprovedOn = approvedOn,
+                DocumentPath = "RMPO-2026-0001.png"
+            };
+
+            entity.CropYear.Should().Be("2024-2025");
+            entity.ArrivalType.Should().Be("Spot");
+            entity.PassingDate.Should().Be(passing);
+            entity.CreditDays.Should().Be(30);
+            entity.CottonApprovedBy.Should().Be("QA Lead");
+            entity.CottonApprovedOn.Should().Be(approvedOn);
+            entity.DocumentPath.Should().Be("RMPO-2026-0001.png");
+        }
+
+        [Fact]
+        public void RawMaterialPOHeader_NullableCottonFields_ShouldAcceptNull()
+        {
+            var entity = new RawMaterialPOHeader
+            {
+                CropYear = null,
+                ArrivalType = null,
+                PassingDate = null,
+                CreditDays = null,
+                CottonApprovedBy = null,
+                CottonApprovedOn = null,
+                DocumentPath = null
+            };
+
+            entity.CropYear.Should().BeNull();
+            entity.PassingDate.Should().BeNull();
+            entity.CreditDays.Should().BeNull();
+            entity.DocumentPath.Should().BeNull();
+        }
     }
 }

@@ -115,6 +115,11 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Purchase
                 .HasForeignKey(x => x.LorryFreightId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            b.HasOne(x => x.ModeOfTransport)
+                .WithMany()
+                .HasForeignKey(x => x.ModeOfTransportId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // ── Indexes ──
             b.HasIndex(x => x.OcrNumber).IsUnique();
             b.HasIndex(x => x.ProcurementSourceId);

@@ -111,6 +111,11 @@ namespace PurchaseManagement.Presentation.Validation.OCREntry
                 .WithMessage("LorryFreightId is inactive/deleted.")
                 .When(x => x.LorryFreightId.HasValue && x.LorryFreightId.Value > 0);
 
+            RuleFor(x => x.ModeOfTransportId!.Value)
+                .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
+                .WithMessage("ModeOfTransportId is inactive/deleted.")
+                .When(x => x.ModeOfTransportId.HasValue && x.ModeOfTransportId.Value > 0);
+
             // ── Additional Cotton Details — percentage ranges (0–100) ──
             RuleFor(x => x.DiscountPercentage!.Value)
                 .InclusiveBetween(0m, 100m).WithMessage("DiscountPercentage must be between 0 and 100.")

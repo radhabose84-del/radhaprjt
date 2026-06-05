@@ -57,6 +57,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 o.WeighmentId, wgh.Description AS WeighmentName,
                 o.TransitInsuranceId, tins.Description AS TransitInsuranceName,
                 o.LorryFreightId, lfr.Description AS LorryFreightName,
+                o.ModeOfTransportId, mot.Description AS ModeOfTransportName,
                 o.MillSampleNo, o.CottonPassedBy, o.GstPercentage,
                 o.DiscountPercentage, o.InsurancePercentage, o.Remarks,
                 o.UomId, o.QualityTemplateId,
@@ -77,7 +78,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             LEFT JOIN Purchase.MiscMaster pmode ON o.PaymentModeId = pmode.Id AND pmode.IsDeleted = 0
             LEFT JOIN Purchase.MiscMaster wgh ON o.WeighmentId = wgh.Id AND wgh.IsDeleted = 0
             LEFT JOIN Purchase.MiscMaster tins ON o.TransitInsuranceId = tins.Id AND tins.IsDeleted = 0
-            LEFT JOIN Purchase.MiscMaster lfr ON o.LorryFreightId = lfr.Id AND lfr.IsDeleted = 0";
+            LEFT JOIN Purchase.MiscMaster lfr ON o.LorryFreightId = lfr.Id AND lfr.IsDeleted = 0
+            LEFT JOIN Purchase.MiscMaster mot ON o.ModeOfTransportId = mot.Id AND mot.IsDeleted = 0";
 
         public async Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
         {

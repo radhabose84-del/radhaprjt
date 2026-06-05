@@ -276,6 +276,7 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IOCREntryQueryRepository, OCREntryQueryRepository>();
             services.AddScoped<IRawMaterialPOCommandRepository, RawMaterialPOCommandRepository>();
             services.AddScoped<IRawMaterialPOQueryRepository, RawMaterialPOQueryRepository>();
+            services.AddScoped<IRawMaterialPOFileStorage, RawMaterialPOFileStorage>();
             services.AddScoped<IOCREntryFileStorage, OCREntryFileStorage>();
           //  services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             // StockLedger ownership moved to InventoryManagement (Pattern D: Shared Transaction)

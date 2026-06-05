@@ -14,6 +14,17 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.CreateRawMateria
 
         public string? Remarks { get; set; }
 
+        // Additional cotton details (all optional, free-text/scalar)
+        public string? CropYear { get; set; }
+        public string? ArrivalType { get; set; }
+        public DateTimeOffset? PassingDate { get; set; }
+        public int? CreditDays { get; set; }
+        public string? CottonApprovedBy { get; set; }
+        public DateTimeOffset? CottonApprovedOn { get; set; }
+
+        // File name returned by upload-document (TEMP_...). Renamed to "{PONumber}{ext}" on save.
+        public string? DocumentPath { get; set; }
+
         // Header totals — saved as supplied in the payload
         public decimal? TaxableTotal { get; set; }
         public decimal? TotalGstAmount { get; set; }

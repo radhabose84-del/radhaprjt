@@ -24,6 +24,18 @@ namespace PurchaseManagement.Application.RawMaterialPO.Dto
 
         public string? Remarks { get; set; }
 
+        // Additional cotton details
+        public string? CropYear { get; set; }
+        public string? ArrivalType { get; set; }
+        public DateTimeOffset? PassingDate { get; set; }
+        public int? CreditDays { get; set; }
+        public string? CottonApprovedBy { get; set; }
+        public DateTimeOffset? CottonApprovedOn { get; set; }
+
+        // Stored bare file name + full retrievable URL (URL populated on GetById)
+        public string? DocumentPath { get; set; }
+        public string? DocumentFullPath { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
