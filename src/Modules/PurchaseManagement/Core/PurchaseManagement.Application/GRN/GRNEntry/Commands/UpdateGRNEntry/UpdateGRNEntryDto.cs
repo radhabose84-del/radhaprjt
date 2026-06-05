@@ -40,11 +40,12 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Commands.UpdateGRNEntry
             public string? GrnDetailImage { get; set; }
 
             // Per-line QC sign-off (moved from header).
-            public string? QcPersonName { get; set; }
+            // QcPersonName, QcDate, QcApprovedIp are NOT taken from user input — the command repo
+            // auto-populates them from IIPAddressService (user name + IP) and DateTimeOffset.Now
+            // at the moment the QC line is signed off. Caller only sends QcRemarks, QcStatusId,
+            // and IsQcApproved (the editable QC inputs).
             public string? QcRemarks { get; set; }
             public int? QcStatusId { get; set; }
-            public DateTimeOffset? QcDate { get; set; }
-            public string? QcApprovedIp { get; set; }
             public byte IsQcApproved { get; set; }
         }
     }

@@ -25,7 +25,7 @@ namespace PurchaseManagement.Domain.Entities
 
         // Same-module navigation properties (Purchase.MiscMaster)
         public MiscMaster? Prefix { get; set; }
-        public MiscMaster? Status { get; set; }
+        public MiscMaster? MiscStatus { get; set; }
 
         // Allocations drawn from this series (Purchase.BarcodeAllocation)
         public ICollection<BarcodeAllocation>? Allocations { get; set; }

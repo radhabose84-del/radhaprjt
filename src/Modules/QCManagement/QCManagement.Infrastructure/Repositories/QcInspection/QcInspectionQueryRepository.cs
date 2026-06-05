@@ -332,7 +332,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
         public async Task<IReadOnlyList<QcInspectionDtlEvalDto>> GetDetailEvaluationRowsAsync(int qcInspectionHdrId)
         {
             const string sql = @"
-                SELECT Id, ValidationTypeCode, MinValue, MaxValue, ExpectedValue, AllowedValues
+                SELECT Id, ValidationTypeCode, MinValue, MaxValue, ExpectedValue, AllowedValues, SeverityCode
                 FROM QC.QcInspectionDtl
                 WHERE QcInspectionHdrId = @Id AND IsDeleted = 0";
             var rows = await _dbConnection.QueryAsync<QcInspectionDtlEvalDto>(sql, new { Id = qcInspectionHdrId });

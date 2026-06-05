@@ -111,6 +111,35 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         }
 
         [Fact]
+        public async Task SaveResultsAndDispositionAsync_Should_Persist_Readings_And_Disposition()
+        {
+            await ClearAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var entity = BuildEntity();
+            var id = await CreateRepo(ctx).CreateAsync(entity);
+            var detailId = entity.Details.First().Id;
+            ctx.ChangeTracker.Clear();
+
+            await CreateRepo(ctx).SaveResultsAndDispositionAsync(
+                id,
+                new List<(int, string?, string?, string?)> { (detailId, "40", "PASS", "ok") },
+                qcStatusId: 34, acceptedQty: 1000m, rejectedQty: 0m, dispositionRemarks: "approved",
+                dispositionByUserId: 1, dispositionByName: "tester",
+                qcApprovedIp: "127.0.0.1", isQcApproved: true,
+                grnHeaderId: 100, grnDetailId: 4321);
+            ctx.ChangeTracker.Clear();
+
+            var hdr = await ctx.QcInspectionHdr.FirstAsync(x => x.Id == id);
+            hdr.QcStatusId.Should().Be(34);
+            hdr.AcceptedQuantity.Should().Be(1000m);
+            hdr.DispositionByName.Should().Be("tester");
+
+            var dtl = await ctx.QcInspectionDtl.FirstAsync(x => x.Id == detailId);
+            dtl.ActualValue.Should().Be("40");
+            dtl.InspectionResult.Should().Be("PASS");
+        }
+
+        [Fact]
         public async Task SoftDeleteAsync_Should_Set_IsDeleted_When_Draft()
         {
             await ClearAsync();

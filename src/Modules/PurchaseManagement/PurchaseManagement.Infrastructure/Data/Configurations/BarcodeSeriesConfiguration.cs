@@ -109,7 +109,7 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Same-module FK -> Purchase.MiscMaster (Status)
-            builder.HasOne(b => b.Status)
+            builder.HasOne(b => b.MiscStatus)
                 .WithMany(m => m.BarcodeSeriesStatuses)
                 .HasForeignKey(b => b.StatusId)
                 .OnDelete(DeleteBehavior.NoAction);

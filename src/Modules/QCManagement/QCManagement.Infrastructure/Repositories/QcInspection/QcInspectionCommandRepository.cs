@@ -53,9 +53,10 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             return results.Count;
         }
 
-        public async Task<int> SaveDispositionAsync(
-            int qcInspectionHdrId, int qcStatusId,
-            decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
+        public async Task<int> SaveResultsAndDispositionAsync(
+            int qcInspectionHdrId,
+            IReadOnlyList<(int DetailId, string? ActualValue, string? InspectionResult, string? Remarks)> results,
+            int qcStatusId, decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
             int dispositionByUserId, string? dispositionByName,
             string? qcApprovedIp, bool isQcApproved,
             int grnHeaderId, int grnDetailId)
@@ -68,11 +69,28 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                 try
                 {
                     var hdr = await _dbContext.QcInspectionHdr
+                        .Include(h => h.Details)
                         .FirstOrDefaultAsync(x => x.Id == qcInspectionHdrId && x.IsDeleted == IsDelete.NotDeleted);
 
                     if (hdr == null)
                         return 0;
 
+                    // 1) Apply the parameter readings (ActualValue / Pass-Fail / Remarks).
+                    if (hdr.Details != null)
+                    {
+                        var byId = hdr.Details.ToDictionary(d => d.Id);
+                        foreach (var r in results)
+                        {
+                            if (byId.TryGetValue(r.DetailId, out var row))
+                            {
+                                row.ActualValue = r.ActualValue;
+                                row.InspectionResult = r.InspectionResult;
+                                row.Remarks = r.Remarks;
+                            }
+                        }
+                    }
+
+                    // 2) Disposition on the header.
                     var now = DateTimeOffset.UtcNow;
 
                     hdr.QcStatusId = qcStatusId;
@@ -85,7 +103,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
 
                     await _dbContext.SaveChangesAsync();
 
-                    // Cross-module GRN write-back on the SAME connection + transaction (atomic).
+                    // 3) Cross-module GRN write-back on the SAME connection + transaction (atomic).
                     // QC is line-level: full disposition written to GrnDetail, located by Id.
                     var conn = _dbContext.Database.GetDbConnection();
                     var tx = transaction.GetDbTransaction();

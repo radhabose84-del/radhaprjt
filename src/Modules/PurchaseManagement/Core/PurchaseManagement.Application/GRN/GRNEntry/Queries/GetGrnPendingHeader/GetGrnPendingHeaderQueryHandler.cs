@@ -6,6 +6,8 @@ using MediatR;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Gate;
+using Contracts.Interfaces.Lookups.Inventory;
+using Contracts.Interfaces.Lookups.QC;
 
 namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeader
 {
@@ -17,9 +19,18 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
         private readonly IPartyLookup _partyLookup;
         private readonly IWarehouseLookup _warehouseLookup;
         private readonly IGateInwardLookup _gateInwardLookup;
+        private readonly IItemLookup _itemLookup;
+        private readonly IQualitySpecificationLookup _qualitySpecificationLookup;
 
-        public GetGrnPendingHeaderQueryHandler(IGRNEntryQueryRepository iGrnEntryQueryRepository, IMapper mapper, IMediator mediator,
-        IPartyLookup partyLookup, IWarehouseLookup warehouseLookup, IGateInwardLookup gateInwardLookup)
+        public GetGrnPendingHeaderQueryHandler(
+            IGRNEntryQueryRepository iGrnEntryQueryRepository,
+            IMapper mapper,
+            IMediator mediator,
+            IPartyLookup partyLookup,
+            IWarehouseLookup warehouseLookup,
+            IGateInwardLookup gateInwardLookup,
+            IItemLookup itemLookup,
+            IQualitySpecificationLookup qualitySpecificationLookup)
         {
             _iGrnEntryQueryRepository = iGrnEntryQueryRepository;
             _mapper = mapper;
@@ -27,6 +38,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
             _partyLookup = partyLookup;
             _warehouseLookup = warehouseLookup;
             _gateInwardLookup = gateInwardLookup;
+            _itemLookup = itemLookup;
+            _qualitySpecificationLookup = qualitySpecificationLookup;
         }
 
         
@@ -117,10 +130,51 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
                 po.GateEntryDate = gateInward.GateEntryDate;
             }
         }
+        // ── Enrich line items: ItemCode/ItemName from Inventory + IsTemplateAvailable from QC ──
+        // Same pattern as GetGrnPendingDetailsQueryHandler — one batched IItemLookup call covers
+        // Code/Name + ItemCategoryId, then one IQualitySpecificationLookup call decides Y/N per row.
+        var itemIdSet = new HashSet<int>();
+        foreach (var header in pendingGrnList)
+        {
+            foreach (var d in header.GrnDetails)
+                if (d.ItemId > 0) itemIdSet.Add(d.ItemId);
+        }
+
+        if (itemIdSet.Count > 0)
+        {
+            var itemDetails = await _itemLookup.GetByIdsAsync(itemIdSet, cancellationToken);
+            var itemMap         = itemDetails.ToDictionary(i => i.Id, i => i);
+            var itemCategoryMap = itemDetails.ToDictionary(i => i.Id, i => i.ItemCategoryId);
+            var categoryIds     = itemCategoryMap.Values.Where(c => c > 0).Distinct().ToList();
+
+            var templateMatch = await _qualitySpecificationLookup.GetMatchingAsync(
+                itemIdSet, categoryIds, cancellationToken);
+
+            foreach (var header in pendingGrnList)
+            {
+                foreach (var detail in header.GrnDetails)
+                {
+                    if (itemMap.TryGetValue(detail.ItemId, out var item))
+                    {
+                        detail.ItemCode = item.ItemCode;
+                        detail.ItemName = item.ItemName;
+                    }
+
+                    var itemMatched = templateMatch.MatchedItemIds.Contains(detail.ItemId);
+                    var categoryMatched =
+                        itemCategoryMap.TryGetValue(detail.ItemId, out var categoryId)
+                        && categoryId > 0
+                        && templateMatch.MatchedItemCategoryIds.Contains(categoryId);
+
+                    detail.IsTemplateAvailable = (itemMatched || categoryMatched) ? "Y" : "N";
+                }
+            }
+        }
+
              //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
                     actionDetail: "GetAll",
-                    actionCode: "GetGrnPendingHeaderQueryHandler",        
+                    actionCode: "GetGrnPendingHeaderQueryHandler",
                     actionName: pendingGrnList.Count.ToString(),
                     details: $"Pending PO details was fetched.",
                     module:"GRNEntry"

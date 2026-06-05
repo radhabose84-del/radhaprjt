@@ -64,9 +64,9 @@ namespace PurchaseManagement.Presentation.Controllers
         }
 
         [HttpGet("barcode-series")]
-        public async Task<IActionResult> GetBarcodeSeriesAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetBarcodeSeriesAsync([FromQuery] string? term = null, [FromQuery] int? seriesId = null)
         {
-            var result = await Mediator.Send(new GetAllocationBarcodeSeriesQuery(term));
+            var result = await Mediator.Send(new GetAllocationBarcodeSeriesQuery(term, seriesId));
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 

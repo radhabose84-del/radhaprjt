@@ -60,13 +60,13 @@ namespace PurchaseManagement.UnitTests.Domain
                 BarcodeSeriesNumber = null,
                 Remarks = null,
                 Prefix = null,
-                Status = null
+                MiscStatus = null
             };
 
             entity.BarcodeSeriesNumber.Should().BeNull();
             entity.Remarks.Should().BeNull();
             entity.Prefix.Should().BeNull();
-            entity.Status.Should().BeNull();
+            entity.MiscStatus.Should().BeNull();
         }
 
         [Fact]
@@ -75,11 +75,11 @@ namespace PurchaseManagement.UnitTests.Domain
             var entity = new BarcodeSeries
             {
                 Prefix = new MiscMaster { Id = 1, Code = "CB" },
-                Status = new MiscMaster { Id = 10, Code = "Open" }
+                MiscStatus = new MiscMaster { Id = 10, Code = "Open" }
             };
 
             entity.Prefix!.Code.Should().Be("CB");
-            entity.Status!.Code.Should().Be("Open");
+            entity.MiscStatus!.Code.Should().Be("Open");
         }
     }
 }

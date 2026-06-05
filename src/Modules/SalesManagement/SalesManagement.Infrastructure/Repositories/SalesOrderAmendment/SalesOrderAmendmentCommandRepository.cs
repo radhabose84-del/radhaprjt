@@ -170,10 +170,16 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderAmendment
                             soHeader.TotalTCS = amendmentHeader.TotalTCS;
                             soHeader.FinalAmount = amendmentHeader.FinalAmount;
 
-                            // Propagate Agent Commission + Discount snapshot
-                            soHeader.AgentCommissionId = amendmentHeader.AgentCommissionId;
-                            soHeader.AgentCommissionSlabId = amendmentHeader.AgentCommissionSlabId;
-                            soHeader.AgentPaymentTermsId = amendmentHeader.AgentPaymentTermsId;
+                            // Propagate Agent Commission + Discount snapshot.
+                            // AgentCommissionId and AgentCommissionSlabId are FK-constrained on SalesOrderHeader
+                            // (FK_SalesOrderHeader_AgentCommissionConfig_AgentCommissionId / _AgentCommissionSlab_…).
+                            // FE / amendment payloads sometimes send 0 to mean "not selected"; the amendment header
+                            // tolerates this (no FK there) but propagating 0 to SalesOrderHeader fails with SQL 547.
+                            // Coerce <=0 → null so "not selected" survives the FK check. AgentPaymentTermsId has no
+                            // DB FK and the column is NOT NULL, so 0 passes through unchanged.
+                            soHeader.AgentCommissionId     = amendmentHeader.AgentCommissionId     is > 0 ? amendmentHeader.AgentCommissionId     : null;
+                            soHeader.AgentCommissionSlabId = amendmentHeader.AgentCommissionSlabId is > 0 ? amendmentHeader.AgentCommissionSlabId : null;
+                            soHeader.AgentPaymentTermsId   = amendmentHeader.AgentPaymentTermsId;
                             soHeader.CommissionRate = amendmentHeader.CommissionRate;
                             soHeader.CommissionValue = amendmentHeader.CommissionValue;
                             soHeader.MdDiscountValue = amendmentHeader.MdDiscountValue;
