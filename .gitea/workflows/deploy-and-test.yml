@@ -175,6 +175,10 @@ jobs:
       - name: Upload test reports
         uses: actions/upload-artifact@v3
         if: always()
+        # Don't fail the whole job if the Gitea artifact service is unreachable (it currently
+        # resolves to localhost:3000 on the runner instead of the Gitea host 192.168.1.126:3000).
+        # The reports are nice-to-have; a green/red job should reflect the TESTS, not artifact I/O.
+        continue-on-error: true
         with:
           name: QA-Test-Reports
           path: qa-reports/
