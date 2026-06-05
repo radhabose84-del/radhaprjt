@@ -274,7 +274,20 @@ jobs:
             $short = ($t.Name -split '\.')[-1]
             $summary = "[QA] $short failing"
             $err = "$($t.Error)"
+            if ([string]::IsNullOrWhiteSpace($err)) { $err = "(no error message captured in TRX)" }
             if ($err.Length -gt 2000) { $err = $err.Substring(0,2000) + " ..." }
+
+            # Build JSON-escaped string fragments (ConvertTo-Json quotes + escapes safely).
+            $summaryJson = $summary | ConvertTo-Json
+            $metaJson    = "Test: $($t.Name)  |  Branch: $branch  |  Commit: $sha  |  CI: $runUrl" | ConvertTo-Json
+            $errJson     = $err | ConvertTo-Json
+
+            # Description as ADF (Atlassian Document Format). Jira Cloud stores description as ADF;
+            # a plain-string description via the v2 API comes through BLANK, so we post ADF via v3.
+            $descAdf = '{"type":"doc","version":1,"content":[' +
+              '{"type":"paragraph","content":[{"type":"text","text":' + $metaJson + '}]},' +
+              '{"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":' + $errJson + '}]}' +
+              ']}'
 
             # Dedup: an OPEN bug with the same label + summary already exists?
             $jql = "project = $projectKey AND labels = `"$label`" AND summary ~ `"$short`" AND statusCategory != Done"
@@ -286,25 +299,20 @@ jobs:
             } catch { Write-Host "JIRA search failed for $short : $_" }
 
             if ($existingKey) {
-              $body = @{ body = "Still failing on ``$branch`` ($sha). CI run: $runUrl`n`n$err" } | ConvertTo-Json
+              $cmtJson = "Still failing on $branch ($sha). CI run: $runUrl" | ConvertTo-Json
+              $commentBody = '{"body":{"type":"doc","version":1,"content":[' +
+                '{"type":"paragraph","content":[{"type":"text","text":' + $cmtJson + '}]},' +
+                '{"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":' + $errJson + '}]}' +
+                ']}}'
               try {
-                Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue/$existingKey/comment" -Method Post -Headers $headers -ContentType 'application/json' -Body $body | Out-Null
+                Invoke-RestMethod -Uri "$baseUrl/rest/api/3/issue/$existingKey/comment" -Method Post -Headers $headers -ContentType 'application/json' -Body $commentBody | Out-Null
                 Write-Host "Commented on existing $existingKey for $short."
               } catch { Write-Host "JIRA comment failed for $existingKey : $_" }
             } else {
-              $desc = "Test: $($t.Name)`nBranch: $branch`nCommit: $sha`nCI run: $runUrl`n`nError:`n$err"
-              $createBody = @{
-                fields = @{
-                  project     = @{ key = $projectKey }
-                  summary     = $summary
-                  description = $desc
-                  issuetype   = @{ name = $issueType }
-                  priority    = @{ name = $priority }
-                  labels      = @($label)
-                }
-              } | ConvertTo-Json -Depth 6
+              $createBody = '{"fields":{"project":{"key":"' + $projectKey + '"},"summary":' + $summaryJson +
+                ',"description":' + $descAdf + ',"issuetype":{"name":"' + $issueType + '"},"priority":{"name":"' + $priority + '"},"labels":["' + $label + '"]}}'
               try {
-                $created = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/issue" -Method Post -Headers $headers -ContentType 'application/json' -Body $createBody
+                $created = Invoke-RestMethod -Uri "$baseUrl/rest/api/3/issue" -Method Post -Headers $headers -ContentType 'application/json' -Body $createBody
                 Write-Host "Created $($created.key) for $short."
               } catch { Write-Host "JIRA create failed for $short : $_" }
             }
