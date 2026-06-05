@@ -38,9 +38,54 @@ jobs:
       - name: Build BSOFT.Api
         run: dotnet build src/BSOFT.Api/BSOFT.Api.csproj -c Release --no-restore
 
+      # ── Step 4b: Unit tests — module-wise gate (BEFORE deploy) ───────────
+      # Runs every *.UnitTests project. A failure in ANY module throws -> the job stops here
+      # and never deploys to 130. Results go to qa-reports so Slack/JIRA pick them up too.
+      - name: Unit tests (module-wise)
+        shell: powershell
+        run: |
+          $failed = @()
+          Get-ChildItem src/tests -Recurse -Filter *.UnitTests.csproj | Sort-Object FullName | ForEach-Object {
+            Write-Host "=== Unit: $($_.BaseName) ==="
+            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory qa-reports
+            if ($LASTEXITCODE -ne 0) { $failed += $_.BaseName }
+          }
+          if ($failed.Count) { throw "Unit tests FAILED in: $($failed -join ', ')" }
+          Write-Host "All unit test projects passed."
+
+      # ── Step 4c: Integration tests — module-wise gate (BEFORE deploy) ────
+      # Each *.IntegrationTests project recreates its OWN {Module}_TestDb on 192.168.1.126
+      # (isolated throwaway DB; does NOT touch BannariERP_QATest). A failure blocks the deploy.
+      - name: Integration tests (module-wise)
+        shell: powershell
+        run: |
+          $failed = @()
+          Get-ChildItem src/tests -Recurse -Filter *.IntegrationTests.csproj | Sort-Object FullName | ForEach-Object {
+            Write-Host "=== Integration: $($_.BaseName) ==="
+            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory qa-reports
+            if ($LASTEXITCODE -ne 0) { $failed += $_.BaseName }
+          }
+          if ($failed.Count) { throw "Integration tests FAILED in: $($failed -join ', ')" }
+          Write-Host "All integration test projects passed."
+
       # ── Step 5: Publish ─────────────────────────────────────────────────
       - name: Publish BSOFT.Api
         run: dotnet publish src/BSOFT.Api/BSOFT.Api.csproj -c Release -o publish/api --no-build
+
+      # ── Step 5b: Snapshot the current live deploy (for rollback) ─────────
+      # Mirror the currently-deployed app (incl. its working web.config) to a backup folder so
+      # the "Rollback on failure" step can restore it if this deploy/readiness fails.
+      - name: Backup current deploy
+        shell: powershell
+        run: |
+          if (Test-Path "D:\Publish\BsoftERPDemo\BSOFT.Api.dll") {
+            robocopy "D:\Publish\BsoftERPDemo" "D:\Publish\BsoftERPDemo_backup" /MIR /XF app_offline.htm /NFL /NDL /NJH /NJS | Out-Null
+            if ($LASTEXITCODE -ge 8) { Write-Host "Backup robocopy warning ($LASTEXITCODE)" }
+            $global:LASTEXITCODE = 0
+            Write-Host "Backed up current deploy -> D:\Publish\BsoftERPDemo_backup."
+          } else {
+            Write-Host "No existing deploy to back up (first deploy) - rollback will be a no-op."
+          }
 
       # ── Step 6: Take the app offline (shared DefaultAppPool — do NOT stop the pool) ──
       # app_offline.htm makes ASP.NET Core shut down and release file locks for THIS app
@@ -141,6 +186,26 @@ jobs:
           }
           if (-not $ready) { throw "QA server not responding after deployment." }
 
+      # ── Step 9b: Rollback if the DEPLOY/READINESS failed ────────────────
+      # if: failure() here fires only when a step BEFORE it failed (build/test gates, deploy,
+      # web.config, online, or readiness). It is positioned BEFORE the test steps, so a later
+      # TEST failure does NOT trigger a rollback (the deploy is fine; the tests just found bugs).
+      - name: Rollback on deploy/readiness failure
+        if: failure()
+        shell: powershell
+        run: |
+          if (Test-Path "D:\Publish\BsoftERPDemo_backup\BSOFT.Api.dll") {
+            Write-Host "Deploy/readiness FAILED - rolling back to the previous version..."
+            "Rolling back." | Out-File -FilePath "D:\Publish\BsoftERPDemo\app_offline.htm" -Encoding utf8
+            Start-Sleep -Seconds 3
+            robocopy "D:\Publish\BsoftERPDemo_backup" "D:\Publish\BsoftERPDemo" /MIR /XF app_offline.htm /NFL /NDL /NJH /NJS | Out-Null
+            $global:LASTEXITCODE = 0
+            Remove-Item "D:\Publish\BsoftERPDemo\app_offline.htm" -ErrorAction SilentlyContinue
+            Write-Host "Rollback complete - previous version restored and back online."
+          } else {
+            Write-Host "No backup found - nothing to roll back to (likely the first deploy)."
+          }
+
       # ── Step 10: SMOKE GATE (fail fast) ─────────────────────────────────
       # If the deployed app can't serve the critical read paths, stop here — no point
       # running the full suite against a broken deploy. A failing step fails the job.
@@ -184,7 +249,8 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          name: QA-Test-Reports
+          # Versioned by run number + commit SHA so each run's reports are uniquely traceable.
+          name: QA-Reports-r${{ github.run_number }}-${{ github.sha }}
           path: qa-reports/
 
       # ── Step 14: Notify Slack on EVERY run (pass or fail) ───────────────
