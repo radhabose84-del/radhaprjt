@@ -132,11 +132,14 @@ public sealed class LanguageQATests
     [Fact, TestPriority(9)]
     public async Task TC009_Create_NameAtMaxLength_Returns200()
     {
-        // Exactly 50 chars Name (max boundary) — should pass
+        // Exactly 50 chars Name (max boundary) — should pass. Must be run-unique (Language Name
+        // has a uniqueness check and the QA clone isn't reset between runs), so seed it with the
+        // run-unique EntityCode and pad to exactly 50 chars.
+        var name50 = (_f.EntityCode + new string('B', 50))[..50];
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
             code = "BDRY",
-            name = new string('B', 50)
+            name = name50
         });
 
         resp.StatusCode.Should().Be(HttpStatusCode.OK);

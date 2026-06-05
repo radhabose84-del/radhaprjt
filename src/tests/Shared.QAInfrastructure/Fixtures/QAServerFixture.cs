@@ -20,6 +20,10 @@ public sealed class QAServerFixture : IAsyncLifetime
     public int ValidRoleId { get; private set; }
     public int ValidValueId { get; private set; }
 
+    // A real, existing City Id resolved at runtime (the QA clone has no City with Id=1).
+    // Used by payloads with a City FK (e.g. Company address) so they don't assume a seed Id.
+    public int CityId { get; private set; }
+
     public QAServerFixture()
     {
         // appsettings.QA.json holds local defaults (localhost:5239). Environment variables
@@ -69,6 +73,23 @@ public sealed class QAServerFixture : IAsyncLifetime
         Client = QaHttpClientFactory.Create(BaseUrl);
         Client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
+
+        // Resolve a real City Id for FK-dependent payloads. Guarded so a lookup hiccup never
+        // fails the whole collection — dependent tests will surface a clear failure instead.
+        try
+        {
+            var cityResp = await Client.GetAsync("/api/City?PageNumber=1&PageSize=1");
+            if (cityResp.IsSuccessStatusCode)
+            {
+                using var cityDoc = JsonDocument.Parse(await cityResp.Content.ReadAsStringAsync());
+                if (cityDoc.RootElement.TryGetProperty("data", out var arr) &&
+                    arr.ValueKind == JsonValueKind.Array && arr.GetArrayLength() > 0)
+                {
+                    CityId = arr[0].GetProperty("id").GetInt32();
+                }
+            }
+        }
+        catch { /* leave CityId = 0; City-FK tests will report a clear failure */ }
     }
 
     public Task DisposeAsync()

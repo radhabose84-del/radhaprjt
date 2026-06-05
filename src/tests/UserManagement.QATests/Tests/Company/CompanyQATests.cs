@@ -7,10 +7,10 @@ public sealed class CompanyQATests
     private readonly QAServerFixture _f;
     private const string BaseRoute = "/api/Company";
 
-    // Assumed-existing IDs for address FK fields
+    // Assumed-existing IDs for address FK fields. CityId is resolved at runtime via _f.CityId
+    // (the QA clone has no City with Id=1); Country/State/Entity Id=1 do exist in the clone.
     private const int QACountryId = 1;
     private const int QAStateId   = 1;
-    private const int QACityId    = 1;
     private const int QAEntityId  = 1;   // EntityId must be >= 1
 
     // Fixed valid GST — not uniqueness-checked, can reuse across runs
@@ -21,7 +21,7 @@ public sealed class CompanyQATests
     // Format is the strict Indian PAN: ^[A-Z]{3}[CPHFATBLJG][A-Z][0-9]{4}[A-Z]$ — the 4th
     // char MUST be a PAN entity-type letter (C = company). 'QATST' was invalid (4th char 'S').
     private string TestPanNumber =>
-        $"QATCA{new string(_f.EntityCode.Where(char.IsDigit).TakeLast(4).ToArray())}A";
+        $"QATCA{new string(_f.EntityCode.Where(char.IsDigit).Take(4).ToArray())}A";
 
     public CompanyQATests(QAServerFixture fixture) => _f = fixture;
 
@@ -543,7 +543,7 @@ public sealed class CompanyQATests
         int     yearOfEstablishment = 2000,
         int     entityId            = QAEntityId,
         string? pinCode             = "123456",
-        int     cityId              = QACityId,
+        int     cityId              = -1,
         string? contactEmail        = "qa@test.com") => new
     {
         company = new
@@ -560,7 +560,7 @@ public sealed class CompanyQATests
                 addressLine1   = "QA Address Line 1",
                 addressLine2   = "QA Address Line 2",
                 pinCode        = pinCode,
-                cityId         = cityId,
+                cityId         = cityId >= 0 ? cityId : _f.CityId,
                 stateId        = QAStateId,
                 countryId      = QACountryId,
                 phone          = "",
@@ -600,7 +600,7 @@ public sealed class CompanyQATests
                 addressLine1   = "QA Updated Address Line 1",
                 addressLine2   = "QA Updated Line 2",
                 pinCode        = "123456",
-                cityId         = QACityId,
+                cityId         = _f.CityId,
                 stateId        = QAStateId,
                 countryId      = QACountryId,
                 phone          = "",
