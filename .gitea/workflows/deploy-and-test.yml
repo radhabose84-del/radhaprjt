@@ -34,6 +34,28 @@ jobs:
       - name: Restore packages
         run: dotnet restore BSOFT.sln
 
+      # ── Step 3b: SonarQube — BEGIN analysis (wraps the build below) ─────
+      # The API build pulls in all 10 modules, so Sonar analyzes all production C#. Coverage
+      # (opencover) is fed from the unit tests. Report-only: no sonar.qualitygate.wait, so a
+      # failing gate does NOT block the deploy. Skips cleanly if the Sonar secrets aren't set.
+      - name: SonarQube begin
+        shell: powershell
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if (-not $env:SONAR_HOST_URL -or -not $env:SONAR_TOKEN) {
+            Write-Host "SONAR_HOST_URL / SONAR_TOKEN not set - skipping SonarQube."; exit 0
+          }
+          dotnet tool install --global dotnet-sonarscanner *> $null
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          dotnet-sonarscanner begin `
+            /k:"bsoft" `
+            /d:sonar.host.url="$env:SONAR_HOST_URL" `
+            /d:sonar.token="$env:SONAR_TOKEN" `
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
+            /d:sonar.scanner.scanAll=false
+
       # ── Step 4: Build ───────────────────────────────────────────────────
       - name: Build BSOFT.Api
         run: dotnet build src/BSOFT.Api/BSOFT.Api.csproj -c Release --no-restore
@@ -47,11 +69,25 @@ jobs:
           $failed = @()
           Get-ChildItem src/tests -Recurse -Filter *.UnitTests.csproj | Sort-Object FullName | ForEach-Object {
             Write-Host "=== Unit: $($_.BaseName) ==="
-            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory qa-reports
+            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory qa-reports `
+              --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
             if ($LASTEXITCODE -ne 0) { $failed += $_.BaseName }
           }
           if ($failed.Count) { throw "Unit tests FAILED in: $($failed -join ', ')" }
           Write-Host "All unit test projects passed."
+
+      # ── Step 4b2: SonarQube — END analysis (upload results + coverage) ──
+      # Sends the analysis of the build + the unit-test coverage to the SonarQube server, where
+      # it computes bugs / vulnerabilities / code smells / coverage and the Quality Gate.
+      # Report-only (no qualitygate.wait) so the result is informational and never blocks deploy.
+      - name: SonarQube end
+        shell: powershell
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if (-not $env:SONAR_TOKEN) { Write-Host "SONAR_TOKEN not set - skipping SonarQube end."; exit 0 }
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
 
       # ── Step 4c: Integration tests — module-wise gate (BEFORE deploy) ────
       # Each *.IntegrationTests project recreates its OWN {Module}_TestDb on 192.168.1.126
