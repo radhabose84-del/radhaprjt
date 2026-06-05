@@ -11,11 +11,13 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
             IReadOnlyList<(int DetailId, string? ActualValue, string? InspectionResult, string? Remarks)> results);
 
         /// <summary>
-        /// Persists disposition on the header AND writes QC results back to the GRN tables in one atomic transaction.
+        /// Saves the parameter readings AND the disposition on the header AND writes the QC result back to
+        /// the GRN line — all in one atomic transaction.
         /// </summary>
-        Task<int> SaveDispositionAsync(
-            int qcInspectionHdrId, int qcStatusId,
-            decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
+        Task<int> SaveResultsAndDispositionAsync(
+            int qcInspectionHdrId,
+            IReadOnlyList<(int DetailId, string? ActualValue, string? InspectionResult, string? Remarks)> results,
+            int qcStatusId, decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
             int dispositionByUserId, string? dispositionByName,
             string? qcApprovedIp, bool isQcApproved,
             int grnHeaderId, int grnDetailId);

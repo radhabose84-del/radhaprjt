@@ -79,14 +79,19 @@ namespace QCManagement.UnitTests.TestData
 
         // qcStatusId 34 = APR (Approved) in QP_QC_STATUS misc.
         public static SaveDispositionCommand ValidDispositionCommand(
-            int hdrId = 88, int qcStatusId = 34, decimal acc = 1000m, decimal rej = 0m, string? remarks = null) =>
+            int hdrId = 88, int qcStatusId = 34, decimal acc = 1000m, decimal rej = 0m, string? remarks = null,
+            List<ParameterResultInputDto>? parameters = null) =>
             new()
             {
                 QcInspectionHdrId = hdrId,
                 QcStatusId = qcStatusId,
                 AcceptedQuantity = acc,
                 RejectedQuantity = rej,
-                DispositionRemarks = remarks
+                DispositionRemarks = remarks,
+                Parameters = parameters ?? new List<ParameterResultInputDto>
+                {
+                    new() { DetailId = 11, ActualValue = "30", Remarks = "ok" }
+                }
             };
 
         public static QcDispositionContextDto ValidContext(int hdrId = 88) =>

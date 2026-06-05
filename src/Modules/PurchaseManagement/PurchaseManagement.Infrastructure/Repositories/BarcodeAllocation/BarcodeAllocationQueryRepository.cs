@@ -126,9 +126,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.BarcodeAllocation
             return employees.ToList();
         }
 
-        public async Task<IReadOnlyList<BarcodeAllocationSeriesDto>> GetAvailableSeriesAsync(string? term)
+        public async Task<IReadOnlyList<BarcodeAllocationSeriesDto>> GetAvailableSeriesAsync(string? term, int? seriesId = null)
         {
-            var searchFilter = string.IsNullOrEmpty(term) ? "" : "AND bs.BarcodeSeriesNumber LIKE @Search";
+            // By id (Edit mode): return just that series — even if fully allocated / inactive.
+            // Otherwise: the dropdown list of active series that still have un-allocated range.
+            string filter;
+            if (seriesId is not null)
+            {
+                filter = "AND bs.Id = @SeriesId";
+            }
+            else
+            {
+                filter = "AND bs.IsActive = 1 AND bs.AllocatedCount < (bs.BarcodeEndNumber - bs.BarcodeStartNumber + 1)";
+                if (!string.IsNullOrEmpty(term))
+                    filter += " AND bs.BarcodeSeriesNumber LIKE @Search";
+            }
 
             var query = $@"
                 SELECT bs.Id, bs.BarcodeSeriesNumber, bs.BarcodeStartNumber, bs.BarcodeEndNumber,
@@ -139,12 +151,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.BarcodeAllocation
                                   WHERE a.BarcodeSeriesId = bs.Id AND a.IsDeleted = 0),
                                  bs.BarcodeStartNumber - 1) + 1) AS NextFrom
                 FROM Purchase.BarcodeSeries bs
-                WHERE bs.IsDeleted = 0 AND bs.IsActive = 1
-                    AND bs.AllocatedCount < (bs.BarcodeEndNumber - bs.BarcodeStartNumber + 1)
-                    {searchFilter}
+                WHERE bs.IsDeleted = 0 {filter}
                 ORDER BY bs.Id DESC;";
 
-            var result = await _dbConnection.QueryAsync<BarcodeAllocationSeriesDto>(query, new { Search = $"%{term}%" });
+            var result = await _dbConnection.QueryAsync<BarcodeAllocationSeriesDto>(
+                query, new { Search = $"%{term}%", SeriesId = seriesId });
             return result.ToList();
         }
 
