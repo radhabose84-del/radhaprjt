@@ -34,6 +34,25 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.RawMaterialPO
             b.Property(x => x.TotalGstAmount).HasPrecision(18, 2);
             b.Property(x => x.NetTotal).HasPrecision(18, 2);
 
+            // ── Additional cotton details (all optional) ──
+            b.Property(x => x.CropYear)
+                .HasColumnType("varchar(20)");
+
+            b.Property(x => x.ArrivalType)
+                .HasColumnType("varchar(50)");
+
+            b.Property(x => x.PassingDate);
+
+            b.Property(x => x.CreditDays);
+
+            b.Property(x => x.CottonApprovedBy)
+                .HasColumnType("varchar(100)");
+
+            b.Property(x => x.CottonApprovedOn);
+
+            b.Property(x => x.DocumentPath)
+                .HasColumnType("varchar(500)");
+
             b.Property(x => x.Remarks)
                 .HasColumnType("varchar(500)");
 

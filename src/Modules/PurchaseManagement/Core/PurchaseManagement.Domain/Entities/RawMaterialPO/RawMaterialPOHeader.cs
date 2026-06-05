@@ -1,4 +1,4 @@
-using PurchaseManagement.Domain.Common;
+ using PurchaseManagement.Domain.Common;
 
 namespace PurchaseManagement.Domain.Entities.RawMaterialPO
 {
@@ -32,6 +32,17 @@ namespace PurchaseManagement.Domain.Entities.RawMaterialPO
         public decimal? TaxableTotal { get; set; }    // Σ line ItemValue
         public decimal? TotalGstAmount { get; set; }  // Σ line TotalGST
         public decimal? NetTotal { get; set; }        // Σ line NetValue
+
+        // ── Additional cotton details (all optional, free-text/scalar) ──
+        public string? CropYear { get; set; }              // e.g. "2024-2025"
+        public string? ArrivalType { get; set; }
+        public DateTimeOffset? PassingDate { get; set; }
+        public int? CreditDays { get; set; }               // credit period in days (≥ 0)
+        public string? CottonApprovedBy { get; set; }
+        public DateTimeOffset? CottonApprovedOn { get; set; }
+
+        // Single supporting document — stored as the bare file name, renamed to "{PONumber}{ext}" on save.
+        public string? DocumentPath { get; set; }
 
         public string? Remarks { get; set; }
 

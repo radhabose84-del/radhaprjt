@@ -16,19 +16,22 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.UpdateRawMateria
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
         private readonly IMiscMasterQueryRepository _misc;
+        private readonly IRawMaterialPOFileStorage _fileStorage;
 
         public UpdateRawMaterialPOCommandHandler(
             IRawMaterialPOCommandRepository commandRepository,
             IRawMaterialPOQueryRepository queryRepository,
             IMediator mediator,
             IMapper mapper,
-            IMiscMasterQueryRepository misc)
+            IMiscMasterQueryRepository misc,
+            IRawMaterialPOFileStorage fileStorage)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _mediator = mediator;
             _mapper = mapper;
             _misc = misc;
+            _fileStorage = fileStorage;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateRawMaterialPOCommand request, CancellationToken cancellationToken)
@@ -37,6 +40,14 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.UpdateRawMateria
                 ?? throw new ExceptionRules("Raw Material PO not found.");
 
             var entity = _mapper.Map<RawMaterialPOHeader>(request);
+
+            // A freshly uploaded document arrives under a temp name — rename it to the PO number.
+            if (!string.IsNullOrWhiteSpace(entity.DocumentPath) &&
+                entity.DocumentPath.StartsWith("TEMP_", StringComparison.OrdinalIgnoreCase))
+            {
+                entity.DocumentPath = await _fileStorage.RenameAsync(
+                    entity.DocumentPath, existing.PONumber!, cancellationToken);
+            }
 
             // Detail lines + totals saved exactly as supplied (PONumber/OcrId are immutable)
             entity.RawMaterialPODetails = request.Details.Select(MapDetail).ToList();

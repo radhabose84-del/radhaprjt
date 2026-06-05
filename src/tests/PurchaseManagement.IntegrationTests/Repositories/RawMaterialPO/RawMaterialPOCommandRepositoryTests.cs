@@ -40,6 +40,13 @@ namespace PurchaseManagement.IntegrationTests.Repositories.RawMaterialPO
                 TaxableTotal = 34_250_000m,
                 TotalGstAmount = 1_712_500m,
                 NetTotal = 35_962_500m,
+                CropYear = "2024-2025",
+                ArrivalType = "Spot",
+                PassingDate = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero),
+                CreditDays = 30,
+                CottonApprovedBy = "QA Lead",
+                CottonApprovedOn = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero),
+                DocumentPath = "RMPO-2026-0001.png",
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted,
                 RawMaterialPODetails = new List<RawMaterialPODetail>
@@ -124,6 +131,76 @@ namespace PurchaseManagement.IntegrationTests.Repositories.RawMaterialPO
             saved.RawMaterialPODetails.Should().HaveCount(1);
             saved.RawMaterialPODetails!.First().ItemValue.Should().Be(34_250_000m);
             saved.RawMaterialPODetails!.First().NetValue.Should().Be(35_962_500m);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_CottonFields_And_DocumentPath()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (ocrId, miscId) = await SeedPrerequisitesAsync(ctx);
+
+            var newId = await CreateRepository(ctx).CreateAsync(BuildHeader(ocrId, miscId, "RMPO-2026-0021"), 0, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var saved = await ctx.Set<RawMaterialPOHeader>().FirstAsync(x => x.Id == newId);
+            saved.CropYear.Should().Be("2024-2025");
+            saved.ArrivalType.Should().Be("Spot");
+            saved.CreditDays.Should().Be(30);
+            saved.CottonApprovedBy.Should().Be("QA Lead");
+            saved.PassingDate.Should().Be(new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero));
+            saved.CottonApprovedOn.Should().Be(new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero));
+            saved.DocumentPath.Should().Be("RMPO-2026-0001.png");
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Persist_CottonFields()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (ocrId, miscId) = await SeedPrerequisitesAsync(ctx);
+            var newId = await CreateRepository(ctx).CreateAsync(BuildHeader(ocrId, miscId, "RMPO-2026-0022"), 0, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var update = BuildHeader(ocrId, miscId, "RMPO-2026-0022");
+            update.Id = newId;
+            update.CropYear = "2025-2026";
+            update.CreditDays = 45;
+            update.DocumentPath = "RMPO-2026-0022.png";
+            await CreateRepository(ctx).UpdateAsync(update, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var saved = await ctx.Set<RawMaterialPOHeader>().FirstAsync(x => x.Id == newId);
+            saved.CropYear.Should().Be("2025-2026");
+            saved.CreditDays.Should().Be(45);
+            saved.DocumentPath.Should().Be("RMPO-2026-0022.png");
+        }
+
+        [Fact]
+        public async Task ClearDocumentPathByFileNameAsync_Should_Null_Reference()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (ocrId, miscId) = await SeedPrerequisitesAsync(ctx);
+            var header = BuildHeader(ocrId, miscId, "RMPO-2026-0023");
+            header.DocumentPath = "RMPO-2026-0023.png";
+            var newId = await CreateRepository(ctx).CreateAsync(header, 0, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var cleared = await CreateRepository(ctx).ClearDocumentPathByFileNameAsync("RMPO-2026-0023.png", CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            cleared.Should().BeTrue();
+            var saved = await ctx.Set<RawMaterialPOHeader>().FirstAsync(x => x.Id == newId);
+            saved.DocumentPath.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task ClearDocumentPathByFileNameAsync_Should_Return_False_When_NotFound()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await _fixture.ClearAllTablesAsync();
+
+            var result = await CreateRepository(ctx).ClearDocumentPathByFileNameAsync("nope.png", CancellationToken.None);
+
+            result.Should().BeFalse();
         }
 
         [Fact]

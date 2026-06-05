@@ -69,6 +69,15 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
             existing.NetTotal = entity.NetTotal;
             existing.IsActive = entity.IsActive;
 
+            // Additional cotton details
+            existing.CropYear = entity.CropYear;
+            existing.ArrivalType = entity.ArrivalType;
+            existing.PassingDate = entity.PassingDate;
+            existing.CreditDays = entity.CreditDays;
+            existing.CottonApprovedBy = entity.CottonApprovedBy;
+            existing.CottonApprovedOn = entity.CottonApprovedOn;
+            existing.DocumentPath = entity.DocumentPath;
+
             // Replace detail lines
             var oldDetails = await _db.Set<RawMaterialPODetail>()
                 .Where(d => d.POHeaderId == existing.Id)
@@ -97,6 +106,24 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
 
             existing.IsDeleted = IsDelete.Deleted;
             existing.IsActive = Status.Inactive;
+
+            await _db.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> ClearDocumentPathByFileNameAsync(string fileName, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return false;
+
+            var existing = await _db.Set<RawMaterialPOHeader>()
+                .FirstOrDefaultAsync(x => x.DocumentPath == fileName && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing is null)
+                return false;
+
+            // Audit fields (ModifiedBy/Date/IP) are auto-populated by ApplicationDbContext.SaveChangesAsync.
+            existing.DocumentPath = null;
 
             await _db.SaveChangesAsync(ct);
             return true;

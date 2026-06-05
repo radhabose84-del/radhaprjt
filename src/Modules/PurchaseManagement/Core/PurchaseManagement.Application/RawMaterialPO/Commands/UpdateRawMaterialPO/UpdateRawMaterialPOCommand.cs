@@ -11,6 +11,18 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.UpdateRawMateria
         public string? Remarks { get; set; }
         public int IsActive { get; set; }   // 1 = Active, 0 = Inactive
 
+        // Additional cotton details (all optional, free-text/scalar)
+        public string? CropYear { get; set; }
+        public string? ArrivalType { get; set; }
+        public DateTimeOffset? PassingDate { get; set; }
+        public int? CreditDays { get; set; }
+        public string? CottonApprovedBy { get; set; }
+        public DateTimeOffset? CottonApprovedOn { get; set; }
+
+        // Bare file name to attach. A TEMP_... name is renamed to "{PONumber}{ext}" on save;
+        // an already-attached "{PONumber}{ext}" name is kept; null/empty leaves the document untouched.
+        public string? DocumentPath { get; set; }
+
         // Header totals — saved as supplied in the payload
         public decimal? TaxableTotal { get; set; }
         public decimal? TotalGstAmount { get; set; }

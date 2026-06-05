@@ -27,6 +27,27 @@ namespace PurchaseManagement.Presentation.Validation.RawMaterialPO
             RuleFor(x => x.IsActive)
                 .InclusiveBetween(0, 1).WithMessage("IsActive must be either 0 or 1.");
 
+            // Additional cotton details (all optional)
+            RuleFor(x => x.CropYear)
+                .MaximumLength(20).WithMessage("CropYear cannot be longer than 20 characters.")
+                .When(x => !string.IsNullOrWhiteSpace(x.CropYear));
+
+            RuleFor(x => x.ArrivalType)
+                .MaximumLength(50).WithMessage("ArrivalType cannot be longer than 50 characters.")
+                .When(x => !string.IsNullOrWhiteSpace(x.ArrivalType));
+
+            RuleFor(x => x.CottonApprovedBy)
+                .MaximumLength(100).WithMessage("CottonApprovedBy cannot be longer than 100 characters.")
+                .When(x => !string.IsNullOrWhiteSpace(x.CottonApprovedBy));
+
+            RuleFor(x => x.CreditDays)
+                .GreaterThanOrEqualTo(0).WithMessage("CreditDays must be zero or positive.")
+                .When(x => x.CreditDays.HasValue);
+
+            RuleFor(x => x.DocumentPath)
+                .MaximumLength(500).WithMessage("DocumentPath cannot be longer than 500 characters.")
+                .When(x => !string.IsNullOrWhiteSpace(x.DocumentPath));
+
             RuleFor(x => x.Details)
                 .NotEmpty().WithMessage("At least one detail line is required.");
 

@@ -111,6 +111,19 @@ namespace PurchaseManagement.UnitTests.Validators.OCREntry
         }
 
         [Fact]
+        public async Task Validate_InvalidModeOfTransport_FailsValidation()
+        {
+            SetupAllValid();
+            _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(false);
+
+            var command = OCREntryBuilders.ValidCreateCommand();
+            command.ModeOfTransportId = 999;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldHaveValidationErrorFor(x => x.ModeOfTransportId);
+        }
+
+        [Fact]
         public async Task Validate_InvalidQualityTemplate_FailsValidation()
         {
             SetupAllValid();

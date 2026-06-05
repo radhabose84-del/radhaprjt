@@ -49,6 +49,9 @@ namespace PurchaseManagement.Domain.Entities
         public int? LorryFreightId { get; set; }        // borne-by A/C
         public MiscMaster? LorryFreight { get; set; }
 
+        public int? ModeOfTransportId { get; set; }      // Lorry / Rail / Container etc.
+        public MiscMaster? ModeOfTransport { get; set; }
+
         // ── Additional Cotton Details — scalar fields ──
         public string? MillSampleNo { get; set; }
         public string? CottonPassedBy { get; set; }

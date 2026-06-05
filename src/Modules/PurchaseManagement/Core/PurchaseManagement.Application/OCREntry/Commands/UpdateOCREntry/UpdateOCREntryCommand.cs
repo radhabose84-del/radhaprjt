@@ -36,6 +36,7 @@ namespace PurchaseManagement.Application.OCREntry.Commands.UpdateOCREntry
         public int? WeighmentId { get; set; }
         public int? TransitInsuranceId { get; set; }
         public int? LorryFreightId { get; set; }
+        public int? ModeOfTransportId { get; set; }
 
         // Rate unit — cross-module Inventory UOM (optional)
         public int? UomId { get; set; }

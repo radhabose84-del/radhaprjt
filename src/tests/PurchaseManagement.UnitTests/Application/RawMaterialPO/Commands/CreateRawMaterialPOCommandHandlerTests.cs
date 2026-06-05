@@ -20,10 +20,11 @@ namespace PurchaseManagement.UnitTests.Application.RawMaterialPO.Commands
         private readonly Mock<IDocumentSequenceLookup> _mockDocSeq = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
         private readonly Mock<IMiscMasterQueryRepository> _mockMisc = new(MockBehavior.Loose);
+        private readonly Mock<IRawMaterialPOFileStorage> _mockFileStorage = new(MockBehavior.Loose);
 
         private CreateRawMaterialPOCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object,
-                _mockDocSeq.Object, _mockIp.Object, _mockMisc.Object);
+                _mockDocSeq.Object, _mockIp.Object, _mockMisc.Object, _mockFileStorage.Object);
 
         private void SetupHappyPath(int newId = 1, decimal ocrQuantity = 800m, decimal alreadyConverted = 0m)
         {
@@ -140,6 +141,43 @@ namespace PurchaseManagement.UnitTests.Application.RawMaterialPO.Commands
             _mockMisc.Verify(
                 m => m.GetMiscMasterByName(MiscEnumEntity.ConversionStatus, MiscEnumEntity.FullyConverted),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_WithDocument_RenamesToPONumberAndPersists()
+        {
+            RawMaterialPOHeader? captured = null;
+            SetupHappyPath();
+
+            var entity = RawMaterialPOBuilders.ValidEntity();
+            entity.DocumentPath = "TEMP_abc.png";
+            _mockMapper.Setup(m => m.Map<RawMaterialPOHeader>(It.IsAny<object>())).Returns(entity);
+
+            _mockFileStorage
+                .Setup(s => s.RenameAsync("TEMP_abc.png", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("RMPO-2026-0001.png");
+            _mockCommandRepo
+                .Setup(r => r.CreateAsync(It.IsAny<RawMaterialPOHeader>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .Callback<RawMaterialPOHeader, int, CancellationToken>((e, _, __) => captured = e)
+                .ReturnsAsync(1);
+
+            await CreateSut().Handle(RawMaterialPOBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            _mockFileStorage.Verify(
+                s => s.RenameAsync("TEMP_abc.png", It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+            captured!.DocumentPath.Should().Be("RMPO-2026-0001.png");
+        }
+
+        [Fact]
+        public async Task Handle_WithoutDocument_DoesNotCallFileStorage()
+        {
+            SetupHappyPath();
+            await CreateSut().Handle(RawMaterialPOBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            _mockFileStorage.Verify(
+                s => s.RenameAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
     }
 }

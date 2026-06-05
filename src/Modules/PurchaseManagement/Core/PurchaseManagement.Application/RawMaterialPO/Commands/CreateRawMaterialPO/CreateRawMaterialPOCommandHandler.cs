@@ -20,6 +20,7 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.CreateRawMateria
         private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IIPAddressService _ipAddressService;
         private readonly IMiscMasterQueryRepository _misc;
+        private readonly IRawMaterialPOFileStorage _fileStorage;
 
         public CreateRawMaterialPOCommandHandler(
             IRawMaterialPOCommandRepository commandRepository,
@@ -28,7 +29,8 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.CreateRawMateria
             IMapper mapper,
             IDocumentSequenceLookup documentSequenceLookup,
             IIPAddressService ipAddressService,
-            IMiscMasterQueryRepository misc)
+            IMiscMasterQueryRepository misc,
+            IRawMaterialPOFileStorage fileStorage)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
@@ -37,6 +39,7 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.CreateRawMateria
             _documentSequenceLookup = documentSequenceLookup;
             _ipAddressService = ipAddressService;
             _misc = misc;
+            _fileStorage = fileStorage;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(CreateRawMaterialPOCommand request, CancellationToken cancellationToken)
@@ -74,7 +77,29 @@ namespace PurchaseManagement.Application.RawMaterialPO.Commands.CreateRawMateria
                     $"Conversion status '{statusName}' is not configured. Seed the '{MiscEnumEntity.ConversionStatus}' MiscType values.");
             entity.StatusId = statusMisc.Id;
 
-            var newId = await _commandRepository.CreateAsync(entity, transactionTypeId, cancellationToken);
+            // Rename the uploaded document (staged under a temp name during upload) to the PO number,
+            // then persist. Wrapped in try/catch so a persist failure cleans up the renamed file.
+            int newId;
+            string? savedFileName = null;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(entity.DocumentPath))
+                {
+                    savedFileName = await _fileStorage.RenameAsync(entity.DocumentPath, entity.PONumber, cancellationToken);
+                    entity.DocumentPath = savedFileName;
+                }
+
+                newId = await _commandRepository.CreateAsync(entity, transactionTypeId, cancellationToken);
+            }
+            catch
+            {
+                if (savedFileName != null)
+                {
+                    try { await _fileStorage.DeleteAsync(savedFileName, CancellationToken.None); }
+                    catch { /* best-effort cleanup */ }
+                }
+                throw;
+            }
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

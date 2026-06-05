@@ -50,6 +50,11 @@ namespace PurchaseManagement.IntegrationTests.Repositories.RawMaterialPO
                 UnitId = 1, PONumber = poNumber, PODate = DateTimeOffset.UtcNow,
                 OcrId = ocrId, ProcurementDocumentTypeId = docTypeId, StatusId = statusId,
                 TaxableTotal = qty * 68500m, TotalGstAmount = 0m, NetTotal = qty * 68500m,
+                CropYear = "2024-2025", ArrivalType = "Spot", CreditDays = 30,
+                CottonApprovedBy = "QA Lead",
+                PassingDate = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero),
+                CottonApprovedOn = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero),
+                DocumentPath = poNumber + ".png",
                 IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted,
                 RawMaterialPODetails = new List<RawMaterialPODetail>
                 {
@@ -111,6 +116,25 @@ namespace PurchaseManagement.IntegrationTests.Repositories.RawMaterialPO
             dto.Details.Should().HaveCount(1);
             dto.Details[0].ItemName.Should().Be("Cotton");
             dto.Details[0].HsnCode.Should().Be("5201");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_Should_Return_CottonFields_And_DocumentPath()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (ocrId, docTypeId, statusId) = await SeedAsync(ctx);
+            var id = await CreateCommandRepo(ctx).CreateAsync(BuildHeader(ocrId, docTypeId, statusId, "RMPO-Q-0010"), 0, CancellationToken.None);
+
+            var dto = await CreateQueryRepo().GetByIdAsync(id);
+
+            dto.Should().NotBeNull();
+            dto!.CropYear.Should().Be("2024-2025");
+            dto.ArrivalType.Should().Be("Spot");
+            dto.CreditDays.Should().Be(30);
+            dto.CottonApprovedBy.Should().Be("QA Lead");
+            dto.PassingDate.Should().Be(new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero));
+            dto.CottonApprovedOn.Should().Be(new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero));
+            dto.DocumentPath.Should().Be("RMPO-Q-0010.png");
         }
 
         [Fact]

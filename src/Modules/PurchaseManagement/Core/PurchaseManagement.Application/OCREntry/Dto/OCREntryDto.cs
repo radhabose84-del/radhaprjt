@@ -63,6 +63,9 @@ namespace PurchaseManagement.Application.OCREntry.Dto
         public int? LorryFreightId { get; set; }
         public string? LorryFreightName { get; set; }
 
+        public int? ModeOfTransportId { get; set; }
+        public string? ModeOfTransportName { get; set; }
+
         // Additional Cotton Details — scalar fields
         public string? MillSampleNo { get; set; }
         public string? CottonPassedBy { get; set; }

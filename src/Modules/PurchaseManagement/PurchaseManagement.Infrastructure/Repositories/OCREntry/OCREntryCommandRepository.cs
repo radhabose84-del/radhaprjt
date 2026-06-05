@@ -88,6 +88,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             existing.WeighmentId = entity.WeighmentId;
             existing.TransitInsuranceId = entity.TransitInsuranceId;
             existing.LorryFreightId = entity.LorryFreightId;
+            existing.ModeOfTransportId = entity.ModeOfTransportId;
             existing.MillSampleNo = entity.MillSampleNo;
             existing.CottonPassedBy = entity.CottonPassedBy;
             existing.GstPercentage = entity.GstPercentage;

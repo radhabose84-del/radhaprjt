@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PurchaseManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PurchaseManagement.Infrastructure.Data;
 namespace PurchaseManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260605120725_OCRModeOfTransport")]
+    partial class OCRModeOfTransport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -6441,15 +6444,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ArrivalType")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("CottonApprovedBy")
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<DateTimeOffset?>("CottonApprovedOn")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
@@ -6463,15 +6457,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("CreatedIP")
                         .IsRequired()
                         .HasColumnType("varchar(20)");
-
-                    b.Property<int?>("CreditDays")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CropYear")
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("DocumentPath")
-                        .HasColumnType("varchar(500)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -6506,9 +6491,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("PONumber")
                         .IsRequired()
                         .HasColumnType("varchar(20)");
-
-                    b.Property<DateTimeOffset?>("PassingDate")
-                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("ProcurementDocumentTypeId")
                         .HasColumnType("int");

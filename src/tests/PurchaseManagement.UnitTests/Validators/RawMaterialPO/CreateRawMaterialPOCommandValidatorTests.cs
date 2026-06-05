@@ -67,5 +67,43 @@ namespace PurchaseManagement.UnitTests.Validators.RawMaterialPO
             var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldHaveValidationErrorFor(x => x.Details);
         }
+
+        [Fact]
+        public async Task Validate_ValidCottonFields_Passes()
+        {
+            SetupValid();
+            var command = RawMaterialPOBuilders.ValidCreateCommand();
+            command.CropYear = "2024-2025";
+            command.ArrivalType = "Spot";
+            command.CreditDays = 30;
+            command.CottonApprovedBy = "QA Lead";
+            command.PassingDate = new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
+            command.CottonApprovedOn = new DateTimeOffset(2026, 6, 2, 0, 0, 0, TimeSpan.Zero);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact]
+        public async Task Validate_NegativeCreditDays_Fails()
+        {
+            SetupValid();
+            var command = RawMaterialPOBuilders.ValidCreateCommand();
+            command.CreditDays = -1;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldHaveValidationErrorFor(x => x.CreditDays);
+        }
+
+        [Fact]
+        public async Task Validate_CropYearTooLong_Fails()
+        {
+            SetupValid();
+            var command = RawMaterialPOBuilders.ValidCreateCommand();
+            command.CropYear = new string('X', 21);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldHaveValidationErrorFor(x => x.CropYear);
+        }
     }
 }
