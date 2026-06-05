@@ -172,13 +172,16 @@ jobs:
             --results-directory qa-reports
 
       # ── Step 13: Upload all reports (always) ────────────────────────────
+      # DISABLED (if: false): Gitea's artifact service is unreachable FROM the runner — the upload
+      # endpoint resolves to localhost:3000 (the runner box, 130) instead of the Gitea host
+      # 192.168.1.126:3000, so every upload ECONNREFUSEDs, wastes ~2 min retrying, then 500s on
+      # finalize and fails the job. The reports are still written to qa-reports\ on the runner.
+      # RE-ENABLE by changing `if: false` -> `if: always()` once the artifact endpoint is fixed
+      # server-side: re-register the act_runner against http://192.168.1.126:3000, or set Gitea's
+      # ROOT_URL (app.ini) to http://192.168.1.126:3000 so the runner gets a reachable URL.
       - name: Upload test reports
         uses: actions/upload-artifact@v3
-        if: always()
-        # Don't fail the whole job if the Gitea artifact service is unreachable (it currently
-        # resolves to localhost:3000 on the runner instead of the Gitea host 192.168.1.126:3000).
-        # The reports are nice-to-have; a green/red job should reflect the TESTS, not artifact I/O.
-        continue-on-error: true
+        if: false
         with:
           name: QA-Test-Reports
           path: qa-reports/
