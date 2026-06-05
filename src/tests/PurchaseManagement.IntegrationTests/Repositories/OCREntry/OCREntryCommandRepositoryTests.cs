@@ -200,5 +200,69 @@ namespace PurchaseManagement.IntegrationTests.Repositories.OCREntry
             var saved = await ctx.Set<PurchaseManagement.Domain.Entities.OCREntry>().FirstAsync(x => x.Id == created.Id);
             saved.StatusId.Should().Be(miscId);
         }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_QualityParameters()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (miscId, paymentTermId) = await SeedPrerequisitesAsync(ctx);
+
+            var entity = BuildEntity(miscId, paymentTermId, "OCR-2026-QP01");
+            entity.QualityTemplateId = 20;
+            entity.OcrQualityParameters = new List<PurchaseManagement.Domain.Entities.OCRQualityParameter>
+            {
+                new() { QualityTemplateId = 20, ParamId = 30, Value = "29.50+ MM", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted },
+                new() { QualityTemplateId = 20, ParamId = 31, Value = "3.70 - 4.30", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+            };
+
+            var created = await CreateRepository(ctx).CreateAsync(entity, 0, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var rows = await ctx.Set<PurchaseManagement.Domain.Entities.OCRQualityParameter>()
+                .Where(x => x.OcrId == created.Id)
+                .OrderBy(x => x.ParamId)
+                .ToListAsync();
+
+            rows.Should().HaveCount(2);
+            rows[0].ParamId.Should().Be(30);
+            rows[0].Value.Should().Be("29.50+ MM");
+            rows[0].QualityTemplateId.Should().Be(20);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_ReplaceAll_QualityParameters()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (miscId, paymentTermId) = await SeedPrerequisitesAsync(ctx);
+
+            var entity = BuildEntity(miscId, paymentTermId, "OCR-2026-QP02");
+            entity.QualityTemplateId = 20;
+            entity.OcrQualityParameters = new List<PurchaseManagement.Domain.Entities.OCRQualityParameter>
+            {
+                new() { QualityTemplateId = 20, ParamId = 30, Value = "old-A", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted },
+                new() { QualityTemplateId = 20, ParamId = 31, Value = "old-B", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+            };
+            var created = await CreateRepository(ctx).CreateAsync(entity, 0, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            // Replace-all: submit a single, different parameter row.
+            var update = BuildEntity(miscId, paymentTermId, "OCR-2026-QP02");
+            update.Id = created.Id;
+            update.QualityTemplateId = 20;
+            update.OcrQualityParameters = new List<PurchaseManagement.Domain.Entities.OCRQualityParameter>
+            {
+                new() { QualityTemplateId = 20, ParamId = 99, Value = "new-C", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted }
+            };
+            await CreateRepository(ctx).UpdateAsync(update, CancellationToken.None);
+            ctx.ChangeTracker.Clear();
+
+            var rows = await ctx.Set<PurchaseManagement.Domain.Entities.OCRQualityParameter>()
+                .Where(x => x.OcrId == created.Id)
+                .ToListAsync();
+
+            rows.Should().HaveCount(1);
+            rows[0].ParamId.Should().Be(99);
+            rows[0].Value.Should().Be("new-C");
+        }
     }
 }

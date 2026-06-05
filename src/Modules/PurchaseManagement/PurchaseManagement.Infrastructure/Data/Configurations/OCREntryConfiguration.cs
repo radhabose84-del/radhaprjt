@@ -38,6 +38,22 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Purchase
             b.Property(x => x.DocumentPath)
                 .HasColumnType("varchar(500)");
 
+            // ── Additional Cotton Details — scalar fields ──
+            b.Property(x => x.MillSampleNo)
+                .HasColumnType("varchar(50)");
+
+            b.Property(x => x.CottonPassedBy)
+                .HasColumnType("varchar(100)");
+
+            b.Property(x => x.Remarks)
+                .HasColumnType("varchar(500)");
+
+            b.Property(x => x.GstPercentage).HasPrecision(5, 2);
+
+            // ── Cross-module FK columns (no DB constraint) ──
+            b.Property(x => x.UomId);               // Inventory UOM (rate unit)
+            b.Property(x => x.QualityTemplateId);   // QC.QualityTemplate
+
             // ── Cross-module FK columns (no DB constraint) ──
             b.Property(x => x.SupplierId).IsRequired();
             b.Property(x => x.LocationId).IsRequired();
@@ -74,6 +90,27 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Purchase
             b.HasOne(x => x.PaymentTerm)
                 .WithMany()
                 .HasForeignKey(x => x.PaymentTermId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ── Additional Cotton Details — same-module MiscMaster FKs (nullable, Restrict) ──
+            b.HasOne(x => x.PaymentMode)
+                .WithMany()
+                .HasForeignKey(x => x.PaymentModeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.Weighment)
+                .WithMany()
+                .HasForeignKey(x => x.WeighmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.TransitInsurance)
+                .WithMany()
+                .HasForeignKey(x => x.TransitInsuranceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.LorryFreight)
+                .WithMany()
+                .HasForeignKey(x => x.LorryFreightId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // ── Indexes ──

@@ -1,5 +1,6 @@
 using Contracts.Common;
 using MediatR;
+using PurchaseManagement.Application.OCREntry.Dto;
 
 namespace PurchaseManagement.Application.OCREntry.Commands.UpdateOCREntry
 {
@@ -29,6 +30,25 @@ namespace PurchaseManagement.Application.OCREntry.Commands.UpdateOCREntry
         public decimal Rate { get; set; }
         public DateTimeOffset? ExpectedDispatchDate { get; set; }
         public string? DocumentPath { get; set; }
+
+        // Additional Cotton Details — same-module MiscMaster FKs (optional)
+        public int? PaymentModeId { get; set; }
+        public int? WeighmentId { get; set; }
+        public int? TransitInsuranceId { get; set; }
+        public int? LorryFreightId { get; set; }
+
+        // Rate unit — cross-module Inventory UOM (optional)
+        public int? UomId { get; set; }
+
+        // Additional Cotton Details — scalar fields
+        public string? MillSampleNo { get; set; }
+        public string? CottonPassedBy { get; set; }
+        public decimal? GstPercentage { get; set; }
+        public string? Remarks { get; set; }
+
+        // Quality template + dynamic cotton-quality parameter values (replace-all on update)
+        public int? QualityTemplateId { get; set; }
+        public List<OCRQualityParameterInputDto>? QualityParameters { get; set; }
 
         public int IsActive { get; set; }   // 1 = Active, 0 = Inactive
     }

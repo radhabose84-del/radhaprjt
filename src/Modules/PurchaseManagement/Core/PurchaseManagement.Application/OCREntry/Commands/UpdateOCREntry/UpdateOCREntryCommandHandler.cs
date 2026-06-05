@@ -32,6 +32,20 @@ namespace PurchaseManagement.Application.OCREntry.Commands.UpdateOCREntry
         {
             var entity = _mapper.Map<Domain.Entities.OCREntry>(request);
 
+            // Rebuild dynamic cotton-quality parameter rows (replace-all on update). Only when a
+            // template is selected; otherwise the repo clears any existing rows.
+            if (request.QualityTemplateId.HasValue && request.QualityParameters is { Count: > 0 })
+            {
+                entity.OcrQualityParameters = request.QualityParameters
+                    .Select(p =>
+                    {
+                        var child = _mapper.Map<Domain.Entities.OCRQualityParameter>(p);
+                        child.QualityTemplateId = request.QualityTemplateId.Value;
+                        return child;
+                    })
+                    .ToList();
+            }
+
             // A freshly uploaded document arrives under a temp name — rename it to the OCR number.
             if (!string.IsNullOrWhiteSpace(entity.DocumentPath) &&
                 entity.DocumentPath.StartsWith("TEMP_", StringComparison.OrdinalIgnoreCase))

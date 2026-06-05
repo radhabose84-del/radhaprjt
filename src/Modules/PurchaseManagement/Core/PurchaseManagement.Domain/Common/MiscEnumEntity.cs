@@ -61,7 +61,15 @@ namespace PurchaseManagement.Domain.Common
         public const string TransactionTypeGRN = "GRN";
         public const string TransactionTypeVendorEvaluation = "Vendor Evaluation";
         public const string TransactionTypeOCR = "OCR";
+        public const string TransactionTypeRMPO = "Raw Material Purchase Order";
         public const string ModulePurchase = "Purchase";
+
+        // OCR → PO conversion status — MiscMaster type "ConversionStatus" (seeded via SQL).
+        // Stored on RawMaterialPOHeader.StatusId (auto-calculated); also derived for OCR display.
+        public const string ConversionStatus = "ConversionStatus";
+        public const string NotConverted = "Not Converted";
+        public const string PartiallyConverted = "Partially Converted";
+        public const string FullyConverted = "Fully Converted";
 
         // Purchase Return (RTV) — MiscMaster type codes (seeded via migration)
         public const string RtvStatus = "RtvStatus";

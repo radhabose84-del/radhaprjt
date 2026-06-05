@@ -14,6 +14,9 @@ namespace PurchaseManagement.Application.Common.Interfaces.IOCREntry
         /// <summary>True when the OCR may still be edited/deleted (status is not Approved/Converted).</summary>
         Task<bool> IsEditableAsync(int id);
 
+        /// <summary>True when the OCR is linked to a Raw Material PO (blocks delete — Rule #25).</summary>
+        Task<bool> SoftDeleteValidationAsync(int id);
+
         // FK existence (same-module)
         Task<bool> MiscMasterExistsAsync(int id);
         Task<bool> PaymentTermExistsAsync(int id);

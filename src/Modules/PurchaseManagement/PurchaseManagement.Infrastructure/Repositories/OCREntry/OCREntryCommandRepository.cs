@@ -59,6 +59,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
         public async Task<int> UpdateAsync(Domain.Entities.OCREntry entity, CancellationToken ct)
         {
             var existing = await _db.Set<Domain.Entities.OCREntry>()
+                .Include(x => x.OcrQualityParameters)
                 .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted, ct)
                 ?? throw new ExceptionRules("OCR not found.");
 
@@ -80,7 +81,34 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             existing.Rate = entity.Rate;
             existing.ExpectedDispatchDate = entity.ExpectedDispatchDate;
             existing.DocumentPath = entity.DocumentPath;
+
+            // Additional Cotton Details
+            existing.PaymentModeId = entity.PaymentModeId;
+            existing.UomId = entity.UomId;
+            existing.WeighmentId = entity.WeighmentId;
+            existing.TransitInsuranceId = entity.TransitInsuranceId;
+            existing.LorryFreightId = entity.LorryFreightId;
+            existing.MillSampleNo = entity.MillSampleNo;
+            existing.CottonPassedBy = entity.CottonPassedBy;
+            existing.GstPercentage = entity.GstPercentage;
+            existing.Remarks = entity.Remarks;
+            existing.QualityTemplateId = entity.QualityTemplateId;
+
             existing.IsActive = entity.IsActive;
+
+            // Replace-all cotton-quality parameters: drop existing rows, insert the submitted set.
+            if (existing.OcrQualityParameters is { Count: > 0 })
+                _db.Set<Domain.Entities.OCRQualityParameter>().RemoveRange(existing.OcrQualityParameters);
+
+            if (entity.OcrQualityParameters is { Count: > 0 })
+            {
+                foreach (var child in entity.OcrQualityParameters)
+                {
+                    child.Id = 0;
+                    child.OcrId = existing.Id;
+                }
+                await _db.Set<Domain.Entities.OCRQualityParameter>().AddRangeAsync(entity.OcrQualityParameters, ct);
+            }
 
             await _db.SaveChangesAsync(ct);
             return existing.Id;

@@ -1,4 +1,5 @@
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Finance;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using PurchaseManagement.Domain.Entities.GRN.GRNEntry;
@@ -32,10 +33,12 @@ namespace PurchaseManagement.IntegrationTests.Repositories.GRN.GRNEntry
 
         public GRNEntryCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
+        private readonly Mock<IDocumentSequenceLookup> _docSeqMock = new(MockBehavior.Loose);
+
         private GRNEntryCommandRepository CreateRepo(ApplicationDbContext ctx)
         {
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new GRNEntryCommandRepository(ctx, _fixture.IpMock.Object, conn);
+            return new GRNEntryCommandRepository(ctx, _fixture.IpMock.Object, conn, _docSeqMock.Object);
         }
 
         [Fact]

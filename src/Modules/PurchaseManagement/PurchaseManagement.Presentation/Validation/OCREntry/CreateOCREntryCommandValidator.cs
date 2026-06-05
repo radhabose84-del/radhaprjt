@@ -1,6 +1,7 @@
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.QC;
 using Contracts.Interfaces.Lookups.Users;
 using FluentValidation;
 using PurchaseManagement.Application.Common.Interfaces.IOCREntry;
@@ -16,7 +17,9 @@ namespace PurchaseManagement.Presentation.Validation.OCREntry
             ILocationMasterLookup locationLookup,
             IStationLookup stationLookup,
             IItemLookup itemLookup,
-            ICountMasterLookup countLookup)
+            ICountMasterLookup countLookup,
+            IUOMLookup uomLookup,
+            IQualityTemplateLookup qualityTemplateLookup)
         {
             RuleFor(x => x.OcrDate).NotEmpty().WithMessage("OcrDate is required.");
 
@@ -81,6 +84,61 @@ namespace PurchaseManagement.Presentation.Validation.OCREntry
 
             RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("Quantity must be greater than zero.");
             RuleFor(x => x.Rate).GreaterThan(0).WithMessage("Rate must be greater than zero.");
+
+            // ── Additional Cotton Details — optional MiscMaster FKs ──
+            RuleFor(x => x.PaymentModeId!.Value)
+                .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
+                .WithMessage("PaymentModeId is inactive/deleted.")
+                .When(x => x.PaymentModeId.HasValue && x.PaymentModeId.Value > 0);
+
+            RuleFor(x => x.UomId!.Value)
+                .MustAsync(async (id, ct) => (await uomLookup.GetByIdsAsync(new[] { id }, ct)).Any())
+                .WithMessage("UomId is invalid/inactive.")
+                .When(x => x.UomId.HasValue && x.UomId.Value > 0);
+
+            RuleFor(x => x.WeighmentId!.Value)
+                .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
+                .WithMessage("WeighmentId is inactive/deleted.")
+                .When(x => x.WeighmentId.HasValue && x.WeighmentId.Value > 0);
+
+            RuleFor(x => x.TransitInsuranceId!.Value)
+                .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
+                .WithMessage("TransitInsuranceId is inactive/deleted.")
+                .When(x => x.TransitInsuranceId.HasValue && x.TransitInsuranceId.Value > 0);
+
+            RuleFor(x => x.LorryFreightId!.Value)
+                .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
+                .WithMessage("LorryFreightId is inactive/deleted.")
+                .When(x => x.LorryFreightId.HasValue && x.LorryFreightId.Value > 0);
+
+            // ── Additional Cotton Details — free-text length limits ──
+            RuleFor(x => x.MillSampleNo).MaximumLength(50)
+                .WithMessage("MillSampleNo cannot be longer than 50 characters.");
+            RuleFor(x => x.CottonPassedBy).MaximumLength(100)
+                .WithMessage("CottonPassedBy cannot be longer than 100 characters.");
+            RuleFor(x => x.Remarks).MaximumLength(500)
+                .WithMessage("Remarks cannot be longer than 500 characters.");
+
+            // ── Quality template + dynamic parameters (optional) ──
+            RuleFor(x => x.QualityTemplateId!.Value)
+                .MustAsync(async (id, ct) => (await qualityTemplateLookup.GetByIdsAsync(new[] { id }, ct)).Any())
+                .WithMessage("QualityTemplateId is invalid/inactive.")
+                .When(x => x.QualityTemplateId.HasValue && x.QualityTemplateId.Value > 0);
+
+            When(x => x.QualityParameters is { Count: > 0 }, () =>
+            {
+                RuleForEach(x => x.QualityParameters!).ChildRules(p =>
+                {
+                    p.RuleFor(d => d.ParamId)
+                        .GreaterThan(0).WithMessage("ParamId is required.")
+                        .MustAsync(async (id, ct) => (await qualityTemplateLookup.GetParametersByIdsAsync(new[] { id }, ct)).Any())
+                        .WithMessage("ParamId is invalid/inactive.")
+                        .When(d => d.ParamId > 0);
+
+                    p.RuleFor(d => d.Value).MaximumLength(200)
+                        .WithMessage("Value cannot be longer than 200 characters.");
+                });
+            });
         }
     }
 }
