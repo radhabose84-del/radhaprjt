@@ -43,6 +43,8 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
         public string? MillSampleNo { get; set; }
         public string? CottonPassedBy { get; set; }
         public decimal? GstPercentage { get; set; }
+        public decimal? DiscountPercentage { get; set; }
+        public decimal? InsurancePercentage { get; set; }
         public string? Remarks { get; set; }
 
         // Quality template + dynamic cotton-quality parameter values
