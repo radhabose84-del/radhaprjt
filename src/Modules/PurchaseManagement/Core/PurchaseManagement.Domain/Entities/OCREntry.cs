@@ -36,6 +36,31 @@ namespace PurchaseManagement.Domain.Entities
         public int PaymentTermId { get; set; }
         public PaymentTermMaster PaymentTerm { get; set; } = default!;
 
+        // ── Additional Cotton Details — same-module MiscMaster FKs (optional, no cascade) ──
+        public int? PaymentModeId { get; set; }
+        public MiscMaster? PaymentMode { get; set; }
+
+        public int? WeighmentId { get; set; }           // Spot / Mill
+        public MiscMaster? Weighment { get; set; }
+
+        public int? TransitInsuranceId { get; set; }    // borne-by A/C
+        public MiscMaster? TransitInsurance { get; set; }
+
+        public int? LorryFreightId { get; set; }        // borne-by A/C
+        public MiscMaster? LorryFreight { get; set; }
+
+        // ── Additional Cotton Details — scalar fields ──
+        public string? MillSampleNo { get; set; }
+        public string? CottonPassedBy { get; set; }
+        public decimal? GstPercentage { get; set; }
+        public string? Remarks { get; set; }
+
+        // ── Cross-module FK → Inventory UOM master (rate unit, e.g. Candy/Kg). No DB constraint. ──
+        public int? UomId { get; set; }
+
+        // ── Cross-module FK → QC.QualityTemplate (optional, no DB constraint) ──
+        public int? QualityTemplateId { get; set; }
+
         // ── Cross-module FKs — NO DB constraint, populated via lookup on read ──
         public int SupplierId { get; set; }   // Party.PartyMaster (ISupplierLookup)
         public int LocationId { get; set; }   // AppData.Location  (new location-master lookup)
@@ -51,5 +76,8 @@ namespace PurchaseManagement.Domain.Entities
 
         // Single supporting document (WhatsApp screenshot / spec / discussion copy)
         public string? DocumentPath { get; set; }
+
+        // ── Child: dynamic cotton-quality parameter values (driven by QualityTemplateId) ──
+        public ICollection<OCRQualityParameter>? OcrQualityParameters { get; set; }
     }
 }
