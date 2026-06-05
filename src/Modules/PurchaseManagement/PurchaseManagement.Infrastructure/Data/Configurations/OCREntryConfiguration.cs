@@ -49,6 +49,8 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Purchase
                 .HasColumnType("varchar(500)");
 
             b.Property(x => x.GstPercentage).HasPrecision(5, 2);
+            b.Property(x => x.DiscountPercentage).HasPrecision(5, 2);
+            b.Property(x => x.InsurancePercentage).HasPrecision(5, 2);
 
             // ── Cross-module FK columns (no DB constraint) ──
             b.Property(x => x.UomId);               // Inventory UOM (rate unit)

@@ -91,6 +91,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             existing.MillSampleNo = entity.MillSampleNo;
             existing.CottonPassedBy = entity.CottonPassedBy;
             existing.GstPercentage = entity.GstPercentage;
+            existing.DiscountPercentage = entity.DiscountPercentage;
+            existing.InsurancePercentage = entity.InsurancePercentage;
             existing.Remarks = entity.Remarks;
             existing.QualityTemplateId = entity.QualityTemplateId;
 

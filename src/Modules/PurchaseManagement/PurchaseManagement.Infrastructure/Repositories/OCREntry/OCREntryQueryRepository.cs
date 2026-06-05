@@ -57,7 +57,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 o.WeighmentId, wgh.Description AS WeighmentName,
                 o.TransitInsuranceId, tins.Description AS TransitInsuranceName,
                 o.LorryFreightId, lfr.Description AS LorryFreightName,
-                o.MillSampleNo, o.CottonPassedBy, o.GstPercentage, o.Remarks,
+                o.MillSampleNo, o.CottonPassedBy, o.GstPercentage,
+                o.DiscountPercentage, o.InsurancePercentage, o.Remarks,
                 o.UomId, o.QualityTemplateId,
                 o.IsActive, o.IsDeleted,
                 CAST(CASE WHEN EXISTS (

@@ -53,6 +53,8 @@ namespace PurchaseManagement.Domain.Entities
         public string? MillSampleNo { get; set; }
         public string? CottonPassedBy { get; set; }
         public decimal? GstPercentage { get; set; }
+        public decimal? DiscountPercentage { get; set; }
+        public decimal? InsurancePercentage { get; set; }
         public string? Remarks { get; set; }
 
         // ── Cross-module FK → Inventory UOM master (rate unit, e.g. Candy/Kg). No DB constraint. ──

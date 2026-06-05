@@ -67,6 +67,8 @@ namespace PurchaseManagement.Application.OCREntry.Dto
         public string? MillSampleNo { get; set; }
         public string? CottonPassedBy { get; set; }
         public decimal? GstPercentage { get; set; }
+        public decimal? DiscountPercentage { get; set; }
+        public decimal? InsurancePercentage { get; set; }
         public string? Remarks { get; set; }
 
         // Rate unit — cross-module Inventory UOM (name via lookup)

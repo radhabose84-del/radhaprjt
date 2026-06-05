@@ -111,6 +111,14 @@ namespace PurchaseManagement.Presentation.Validation.OCREntry
                 .WithMessage("LorryFreightId is inactive/deleted.")
                 .When(x => x.LorryFreightId.HasValue && x.LorryFreightId.Value > 0);
 
+            // ── Additional Cotton Details — percentage ranges (0–100) ──
+            RuleFor(x => x.DiscountPercentage!.Value)
+                .InclusiveBetween(0m, 100m).WithMessage("DiscountPercentage must be between 0 and 100.")
+                .When(x => x.DiscountPercentage.HasValue);
+            RuleFor(x => x.InsurancePercentage!.Value)
+                .InclusiveBetween(0m, 100m).WithMessage("InsurancePercentage must be between 0 and 100.")
+                .When(x => x.InsurancePercentage.HasValue);
+
             // ── Additional Cotton Details — free-text length limits ──
             RuleFor(x => x.MillSampleNo).MaximumLength(50)
                 .WithMessage("MillSampleNo cannot be longer than 50 characters.");
