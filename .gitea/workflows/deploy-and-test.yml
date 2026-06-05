@@ -118,21 +118,25 @@ jobs:
       - name: Wait for QA server to be ready
         shell: powershell
         run: |
-          Write-Host "Waiting 20 seconds for IIS to recycle..."
-          Start-Sleep -Seconds 20
+          # The in-process app does a heavy cold start after the recycle (JIT + DI for 10+ modules,
+          # DB connections, Hangfire, MassTransit), which can take well over a minute on this shared
+          # box. Give it up to ~30s + 12x10s = ~2.5 min, with a bounded per-attempt timeout so a
+          # mid-startup hang doesn't stall the loop.
+          Write-Host "Waiting 30 seconds for IIS to recycle + app cold-start..."
+          Start-Sleep -Seconds 30
           $ready = $false
-          for ($i = 1; $i -le 5; $i++) {
+          for ($i = 1; $i -le 12; $i++) {
             try {
               Invoke-RestMethod "$env:QAServer__BaseUrl/api/auth/deactivate-user-sessionByUsername" `
                 -Method Post -ContentType "application/json" `
                 -Body '{"username":"testsales","password":"Test@1234"}' `
-                -ErrorAction Stop | Out-Null
+                -TimeoutSec 15 -ErrorAction Stop | Out-Null
               $ready = $true
               Write-Host "QA server is ready."
               break
             } catch {
-              Write-Host "Attempt $i/5 - waiting 5s..."
-              Start-Sleep -Seconds 5
+              Write-Host "Attempt $i/12 - app still warming up, waiting 10s..."
+              Start-Sleep -Seconds 10
             }
           }
           if (-not $ready) { throw "QA server not responding after deployment." }
@@ -183,14 +187,15 @@ jobs:
           name: QA-Test-Reports
           path: qa-reports/
 
-      # ── Step 14: Notify Slack on failure ────────────────────────────────
-      # Parses every .trx for failed tests and posts a grouped summary. The failed test
-      # names carry their class (US_UM_01..., {Entity}QATests) so the owner is identifiable.
-      - name: Notify Slack on failure
-        if: failure()
+      # ── Step 14: Notify Slack on EVERY run (pass or fail) ───────────────
+      # Runs always(): posts a green check on success, a red X + failed-test list on failure.
+      # Test counts/names come from the .trx files. (JIRA below stays failure-only.)
+      - name: Notify Slack (pass or fail)
+        if: always()
         shell: powershell
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          JOB_STATUS: ${{ job.status }}
         run: |
           if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set - skipping."; exit 0 }
 
@@ -208,15 +213,21 @@ jobs:
 
           $branch = "${{ github.ref_name }}"
           $sha    = "${{ github.sha }}".Substring(0,8)
-          $lines  = ($failed | Select-Object -First 20 | ForEach-Object { "- $_" }) -join "`n"
-          if ($failed.Count -gt 20) { $lines += "`n...and $($failed.Count - 20) more" }
-          $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
-                  "Passed: $pass  Failed: $fail  Total: $total`n" +
-                  "*Failed tests:*`n$lines"
+
+          if ($env:JOB_STATUS -eq 'success') {
+            $text = ":white_check_mark: *QA pipeline passed* on ``$branch`` ($sha)`n" +
+                    "Passed: $pass  Failed: $fail  Total: $total"
+          } else {
+            $lines = ($failed | Select-Object -First 20 | ForEach-Object { "- $_" }) -join "`n"
+            if ($failed.Count -gt 20) { $lines += "`n...and $($failed.Count - 20) more" }
+            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
+                    "Passed: $pass  Failed: $fail  Total: $total`n" +
+                    "*Failed tests:*`n$lines"
+          }
 
           $payload = @{ text = $text } | ConvertTo-Json -Depth 4
           Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
-          Write-Host "Slack notified."
+          Write-Host "Slack notified ($($env:JOB_STATUS))."
 
       # ── Step 15: Create or update JIRA bug on failure ───────────────────
       # For each failed test: dedup-search JIRA for an open bug with the same label +
