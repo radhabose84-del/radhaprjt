@@ -102,5 +102,19 @@ namespace PurchaseManagement.Domain.Common
 
         // Bale barcode allocation — MiscMaster type code + status values (seeded via SQL).
         public const string BarcodeAllocationStatus = "BarcodeAllocationStatus";
+
+        // Freight RFQ & Comparison — MiscMaster type codes (seeded via SQL).
+        public const string FreightRfqType = "FreightRfqType";              // values: "PO Based" / "Non-PO Based"
+        public const string FreightRateBasis = "FreightRateBasis";          // values: "Per Bale" / "Per MT" / "Per Vehicle"
+        public const string FreightRfqStatus = "FreightRfqStatus";          // values: Draft / Pending / Approved / Rejected
+
+        // Freight RFQ type values (seeded under FreightRfqType).
+        public const string FreightRfqTypePoBased = "PO Based";
+        public const string FreightRfqTypeNonPoBased = "Non-PO Based";
+
+        // Freight rate basis values (seeded under FreightRateBasis) — drive freight value calculation.
+        public const string FreightRateBasisPerBale = "Per Bale";
+        public const string FreightRateBasisPerMt = "Per MT";
+        public const string FreightRateBasisPerVehicle = "Per Vehicle";
     }
 }

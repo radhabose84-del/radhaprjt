@@ -8,6 +8,8 @@ using PurchaseManagement.Infrastructure.Data.Configurations;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using PurchaseManagement.Infrastructure.Data.Configurations.Quotation.RfqEntry;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationEntry;
+using PurchaseManagement.Domain.Entities.FreightRfq;
+using PurchaseManagement.Infrastructure.Data.Configurations.FreightRfq;
 using Infrastructure.Persistence.Configurations;
 using PurchaseManagement.Infrastructure.Data.Configurations.Quotation.QuotationFinal;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationCompare;
@@ -98,6 +100,8 @@ namespace PurchaseManagement.Infrastructure.Data
         //QuotationEntry        
         public DbSet<QuotationHeader> QuotationHeaders { get; set; }
         public DbSet<QuotationDetail> QuotationDetails { get; set; }
+        public DbSet<FreightRfqHeader> FreightRfqHeaders { get; set; }
+        public DbSet<FreightRfqQuotation> FreightRfqQuotations { get; set; }
         public DbSet<TnCTemplateMaster> TnCTemplateMaster { get; set; }
         public DbSet<TnCTemplateApplicability> TnCTemplateApplicability { get; set; }        
         public DbSet<ActivityLog> ActivityLogs { get; set; }
@@ -202,6 +206,9 @@ namespace PurchaseManagement.Infrastructure.Data
             //QuotationEntry
             modelBuilder.ApplyConfiguration(new QuotationHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new QuotationDetailConfiguration());
+
+            modelBuilder.ApplyConfiguration(new FreightRfqHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new FreightRfqQuotationConfiguration());
 
 
             modelBuilder.ApplyConfiguration(new ActivityLogConfiguration());
