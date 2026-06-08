@@ -47,8 +47,6 @@ namespace SalesManagement.Application.SalesOrder.Queries.GetPendingSalesOrderByI
         public string? PaymentTypeName { get; set; }
         public int FreightTypeId { get; set; }
         public string? FreightTypeName { get; set; }
-        public int? CountListId { get; set; }
-        public string? CountListName { get; set; }
         public string? Remarks { get; set; }
 
         // MD Discount
