@@ -92,6 +92,9 @@ namespace PurchaseManagement.Application.OCREntry.Dto
         // True when a (non-deleted) Raw Material PO has been created from this OCR.
         // When a PO exists the OCR can no longer be edited or deleted.
         public bool IsPoCreated { get; set; }
+
+        // Edit/Delete are allowed only while no Raw Material PO has been raised
+        // against this OCR. Once a PO exists the record is locked.
         public bool CanEdit => !IsPoCreated;
         public bool CanDelete => !IsPoCreated;
 

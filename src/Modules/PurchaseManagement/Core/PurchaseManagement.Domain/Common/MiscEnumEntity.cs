@@ -62,6 +62,7 @@ namespace PurchaseManagement.Domain.Common
         public const string TransactionTypeVendorEvaluation = "Vendor Evaluation";
         public const string TransactionTypeOCR = "OCR";
         public const string TransactionTypeRMPO = "Raw Material Purchase Order";
+        public const string TransactionTypeArrival = "Arrival Entry";
         public const string ModulePurchase = "Purchase";
 
         // OCR → PO conversion status — MiscMaster type "ConversionStatus" (seeded via SQL).

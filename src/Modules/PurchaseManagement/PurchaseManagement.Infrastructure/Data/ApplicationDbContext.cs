@@ -36,6 +36,8 @@ using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.Import
 using PurchaseManagement.Infrastructure.Data.Configurations.Purchase;
 using PurchaseManagement.Domain.Entities.RawMaterialPO;
 using PurchaseManagement.Infrastructure.Data.Configurations.RawMaterialPO;
+using PurchaseManagement.Domain.Entities.Arrival;
+using PurchaseManagement.Infrastructure.Data.Configurations.Arrival;
 using PurchaseManagement.Domain.Entities.IssueReturn;
 using PurchaseManagement.Infrastructure.Data.Configurations.IssueReturn;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
@@ -90,6 +92,11 @@ namespace PurchaseManagement.Infrastructure.Data
         //Raw Material PO (OCR conversion)
         public DbSet<RawMaterialPOHeader> RawMaterialPOHeader { get; set; }
         public DbSet<RawMaterialPODetail> RawMaterialPODetail { get; set; }
+
+        // ── Arrival (Bale Inward) ──
+        public DbSet<ArrivalHeader> ArrivalHeader { get; set; }
+        public DbSet<ArrivalDetail> ArrivalDetail { get; set; }
+        public DbSet<StockLedgerRaw> StockLedgerRaw { get; set; }
 
         //Rfq
         public DbSet<RfqMaster> Rfqs { get; set; }
@@ -253,6 +260,9 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new OCRQualityParameterConfiguration());
             modelBuilder.ApplyConfiguration(new RawMaterialPOHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new RawMaterialPODetailConfiguration());
+            modelBuilder.ApplyConfiguration(new ArrivalHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new ArrivalDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new StockLedgerRawConfiguration());
             modelBuilder.ApplyConfiguration(new PurchaseDocumentConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnDetailConfiguration());
