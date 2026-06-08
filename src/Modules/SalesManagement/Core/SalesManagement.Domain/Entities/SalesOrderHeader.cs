@@ -39,7 +39,6 @@ namespace SalesManagement.Domain.Entities
         // Commercial Details
         public int? PaymentTypeId { get; set; }
         public int FreightTypeId { get; set; }
-        public int? CountListId { get; set; }
         public string? Remarks { get; set; }
 
         // MD Discount — when checkbox enabled, Rate + Document are mandatory
@@ -105,7 +104,6 @@ namespace SalesManagement.Domain.Entities
         public MiscMaster? EnquiryTypeMisc { get; set; }
         public MiscMaster? PaymentType { get; set; }
         public MiscMaster? FreightType { get; set; }
-        public MiscMaster? CountList { get; set; }
         public MiscMaster? StatusMisc { get; set; }
         public AgentCommissionConfig? AgentCommissionConfig { get; set; }
         public AgentCommissionSlab? AgentCommissionSlab { get; set; }

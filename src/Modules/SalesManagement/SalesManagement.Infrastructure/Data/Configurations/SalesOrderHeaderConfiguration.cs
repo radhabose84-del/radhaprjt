@@ -125,11 +125,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired();
 
-            builder.Property(t => t.CountListId)
-                .HasColumnName("CountListId")
-                .HasColumnType("int")
-                .IsRequired(false);
-
             builder.Property(t => t.Remarks)
                 .HasColumnName("Remarks")
                 .HasColumnType("nvarchar(500)")
@@ -372,11 +367,6 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.FreightType)
                 .WithMany(m => m.SalesOrderHeadersAsFreightType)
                 .HasForeignKey(t => t.FreightTypeId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(t => t.CountList)
-                .WithMany(m => m.SalesOrderHeadersAsCountList)
-                .HasForeignKey(t => t.CountListId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(t => t.EnquiryTypeMisc)

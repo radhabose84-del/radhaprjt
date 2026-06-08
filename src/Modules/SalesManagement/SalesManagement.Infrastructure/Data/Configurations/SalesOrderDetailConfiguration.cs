@@ -150,6 +150,12 @@ namespace SalesManagement.Infrastructure.Data.Configurations
 
             // PackType → ProductionManagement — no DB constraint
 
+            // Yarn Type — cross-module FK to ProductionManagement.YarnType, nullable, no DB FK.
+            builder.Property(t => t.YarnTypeId)
+                .HasColumnName("YarnTypeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // Status
             builder.Property(t => t.LineItemStatusId)
                 .HasColumnName("LineItemStatusId")
@@ -166,6 +172,7 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.ItemId);
             builder.HasIndex(t => t.HSNId);
             builder.HasIndex(t => t.PackTypeId);
+            builder.HasIndex(t => t.YarnTypeId);
         }
     }
 }

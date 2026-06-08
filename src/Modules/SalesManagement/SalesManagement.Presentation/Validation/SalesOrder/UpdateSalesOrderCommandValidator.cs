@@ -186,12 +186,6 @@ namespace SalesManagement.Presentation.Validation.SalesOrder
                             .WithMessage($"PaymentTypeId {rule.Error}")
                             .When(x => x.PaymentTypeId.HasValue && x.PaymentTypeId > 0);
 
-                        RuleFor(x => x.CountListId)
-                            .MustAsync(async (countListId, ct) =>
-                                await _queryRepository.MiscMasterExistsAsync(countListId!.Value))
-                            .WithMessage($"CountListId {rule.Error}")
-                            .When(x => x.CountListId.HasValue && x.CountListId > 0);
-
                         RuleFor(x => x.SubAgentId)
                             .MustAsync(async (subAgentId, ct) =>
                                 await _queryRepository.SubAgentExistsAsync(subAgentId!.Value))

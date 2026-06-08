@@ -153,7 +153,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             existingEntity.MdDiscountValue = entity.MdDiscountValue;
             existingEntity.TotalDiscountValue = entity.TotalDiscountValue;
             existingEntity.FreightTypeId = entity.FreightTypeId;
-            existingEntity.CountListId = entity.CountListId;
             existingEntity.Remarks = entity.Remarks;
             existingEntity.VisitNotesAttachment = entity.VisitNotesAttachment;
             existingEntity.AgentPOAttachment = entity.AgentPOAttachment;
