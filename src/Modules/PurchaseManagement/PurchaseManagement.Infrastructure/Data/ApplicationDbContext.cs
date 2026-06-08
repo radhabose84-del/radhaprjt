@@ -32,6 +32,8 @@ using PurchaseManagement.Domain.Entities.PurchaseOrder.ImportPO;
 using PurchaseManagement.Domain.PurchaseOrder;
 using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.ImportPO;
 using PurchaseManagement.Infrastructure.Data.Configurations.Purchase;
+using PurchaseManagement.Domain.Entities.RawMaterialPO;
+using PurchaseManagement.Infrastructure.Data.Configurations.RawMaterialPO;
 using PurchaseManagement.Domain.Entities.IssueReturn;
 using PurchaseManagement.Infrastructure.Data.Configurations.IssueReturn;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
@@ -81,6 +83,11 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<PaymentTermMaster> PaymentTermMasters { get; set; }
         public DbSet<PaymentTermInstallment> PaymentTermInstallment { get; set; }
         public DbSet<OCREntry> OCREntry { get; set; }
+        public DbSet<OCRQualityParameter> OCRQualityParameter { get; set; }
+
+        //Raw Material PO (OCR conversion)
+        public DbSet<RawMaterialPOHeader> RawMaterialPOHeader { get; set; }
+        public DbSet<RawMaterialPODetail> RawMaterialPODetail { get; set; }
 
         //Rfq
         public DbSet<RfqMaster> Rfqs { get; set; }
@@ -236,6 +243,9 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ImportPODetailConfiguration());
             modelBuilder.ApplyConfiguration(new DutyMasterConfiguration());
             modelBuilder.ApplyConfiguration(new OCREntryConfiguration());
+            modelBuilder.ApplyConfiguration(new OCRQualityParameterConfiguration());
+            modelBuilder.ApplyConfiguration(new RawMaterialPOHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new RawMaterialPODetailConfiguration());
             modelBuilder.ApplyConfiguration(new PurchaseDocumentConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnDetailConfiguration());

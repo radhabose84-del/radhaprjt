@@ -177,7 +177,7 @@ public class CachedLookupDecorator<TLookup> : DispatchProxy where TLookup : clas
         var methodName = method.Name;          // e.g., "GetAllAsync"
 
         // Serialize arguments to create unique key
-        var argsHash = args == null || args.Length == 0
+        var argsHash = args == null || args.Length ==   0
             ? "NoArgs"
             : GetArgumentsHash(args);
 

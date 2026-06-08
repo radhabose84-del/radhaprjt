@@ -68,6 +68,8 @@ using PurchaseManagement.Application.Common.Interfaces.IPurchase.DutyMaster;
 using PurchaseManagement.Infrastructure.Repositories.DutyMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOCREntry;
 using PurchaseManagement.Infrastructure.Repositories.OCREntry;
+using PurchaseManagement.Application.Common.Interfaces.IRawMaterialPO;
+using PurchaseManagement.Infrastructure.Repositories.RawMaterialPO;
 //using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
@@ -272,6 +274,9 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
             services.AddScoped<IOCREntryCommandRepository, OCREntryCommandRepository>();
             services.AddScoped<IOCREntryQueryRepository, OCREntryQueryRepository>();
+            services.AddScoped<IRawMaterialPOCommandRepository, RawMaterialPOCommandRepository>();
+            services.AddScoped<IRawMaterialPOQueryRepository, RawMaterialPOQueryRepository>();
+            services.AddScoped<IRawMaterialPOFileStorage, RawMaterialPOFileStorage>();
             services.AddScoped<IOCREntryFileStorage, OCREntryFileStorage>();
           //  services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             // StockLedger ownership moved to InventoryManagement (Pattern D: Shared Transaction)

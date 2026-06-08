@@ -15,7 +15,7 @@ namespace PurchaseManagement.Application.BarcodeAllocation.Queries.GetAllocation
 
         public async Task<IReadOnlyList<BarcodeAllocationSeriesDto>> Handle(GetAllocationBarcodeSeriesQuery request, CancellationToken cancellationToken)
         {
-            return await _queryRepository.GetAvailableSeriesAsync(request.Term);
+            return await _queryRepository.GetAvailableSeriesAsync(request.Term, request.SeriesId);
         }
     }
 }

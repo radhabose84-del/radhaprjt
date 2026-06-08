@@ -54,6 +54,7 @@ namespace QCManagement.Application.QcInspection.Dto
         public decimal? MaxValue { get; set; }
         public string? ExpectedValue { get; set; }
         public string? AllowedValues { get; set; }
+        public string? SeverityCode { get; set; }
     }
 
     /// <summary>Inspection summary keyed by GRN detail line — merged into the unified grid.</summary>

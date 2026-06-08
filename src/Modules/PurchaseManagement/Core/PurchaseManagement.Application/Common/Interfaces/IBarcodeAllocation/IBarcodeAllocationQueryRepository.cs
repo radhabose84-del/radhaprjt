@@ -11,8 +11,9 @@ namespace PurchaseManagement.Application.Common.Interfaces.IBarcodeAllocation
         // Passing-person dropdown — external HR, scoped to the current user's division.
         Task<IReadOnlyList<BarcodeAllocationEmployeeDto>> GetEmployeesAsync(string? term, CancellationToken ct);
 
-        // Series dropdown — series that still have un-allocated range.
-        Task<IReadOnlyList<BarcodeAllocationSeriesDto>> GetAvailableSeriesAsync(string? term);
+        // Series dropdown — series that still have un-allocated range. When seriesId is supplied, returns just
+        // that one series (Edit mode), even if it is fully allocated.
+        Task<IReadOnlyList<BarcodeAllocationSeriesDto>> GetAvailableSeriesAsync(string? term, int? seriesId = null);
 
         // R1 — true when the range overlaps another allocation of the SAME series. Excludes self on update.
         Task<bool> RangeOverlapsInSeriesAsync(int barcodeSeriesId, long from, long to, int? id = null);

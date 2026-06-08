@@ -10,6 +10,7 @@ using PurchaseManagement.Application.OCREntry.Queries.GetAllOCREntry;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryAutoComplete;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryById;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryPending;
+using PurchaseManagement.Application.OCREntry.Queries.GetOCRQualityTemplateParameters;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
@@ -55,6 +56,19 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetOCREntryAutoCompleteAsync([FromQuery] string term = "")
         {
             var result = await Mediator.Send(new GetOCREntryAutoCompleteQuery(term));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Returns the active parameters of a quality template so the OCR form can render the
+        // cotton-quality parameter inputs dynamically.
+        [HttpGet("quality-template/{templateId}/parameters")]
+        public async Task<IActionResult> GetQualityTemplateParametersAsync(int templateId)
+        {
+            var result = await Mediator.Send(new GetOCRQualityTemplateParametersQuery(templateId));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

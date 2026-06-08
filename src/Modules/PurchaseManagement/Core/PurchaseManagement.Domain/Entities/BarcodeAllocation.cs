@@ -29,6 +29,6 @@ namespace PurchaseManagement.Domain.Entities
 
         // Same-module navigation properties
         public BarcodeSeries? BarcodeSeries { get; set; }
-        public MiscMaster? Status { get; set; }
+        public MiscMaster? MiscStatus { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Purchase;
 using MediatR;
 using QCManagement.Application.Common.Interfaces.IQcInspection;
+using QCManagement.Application.Common.Services;
 using QCManagement.Domain.Events;
 
 namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
@@ -11,6 +12,7 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
     {
         private readonly IQcInspectionCommandRepository _commandRepository;
         private readonly IQcInspectionQueryRepository _queryRepository;
+        private readonly IInspectionEvaluator _evaluator;
         private readonly IGrnLookup _grnLookup;
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
@@ -18,12 +20,14 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
         public SaveDispositionCommandHandler(
             IQcInspectionCommandRepository commandRepository,
             IQcInspectionQueryRepository queryRepository,
+            IInspectionEvaluator evaluator,
             IGrnLookup grnLookup,
             IMediator mediator,
             IIPAddressService ipAddressService)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
+            _evaluator = evaluator;
             _grnLookup = grnLookup;
             _mediator = mediator;
             _ipAddressService = ipAddressService;
@@ -41,13 +45,29 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
             var ctx = await _queryRepository.GetDispositionContextAsync(request.QcInspectionHdrId)
                 ?? throw new ExceptionRules("Inspection not found.");
 
+            // Evaluate Pass/Fail for the incoming readings (same logic as the parameter-save flow).
+            var evalRows = (await _queryRepository.GetDetailEvaluationRowsAsync(request.QcInspectionHdrId))
+                .ToDictionary(r => r.Id);
+
+            var results = new List<(int DetailId, string? ActualValue, string? InspectionResult, string? Remarks)>();
+            foreach (var p in request.Parameters)
+            {
+                evalRows.TryGetValue(p.DetailId, out var rule);
+                var inspectionResult = _evaluator.Evaluate(
+                    rule?.ValidationTypeCode, p.ActualValue,
+                    rule?.MinValue, rule?.MaxValue, rule?.ExpectedValue, rule?.AllowedValues);
+
+                results.Add((p.DetailId, p.ActualValue, inspectionResult, p.Remarks));
+            }
+
             var dispositionByUserId = _ipAddressService.GetUserId();
             var dispositionByName = _ipAddressService.GetUserName();
             var qcApprovedIp = _ipAddressService.GetUserIPAddress();
 
-            await _commandRepository.SaveDispositionAsync(
-                request.QcInspectionHdrId, qcStatusId,
-                request.AcceptedQuantity, request.RejectedQuantity, request.DispositionRemarks,
+            // Readings + disposition + GRN write-back, all in ONE transaction.
+            await _commandRepository.SaveResultsAndDispositionAsync(
+                request.QcInspectionHdrId, results,
+                qcStatusId, request.AcceptedQuantity, request.RejectedQuantity, request.DispositionRemarks,
                 dispositionByUserId, dispositionByName,
                 qcApprovedIp, isQcApproved,
                 ctx.GrnHeaderId, ctx.GrnDetailId);

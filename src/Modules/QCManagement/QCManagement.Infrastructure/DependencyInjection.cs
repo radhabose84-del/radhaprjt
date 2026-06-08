@@ -130,6 +130,10 @@ namespace QCManagement.Infrastructure
             // Cached automatically by AddLookupCaching() (interface name ends with "Lookup").
             services.AddScoped<IQualitySpecificationLookup, QualitySpecificationLookupRepository>();
 
+            // Cross-module lookup — Purchase OCR Entry selects a quality template and renders
+            // its parameters dynamically. Cached automatically by AddLookupCaching().
+            services.AddScoped<IQualityTemplateLookup, QualityTemplateLookupRepository>();
+
             // ── QcInspection (SCRUM-1667) ────────────────────────────────────
             services.AddScoped<IQcInspectionCommandRepository, QcInspectionCommandRepository>();
             services.AddScoped<IQcInspectionQueryRepository, QcInspectionQueryRepository>();

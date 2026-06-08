@@ -51,6 +51,19 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
         {
             var entity = _mapper.Map<Domain.Entities.OCREntry>(request);
 
+            // Build dynamic cotton-quality parameter rows (only when a template is selected).
+            if (request.QualityTemplateId.HasValue && request.QualityParameters is { Count: > 0 })
+            {
+                entity.OcrQualityParameters = request.QualityParameters
+                    .Select(p =>
+                    {
+                        var child = _mapper.Map<Domain.Entities.OCRQualityParameter>(p);
+                        child.QualityTemplateId = request.QualityTemplateId.Value;
+                        return child;
+                    })
+                    .ToList();
+            }
+
             // Initial status = Pending Approval (workflow-driven)
             var pendingStatus = await _misc.GetMiscMasterByName(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Pending);
             entity.StatusId = pendingStatus.Id;

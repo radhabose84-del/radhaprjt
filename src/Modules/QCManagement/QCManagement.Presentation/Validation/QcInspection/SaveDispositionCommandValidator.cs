@@ -1,5 +1,6 @@
 using FluentValidation;
 using QCManagement.Application.Common.Interfaces.IQcInspection;
+using QCManagement.Application.Common.Services;
 using QCManagement.Application.QcInspection.Commands.SaveDisposition;
 using QCManagement.Domain.Entities;
 using QCManagement.Presentation.Validation.Common;
@@ -10,9 +11,11 @@ namespace QCManagement.Presentation.Validation.QcInspection
     {
         public SaveDispositionCommandValidator(
             IQcInspectionQueryRepository queryRepo,
-            MaxLengthProvider maxLengthProvider)
+            MaxLengthProvider maxLengthProvider,
+            IInspectionEvaluator evaluator)
         {
             var remarksMax = maxLengthProvider.GetMaxLength<QcInspectionHdr>("DispositionRemarks") ?? 500;
+            var rowRemarksMax = maxLengthProvider.GetMaxLength<QcInspectionDtl>("Remarks") ?? 500;
 
             RuleFor(x => x.QcInspectionHdrId)
                 .GreaterThan(0).WithMessage("Inspection Id is required.");
@@ -24,11 +27,46 @@ namespace QCManagement.Presentation.Validation.QcInspection
 
             // Disposition is re-editable (Hold→Approve, Reject→CAP, etc.) — no "already disposed" lock.
 
-            RuleFor(x => x.QcInspectionHdrId)
-                .MustAsync(async (id, ct) => await queryRepo.AllParametersEvaluatedAsync(id))
+            // ── Readings (entered + saved with the disposition in the same call) ──
+            RuleFor(x => x.Parameters)
+                .NotEmpty().WithMessage("At least one parameter result is required.");
+
+            RuleForEach(x => x.Parameters).ChildRules(p =>
+            {
+                p.RuleFor(r => r.DetailId)
+                    .GreaterThan(0).WithMessage("Parameter detailId is required.");
+                p.RuleFor(r => r.ActualValue)
+                    .NotEmpty().WithMessage("Actual value is required.");
+                p.RuleFor(r => r.Remarks)
+                    .MaximumLength(rowRemarksMax).WithMessage($"Remarks cannot exceed {rowRemarksMax} characters.")
+                    .When(r => !string.IsNullOrEmpty(r.Remarks));
+            });
+
+            // Every supplied detailId must belong to this inspection.
+            RuleFor(x => x)
+                .MustAsync(async (cmd, ct) =>
+                {
+                    var rows = await queryRepo.GetDetailEvaluationRowsAsync(cmd.QcInspectionHdrId);
+                    var valid = rows.Select(r => r.Id).ToHashSet();
+                    return cmd.Parameters.All(p => valid.Contains(p.DetailId));
+                })
+                .WithMessage("Parameter row does not belong to this inspection.")
+                .When(x => x.QcInspectionHdrId > 0 && x.Parameters.Any());
+
+            // Coverage: every parameter row of the inspection must have a value in this payload.
+            RuleFor(x => x)
+                .MustAsync(async (cmd, ct) =>
+                {
+                    var rows = await queryRepo.GetDetailEvaluationRowsAsync(cmd.QcInspectionHdrId);
+                    var provided = cmd.Parameters
+                        .Where(p => !string.IsNullOrWhiteSpace(p.ActualValue))
+                        .Select(p => p.DetailId).ToHashSet();
+                    return rows.All(r => provided.Contains(r.Id));
+                })
                 .WithMessage("All parameters must be evaluated before disposition.")
                 .When(x => x.QcInspectionHdrId > 0);
 
+            // ── Disposition ──
             RuleFor(x => x.QcStatusId)
                 .GreaterThan(0).WithMessage("QC Status is required.");
 
@@ -57,12 +95,28 @@ namespace QCManagement.Presentation.Validation.QcInspection
             // The status code is resolved from QcStatusId via an async lookup, so each rule is a
             // MustAsync that no-ops for any status it does not apply to.
 
-            // APR — no critical failure
+            // APR — no critical failure (evaluated against the INCOMING readings)
             RuleFor(x => x)
                 .MustAsync(async (cmd, ct) =>
                 {
                     if (!await IsStatusAsync(queryRepo, cmd.QcStatusId, "APR")) return true;
-                    return !await queryRepo.HasCriticalFailureAsync(cmd.QcInspectionHdrId);
+
+                    var rules = (await queryRepo.GetDetailEvaluationRowsAsync(cmd.QcInspectionHdrId))
+                        .ToDictionary(r => r.Id);
+
+                    foreach (var p in cmd.Parameters)
+                    {
+                        if (!rules.TryGetValue(p.DetailId, out var rule)) continue;
+                        if (!string.Equals(rule.SeverityCode, "CRT", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        var result = evaluator.Evaluate(
+                            rule.ValidationTypeCode, p.ActualValue,
+                            rule.MinValue, rule.MaxValue, rule.ExpectedValue, rule.AllowedValues);
+
+                        if (string.Equals(result, "FAIL", StringComparison.OrdinalIgnoreCase))
+                            return false;
+                    }
+                    return true;
                 })
                 .WithMessage("Cannot approve — critical parameter(s) failed.")
                 .When(x => x.QcInspectionHdrId > 0 && x.QcStatusId > 0);

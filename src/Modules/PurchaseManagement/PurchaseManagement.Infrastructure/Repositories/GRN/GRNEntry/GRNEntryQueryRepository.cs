@@ -724,8 +724,72 @@ namespace PurchaseManagement.Infrastructure.Repositories.GRN.GRNEntry
             {
                 var data = (await multi.ReadAsync<GetGrnPendingHeaderDto>()).ToList();
                 var totalCount = await multi.ReadFirstAsync<int>();
+
+                // Attach per-line details for the GRNs on this page. One extra round-trip — kept
+                // separate from the paged header SELECT to avoid CTE column collisions and to keep
+                // pagination math correct (a JOIN would multiply rows per header).
+                var grnIds = data.Select(h => h.GrnId).Distinct().ToList();
+                if (grnIds.Count > 0)
+                {
+                    const string detailSql = @"
+                        SELECT
+                            B.Id          AS Id,
+                            B.Id          AS GrnDetailId,
+                            B.GrnId       AS GrnId,
+                            B.PoId,
+                            B.PoSlNoLocal,
+                            B.ItemId,
+                            B.OrderQuantity,
+                            B.DcQuantity,
+                            B.ReceivedQuantity,
+                            ISNULL(B.IsQcApproved, 0) AS IsQcApproved
+                        FROM Purchase.GrnDetail B
+                        WHERE B.GrnId IN @GrnIds
+                        ORDER BY B.GrnId, B.Id;";
+
+                    var rows = (await _dbConnection.QueryAsync<DetailRow>(
+                        new CommandDefinition(detailSql, new { GrnIds = grnIds }))).ToList();
+
+                    var detailsByGrn = rows
+                        .GroupBy(r => r.GrnId)
+                        .ToDictionary(g => g.Key, g => g.Select(r => new GetGrnPendingHeaderDto.GrnPendingHeaderDetailDto
+                        {
+                            Id               = r.Id,
+                            GrnDetailId      = r.GrnDetailId,
+                            PoId             = r.PoId,
+                            PoSlNoLocal      = r.PoSlNoLocal,
+                            ItemId           = r.ItemId,
+                            OrderQuantity    = r.OrderQuantity,
+                            DcQuantity       = r.DcQuantity,
+                            ReceivedQuantity = r.ReceivedQuantity,
+                            IsQcApproved     = r.IsQcApproved
+                        }).ToList());
+
+                    foreach (var header in data)
+                    {
+                        if (detailsByGrn.TryGetValue(header.GrnId, out var lines))
+                            header.GrnDetails = lines;
+                    }
+                }
+
                 return (data, totalCount);
             }
+        }
+
+        // Internal SQL projection — carries GrnId so the repo can group rows back onto headers
+        // without leaking GrnId into the public detail DTO.
+        private sealed class DetailRow
+        {
+            public int Id { get; set; }
+            public int? GrnDetailId { get; set; }
+            public int GrnId { get; set; }
+            public int PoId { get; set; }
+            public int PoSlNoLocal { get; set; }
+            public int ItemId { get; set; }
+            public decimal OrderQuantity { get; set; }
+            public decimal DcQuantity { get; set; }
+            public decimal ReceivedQuantity { get; set; }
+            public bool IsQcApproved { get; set; }
         }
 
 
