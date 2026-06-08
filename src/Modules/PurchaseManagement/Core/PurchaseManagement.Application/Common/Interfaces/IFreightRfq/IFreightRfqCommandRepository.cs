@@ -1,0 +1,27 @@
+using PurchaseManagement.Domain.Entities.FreightRfq;
+
+namespace PurchaseManagement.Application.Common.Interfaces.IFreightRfq
+{
+    public interface IFreightRfqCommandRepository
+    {
+        // Generates FreightRfqNumber + default "Draft" status, persists header (+ any quotations). Returns new Id.
+        Task<int> CreateAsync(FreightRfqHeader entity);
+
+        // Updates mutable header fields (number/status immutable here). Returns affected Id.
+        Task<int> UpdateAsync(FreightRfqHeader entity);
+
+        // Replaces the quotation rows for a Draft RFQ; computes FreightValue per row from the rate basis. Returns Id.
+        Task<int> SaveQuotationsAsync(int rfqId, IReadOnlyList<FreightRfqQuotation> rows);
+
+        // Marks the selected transporter (+ override flag/remarks) and moves status to Pending Approval. Returns Id.
+        Task<int> SubmitForApprovalAsync(int rfqId, int selectedQuotationId, bool isOverride, string? comparisonRemarks);
+
+        // Approves: status -> Approved and snapshots ApprovedTransporter/Rate/FreightValue from the selected row. Returns Id.
+        Task<int> ApproveAsync(int rfqId, string? approvalRemarks);
+
+        // Rejects: status -> Rejected with remarks. Returns Id.
+        Task<int> RejectAsync(int rfqId, string? approvalRemarks);
+
+        Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
+    }
+}

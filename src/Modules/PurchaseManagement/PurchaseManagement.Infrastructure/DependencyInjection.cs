@@ -8,6 +8,8 @@ using PurchaseManagement.Application.Common.Interfaces.IBarcodeSeries;
 using PurchaseManagement.Infrastructure.Repositories.BarcodeSeries;
 using PurchaseManagement.Application.Common.Interfaces.IBarcodeAllocation;
 using PurchaseManagement.Infrastructure.Repositories.BarcodeAllocation;
+using PurchaseManagement.Application.Common.Interfaces.IFreightRfq;
+using PurchaseManagement.Infrastructure.Repositories.FreightRfq;
 using PurchaseManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IPartyMaster;
@@ -210,6 +212,8 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IBarcodeSeriesQueryRepository, BarcodeSeriesQueryRepository>();
             services.AddScoped<IBarcodeAllocationCommandRepository, BarcodeAllocationCommandRepository>();
             services.AddScoped<IBarcodeAllocationQueryRepository, BarcodeAllocationQueryRepository>();
+            services.AddScoped<IFreightRfqCommandRepository, FreightRfqCommandRepository>();
+            services.AddScoped<IFreightRfqQueryRepository, FreightRfqQueryRepository>();
 
             // Pending reference-document resolvers consumed by GateEntryManagement.GateInward.
             // One implementation per Finance.TransactionTypeMaster.Id within ModuleId = 21 (Purchase).
