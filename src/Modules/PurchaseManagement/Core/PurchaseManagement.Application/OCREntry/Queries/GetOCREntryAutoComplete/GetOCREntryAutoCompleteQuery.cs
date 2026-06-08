@@ -3,5 +3,5 @@ using PurchaseManagement.Application.OCREntry.Dto;
 
 namespace PurchaseManagement.Application.OCREntry.Queries.GetOCREntryAutoComplete
 {
-    public sealed record GetOCREntryAutoCompleteQuery(string Term) : IRequest<IReadOnlyList<OCREntryLookupDto>>;
+    public sealed record GetOCREntryAutoCompleteQuery(string Term, bool Approved = true) : IRequest<IReadOnlyList<OCREntryLookupDto>>;
 }

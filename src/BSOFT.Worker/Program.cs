@@ -18,6 +18,7 @@ using ProjectManagement.Infrastructure;
 using FinanceManagement.Infrastructure;
 using FinanceManagement.Application;
 using ProductionManagement.Infrastructure;
+using QCManagement.Infrastructure;
 using SalesManagement.Infrastructure;
 using MaintenanceManagement.Infrastructure;
 using FAM.Infrastructure;
@@ -79,6 +80,8 @@ builder.Services.AddPartyInfrastructure(builder.Configuration, builder.Environme
 builder.Services.AddWarehouseInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddFinanceInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddProductionInfrastructureServices(builder.Configuration, builder.Environment);
+// QC infrastructure supplies IQualityTemplateLookup, consumed by PurchaseManagement's OCREntryQueryRepository.
+builder.Services.AddQCInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddMaintenanceInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddFAMInfrastructure(builder.Configuration, builder.Environment);
 // Business module infrastructure (consumers and their command/query repos)

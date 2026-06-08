@@ -422,7 +422,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                 SELECT
                     sipm.Id, sipm.PriceCode,
                     sipm.ItemId, sipm.SalesSegmentId,
-                    sipm.BaseRate,
+                    sipm.BaseRate, sipm.TolerancePercentage,
                     sipm.CharityValue, sipm.HandlingCharges,
                     ss.SegmentName AS SalesSegmentName
                 FROM Sales.ItemPriceMaster sipm
@@ -450,6 +450,7 @@ namespace SalesManagement.Infrastructure.Repositories.ItemPriceMaster
                     SalesSegmentId = (int)r.SalesSegmentId,
                     SalesSegmentName = (string?)r.SalesSegmentName,
                     ExMillRate = calculated != 0 ? calculated : baseRate,
+                    TolerancePercentage = (decimal?)r.TolerancePercentage,
                     CharityValue = (decimal?)r.CharityValue,
                     HandlingCharges = (decimal?)r.HandlingCharges
                 };

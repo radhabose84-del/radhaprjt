@@ -18,7 +18,7 @@ namespace PurchaseManagement.Application.OCREntry.Queries.GetOCREntryAutoComplet
 
         public async Task<IReadOnlyList<OCREntryLookupDto>> Handle(GetOCREntryAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken, request.Approved);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
