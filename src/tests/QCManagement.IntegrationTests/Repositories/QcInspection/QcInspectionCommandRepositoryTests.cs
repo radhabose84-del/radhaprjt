@@ -65,6 +65,34 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         private async Task ClearAsync() =>
             await _fixture.ClearTablesAsync("QC.QcInspectionDtl", "QC.QcInspectionHdr");
 
+        // QcStatusId has a real DB FK to QC.MiscMaster — seed a status row and return its Id.
+        private static async Task<int> SeedQcStatusAsync(ApplicationDbContext ctx)
+        {
+            var miscType = new QCManagement.Domain.Entities.MiscTypeMaster
+            {
+                MiscTypeCode = "QC_STATUS",
+                Description = "QC Status",
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            ctx.Set<QCManagement.Domain.Entities.MiscTypeMaster>().Add(miscType);
+            await ctx.SaveChangesAsync();
+
+            var status = new QCManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = miscType.Id,
+                Code = "APPROVED",
+                Description = "Approved",
+                SortOrder = 1,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            };
+            ctx.Set<QCManagement.Domain.Entities.MiscMaster>().Add(status);
+            await ctx.SaveChangesAsync();
+
+            return status.Id;
+        }
+
         [Fact]
         public async Task CreateAsync_Should_Return_NewId()
         {
@@ -115,6 +143,7 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         {
             await ClearAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
+            var qcStatusId = await SeedQcStatusAsync(ctx);
             var entity = BuildEntity();
             var id = await CreateRepo(ctx).CreateAsync(entity);
             var detailId = entity.Details.First().Id;
@@ -123,14 +152,14 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
             await CreateRepo(ctx).SaveResultsAndDispositionAsync(
                 id,
                 new List<(int, string?, string?, string?)> { (detailId, "40", "PASS", "ok") },
-                qcStatusId: 34, acceptedQty: 1000m, rejectedQty: 0m, dispositionRemarks: "approved",
+                qcStatusId: qcStatusId, acceptedQty: 1000m, rejectedQty: 0m, dispositionRemarks: "approved",
                 dispositionByUserId: 1, dispositionByName: "tester",
                 qcApprovedIp: "127.0.0.1", isQcApproved: true,
                 grnHeaderId: 100, grnDetailId: 4321);
             ctx.ChangeTracker.Clear();
 
             var hdr = await ctx.QcInspectionHdr.FirstAsync(x => x.Id == id);
-            hdr.QcStatusId.Should().Be(34);
+            hdr.QcStatusId.Should().Be(qcStatusId);
             hdr.AcceptedQuantity.Should().Be(1000m);
             hdr.DispositionByName.Should().Be("tester");
 
