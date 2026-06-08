@@ -36,7 +36,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "Purchase Order", "Purchase Contract",
         "Material Request", "ServicePO", "Service Entry Sheet", "Issue Return","Blanket Master","OCR Entry",
         "Local Purchase Order", "Contract Purchase Order", "Import Purchase Order", "Emergency Purchase Order", "Service Purchase Order", "Blanket Purchase Order",
-        "Purchase Return"
+        "Purchase Return", "Freight RFQ"
     };
 
     private static readonly HashSet<string> BudgetTypes = new(StringComparer.OrdinalIgnoreCase)
