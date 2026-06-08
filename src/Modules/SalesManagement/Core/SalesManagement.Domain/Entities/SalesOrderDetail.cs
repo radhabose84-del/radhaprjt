@@ -11,6 +11,7 @@ namespace SalesManagement.Domain.Entities
         public int? VariantId { get; set; }                    // Optional, no lookup yet
         public int HSNId { get; set; }                         // Cross-module FK (InventoryManagement)
         public int? PackTypeId { get; set; }                   // Cross-module FK → ProductionManagement
+        public int? YarnTypeId { get; set; }                   // Cross-module FK → ProductionManagement.YarnType (nullable, no DB FK)
 
         // Quantity & Weight
         public int QtyInBags { get; set; }
