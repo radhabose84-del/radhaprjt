@@ -165,6 +165,10 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             public string? InsuranceProvider { get; set; }
             public string? PolicyNo { get; set; }
             public DateTimeOffset? InsuranceExpiryDate { get; set; }
+            // Cross-module lookup to AppData.Modules.
+            public int? ModuleId { get; set; }
+            // Same-module lookup to Party.MiscMaster (Per Bale / Per MT / Per Vehicle).
+            public int? DefaultProcurementRateBasisId { get; set; }
             public byte Status { get; set; } = 1;
         }
 
