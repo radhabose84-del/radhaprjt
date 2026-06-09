@@ -85,6 +85,13 @@ namespace PurchaseManagement.Presentation.Validation.OCREntry
             RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("Quantity must be greater than zero.");
             RuleFor(x => x.Rate).GreaterThan(0).WithMessage("Rate must be greater than zero.");
 
+            // Composite uniqueness — same OcrDate + ItemId + SupplierId is not allowed.
+            RuleFor(x => x)
+                .MustAsync(async (cmd, ct) =>
+                    !await queryRepo.DuplicateOcrExistsAsync(cmd.OcrDate, cmd.ItemId, cmd.SupplierId))
+                .WithMessage("An OCR entry with the same date, item and party already exists.")
+                .When(x => x.OcrDate != default && x.ItemId > 0 && x.SupplierId > 0);
+
             // ── Additional Cotton Details — optional MiscMaster FKs ──
             RuleFor(x => x.PaymentModeId!.Value)
                 .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))

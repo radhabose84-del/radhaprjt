@@ -42,6 +42,8 @@
     <ProjectReference Include="..\Modules\PartyManagement\PartyManagement.Infrastructure\PartyManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\WarehouseManagement\WarehouseManagement.Infrastructure\WarehouseManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\ProductionManagement\ProductionManagement.Infrastructure\ProductionManagement.Infrastructure.csproj" />
+    <!-- QC lookups (IQualityTemplateLookup) consumed by PurchaseManagement OCREntryQueryRepository -->
+    <ProjectReference Include="..\Modules\QCManagement\QCManagement.Infrastructure\QCManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\SalesManagement\SalesManagement.Infrastructure\SalesManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\MaintenanceManagement\MaintenanceManagement.Infrastructure\MaintenanceManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\FixedAssetManagement\FAM.Infrastructure\FAM.Infrastructure.csproj" />

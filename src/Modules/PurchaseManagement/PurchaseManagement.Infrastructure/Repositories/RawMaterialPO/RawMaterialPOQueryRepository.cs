@@ -32,6 +32,18 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
                 h.CropYear, h.ArrivalType, h.PassingDate, h.CreditDays,
                 h.CottonApprovedBy, h.CottonApprovedOn, h.DocumentPath,
                 h.IsActive, h.IsDeleted,
+                CAST(CASE WHEN EXISTS (
+                    SELECT 1 FROM Purchase.ArrivalHeader a
+                    WHERE a.RawMaterialPOId = h.Id AND a.IsDeleted = 0
+                ) THEN 1 ELSE 0 END AS bit) AS IsArrivalCreated,
+                CAST(CASE WHEN EXISTS (
+                    SELECT 1 FROM Purchase.ArrivalHeader a
+                    WHERE a.RawMaterialPOId = h.Id AND a.IsDeleted = 0
+                ) THEN 0 ELSE 1 END AS bit) AS CanEdit,
+                CAST(CASE WHEN EXISTS (
+                    SELECT 1 FROM Purchase.ArrivalHeader a
+                    WHERE a.RawMaterialPOId = h.Id AND a.IsDeleted = 0
+                ) THEN 0 ELSE 1 END AS bit) AS CanDelete,
                 h.CreatedBy, h.CreatedDate, h.CreatedByName,
                 h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
             FROM Purchase.RawMaterialPOHeader h

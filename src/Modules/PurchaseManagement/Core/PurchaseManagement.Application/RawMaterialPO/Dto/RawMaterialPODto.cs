@@ -39,6 +39,12 @@ namespace PurchaseManagement.Application.RawMaterialPO.Dto
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
+        // True when an Arrival has been created against this PO.
+        // When true the PO is locked: CanEdit = CanDelete = false.
+        public bool IsArrivalCreated { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanDelete { get; set; }
+
         // Audit
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }

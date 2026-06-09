@@ -123,7 +123,7 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
 
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 var correlationId = Guid.NewGuid();
                 var @event = new ApprovalRequestFailedEvent
@@ -136,7 +136,12 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
                 await _eventPublisher.SaveEventAsync(@event);
                 await _eventPublisher.PublishPendingEventsAsync();
 
-                throw new Exception("EvaluateApproval Stored Procedure Failed");
+                // Preserve the original exception (SQL error, null MenuId, timeout, etc.)
+                // as the inner exception — otherwise the real failure cause is lost.
+                throw new Exception(
+                    $"EvaluateApproval Stored Procedure Failed (WorkflowType='{workflowType}', " +
+                    $"TransactionId={transactionId}, TransactionTypeId={transactionTypeId}): {ex.Message}",
+                    ex);
             }
         }
 
