@@ -98,6 +98,12 @@ namespace PurchaseManagement.Application.OCREntry.Dto
         public bool CanEdit => !IsPoCreated;
         public bool CanDelete => !IsPoCreated;
 
+        // ── Workflow (populated only on the pending-approval view) ──
+        public int? ApproverId { get; set; }
+        public string? ApproverName { get; set; }
+        public int ApprovalRequestHeaderId { get; set; }
+        public byte IsEdit { get; set; }
+
         // Audit
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }
