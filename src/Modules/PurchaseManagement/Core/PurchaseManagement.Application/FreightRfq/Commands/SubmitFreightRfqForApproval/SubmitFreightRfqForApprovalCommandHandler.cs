@@ -5,6 +5,7 @@ using Contracts.Interfaces;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IFreightRfq;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
+using PurchaseManagement.Application.FreightRfq.Dto;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Events;
 
@@ -44,14 +45,17 @@ namespace PurchaseManagement.Application.FreightRfq.Commands.SubmitFreightRfqFor
             if (payload != null)
                 payload.UnitId = unitId;
 
+            // sp_EvaluateApproval reads $.Header.UnitId / $.Lines, so the payload must be wrapped as
+            // { "Header": {...}, "Lines": null } — mirroring Blanket Master. No TransactionType for Freight RFQ.
+            var reverse = new FreightRfqWorkflowReverseDto { Header = payload, Lines = null };
+
             var correlationId = Guid.NewGuid();
             var workflowCommand = new CreateApprovalRequestCommand
             {
                 CorrelationId = correlationId,
                 ModuleTypeName = MiscEnumEntity.TransactionTypeFreightRfq,
                 ModuleTransactionId = request.FreightRfqId,
-                Payload = JsonSerializer.Serialize(payload),
-                TransactionTypeId = null   // routed by menu name; Freight RFQ is not document-numbered
+                Payload = JsonSerializer.Serialize(reverse)
             };
             await _outboxEventPublisher.ScheduleAsync(workflowCommand, correlationId, cancellationToken);
 
