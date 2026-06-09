@@ -1,0 +1,123 @@
+name: CI Gate (build + tests)
+
+# Runs on every push to the active development branch.
+# Purpose: fast merge gate — build + unit tests + integration tests.
+# NO deploy, NO live QA. Keeps flaky live tests from blocking code merges.
+on:
+  push:
+    branches:
+      - BSOFTERP_Dev_V0.1_BK_04062026
+  workflow_dispatch:
+
+# One run at a time per ref. Cancel the older run when a newer push arrives —
+# we only care about testing the latest commit, not finishing old ones.
+concurrency:
+  group: ci-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci-gate:
+    runs-on: self-hosted
+    timeout-minutes: 120   # hard ceiling — prevents a hung integration test from holding the runner indefinitely
+
+    steps:
+      # ── Step 1: Checkout ─────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ── Step 2: Setup .NET 8 ─────────────────────────────────────────────
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      # ── Step 3: Restore packages ─────────────────────────────────────────
+      - name: Restore packages
+        run: dotnet restore BSOFT.sln
+
+      # ── Step 4: Build ─────────────────────────────────────────────────────
+      - name: Build BSOFT.Api
+        run: dotnet build src/BSOFT.Api/BSOFT.Api.csproj -c Release --no-restore
+
+      # ── Step 5: Verify SQL Server is reachable (fail fast before tests) ──
+      # Saves 40+ minutes of misleading test-timeout failures when the DB server
+      # is temporarily unreachable from the runner.
+      - name: Verify SQL Server connectivity
+        shell: powershell
+        run: |
+          $result = Test-NetConnection -ComputerName 192.168.1.126 -Port 1433 -WarningAction SilentlyContinue
+          if (-not $result.TcpTestSucceeded) {
+            throw "Cannot reach SQL Server at 192.168.1.126:1433 — integration tests would time out. Check network/firewall and re-push to retry."
+          }
+          Write-Host "SQL Server 192.168.1.126:1433 is reachable."
+
+      # ── Step 6: Unit tests (module-wise) ─────────────────────────────────
+      - name: Unit tests (module-wise)
+        shell: powershell
+        run: |
+          $failed = @()
+          Get-ChildItem src/tests -Recurse -Filter *.UnitTests.csproj | Sort-Object FullName | ForEach-Object {
+            Write-Host "=== Unit: $($_.BaseName) ==="
+            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory ci-reports `
+              --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            if ($LASTEXITCODE -ne 0) { $failed += $_.BaseName }
+          }
+          if ($failed.Count) { throw "Unit tests FAILED in: $($failed -join ', ')" }
+          Write-Host "All unit test projects passed."
+
+      # ── Step 7: Integration tests (module-wise) ───────────────────────────
+      # Each project recreates its own {Module}_TestDb (throwaway DB on 192.168.1.126).
+      # Does NOT touch BannariERP_QATest or BannariERP_QA.
+      - name: Integration tests (module-wise)
+        shell: powershell
+        run: |
+          $failed = @()
+          Get-ChildItem src/tests -Recurse -Filter *.IntegrationTests.csproj | Sort-Object FullName | ForEach-Object {
+            Write-Host "=== Integration: $($_.BaseName) ==="
+            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory ci-reports
+            if ($LASTEXITCODE -ne 0) { $failed += $_.BaseName }
+          }
+          if ($failed.Count) { throw "Integration tests FAILED in: $($failed -join ', ')" }
+          Write-Host "All integration test projects passed."
+
+      # ── Step 8: Upload reports (always) ──────────────────────────────────
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        continue-on-error: true
+        with:
+          name: CI-Reports-r${{ github.run_number }}-${{ github.sha }}
+          path: ci-reports/
+
+      # ── Step 9: Notify Slack on failure ──────────────────────────────────
+      - name: Notify Slack on failure
+        if: failure()
+        shell: powershell
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL - skipping."; exit 0 }
+
+          $failed = @(); $total = 0; $pass = 0; $fail = 0
+          Get-ChildItem ci-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+              [xml]$trx = Get-Content $_.FullName
+              $c = $trx.TestRun.ResultSummary.Counters
+              if ($c) { $total += [int]$c.total; $pass += [int]$c.passed; $fail += [int]$c.failed }
+              $trx.TestRun.Results.UnitTestResult |
+                Where-Object { $_.outcome -eq 'Failed' } |
+                ForEach-Object { $failed += $_.testName }
+            } catch {}
+          }
+
+          $branch = "${{ github.ref_name }}"
+          $sha    = "${{ github.sha }}".Substring(0,8)
+          $lines  = ($failed | Select-Object -First 15 | ForEach-Object { "- $_" }) -join "`n"
+          if ($failed.Count -gt 15) { $lines += "`n...and $($failed.Count - 15) more" }
+
+          $text = ":x: *CI Gate FAILED* on ``$branch`` ($sha)`n" +
+                  "Passed: $pass  Failed: $fail  Total: $total`n" +
+                  "*Failed tests:*`n$lines"
+
+          $payload = @{ text = $text } | ConvertTo-Json -Depth 4
+          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload

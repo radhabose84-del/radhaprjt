@@ -10,6 +10,12 @@ on:
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
 # same way if the QA test user differs.
+# Only one full deploy at a time — prevents two concurrent runs fighting over the
+# shared DB, the IIS app pool, and the backup/rollback folder.
+concurrency:
+  group: deploy-and-test
+  cancel-in-progress: false   # queue new runs; never abort a deploy mid-flight
+
 env:
   # Runner and IIS are the same box (130), so localhost is the most reliable target
   # and avoids any host/IP ambiguity. Change to the server IP if the runner ever moves.
@@ -61,26 +67,9 @@ jobs:
       - name: Build BSOFT.Api
         run: dotnet build src/BSOFT.Api/BSOFT.Api.csproj -c Release --no-restore
 
-      # ── Step 4b: Unit tests — module-wise gate (BEFORE deploy) ───────────
-      # Runs every *.UnitTests project. A failure in ANY module throws -> the job stops here
-      # and never deploys to 130. Results go to qa-reports so Slack/JIRA pick them up too.
-      - name: Unit tests (module-wise)
-        shell: powershell
-        run: |
-          $failed = @()
-          Get-ChildItem src/tests -Recurse -Filter *.UnitTests.csproj | Sort-Object FullName | ForEach-Object {
-            Write-Host "=== Unit: $($_.BaseName) ==="
-            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory qa-reports `
-              --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-            if ($LASTEXITCODE -ne 0) { $failed += $_.BaseName }
-          }
-          if ($failed.Count) { throw "Unit tests FAILED in: $($failed -join ', ')" }
-          Write-Host "All unit test projects passed."
-
-      # ── Step 4b2: SonarQube — END analysis (upload results + coverage) ──
-      # Sends the analysis of the build + the unit-test coverage to the SonarQube server, where
-      # it computes bugs / vulnerabilities / code smells / coverage and the Quality Gate.
-      # Report-only (no qualitygate.wait) so the result is informational and never blocks deploy.
+      # ── Step 4b: SonarQube — END analysis (upload results + coverage) ──
+      # Unit and integration tests are handled by ci-gate.yml (runs on the same push).
+      # SonarQube end runs here so the build analysis is still uploaded on every deploy.
       - name: SonarQube end
         shell: powershell
         env:
@@ -89,21 +78,6 @@ jobs:
           if (-not $env:SONAR_TOKEN) { Write-Host "SONAR_TOKEN not set - skipping SonarQube end."; exit 0 }
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
-
-      # ── Step 4c: Integration tests — module-wise gate (BEFORE deploy) ────
-      # Each *.IntegrationTests project recreates its OWN {Module}_TestDb on 192.168.1.126
-      # (isolated throwaway DB; does NOT touch BannariERP_QATest). A failure blocks the deploy.
-      - name: Integration tests (module-wise)
-        shell: powershell
-        run: |
-          $failed = @()
-          Get-ChildItem src/tests -Recurse -Filter *.IntegrationTests.csproj | Sort-Object FullName | ForEach-Object {
-            Write-Host "=== Integration: $($_.BaseName) ==="
-            dotnet test $_.FullName -c Release --logger "trx;LogFileName=$($_.BaseName).trx" --results-directory qa-reports
-            if ($LASTEXITCODE -ne 0) { $failed += $_.BaseName }
-          }
-          if ($failed.Count) { throw "Integration tests FAILED in: $($failed -join ', ')" }
-          Write-Host "All integration test projects passed."
 
       # ── Step 5: Publish ─────────────────────────────────────────────────
       - name: Publish BSOFT.Api
