@@ -206,6 +206,12 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public string? InsuranceProvider { get; set; }
             public string? PolicyNo { get; set; }
             public DateTimeOffset? InsuranceExpiryDate { get; set; }
+            // Cross-module — ModuleName populated by handler via IModuleLookup.
+            public int? ModuleId { get; set; }
+            public string? ModuleName { get; set; }
+            // Same-module — DefaultProcurementRateBasisName populated via SQL JOIN to Party.MiscMaster.
+            public int? DefaultProcurementRateBasisId { get; set; }
+            public string? DefaultProcurementRateBasisName { get; set; }
             public byte Status { get; set; }
         }
 

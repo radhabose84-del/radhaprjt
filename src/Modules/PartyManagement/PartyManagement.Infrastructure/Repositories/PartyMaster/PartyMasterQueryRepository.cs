@@ -39,6 +39,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly IPartyMasterFinanceValidation _financeValidation;
         private readonly IPartyMasterMaintenanceValidation _maintenanceValidation;
         private readonly IFreightMasterLookup _freightMasterLookup;
+        private readonly IModuleLookup _moduleLookup;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
             IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
@@ -49,7 +50,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             IPartyMasterFinanceValidation financeValidation,
             IPartyMasterMaintenanceValidation maintenanceValidation,
             IFreightMasterLookup freightMasterLookup,
-            IAgentCustomerMappingLookup agentCustomerMappingLookup)
+            IAgentCustomerMappingLookup agentCustomerMappingLookup,
+            IModuleLookup moduleLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -66,6 +68,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _maintenanceValidation = maintenanceValidation;
             _freightMasterLookup = freightMasterLookup;
             _agentCustomerMappingLookup = agentCustomerMappingLookup;
+            _moduleLookup = moduleLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -174,12 +177,16 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 td.InsuranceProvider,
                 td.PolicyNo,
                 td.InsuranceExpiryDate,
+                td.ModuleId,
+                td.DefaultProcurementRateBasisId,
+                dprb.Description AS DefaultProcurementRateBasisName,
                 td.Status
             FROM Party.TransportDetail td
             LEFT JOIN Party.MiscMaster tt ON td.TransporterTypeId = tt.Id AND tt.IsDeleted = 0
             LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
             LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
             LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+            LEFT JOIN Party.MiscMaster dprb ON td.DefaultProcurementRateBasisId = dprb.Id AND dprb.IsDeleted = 0
             WHERE td.PartyId = @Id;
 
         ";
@@ -199,6 +206,28 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             partyMaster.SalesTypes = (await multi.ReadAsync<PartyMasterDto.SalesTypeDto>()).ToList();
             partyMaster.AgentConfigs = (await multi.ReadAsync<PartyMasterDto.AgentConfigDto>()).ToList();
             partyMaster.TransportDetails = (await multi.ReadAsync<PartyMasterDto.TransportDetailDto>()).ToList();
+
+            // Cross-module name lookup for TransportDetail.ModuleId (no DB FK / no SQL JOIN — uses cached IModuleLookup).
+            if (partyMaster.TransportDetails?.Count > 0)
+            {
+                var moduleIds = partyMaster.TransportDetails
+                    .Where(t => t.ModuleId.HasValue && t.ModuleId.Value > 0)
+                    .Select(t => t.ModuleId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                if (moduleIds.Count > 0)
+                {
+                    var modules = await _moduleLookup.GetAllModuleAsync();
+                    var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+
+                    foreach (var td in partyMaster.TransportDetails)
+                    {
+                        if (td.ModuleId.HasValue && moduleDict.TryGetValue(td.ModuleId.Value, out var mName))
+                            td.ModuleName = mName;
+                    }
+                }
+            }
 
             // Populate cross-module lookup names for SalesTypes
             if (partyMaster.SalesTypes?.Any() == true)
@@ -616,12 +645,16 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         td.LicenseNo, td.LicenseExpiryDate,
                         td.VehicleNo,
                         td.InsuranceProvider, td.PolicyNo, td.InsuranceExpiryDate,
+                        td.ModuleId,
+                        td.DefaultProcurementRateBasisId,
+                        dprb.Description AS DefaultProcurementRateBasisName,
                         td.Status
                     FROM Party.TransportDetail td
                     LEFT JOIN Party.MiscMaster tt ON td.TransporterTypeId = tt.Id AND tt.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+                    LEFT JOIN Party.MiscMaster dprb ON td.DefaultProcurementRateBasisId = dprb.Id AND dprb.IsDeleted = 0
                     WHERE td.PartyId IN @PartyIds AND td.Status = 1";
 
                 var flatTransports = (await _dbConnection.QueryAsync<TransportDetailAutoCompleteDto>(transportSql, new { PartyIds = partyIds })).ToList();
@@ -634,6 +667,25 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     {
                         if (transportByParty.TryGetValue(party.Id, out var transports))
                             party.TransportDetails = transports;
+                    }
+
+                    // Cross-module name lookup for TransportDetail.ModuleId — one cached call covers the whole page.
+                    var moduleIds = flatTransports
+                        .Where(t => t.ModuleId.HasValue && t.ModuleId.Value > 0)
+                        .Select(t => t.ModuleId!.Value)
+                        .Distinct()
+                        .ToList();
+
+                    if (moduleIds.Count > 0)
+                    {
+                        var modules = await _moduleLookup.GetAllModuleAsync();
+                        var moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+
+                        foreach (var td in flatTransports)
+                        {
+                            if (td.ModuleId.HasValue && moduleDict.TryGetValue(td.ModuleId.Value, out var mName))
+                                td.ModuleName = mName;
+                        }
                     }
                 }
 
