@@ -140,6 +140,9 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             public int? OrderTypeId { get; set; }
             public int? IncotermId { get; set; }
             public int? PaymentTermsId { get; set; }
+            // Cross-module lookups (SalesManagement).
+            public int? SalesGroupId { get; set; }
+            public int? SalesOfficeId { get; set; }
             public int? ShippingConditionId { get; set; }
             public int? AccountAssignmentId { get; set; }
             public byte Active { get; set; }

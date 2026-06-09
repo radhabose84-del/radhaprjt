@@ -24,6 +24,11 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public string? SegmentName { get; set; }
         public int? PaymentTypeId { get; set; }
         public string? PaymentTypeName { get; set; }
+        // Cross-module lookups (SalesManagement) — populated post-query in the repo.
+        public int? SalesGroupId { get; set; }
+        public string? SalesGroupName { get; set; }
+        public int? SalesOfficeId { get; set; }
+        public string? SalesOfficeName { get; set; }
     }
 
     public class PartyAddressAutoCompleteDto

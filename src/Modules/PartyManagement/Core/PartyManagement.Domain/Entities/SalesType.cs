@@ -9,6 +9,9 @@ namespace PartyManagement.Domain.Entities
         public int? OrderTypeId { get; set; }
         public int? IncotermId { get; set; }
         public int? PaymentTermsId { get; set; }
+        // Cross-module FKs (SalesManagement) — no navigation, no DB FK constraint.
+        public int? SalesGroupId { get; set; }
+        public int? SalesOfficeId { get; set; }
         public int? ShippingConditionId { get; set; }
         public MiscMaster? ShippingConditionMisc { get; set; }
         public int? AccountAssignmentId { get; set; }

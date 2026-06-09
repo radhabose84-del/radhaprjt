@@ -162,6 +162,11 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public string? IncotermName { get; set; }
             public int? PaymentTermsId { get; set; }
             public string? PaymentTermsName { get; set; }
+            // Cross-module lookups (SalesManagement) — names populated via ISalesGroupLookup / ISalesOfficeLookup.
+            public int? SalesGroupId { get; set; }
+            public string? SalesGroupName { get; set; }
+            public int? SalesOfficeId { get; set; }
+            public string? SalesOfficeName { get; set; }
             public int? ShippingConditionId { get; set; }
             public string? ShippingConditionName { get; set; }
             public int? AccountAssignmentId { get; set; }
