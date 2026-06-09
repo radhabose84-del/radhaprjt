@@ -51,6 +51,18 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnType("int")
                 .IsRequired(false);
 
+            // SalesGroupId - cross-module FK (Sales.SalesGroup), no DB constraint
+            builder.Property(m => m.SalesGroupId)
+                .HasColumnName("SalesGroupId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            // SalesOfficeId - cross-module FK (Sales.SalesOffice), no DB constraint
+            builder.Property(m => m.SalesOfficeId)
+                .HasColumnName("SalesOfficeId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             // ShippingConditionId - same-module FK to Party.MiscMaster
             builder.Property(m => m.ShippingConditionId)
                 .HasColumnName("ShippingConditionId")
@@ -81,6 +93,8 @@ namespace PartyManagement.Infrastructure.Data.Configurations
 
             // Indexes
             builder.HasIndex(m => m.PartyId);
+            builder.HasIndex(m => m.SalesGroupId);
+            builder.HasIndex(m => m.SalesOfficeId);
         }
     }
 }
