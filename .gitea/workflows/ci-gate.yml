@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - BSOFTERP_Dev_V0.1_BK_04062026
+      - Main
   workflow_dispatch:
 
 # One run at a time per ref. Cancel the older run when a newer push arrives —
