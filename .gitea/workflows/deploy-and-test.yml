@@ -23,7 +23,7 @@ env:
 
 jobs:
   deploy-and-test:
-    runs-on: self-hosted # runs on QA server (198.168.1.130)
+    runs-on: [self-hosted, qa-server] # runs on QA server (192.168.1.130)
 
     steps:
       # ── Step 1: Get latest code ─────────────────────────────────────────
@@ -59,7 +59,6 @@ jobs:
             /k:"bsoft" `
             /d:sonar.host.url="$env:SONAR_HOST_URL" `
             /d:sonar.token="$env:SONAR_TOKEN" `
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
             /d:sonar.exclusions="**/Migrations/**" `
             /d:sonar.scanner.scanAll=false
 
@@ -229,6 +228,24 @@ jobs:
             --logger "console;verbosity=normal" `
             --results-directory qa-reports
 
+      # ── Step 10a: Module SMOKE slice (BLOCKING) ─────────────────────────
+      # FAM + Maintenance smoke (Layer=Smoke). Live-reconciled to green (FAM 24/24,
+      # Maintenance smoke green), so this is now a blocking fail-fast gate like Step 10.
+      # The full CRUD/Functional suites (Steps 12a/12b) stay non-blocking until they
+      # prove stable across a few CI runs, then promote them too.
+      - name: Module smoke (FAM + Maintenance)
+        if: success()
+        shell: powershell
+        run: |
+          dotnet test src/tests/FixedAssetManagement.QATests/FixedAssetManagement.QATests.csproj `
+            --filter "Layer=Smoke" `
+            --logger "trx;LogFileName=fam-smoke.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+          dotnet test src/tests/MaintenanceManagement.QATests/MaintenanceManagement.QATests.csproj `
+            --filter "Layer=Smoke" `
+            --logger "trx;LogFileName=maintenance-smoke.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
       # ── Step 11: Full QA suite (CRUD + Security + Async) ────────────────
       - name: Run QA suite
         if: success()
@@ -249,6 +266,37 @@ jobs:
             --logger "html;LogFileName=functional-report.html" `
             --logger "trx;LogFileName=functional.trx" `
             --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 12a: FAM + Maintenance QA suites (RECONCILING — non-blocking) ──
+      # These suites are authored from the source contract but not yet live-reconciled,
+      # so they run with continue-on-error to REPORT results (TRX → Slack/JIRA) without
+      # failing the job. FK happy-paths use best-effort seed ids and will need tuning on
+      # first live run. Once a suite is green, move its line into Step 11 (blocking).
+      - name: Run module QA suites (reconciling)
+        if: success()
+        continue-on-error: true
+        shell: powershell
+        run: |
+          dotnet test src/tests/FixedAssetManagement.QATests/FixedAssetManagement.QATests.csproj `
+            --logger "trx;LogFileName=fam-qa.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+          dotnet test src/tests/MaintenanceManagement.QATests/MaintenanceManagement.QATests.csproj `
+            --logger "trx;LogFileName=maintenance-qa.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 12b: FAM + Maintenance Functional workflows (RECONCILING — non-blocking) ──
+      # Skip-documented steps (blocked on seeded data) report as skipped, not failed.
+      - name: Run module Functional tests (reconciling)
+        if: success()
+        continue-on-error: true
+        shell: powershell
+        run: |
+          dotnet test src/tests/FixedAssetManagement.FunctionalTests/FixedAssetManagement.FunctionalTests.csproj `
+            --logger "trx;LogFileName=fam-functional.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+          dotnet test src/tests/MaintenanceManagement.FunctionalTests/MaintenanceManagement.FunctionalTests.csproj `
+            --logger "trx;LogFileName=maintenance-functional.trx" --logger "console;verbosity=normal" `
             --results-directory qa-reports
 
       # ── Step 13: Upload all reports (always) ────────────────────────────

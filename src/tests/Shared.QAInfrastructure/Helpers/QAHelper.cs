@@ -48,6 +48,43 @@ public static class QAHelper
     }
 
     public static string LongString(int length) => new('A', length);
+
+    /// <summary>
+    /// Resolves a real existing id from a paginated GET-all endpoint (first row). Returns 0
+    /// when the endpoint is unreachable or empty. Used to satisfy FK fields with a live id
+    /// instead of a hard-coded seed (the QA clone has no guaranteed id = 1).
+    /// </summary>
+    public static async Task<int> FirstIdAsync(HttpClient client, string route)
+    {
+        var sep = route.Contains('?') ? "&" : "?";
+        var resp = await client.GetAsync($"{route}{sep}PageNumber=1&PageSize=1");
+        if (!resp.IsSuccessStatusCode) return 0;
+        using var doc = await ParseAsync(resp);
+        if (!doc.RootElement.TryGetProperty("data", out var data)) return 0;
+        if (data.ValueKind != JsonValueKind.Array || data.GetArrayLength() == 0) return 0;
+        return FirstNumericId(data[0]);
+    }
+
+    private static int FirstNumericId(JsonElement obj)
+    {
+        if (obj.ValueKind != JsonValueKind.Object) return 0;
+        int? fallback = null;
+        foreach (var p in obj.EnumerateObject())
+        {
+            if (p.Value.ValueKind != JsonValueKind.Number) continue;
+            if (p.Name.Equals("id", StringComparison.OrdinalIgnoreCase)) return p.Value.GetInt32();
+            if (fallback is null && p.Name.EndsWith("id", StringComparison.OrdinalIgnoreCase)) fallback = p.Value.GetInt32();
+        }
+        return fallback ?? 0;
+    }
+
+    /// <summary>A run-unique 4-digit int (1000-9999) derived from the fixture EntityCode digits —
+    /// fits sortOrder columns capped at varchar(4) while staying run-unique to avoid collisions.</summary>
+    public static int RunUniqueInt(string entityCode)
+    {
+        var digits = new string(entityCode.Where(char.IsDigit).Take(6).ToArray());
+        return digits.Length > 0 ? int.Parse(digits) % 9000 + 1000 : 1000;
+    }
 }
 
 /// <summary>
