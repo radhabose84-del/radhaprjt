@@ -52,12 +52,25 @@ jobs:
       # failing gate does NOT block the deploy. Skips cleanly if the Sonar secrets aren't set.
       - name: SonarQube begin
         shell: powershell
+        continue-on-error: true   # Sonar is report-only — never let it block the deploy
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           if (-not $env:SONAR_HOST_URL -or -not $env:SONAR_TOKEN) {
-            Write-Host "SONAR_HOST_URL / SONAR_TOKEN not set - skipping SonarQube."; exit 0
+            Write-Host "SONAR_HOST_URL / SONAR_TOKEN not set - skipping SonarQube."
+            "SONAR_ENABLED=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            exit 0
+          }
+          # Probe the server first. If it's down/unreachable (e.g. the Sonar Docker container
+          # on the dev box isn't running), skip cleanly instead of crashing the scanner and
+          # failing the whole deploy. /api/system/status is unauthenticated.
+          try {
+            Invoke-WebRequest -Uri "$env:SONAR_HOST_URL/api/system/status" -TimeoutSec 10 -UseBasicParsing | Out-Null
+          } catch {
+            Write-Host "SonarQube not reachable at $env:SONAR_HOST_URL - skipping analysis. ($_)"
+            "SONAR_ENABLED=false" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            exit 0
           }
           dotnet tool install --global dotnet-sonarscanner *> $null
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
@@ -67,6 +80,7 @@ jobs:
             /d:sonar.token="$env:SONAR_TOKEN" `
             /d:sonar.exclusions="**/Migrations/**" `
             /d:sonar.scanner.scanAll=false
+          "SONAR_ENABLED=true" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       # ── Step 4: Build ───────────────────────────────────────────────────
       - name: Build BSOFT.Api
@@ -77,9 +91,12 @@ jobs:
       # SonarQube end runs here so the build analysis is still uploaded on every deploy.
       - name: SonarQube end
         shell: powershell
+        continue-on-error: true   # Sonar is report-only — never let it block the deploy
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          # Only run 'end' if 'begin' actually started analysis (server was reachable).
+          if ($env:SONAR_ENABLED -ne 'true') { Write-Host "SonarQube analysis was not started - skipping end."; exit 0 }
           if (-not $env:SONAR_TOKEN) { Write-Host "SONAR_TOKEN not set - skipping SonarQube end."; exit 0 }
           $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
           dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
