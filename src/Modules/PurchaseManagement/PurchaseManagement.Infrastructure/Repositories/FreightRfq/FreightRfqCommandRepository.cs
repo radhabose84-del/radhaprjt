@@ -3,6 +3,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Microsoft.EntityFrameworkCore;
 using PurchaseManagement.Application.Common.Interfaces.IFreightRfq;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
+using PurchaseManagement.Application.FreightRfq.Dto;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.FreightRfq;
 using PurchaseManagement.Infrastructure.Data;
@@ -186,6 +187,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
             _dbContext.FreightRfqHeaders.Update(header);
             await _dbContext.SaveChangesAsync();
             return rfqId;
+        }
+
+        public async Task<FreightRfqWorkFlowDto?> GetWorkflowPayloadAsync(int id)
+        {
+            return await _dbContext.FreightRfqHeaders
+                .AsNoTracking()
+                .Where(h => h.Id == id && h.IsDeleted == IsDelete.NotDeleted)
+                .Select(h => new FreightRfqWorkFlowDto
+                {
+                    Id = h.Id,
+                    FreightRfqNumber = h.FreightRfqNumber,
+                    SupplierId = h.SupplierId,
+                    StatusId = h.StatusId
+                })
+                .FirstOrDefaultAsync();
         }
 
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)

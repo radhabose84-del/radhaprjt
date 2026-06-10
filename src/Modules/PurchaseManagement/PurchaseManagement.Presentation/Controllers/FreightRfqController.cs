@@ -1,15 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PurchaseManagement.Application.FreightRfq.Commands.ApproveFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Commands.CreateFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Commands.DeleteFreightRfq;
-using PurchaseManagement.Application.FreightRfq.Commands.RejectFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Commands.SaveFreightRfqQuotations;
 using PurchaseManagement.Application.FreightRfq.Commands.SubmitFreightRfqForApproval;
 using PurchaseManagement.Application.FreightRfq.Commands.UpdateFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Queries.GetAllFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Queries.GetFreightRfqById;
+using PurchaseManagement.Application.FreightRfq.Queries.GetFreightRfqPending;
 using PurchaseManagement.Application.FreightRfq.Queries.GetFreightRfqPoPrefill;
 using PurchaseManagement.Application.FreightRfq.Queries.GetFreightRfqTransporters;
 using PurchaseManagement.Application.FreightRfq.Queries.GetNextFreightRfqNumber;
@@ -52,6 +51,28 @@ namespace PurchaseManagement.Presentation.Controllers
         {
             var result = await Mediator.Send(new GetFreightRfqByIdQuery { Id = id });
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        // Pending-approval list for the WorkFlow Approval screen (status = Pending Approval).
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize)
+        {
+            var result = await Mediator.Send(new GetFreightRfqPendingQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
         }
 
         [HttpGet("po-references")]
@@ -137,31 +158,9 @@ namespace PurchaseManagement.Presentation.Controllers
             });
         }
 
-        [HttpPost("approve")]
-        public async Task<IActionResult> ApproveAsync([FromBody] ApproveFreightRfqCommand command)
-        {
-            var result = await Mediator.Send(command);
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                isSuccess = result.IsSuccess,
-                message = result.Message,
-                data = result.Data
-            });
-        }
-
-        [HttpPost("reject")]
-        public async Task<IActionResult> RejectAsync([FromBody] RejectFreightRfqCommand command)
-        {
-            var result = await Mediator.Send(command);
-            return Ok(new
-            {
-                StatusCode = StatusCodes.Status200OK,
-                isSuccess = result.IsSuccess,
-                message = result.Message,
-                data = result.Data
-            });
-        }
+        // NOTE: Approve / Reject are handled by the centralized Workflow engine
+        // (BackgroundService ApprovalRequest). After submit-for-approval, the RFQ status is
+        // updated via the ApprovedRejectedConsumer "Freight RFQ" branch — not by this controller.
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(int id)

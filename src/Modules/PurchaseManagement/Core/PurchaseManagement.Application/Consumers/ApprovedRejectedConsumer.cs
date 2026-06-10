@@ -16,6 +16,7 @@ using PurchaseManagement.Application.Common.Interfaces.IIssueReturn;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.IContractPOMaster;
 using PurchaseManagement.Application.Common.Interfaces.IBlanketMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOCREntry;
+using PurchaseManagement.Application.Common.Interfaces.IFreightRfq;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.GRN.StockLedger;
@@ -57,6 +58,7 @@ namespace PurchaseManagement.Application.Consumers
         private readonly IBlanketMasterCommandRepository _blanketMasterCommandRepo;
         private readonly ITransactionTypeLookup _transactionTypeLookup;
         private readonly IOCREntryCommandRepository _ocrCommandRepo;
+        private readonly IFreightRfqCommandRepository _freightRfqCommandRepo;
 
         public ApprovedRejectedConsumer(
             IPurchaseIndentCommand purchaseIndentCommand,
@@ -79,7 +81,8 @@ namespace PurchaseManagement.Application.Consumers
             IContractPOMasterCommandRepository contractPOMasterCommandRepo,
             IBlanketMasterCommandRepository blanketMasterCommandRepo,
             ITransactionTypeLookup transactionTypeLookup,
-            IOCREntryCommandRepository ocrCommandRepo)
+            IOCREntryCommandRepository ocrCommandRepo,
+            IFreightRfqCommandRepository freightRfqCommandRepo)
         {
             _purchaseIndentCommand = purchaseIndentCommand;
             _imapper = mapper;
@@ -102,6 +105,7 @@ namespace PurchaseManagement.Application.Consumers
             _blanketMasterCommandRepo = blanketMasterCommandRepo;
             _transactionTypeLookup = transactionTypeLookup;
             _ocrCommandRepo = ocrCommandRepo;
+            _freightRfqCommandRepo = freightRfqCommandRepo;
         }
 
         public async Task Consume(ConsumeContext<UpdateApprovedRejectedPurchaseCommand> context)
@@ -712,6 +716,32 @@ namespace PurchaseManagement.Application.Consumers
 
                         if (!updated)
                             throw new Exception($"OCR approval update failed for Id={ocrId}");
+                    }
+
+                    await PublishCompletedAsync();
+                    return;
+                }
+
+                // -----------------------------
+                // FREIGHT RFQ
+                // -----------------------------
+                if (msg.ModuleTypeName == MiscEnumEntity.TransactionTypeFreightRfq)
+                {
+                    var status = msg.Status;
+                    var rfqId = msg.ModuleTransactionId;
+
+                    if (status == MiscEnumEntity.Approved)
+                    {
+                        // Sets FreightRfqStatus = Approved and snapshots the selected transporter/rate/freight.
+                        var affected = await _freightRfqCommandRepo.ApproveAsync(rfqId, null);
+                        if (affected <= 0)
+                            throw new Exception($"Freight RFQ approval update failed for Id={rfqId}");
+                    }
+                    else if (status == MiscEnumEntity.Rejected)
+                    {
+                        var affected = await _freightRfqCommandRepo.RejectAsync(rfqId, null);
+                        if (affected <= 0)
+                            throw new Exception($"Freight RFQ rejection update failed for Id={rfqId}");
                     }
 
                     await PublishCompletedAsync();

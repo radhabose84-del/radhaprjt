@@ -2,10 +2,8 @@ using Contracts.Common;
 using Contracts.Dtos.Lookups.Party;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PurchaseManagement.Application.FreightRfq.Commands.ApproveFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Commands.CreateFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Commands.DeleteFreightRfq;
-using PurchaseManagement.Application.FreightRfq.Commands.RejectFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Commands.SaveFreightRfqQuotations;
 using PurchaseManagement.Application.FreightRfq.Commands.SubmitFreightRfqForApproval;
 using PurchaseManagement.Application.FreightRfq.Commands.UpdateFreightRfq;
@@ -106,26 +104,6 @@ namespace PurchaseManagement.UnitTests.Controllers
 
             var cmd = new SubmitFreightRfqForApprovalCommand { FreightRfqId = 1, SelectedQuotationId = 2 };
             (await CreateSut().SubmitForApprovalAsync(cmd)).Should().BeOfType<OkObjectResult>();
-        }
-
-        [Fact]
-        public async Task Approve_ReturnsOkResult()
-        {
-            _mockMediator.Setup(m => m.Send(It.IsAny<ApproveFreightRfqCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Ok());
-
-            (await CreateSut().ApproveAsync(new ApproveFreightRfqCommand { FreightRfqId = 1 }))
-                .Should().BeOfType<OkObjectResult>();
-        }
-
-        [Fact]
-        public async Task Reject_ReturnsOkResult()
-        {
-            _mockMediator.Setup(m => m.Send(It.IsAny<RejectFreightRfqCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Ok());
-
-            (await CreateSut().RejectAsync(new RejectFreightRfqCommand { FreightRfqId = 1, ApprovalRemarks = "no" }))
-                .Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
