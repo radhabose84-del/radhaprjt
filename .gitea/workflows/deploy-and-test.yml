@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - BSOFTERP_Dev_V0.1_BK_04062026
-      - Radha_QATest_Implementations   # TEMP: validate the new QA suites; remove before merge
+      - Radha_QATest_Implementations  # TEMP: validate the new QA suites; remove before merge
   # Manual trigger: Gitea repo -> Actions -> this workflow -> "Run workflow".
   workflow_dispatch:
 
