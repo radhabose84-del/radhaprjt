@@ -138,7 +138,7 @@ namespace BackgroundService.Infrastructure.Repositories.Workflow.ApprovalRequest
 
                 // Preserve the original exception (SQL error, null MenuId, timeout, etc.)
                 // as the inner exception — otherwise the real failure cause is lost.
-                throw new Exception(
+                throw new InvalidOperationException(
                     $"EvaluateApproval Stored Procedure Failed (WorkflowType='{workflowType}', " +
                     $"TransactionId={transactionId}, TransactionTypeId={transactionTypeId}): {ex.Message}",
                     ex);

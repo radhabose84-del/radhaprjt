@@ -31,10 +31,11 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }
 
-        // Capture mode (derived from the stock ledger). Consolidated lines return an empty Bales list;
-        // Individual lines return one Bales entry per captured bale.
+        /// <summary>
+        /// Capture mode (derived from the stock ledger). Consolidated lines return an empty Bales
+        /// list; Individual lines return one Bales entry per captured bale.
+        /// </summary>
         public bool IsIndividual { get; set; }
-        //public int? BaleCaptureMethodId { get; set; }
         public List<ArrivalBaleRowDto> Bales { get; set; } = new();
     }
 

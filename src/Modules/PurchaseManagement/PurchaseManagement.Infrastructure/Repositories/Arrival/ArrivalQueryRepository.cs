@@ -160,7 +160,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                     continue;
 
                 detail.IsIndividual = true;
-              //  detail.BaleCaptureMethodId = (int?)baleRows.First(r => r.BaleCaptureMethodId != null).BaleCaptureMethodId;
                 detail.Bales = baleRows.Select(r => new ArrivalBaleRowDto
                 {
                     BaleNo = (long)r.BaleNo,

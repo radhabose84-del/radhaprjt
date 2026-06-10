@@ -28,7 +28,7 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
             var dstStnMax = maxLengthProvider.GetMaxLength<PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader>("DestinationStation") ?? 100;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
-            if (_validationRules == null || !_validationRules.Any())
+            if (_validationRules == null || _validationRules.Count == 0)
             {
                 throw new InvalidOperationException("Validation rules could not be loaded.");
             }

@@ -8,6 +8,7 @@ on:
     branches:
       - BSOFTERP_Dev_V0.1_BK_04062026
       - Main
+      - Radha_QATest_Implementations  # TEMP: validate Sonar+coverage on the working branch; remove before merge
   workflow_dispatch:
 
 # One run at a time per ref. Cancel the older run when a newer push arrives —
@@ -35,6 +36,43 @@ jobs:
       # ── Step 3: Restore packages ─────────────────────────────────────────
       - name: Restore packages
         run: dotnet restore BSOFT.sln
+
+      # ── Step 3b: SonarQube — BEGIN (authoritative scan) ──────────────────
+      # This gate is the ONLY SonarQube scan: it builds AND runs the unit tests with coverage
+      # (Step 6), so it is the only place that can feed REAL coverage to Sonar. The deploy
+      # pipeline no longer runs Sonar (it had no tests => 0% coverage, and clobbered this scan
+      # via the shared 'bsoft' project key). Non-blocking: a Sonar outage must never block a
+      # merge. Probe first; 'begin' creates .sonarqube only when reachable, and 'end' keys off
+      # that folder so begin+end stay in sync.
+      - name: SonarQube begin
+        shell: powershell
+        continue-on-error: true
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if (-not $env:SONAR_HOST_URL -or -not $env:SONAR_TOKEN) {
+            Write-Host "SONAR_HOST_URL / SONAR_TOKEN not set - skipping SonarQube."
+            exit 0
+          }
+          try {
+            Invoke-WebRequest -Uri "$env:SONAR_HOST_URL/api/system/status" -TimeoutSec 10 -UseBasicParsing | Out-Null
+          } catch {
+            Write-Host "SonarQube not reachable at $env:SONAR_HOST_URL - skipping analysis. ($_)"
+            exit 0
+          }
+          dotnet tool install --global dotnet-sonarscanner *> $null
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          # coverage.exclusions: generated / non-logic code so the % reflects real, testable
+          # logic (Migrations, Program.cs, DI, module wiring, DTOs, EF entities, configs).
+          dotnet-sonarscanner begin `
+            /k:"bsoft" `
+            /d:sonar.host.url="$env:SONAR_HOST_URL" `
+            /d:sonar.token="$env:SONAR_TOKEN" `
+            /d:sonar.exclusions="**/Migrations/**" `
+            /d:sonar.coverage.exclusions="**/Migrations/**,**/Program.cs,**/DependencyInjection.cs,**/*.Module/**,**/Dto/**,**/Dtos/**,**/Entities/**,**/Configurations/**,**/DesignTimeDbContextFactory.cs" `
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
+            /d:sonar.scanner.scanAll=false
 
       # ── Step 4: Build ─────────────────────────────────────────────────────
       - name: Build BSOFT.Api
@@ -80,6 +118,23 @@ jobs:
           }
           if ($failed.Count) { throw "Integration tests FAILED in: $($failed -join ', ')" }
           Write-Host "All integration test projects passed."
+
+      # ── Step 7b: SonarQube — END (upload analysis + coverage) ────────────
+      # if: always() so the analysis still uploads even if a test step failed (you want the
+      # report either way). Guarded by the .sonarqube folder so it no-ops cleanly when begin
+      # skipped (Sonar unreachable). Non-blocking. Report-only for now — do NOT add
+      # sonar.qualitygate.wait until the gate baseline is green, or it blocks every merge.
+      - name: SonarQube end
+        if: always()
+        continue-on-error: true
+        shell: powershell
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if (-not (Test-Path ".sonarqube")) { Write-Host "SonarQube analysis was not started (no .sonarqube) - skipping end."; exit 0 }
+          if (-not $env:SONAR_TOKEN) { Write-Host "SONAR_TOKEN not set - skipping SonarQube end."; exit 0 }
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
 
       # ── Step 8: Upload reports (always) ──────────────────────────────────
       - name: Upload test reports
