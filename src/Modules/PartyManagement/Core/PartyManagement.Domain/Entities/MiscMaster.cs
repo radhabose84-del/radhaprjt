@@ -34,6 +34,9 @@ namespace PartyManagement.Domain.Entities
         public ICollection<TransportDetail>? TransportDetailTransportMode { get; set; }
         public ICollection<TransportDetail>? TransportDetailVehicleType { get; set; }
         public ICollection<TransportDetail>? TransportDetailDefaultFreightType { get; set; }
+        // Reverse-nav for the optional FK DefaultProcurementRateBasisId — collection is nullable,
+        // matching the per-row nav nullability on TransportDetail.
+        public ICollection<TransportDetail>? TransportDetailDefaultProcurementRateBasis { get; set; }
         public ICollection<AgentConfig>? AgentConfigSettlementCycle { get; set; }
 
     }

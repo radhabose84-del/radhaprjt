@@ -162,6 +162,11 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public string? IncotermName { get; set; }
             public int? PaymentTermsId { get; set; }
             public string? PaymentTermsName { get; set; }
+            // Cross-module lookups (SalesManagement) — names populated via ISalesGroupLookup / ISalesOfficeLookup.
+            public int? SalesGroupId { get; set; }
+            public string? SalesGroupName { get; set; }
+            public int? SalesOfficeId { get; set; }
+            public string? SalesOfficeName { get; set; }
             public int? ShippingConditionId { get; set; }
             public string? ShippingConditionName { get; set; }
             public int? AccountAssignmentId { get; set; }
@@ -206,6 +211,12 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public string? InsuranceProvider { get; set; }
             public string? PolicyNo { get; set; }
             public DateTimeOffset? InsuranceExpiryDate { get; set; }
+            // Cross-module — ModuleName populated by handler via IModuleLookup.
+            public int? ModuleId { get; set; }
+            public string? ModuleName { get; set; }
+            // Same-module — DefaultProcurementRateBasisName populated via SQL JOIN to Party.MiscMaster.
+            public int? DefaultProcurementRateBasisId { get; set; }
+            public string? DefaultProcurementRateBasisName { get; set; }
             public byte Status { get; set; }
         }
 

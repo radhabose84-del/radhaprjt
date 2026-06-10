@@ -7,6 +7,9 @@ namespace PurchaseManagement.Application.Common.Interfaces.IFreightRfq
         // Grid (paginated + search + optional status filter). Names enriched via lookups.
         Task<(List<FreightRfqListDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? statusId);
 
+        // Pending-approval list for the WorkFlow Approval screen (status = Pending). Paginated.
+        Task<(List<FreightRfqListDto>, int)> GetPendingAsync(int pageNumber, int pageSize);
+
         // Full record (header + quotations + derived stats). Names enriched via lookups.
         Task<FreightRfqDto?> GetByIdAsync(int id);
 

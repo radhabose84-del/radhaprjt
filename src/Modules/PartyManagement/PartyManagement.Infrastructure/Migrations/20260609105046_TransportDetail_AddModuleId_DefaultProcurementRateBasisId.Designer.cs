@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PartyManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PartyManagement.Infrastructure.Data;
 namespace PartyManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609105046_TransportDetail_AddModuleId_DefaultProcurementRateBasisId")]
+    partial class TransportDetail_AddModuleId_DefaultProcurementRateBasisId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1178,14 +1181,6 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PaymentTermsId");
 
-                    b.Property<int?>("SalesGroupId")
-                        .HasColumnType("int")
-                        .HasColumnName("SalesGroupId");
-
-                    b.Property<int?>("SalesOfficeId")
-                        .HasColumnType("int")
-                        .HasColumnName("SalesOfficeId");
-
                     b.Property<int?>("SalesSegmentId")
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
@@ -1199,10 +1194,6 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.HasIndex("AccountAssignmentId");
 
                     b.HasIndex("PartyId");
-
-                    b.HasIndex("SalesGroupId");
-
-                    b.HasIndex("SalesOfficeId");
 
                     b.HasIndex("ShippingConditionId");
 

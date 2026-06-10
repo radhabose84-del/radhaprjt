@@ -1,9 +1,13 @@
+using PurchaseManagement.Application.FreightRfq.Dto;
 using PurchaseManagement.Domain.Entities.FreightRfq;
 
 namespace PurchaseManagement.Application.Common.Interfaces.IFreightRfq
 {
     public interface IFreightRfqCommandRepository
     {
+        // Minimal projection used as the Workflow approval-request payload.
+        Task<FreightRfqWorkFlowDto?> GetWorkflowPayloadAsync(int id);
+
         // Generates FreightRfqNumber + default "Draft" status, persists header (+ any quotations). Returns new Id.
         Task<int> CreateAsync(FreightRfqHeader entity);
 

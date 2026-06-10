@@ -132,6 +132,9 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             public int? OrderTypeId { get; set; }
             public int? IncotermId { get; set; }
             public int? PaymentTermsId { get; set; }
+            // Cross-module lookups (SalesManagement).
+            public int? SalesGroupId { get; set; }
+            public int? SalesOfficeId { get; set; }
             public int? ShippingConditionId { get; set; }
             public int? AccountAssignmentId { get; set; }
             public byte Active { get; set; }
@@ -165,6 +168,10 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             public string? InsuranceProvider { get; set; }
             public string? PolicyNo { get; set; }
             public DateTimeOffset? InsuranceExpiryDate { get; set; }
+            // Cross-module lookup to AppData.Modules.
+            public int? ModuleId { get; set; }
+            // Same-module lookup to Party.MiscMaster (Per Bale / Per MT / Per Vehicle).
+            public int? DefaultProcurementRateBasisId { get; set; }
             public byte Status { get; set; } = 1;
         }
 

@@ -39,6 +39,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly IPartyMasterFinanceValidation _financeValidation;
         private readonly IPartyMasterMaintenanceValidation _maintenanceValidation;
         private readonly IFreightMasterLookup _freightMasterLookup;
+        private readonly IModuleLookup _moduleLookup;
+        private readonly ISalesGroupLookup _salesGroupLookup;
+        private readonly ISalesOfficeLookup _salesOfficeLookup;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
             IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
@@ -49,7 +52,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             IPartyMasterFinanceValidation financeValidation,
             IPartyMasterMaintenanceValidation maintenanceValidation,
             IFreightMasterLookup freightMasterLookup,
-            IAgentCustomerMappingLookup agentCustomerMappingLookup)
+            IAgentCustomerMappingLookup agentCustomerMappingLookup,
+            IModuleLookup moduleLookup,
+            ISalesGroupLookup salesGroupLookup,
+            ISalesOfficeLookup salesOfficeLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -66,6 +72,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _maintenanceValidation = maintenanceValidation;
             _freightMasterLookup = freightMasterLookup;
             _agentCustomerMappingLookup = agentCustomerMappingLookup;
+            _moduleLookup = moduleLookup;
+            _salesGroupLookup = salesGroupLookup;
+            _salesOfficeLookup = salesOfficeLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -129,6 +138,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 st.OrderTypeId,
                 st.IncotermId,
                 st.PaymentTermsId,
+                st.SalesGroupId,
+                st.SalesOfficeId,
                 st.ShippingConditionId,
                 sc.Description AS ShippingConditionName,
                 st.AccountAssignmentId,
@@ -174,12 +185,16 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 td.InsuranceProvider,
                 td.PolicyNo,
                 td.InsuranceExpiryDate,
+                td.ModuleId,
+                td.DefaultProcurementRateBasisId,
+                dprb.Description AS DefaultProcurementRateBasisName,
                 td.Status
             FROM Party.TransportDetail td
             LEFT JOIN Party.MiscMaster tt ON td.TransporterTypeId = tt.Id AND tt.IsDeleted = 0
             LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
             LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
             LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+            LEFT JOIN Party.MiscMaster dprb ON td.DefaultProcurementRateBasisId = dprb.Id AND dprb.IsDeleted = 0
             WHERE td.PartyId = @Id;
 
         ";
@@ -199,6 +214,33 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             partyMaster.SalesTypes = (await multi.ReadAsync<PartyMasterDto.SalesTypeDto>()).ToList();
             partyMaster.AgentConfigs = (await multi.ReadAsync<PartyMasterDto.AgentConfigDto>()).ToList();
             partyMaster.TransportDetails = (await multi.ReadAsync<PartyMasterDto.TransportDetailDto>()).ToList();
+
+            // Cross-module name resolution for TransportDetail.ModuleId.
+            // Convention: null/0 ModuleId means "applies to both modules" → display as "Both".
+            // Otherwise look up the actual module name via the cached IModuleLookup.
+            if (partyMaster.TransportDetails?.Count > 0)
+            {
+                var moduleIds = partyMaster.TransportDetails
+                    .Where(t => t.ModuleId.HasValue && t.ModuleId.Value > 0)
+                    .Select(t => t.ModuleId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                Dictionary<int, string> moduleDict = null;
+                if (moduleIds.Count > 0)
+                {
+                    var modules = await _moduleLookup.GetAllModuleAsync();
+                    moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+                }
+
+                foreach (var td in partyMaster.TransportDetails)
+                {
+                    if (!td.ModuleId.HasValue || td.ModuleId.Value <= 0)
+                        td.ModuleName = "Both";
+                    else if (moduleDict != null && moduleDict.TryGetValue(td.ModuleId.Value, out var mName))
+                        td.ModuleName = mName;
+                }
+            }
 
             // Populate cross-module lookup names for SalesTypes
             if (partyMaster.SalesTypes?.Any() == true)
@@ -225,6 +267,39 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     {
                         ptDict.TryGetValue(st.PaymentTermsId!.Value, out var name);
                         st.PaymentTermsName = name;
+                    }
+                }
+
+                // Cross-module: resolve SalesGroup + SalesOffice names (one cached call each, used in-loop).
+                var salesGroupIds = partyMaster.SalesTypes
+                    .Where(s => s.SalesGroupId.HasValue && s.SalesGroupId > 0)
+                    .Select(s => s.SalesGroupId!.Value)
+                    .Distinct()
+                    .ToList();
+                if (salesGroupIds.Count > 0)
+                {
+                    var salesGroups = await _salesGroupLookup.GetAllSalesGroupAsync();
+                    var sgDict = salesGroups.ToDictionary(g => g.Id, g => g.SalesGroupName);
+                    foreach (var st in partyMaster.SalesTypes.Where(s => s.SalesGroupId.HasValue))
+                    {
+                        sgDict.TryGetValue(st.SalesGroupId!.Value, out var name);
+                        st.SalesGroupName = name;
+                    }
+                }
+
+                var salesOfficeIds = partyMaster.SalesTypes
+                    .Where(s => s.SalesOfficeId.HasValue && s.SalesOfficeId > 0)
+                    .Select(s => s.SalesOfficeId!.Value)
+                    .Distinct()
+                    .ToList();
+                if (salesOfficeIds.Count > 0)
+                {
+                    var salesOffices = await _salesOfficeLookup.GetAllSalesOfficeAsync();
+                    var soDict = salesOffices.ToDictionary(o => o.Id, o => o.SalesOfficeName);
+                    foreach (var st in partyMaster.SalesTypes.Where(s => s.SalesOfficeId.HasValue))
+                    {
+                        soDict.TryGetValue(st.SalesOfficeId!.Value, out var name);
+                        st.SalesOfficeName = name;
                     }
                 }
             }
@@ -569,9 +644,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     }
                 }
 
-                // ─── Step 4: Fetch SalesTypes with SalesSegment + PaymentType names ───
+                // ─── Step 4: Fetch SalesTypes with SalesSegment + PaymentType + SalesGroup + SalesOffice names ───
                 const string salesTypeSql = @"
-                    SELECT Id, PartyId, SalesSegmentId, PaymentTermsId
+                    SELECT Id, PartyId, SalesSegmentId, PaymentTermsId, SalesGroupId, SalesOfficeId
                     FROM Party.SalesType
                     WHERE PartyId IN @PartyIds";
 
@@ -584,6 +659,13 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
                     var allPaymentTerms = await _paymentTermLookup.GetAllPaymentTermAsync();
                     var paymentTermDict = allPaymentTerms.ToDictionary(p => p.Id, p => p.Description);
+
+                    // Cross-module: resolve SalesGroup + SalesOffice names via cached lookups.
+                    var allSalesGroups = await _salesGroupLookup.GetAllSalesGroupAsync();
+                    var salesGroupDict = allSalesGroups.ToDictionary(g => g.Id, g => g.SalesGroupName);
+
+                    var allSalesOffices = await _salesOfficeLookup.GetAllSalesOfficeAsync();
+                    var salesOfficeDict = allSalesOffices.ToDictionary(o => o.Id, o => o.SalesOfficeName);
 
                     var salesTypesByParty = flatSalesTypes.GroupBy(st => st.PartyId).ToDictionary(g => g.Key, g => g.ToList());
 
@@ -599,7 +681,13 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                                     ? name : null,
                                 PaymentTypeId = st.PaymentTermsId,
                                 PaymentTypeName = st.PaymentTermsId.HasValue && paymentTermDict.TryGetValue(st.PaymentTermsId.Value, out var ptName)
-                                    ? ptName : null
+                                    ? ptName : null,
+                                SalesGroupId = st.SalesGroupId,
+                                SalesGroupName = st.SalesGroupId.HasValue && salesGroupDict.TryGetValue(st.SalesGroupId.Value, out var sgName)
+                                    ? sgName : null,
+                                SalesOfficeId = st.SalesOfficeId,
+                                SalesOfficeName = st.SalesOfficeId.HasValue && salesOfficeDict.TryGetValue(st.SalesOfficeId.Value, out var soName)
+                                    ? soName : null
                             }).ToList();
                         }
                     }
@@ -616,12 +704,16 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         td.LicenseNo, td.LicenseExpiryDate,
                         td.VehicleNo,
                         td.InsuranceProvider, td.PolicyNo, td.InsuranceExpiryDate,
+                        td.ModuleId,
+                        td.DefaultProcurementRateBasisId,
+                        dprb.Description AS DefaultProcurementRateBasisName,
                         td.Status
                     FROM Party.TransportDetail td
                     LEFT JOIN Party.MiscMaster tt ON td.TransporterTypeId = tt.Id AND tt.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster tm ON td.TransportModeId = tm.Id AND tm.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster vt ON td.VehicleTypeId = vt.Id AND vt.IsDeleted = 0
                     LEFT JOIN Party.MiscMaster dft ON td.DefaultFreightTypeId = dft.Id AND dft.IsDeleted = 0
+                    LEFT JOIN Party.MiscMaster dprb ON td.DefaultProcurementRateBasisId = dprb.Id AND dprb.IsDeleted = 0
                     WHERE td.PartyId IN @PartyIds AND td.Status = 1";
 
                 var flatTransports = (await _dbConnection.QueryAsync<TransportDetailAutoCompleteDto>(transportSql, new { PartyIds = partyIds })).ToList();
@@ -634,6 +726,29 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     {
                         if (transportByParty.TryGetValue(party.Id, out var transports))
                             party.TransportDetails = transports;
+                    }
+
+                    // Cross-module name resolution — one cached IModuleLookup call covers the whole page.
+                    // Convention: null/0 ModuleId means "applies to both modules" → display as "Both".
+                    var moduleIds = flatTransports
+                        .Where(t => t.ModuleId.HasValue && t.ModuleId.Value > 0)
+                        .Select(t => t.ModuleId!.Value)
+                        .Distinct()
+                        .ToList();
+
+                    Dictionary<int, string> moduleDict = null;
+                    if (moduleIds.Count > 0)
+                    {
+                        var modules = await _moduleLookup.GetAllModuleAsync();
+                        moduleDict = modules.ToDictionary(m => m.ModuleId, m => m.ModuleName);
+                    }
+
+                    foreach (var td in flatTransports)
+                    {
+                        if (!td.ModuleId.HasValue || td.ModuleId.Value <= 0)
+                            td.ModuleName = "Both";
+                        else if (moduleDict != null && moduleDict.TryGetValue(td.ModuleId.Value, out var mName))
+                            td.ModuleName = mName;
                     }
                 }
 

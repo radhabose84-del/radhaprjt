@@ -85,6 +85,47 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
             return (list, totalCount);
         }
 
+        public async Task<(List<FreightRfqListDto>, int)> GetPendingAsync(int pageNumber, int pageSize)
+        {
+            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
+            pageSize = pageSize <= 0 ? 20 : pageSize;
+
+            // Pending-approval list for the WorkFlow Approval screen (status Code = 'Pending').
+            var query = @"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Purchase.FreightRfqHeader h
+                LEFT JOIN Purchase.MiscMaster s ON s.Id = h.StatusId AND s.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND s.Code = 'Pending';
+
+                SELECT h.Id, h.FreightRfqNumber, h.RfqDate,
+                       rt.Description AS RfqTypeName,
+                       po.PONumber AS PoNumber,
+                       CONCAT(h.SourceStation, N' → ', h.DestinationStation) AS Route,
+                       (SELECT COUNT(1) FROM Purchase.FreightRfqQuotation q
+                        WHERE q.FreightRfqHeaderId = h.Id AND q.IsDeleted = 0) AS QuotesCount,
+                       h.ApprovedTransporterId,
+                       h.ApprovedFreightValue,
+                       h.StatusId, s.Description AS StatusName
+                FROM Purchase.FreightRfqHeader h
+                LEFT JOIN Purchase.MiscMaster rt ON rt.Id = h.RfqTypeId AND rt.IsDeleted = 0
+                LEFT JOIN Purchase.MiscMaster s ON s.Id = h.StatusId AND s.IsDeleted = 0
+                LEFT JOIN Purchase.PurchaseOrderHeader po ON po.Id = h.PoReferenceId AND po.IsDeleted = 0
+                WHERE h.IsDeleted = 0 AND s.Code = 'Pending'
+                ORDER BY h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;";
+
+            var parameters = new { Offset = (pageNumber - 1) * pageSize, PageSize = pageSize };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await multi.ReadAsync<FreightRfqListDto>()).ToList();
+            var totalCount = await multi.ReadFirstAsync<int>();
+
+            return (list, totalCount);
+        }
+
         public async Task<FreightRfqDto?> GetByIdAsync(int id)
         {
             const string headerSql = @"
