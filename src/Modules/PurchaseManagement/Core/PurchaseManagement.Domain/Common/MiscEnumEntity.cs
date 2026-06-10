@@ -105,6 +105,9 @@ namespace PurchaseManagement.Domain.Common
         public const string BarcodeAllocationStatus = "BarcodeAllocationStatus";
 
         // Freight RFQ & Comparison — MiscMaster type codes (seeded via SQL).
+        // Workflow transaction-type name — must match Finance.TransactionTypeMaster.TypeName,
+        // the submit ModuleTypeName, the dispatcher PurchaseTypes entry, and the consumer branch.
+        public const string TransactionTypeFreightRfq = "Freight RFQ";
         public const string FreightRfqType = "FreightRfqType";              // values: "PO Based" / "Non-PO Based"
         public const string FreightRateBasis = "FreightRateBasis";          // values: "Per Bale" / "Per MT" / "Per Vehicle"
         public const string FreightRfqStatus = "FreightRfqStatus";          // values: Draft / Pending / Approved / Rejected
