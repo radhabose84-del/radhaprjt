@@ -60,20 +60,27 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseI
                 item.StatusId = request.IsDraft == 1 ? StatusMisc.Id : StatusPending.Id;
             }
 
-            var CheckPending = await _purchaseIndentQuery.GetByIdAsync(request.Id);
-
-            _logger.LogInformation("Update Purchase Indent TransactionCreatedEvent Publish check. {IsDraft},{StatusMisc},{CheckPending}",
-                request.IsDraft, StatusMisc.Id, CheckPending?.StatusId);
+            _logger.LogInformation("Update Purchase Indent TransactionCreatedEvent Publish check. {IsDraft},{StatusMisc}",
+                request.IsDraft, StatusMisc.Id);
 
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
-                var result = await _purchaseIndentCommand.UpdateAsync(Indent, JsonSerializer.Serialize(request), request.IsApprovalEdit);
+                // Returns the updated EF-tracked entity (with IndentDetails loaded). We must NOT
+                // call _purchaseIndentQuery.GetByIdAsync inside this transaction — Dapper would
+                // open a separate connection that gets blocked by the row locks this transaction
+                // is holding, causing a "Execution Timeout Expired" deadlock at ~30s.
+                var updatedIndent = await _purchaseIndentCommand.UpdateAsync(
+                    Indent, JsonSerializer.Serialize(request), request.IsApprovalEdit);
 
-                if (result && request.IsDraft == 0)
+                if (updatedIndent == null)
+                    throw new ExceptionRules("Indent update failed.");
+
+                if (request.IsDraft == 0)
                 {
-                    var indentData = await _purchaseIndentQuery.GetByIdAsync(request.Id);
-                    var indentReverseMap = _imapper.Map<IndentReverseMapDto>(indentData);
+                    // Build the approval payload from the EF-tracked entity — same pattern as
+                    // CreatePurchaseIndentCommandHandler. No second DB round-trip needed.
+                    var indentReverseMap = _imapper.Map<IndentReverseMapDto>(updatedIndent);
                     var correlationId = Guid.NewGuid();
 
                     var approvalCommand = new CreateApprovalRequestCommand
@@ -98,7 +105,7 @@ namespace PurchaseManagement.Application.PurchaseIndents.Command.UpdatePurchaseI
                 );
                 await _imediator.Publish(evt, cancellationToken);
 
-                return result == true ? result : throw new ExceptionRules("Indent update failed.");
+                return true;
             }
             catch
             {
