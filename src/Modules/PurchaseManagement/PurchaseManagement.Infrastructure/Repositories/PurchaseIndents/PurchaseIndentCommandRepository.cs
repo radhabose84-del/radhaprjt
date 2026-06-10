@@ -48,9 +48,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
             return false;
         }
 
-        public async Task<bool> UpdateAsync(IndentHeader indentHeader, string request, bool isApprovalEdit = false)
+        // Returns the updated EF-tracked IndentHeader on success (caller can map it directly into
+        // an approval payload without a second Dapper round-trip — which would deadlock on this
+        // method's row locks). Returns null if the row was not found.
+        public async Task<IndentHeader?> UpdateAsync(IndentHeader indentHeader, string request, bool isApprovalEdit = false)
         {
-            
+
 
             var existingPurchaseIndent = await _dbContext.IndentHeader
              .Include(cf => cf.IndentDetails)
@@ -140,10 +143,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
                 }
 
 
-                return await _dbContext.SaveChangesAsync() > 0;
+                await _dbContext.SaveChangesAsync();
+                return existingPurchaseIndent;
             }
 
-            return true;
+            return null;
         }
         // public async Task<List<IndentDetail>> UpdateIndentDetailAsync(List<IndentDetail> indentDetail)
         // {
