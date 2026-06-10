@@ -31,10 +31,9 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }
 
-        // Capture mode (derived from the stock ledger). Consolidated lines return an empty Bales list;
-        // Individual lines return one Bales entry per captured bale.
+        // True when the line has per-bale rows in the stock ledger; a line with no bale entries
+        // in the payload returns an empty Bales list.
         public bool IsIndividual { get; set; }
-        //public int? BaleCaptureMethodId { get; set; }
         public List<ArrivalBaleRowDto> Bales { get; set; } = new();
     }
 
@@ -43,6 +42,5 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public long BaleNo { get; set; }
         public long? BarcodeNumber { get; set; }
         public decimal BaleWeight { get; set; }
-        public int? BaleCaptureMethodId { get; set; }
     }
 }

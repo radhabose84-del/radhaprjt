@@ -1,6 +1,9 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces.Lookups.Gate;
+using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Interfaces.Lookups.QC;
 using Contracts.Interfaces.Lookups.Warehouse;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IGRN.IGRNEntry;
@@ -15,10 +18,16 @@ namespace PurchaseManagement.UnitTests.Application.GRN.GRNEntry.Queries
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IPartyLookup> _mockPartyLookup = new(MockBehavior.Loose);
         private readonly Mock<IWarehouseLookup> _mockWarehouseLookup = new(MockBehavior.Loose);
+        private readonly Mock<IGateInwardLookup> _mockGateInwardLookup = new(MockBehavior.Loose);
+        private readonly Mock<IItemLookup> _mockItemLookup = new(MockBehavior.Loose);
+        private readonly Mock<IQualitySpecificationLookup> _mockQualitySpecificationLookup = new(MockBehavior.Loose);
+        private readonly Mock<IQcMiscMasterLookup> _mockQcMiscMasterLookup = new(MockBehavior.Loose);
 
         private GetGrnPendingHeaderQueryHandler CreateSut() =>
             new(_mockRepo.Object, _mockMapper.Object, _mockMediator.Object,
-                _mockPartyLookup.Object, _mockWarehouseLookup.Object);
+                _mockPartyLookup.Object, _mockWarehouseLookup.Object,
+                _mockGateInwardLookup.Object, _mockItemLookup.Object,
+                _mockQualitySpecificationLookup.Object, _mockQcMiscMasterLookup.Object);
 
         [Fact]
         public void Constructor_CreatesHandler()

@@ -9,5 +9,8 @@ namespace PurchaseManagement.Application.Arrival.Queries.GetAllArrival
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
+
+        // null = all, true = pending QC (QcStatusId null), false = QC signed off (QcStatusId set)
+        public bool? PendingStatus { get; set; }
     }
 }
