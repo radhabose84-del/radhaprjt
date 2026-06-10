@@ -16,6 +16,15 @@ namespace PartyManagement.Domain.Entities
         public string? InsuranceProvider { get; set; }
         public string? PolicyNo { get; set; }
         public DateTimeOffset? InsuranceExpiryDate { get; set; }
+
+        // Cross-module FK → UserManagement / AppData.Modules (nullable, NO DB FK constraint).
+        public int? ModuleId { get; set; }
+
+        // Same-module FK → Party.MiscMaster (nullable). Holds the default freight calculation
+        // method for procurement — values seeded under MiscTypeCode = "DefaultProcurementRateBasis"
+        // ("Per Bale", "Per MT", "Per Vehicle").
+        public int? DefaultProcurementRateBasisId { get; set; }
+
         public byte Status { get; set; } = 1;
 
         // Navigation properties (same-module FKs)
@@ -24,5 +33,7 @@ namespace PartyManagement.Domain.Entities
         public MiscMaster? TransportModeMisc { get; set; }
         public MiscMaster? VehicleTypeMisc { get; set; }
         public MiscMaster? DefaultFreightTypeMisc { get; set; }
+        // Nullable nav — Party.MiscMaster row is optional (matches DefaultProcurementRateBasisId nullability).
+        public MiscMaster? DefaultProcurementRateBasisMisc { get; set; }
     }
 }

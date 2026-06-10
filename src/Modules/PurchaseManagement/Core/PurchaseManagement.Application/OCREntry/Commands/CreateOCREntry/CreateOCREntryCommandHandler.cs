@@ -8,6 +8,7 @@ using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.Common.Interfaces.IOCREntry;
 using PurchaseManagement.Application.Common.Interfaces.IOutbox;
+using PurchaseManagement.Application.OCREntry.Dto;
 using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Events;
 
@@ -111,13 +112,21 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
             var workFlowEntity = await _commandRepository.GetByIdOCRWorkFlowAsync(created.Id);
             workFlowEntity.UnitId = unitId;
 
+            // sp_EvaluateApproval reads the payload via $.Header.* (e.g. $.Header.UnitId) and $.Lines.
+            // The payload MUST be shaped as { Header: {...}, Lines: ... } — serializing the DTO flat
+            // makes $.Header.UnitId resolve to NULL and the ApprovalRequest insert fails (UnitId NOT NULL).
+            var reversePayload = new OCREntryReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+
             var workflowCommand = new CreateApprovalRequestCommand
             {
                 CorrelationId = correlationId,
                 ModuleTypeName = MiscEnumEntity.TransactionTypeOCR,
                 ModuleTransactionId = created.Id,
-                Payload = JsonSerializer.Serialize(workFlowEntity),
-                TransactionTypeId = transactionTypeId
+                Payload = JsonSerializer.Serialize(reversePayload)
             };
             await _outboxEventPublisher.ScheduleAsync(workflowCommand, correlationId, cancellationToken);
 

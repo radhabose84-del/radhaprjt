@@ -1178,6 +1178,14 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("PaymentTermsId");
 
+                    b.Property<int?>("SalesGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesGroupId");
+
+                    b.Property<int?>("SalesOfficeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SalesOfficeId");
+
                     b.Property<int?>("SalesSegmentId")
                         .HasColumnType("int")
                         .HasColumnName("SalesSegmentId");
@@ -1191,6 +1199,10 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.HasIndex("AccountAssignmentId");
 
                     b.HasIndex("PartyId");
+
+                    b.HasIndex("SalesGroupId");
+
+                    b.HasIndex("SalesOfficeId");
 
                     b.HasIndex("ShippingConditionId");
 
@@ -1215,6 +1227,10 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("DefaultFreightTypeId");
 
+                    b.Property<int?>("DefaultProcurementRateBasisId")
+                        .HasColumnType("int")
+                        .HasColumnName("DefaultProcurementRateBasisId");
+
                     b.Property<DateTimeOffset?>("InsuranceExpiryDate")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("InsuranceExpiryDate");
@@ -1235,6 +1251,10 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("MinFreightAmount");
+
+                    b.Property<int?>("ModuleId")
+                        .HasColumnType("int")
+                        .HasColumnName("ModuleId");
 
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
@@ -1270,6 +1290,12 @@ namespace PartyManagement.Infrastructure.Migrations
 
                     b.HasIndex("DefaultFreightTypeId")
                         .HasDatabaseName("IX_TransportDetail_DefaultFreightTypeId");
+
+                    b.HasIndex("DefaultProcurementRateBasisId")
+                        .HasDatabaseName("IX_TransportDetail_DefaultProcurementRateBasisId");
+
+                    b.HasIndex("ModuleId")
+                        .HasDatabaseName("IX_TransportDetail_ModuleId");
 
                     b.HasIndex("PartyId")
                         .HasDatabaseName("IX_TransportDetail_PartyId");
@@ -1578,6 +1604,11 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasForeignKey("DefaultFreightTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("PartyManagement.Domain.Entities.MiscMaster", "DefaultProcurementRateBasisMisc")
+                        .WithMany("TransportDetailDefaultProcurementRateBasis")
+                        .HasForeignKey("DefaultProcurementRateBasisId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PartyManagement.Domain.Entities.PartyMaster", "PartyMaster")
                         .WithMany("TransportDetails")
                         .HasForeignKey("PartyId")
@@ -1600,6 +1631,8 @@ namespace PartyManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DefaultFreightTypeMisc");
+
+                    b.Navigation("DefaultProcurementRateBasisMisc");
 
                     b.Navigation("PartyMaster");
 
@@ -1657,6 +1690,8 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Navigation("StatusHeader");
 
                     b.Navigation("TransportDetailDefaultFreightType");
+
+                    b.Navigation("TransportDetailDefaultProcurementRateBasis");
 
                     b.Navigation("TransportDetailTransportMode");
 

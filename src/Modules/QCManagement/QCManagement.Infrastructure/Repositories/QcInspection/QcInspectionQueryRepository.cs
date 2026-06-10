@@ -12,6 +12,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
     {
         private readonly IDbConnection _dbConnection;
         private readonly IGrnLookup _grnLookup;
+        private readonly IArrivalLookup _arrivalLookup;
         private readonly IItemLookup _itemLookup;
         private readonly ISupplierLookup _supplierLookup;
         private readonly IInventoryCategoryLookup _categoryLookup;
@@ -19,42 +20,59 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
         public QcInspectionQueryRepository(
             IDbConnection dbConnection,
             IGrnLookup grnLookup,
+            IArrivalLookup arrivalLookup,
             IItemLookup itemLookup,
             ISupplierLookup supplierLookup,
             IInventoryCategoryLookup categoryLookup)
         {
             _dbConnection = dbConnection;
             _grnLookup = grnLookup;
+            _arrivalLookup = arrivalLookup;
             _itemLookup = itemLookup;
             _supplierLookup = supplierLookup;
             _categoryLookup = categoryLookup;
         }
 
-        public async Task<IReadOnlyList<QcInspectionSummaryDto>> GetInspectionSummariesByGrnDetailIdsAsync(IEnumerable<int> grnDetailIds)
+        public async Task<IReadOnlyList<QcInspectionSummaryDto>> GetInspectionSummariesBySourceAsync(int sourceTypeId, IEnumerable<int> sourceDetailIds)
         {
-            var ids = grnDetailIds?.Distinct().ToList() ?? new List<int>();
+            var ids = sourceDetailIds?.Distinct().ToList() ?? new List<int>();
             if (ids.Count == 0)
                 return new List<QcInspectionSummaryDto>();
 
             const string sql = @"
                 SELECT
-                    h.Id, h.GrnDetailId, h.QcInspectionNo,
+                    h.Id, h.SourceTypeId, h.SourceDetailId, h.QcInspectionNo,
                     h.QcStatusId, ms.Code AS QcStatusCode, ms.Description AS QcStatusName,
                     h.AcceptedQuantity, h.RejectedQuantity, h.InspectionDate,
                     h.CreatedDate, h.CreatedByName, h.ModifiedDate, h.ModifiedByName
                 FROM QC.QcInspectionHdr h
                 LEFT JOIN QC.MiscMaster ms ON h.QcStatusId = ms.Id AND ms.IsDeleted = 0
-                WHERE h.GrnDetailId IN @Ids AND h.IsDeleted = 0";
+                WHERE h.SourceTypeId = @SourceTypeId AND h.SourceDetailId IN @Ids AND h.IsDeleted = 0";
 
-            var rows = await _dbConnection.QueryAsync<QcInspectionSummaryDto>(sql, new { Ids = ids });
+            var rows = await _dbConnection.QueryAsync<QcInspectionSummaryDto>(sql, new { SourceTypeId = sourceTypeId, Ids = ids });
             return rows.ToList();
+        }
+
+        public async Task<int?> GetSourceTypeIdByCodeAsync(string sourceTypeCode)
+        {
+            const string sql = @"
+                SELECT TOP 1 mm.Id
+                FROM QC.MiscMaster mm
+                INNER JOIN QC.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
+                WHERE mtm.MiscTypeCode = 'QP_SOURCE_TYPE'
+                  AND mm.Code = @Code
+                  AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                ORDER BY mm.Id ASC";
+            return await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Code = sourceTypeCode });
         }
 
         public async Task<QcInspectionDto?> GetByIdAsync(int id)
         {
             const string sql = @"
                 SELECT
-                    h.Id, h.QcInspectionNo, h.InspectionDate, h.GrnHeaderId, h.GrnDetailId,
+                    h.Id, h.QcInspectionNo, h.InspectionDate,
+                    h.SourceTypeId, st.Code AS SourceTypeCode, st.Description AS SourceTypeName,
+                    h.SourceHeaderId, h.SourceDetailId,
                     h.QualitySpecificationId, h.QualitySpecificationCode, h.QualityTemplateId, h.QualityTemplateCode, h.QcTypeId,
                     h.InspectorUserId, h.InspectorName, h.ReceivedQuantity, h.ReceivedUomId, h.BatchNumber, h.LotNumber,
                     h.QcStatusId, ms.Code AS QcStatusCode, ms.Description AS QcStatusName,
@@ -63,6 +81,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP, h.ModifiedBy, h.ModifiedDate, h.ModifiedByName, h.ModifiedIP
                 FROM QC.QcInspectionHdr h
                 LEFT JOIN QC.MiscMaster ms ON h.QcStatusId = ms.Id AND ms.IsDeleted = 0
+                LEFT JOIN QC.MiscMaster st ON h.SourceTypeId = st.Id AND st.IsDeleted = 0
                 WHERE h.Id = @Id AND h.IsDeleted = 0;
 
                 SELECT
@@ -116,15 +135,30 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                 Remarks = (string?)r.Remarks
             }).ToList();
 
-            // Resolve cross-module display fields
-            var grn = await _grnLookup.GetByGrnDetailIdAsync(dto.GrnDetailId);
-            if (grn != null)
+            // Resolve cross-module display fields — branch on the source document type.
+            if (string.Equals(dto.SourceTypeCode, "ARRIVAL", StringComparison.OrdinalIgnoreCase))
             {
-                dto.GrnNo = grn.GrnNo;
-                dto.GrnDate = grn.GrnDate;
-                dto.InvoiceNo = grn.InvoiceNo;
-                dto.SupplierId = grn.SupplierId;
-                dto.ItemId = grn.ItemId;
+                var arrival = await _arrivalLookup.GetByArrivalDetailIdAsync(dto.SourceDetailId);
+                if (arrival != null)
+                {
+                    dto.SourceNo = arrival.ArrivalNumber;
+                    dto.SourceDate = arrival.ArrivalDate;
+                    dto.InvoiceNo = null;
+                    dto.SupplierId = arrival.SupplierId;
+                    dto.ItemId = arrival.ItemId;
+                }
+            }
+            else
+            {
+                var grn = await _grnLookup.GetByGrnDetailIdAsync(dto.SourceDetailId);
+                if (grn != null)
+                {
+                    dto.SourceNo = grn.GrnNo;
+                    dto.SourceDate = grn.GrnDate;
+                    dto.InvoiceNo = grn.InvoiceNo;
+                    dto.SupplierId = grn.SupplierId;
+                    dto.ItemId = grn.ItemId;
+                }
             }
 
             if (dto.SupplierId > 0)
@@ -159,10 +193,10 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id }) == 0;
         }
 
-        public async Task<bool> InspectionExistsForGrnDetailAsync(int grnDetailId)
+        public async Task<bool> InspectionExistsForSourceAsync(int sourceTypeId, int sourceDetailId)
         {
-            const string sql = "SELECT COUNT(1) FROM QC.QcInspectionHdr WHERE GrnDetailId = @Id AND IsDeleted = 0";
-            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = grnDetailId }) > 0;
+            const string sql = "SELECT COUNT(1) FROM QC.QcInspectionHdr WHERE SourceTypeId = @SourceTypeId AND SourceDetailId = @SourceDetailId AND IsDeleted = 0";
+            return await _dbConnection.ExecuteScalarAsync<int>(sql, new { SourceTypeId = sourceTypeId, SourceDetailId = sourceDetailId }) > 0;
         }
 
         public async Task<bool> IsDisposedAsync(int id)
@@ -342,7 +376,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
         public async Task<QcDispositionContextDto?> GetDispositionContextAsync(int id)
         {
             const string sql = @"
-                SELECT GrnHeaderId, GrnDetailId, ReceivedQuantity, ReceivedUomId, QcInspectionNo
+                SELECT SourceTypeId, SourceHeaderId, SourceDetailId, ReceivedQuantity, ReceivedUomId, QcInspectionNo
                 FROM QC.QcInspectionHdr
                 WHERE Id = @Id AND IsDeleted = 0";
             return await _dbConnection.QueryFirstOrDefaultAsync<QcDispositionContextDto>(sql, new { Id = id });
@@ -359,7 +393,12 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                     SUM(CASE WHEN ms.Code = 'RJC' THEN 1 ELSE 0 END) AS RejectedCount
                 FROM QC.QcInspectionHdr h
                 LEFT JOIN QC.MiscMaster ms ON h.QcStatusId = ms.Id
-                WHERE h.GrnHeaderId = @Id AND h.IsDeleted = 0 AND h.QcStatusId IS NOT NULL";
+                WHERE h.SourceHeaderId = @Id AND h.IsDeleted = 0 AND h.QcStatusId IS NOT NULL
+                  AND h.SourceTypeId = (
+                      SELECT TOP 1 mm.Id FROM QC.MiscMaster mm
+                      INNER JOIN QC.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
+                      WHERE mtm.MiscTypeCode = 'QP_SOURCE_TYPE' AND mm.Code = 'GRN'
+                        AND mm.IsActive = 1 AND mm.IsDeleted = 0)";
 
             var result = await _dbConnection.QueryFirstOrDefaultAsync<GrnQcStatusDto>(sql, new { Id = grnHeaderId });
             return result ?? new GrnQcStatusDto { GrnHeaderId = grnHeaderId };

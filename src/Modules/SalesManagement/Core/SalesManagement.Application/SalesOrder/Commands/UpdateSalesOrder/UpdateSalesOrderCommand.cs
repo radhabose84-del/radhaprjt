@@ -38,7 +38,6 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
         // Commercial Details
         public int? PaymentTypeId { get; set; }
         public int FreightTypeId { get; set; }
-        public int? CountListId { get; set; }
         public string? Remarks { get; set; }
 
         // MD Discount — when true, Rate + Document are mandatory

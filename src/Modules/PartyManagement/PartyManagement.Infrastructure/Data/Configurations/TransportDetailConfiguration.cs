@@ -75,6 +75,18 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .HasColumnType("datetimeoffset")
                 .IsRequired(false);
 
+            // Cross-module FK → UserManagement / AppData.Modules — nullable column, NO DB FK.
+            builder.Property(t => t.ModuleId)
+                .HasColumnName("ModuleId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            // Same-module FK → Party.MiscMaster, nullable.
+            builder.Property(t => t.DefaultProcurementRateBasisId)
+                .HasColumnName("DefaultProcurementRateBasisId")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             builder.Property(t => t.Status)
                 .HasColumnName("Status")
                 .HasColumnType("tinyint")
@@ -96,6 +108,13 @@ namespace PartyManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => t.DefaultFreightTypeId)
                 .HasDatabaseName("IX_TransportDetail_DefaultFreightTypeId");
+
+            // Indexes for the two new nullable FKs.
+            builder.HasIndex(t => t.ModuleId)
+                .HasDatabaseName("IX_TransportDetail_ModuleId");
+
+            builder.HasIndex(t => t.DefaultProcurementRateBasisId)
+                .HasDatabaseName("IX_TransportDetail_DefaultProcurementRateBasisId");
 
             // FK to PartyMaster
             builder.HasOne(t => t.PartyMaster)
@@ -126,6 +145,17 @@ namespace PartyManagement.Infrastructure.Data.Configurations
                 .WithMany(m => m.TransportDetailDefaultFreightType)
                 .HasForeignKey(t => t.DefaultFreightTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // FK to MiscMaster (DefaultProcurementRateBasis) — optional, so IsRequired(false)
+            // makes both the FK column and the navigation accept null.
+            builder.HasOne(t => t.DefaultProcurementRateBasisMisc)
+                .WithMany(m => m.TransportDetailDefaultProcurementRateBasis)
+                .HasForeignKey(t => t.DefaultProcurementRateBasisId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ModuleId is cross-module (UserManagement / AppData.Modules) — no DB FK constraint
+            // per BSOFT cross-module rule; integrity is enforced via IModuleLookup at the API layer.
         }
     }
 }

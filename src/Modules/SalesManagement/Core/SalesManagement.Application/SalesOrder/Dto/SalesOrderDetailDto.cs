@@ -14,6 +14,8 @@ namespace SalesManagement.Application.SalesOrder.Dto
         public string? HSNCode { get; set; }
         public int? PackTypeId { get; set; }
         public string? PackTypeName { get; set; }
+        public int? YarnTypeId { get; set; }
+        public string? YarnTypeName { get; set; }
 
         // Quantity & Weight
         public int QtyInBags { get; set; }

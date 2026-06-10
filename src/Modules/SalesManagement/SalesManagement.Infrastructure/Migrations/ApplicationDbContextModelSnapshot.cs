@@ -5050,6 +5050,10 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("VariantId");
 
+                    b.Property<int?>("YarnTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("YarnTypeId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("HSNId");
@@ -5061,6 +5065,8 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("PackTypeId");
 
                     b.HasIndex("SalesOrderHeaderId");
+
+                    b.HasIndex("YarnTypeId");
 
                     b.ToTable("SalesOrderDetail", "Sales");
                 });
@@ -5174,10 +5180,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<string>("ComplaintRefno")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ComplaintRefno");
-
-                    b.Property<int?>("CountListId")
-                        .HasColumnType("int")
-                        .HasColumnName("CountListId");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
@@ -5430,8 +5432,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.HasIndex("AgentId");
 
                     b.HasIndex("AgentPaymentTermsId");
-
-                    b.HasIndex("CountListId");
 
                     b.HasIndex("EnquiryType");
 
@@ -8058,11 +8058,6 @@ namespace SalesManagement.Infrastructure.Migrations
                         .HasForeignKey("AgentCommissionSlabId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "CountList")
-                        .WithMany("SalesOrderHeadersAsCountList")
-                        .HasForeignKey("CountListId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "EnquiryTypeMisc")
                         .WithMany("SalesOrderHeadersAsEnquiryType")
                         .HasForeignKey("EnquiryType")
@@ -8119,8 +8114,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("AgentCommissionConfig");
 
                     b.Navigation("AgentCommissionSlab");
-
-                    b.Navigation("CountList");
 
                     b.Navigation("EnquiryTypeMisc");
 
@@ -8605,8 +8598,6 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Navigation("SalesOrderDetailsAsLineItemStatus");
 
                     b.Navigation("SalesOrderDiscountsAsSlabType");
-
-                    b.Navigation("SalesOrderHeadersAsCountList");
 
                     b.Navigation("SalesOrderHeadersAsEnquiryType");
 

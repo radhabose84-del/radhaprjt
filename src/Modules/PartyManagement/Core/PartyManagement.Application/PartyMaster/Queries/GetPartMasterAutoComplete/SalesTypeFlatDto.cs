@@ -6,5 +6,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public int PartyId { get; set; }
         public int? SalesSegmentId { get; set; }
         public int? PaymentTermsId { get; set; }
+        public int? SalesGroupId { get; set; }
+        public int? SalesOfficeId { get; set; }
     }
 }

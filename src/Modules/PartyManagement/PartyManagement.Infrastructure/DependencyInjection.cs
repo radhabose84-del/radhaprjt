@@ -133,6 +133,7 @@ namespace PartyManagement.Infrastructure
             // Lookups
             services.AddScoped<IPartyLookup, PartyLookupRepository>();
             services.AddScoped<ISupplierLookup, SupplierLookupRepository>();
+            services.AddScoped<ITransporterLookup, TransporterLookupRepository>();
             services.AddScoped<ICustomerLookup, CustomerLookupRepository>();
             services.AddScoped<IAgentLookup, AgentLookupRepository>();
             services.AddScoped<ISubAgentLookup, SubAgentLookupRepository>();

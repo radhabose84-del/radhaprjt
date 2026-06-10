@@ -97,7 +97,8 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
             string vehicleMovementId = "VMR00001",
             string vehicleNumber = "KA01AB1234",
             string driverName = "John Doe",
-            Status isActive = Status.Active)
+            Status isActive = Status.Active,
+            int? purposeOfVisitId = null)
         {
             var vmr = new GateEntryManagement.Domain.Entities.VehicleMovementRecord
             {
@@ -105,7 +106,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
                 VehicleNumber = vehicleNumber,
                 DriverName = driverName,
                 DriverMobileNo = "9876543210",
-                PurposeOfVisitId = miscMasterId,
+                PurposeOfVisitId = purposeOfVisitId ?? miscMasterId,
                 StatusId = miscMasterId,
                 GateInTime = DateTimeOffset.UtcNow,
                 GateInBy = "test-user",
@@ -308,10 +309,37 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
             await SeedVMRAsync(ctx, miscId, "VMR00002", "MH02CD5678", "Beta Driver");
             ctx.ChangeTracker.Clear();
 
-            var results = await CreateQueryRepo().AutocompleteAsync("Alpha", CancellationToken.None);
+            var results = await CreateQueryRepo().AutocompleteAsync("Alpha", null, CancellationToken.None);
 
             results.Should().HaveCount(1);
             results[0].DriverName.Should().Be("Alpha Driver");
+        }
+
+        [Fact]
+        public async Task AutocompleteAsync_Should_Filter_By_PurposeOfVisitId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (typeId, miscId) = await SeedPrerequisitesAsync(ctx);
+
+            var miscRepo = new MiscMasterCommandRepository(ctx);
+            var otherPurposeId = await miscRepo.CreateAsync(new GateEntryManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = typeId,
+                Code = "OUT",
+                Description = "Other Purpose",
+                SortOrder = 2,
+                IsActive = Status.Active,
+                IsDeleted = IsDelete.NotDeleted
+            });
+
+            await SeedVMRAsync(ctx, miscId, "VMR00001", "KA01AB1234", "Alpha Driver", Status.Active, purposeOfVisitId: miscId);
+            await SeedVMRAsync(ctx, miscId, "VMR00002", "MH02CD5678", "Beta Driver", Status.Active, purposeOfVisitId: otherPurposeId);
+            ctx.ChangeTracker.Clear();
+
+            var results = await CreateQueryRepo().AutocompleteAsync("Driver", otherPurposeId, CancellationToken.None);
+
+            results.Should().HaveCount(1);
+            results[0].DriverName.Should().Be("Beta Driver");
         }
 
         [Fact]
@@ -323,7 +351,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
             await SeedVMRAsync(ctx, miscId, "VMR00002", "MH02CD5678", "Inactive Driver", Status.Inactive);
             ctx.ChangeTracker.Clear();
 
-            var results = await CreateQueryRepo().AutocompleteAsync("Driver", CancellationToken.None);
+            var results = await CreateQueryRepo().AutocompleteAsync("Driver", null, CancellationToken.None);
 
             results.Should().HaveCount(1);
             results[0].DriverName.Should().Be("Active Driver");
@@ -342,7 +370,7 @@ namespace GateEntryManagement.IntegrationTests.Repositories.VehicleMovementRecor
             await ctx.SaveChangesAsync();
             ctx.ChangeTracker.Clear();
 
-            var results = await CreateQueryRepo().AutocompleteAsync("Deleted", CancellationToken.None);
+            var results = await CreateQueryRepo().AutocompleteAsync("Deleted", null, CancellationToken.None);
 
             results.Should().BeEmpty();
         }

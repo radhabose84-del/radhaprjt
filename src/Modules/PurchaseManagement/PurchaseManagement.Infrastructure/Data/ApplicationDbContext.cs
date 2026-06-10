@@ -8,6 +8,8 @@ using PurchaseManagement.Infrastructure.Data.Configurations;
 using PurchaseManagement.Domain.Entities.Quotation.RfqEntry;
 using PurchaseManagement.Infrastructure.Data.Configurations.Quotation.RfqEntry;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationEntry;
+using PurchaseManagement.Domain.Entities.FreightRfq;
+using PurchaseManagement.Infrastructure.Data.Configurations.FreightRfq;
 using Infrastructure.Persistence.Configurations;
 using PurchaseManagement.Infrastructure.Data.Configurations.Quotation.QuotationFinal;
 using PurchaseManagement.Domain.Entities.Quotation.QuotationCompare;
@@ -34,6 +36,8 @@ using PurchaseManagement.Infrastructure.Data.Configurations.PurchaseOrder.Import
 using PurchaseManagement.Infrastructure.Data.Configurations.Purchase;
 using PurchaseManagement.Domain.Entities.RawMaterialPO;
 using PurchaseManagement.Infrastructure.Data.Configurations.RawMaterialPO;
+using PurchaseManagement.Domain.Entities.Arrival;
+using PurchaseManagement.Infrastructure.Data.Configurations.Arrival;
 using PurchaseManagement.Domain.Entities.IssueReturn;
 using PurchaseManagement.Infrastructure.Data.Configurations.IssueReturn;
 using PurchaseManagement.Domain.Entities.PurchaseOrder.BillEntry;
@@ -89,6 +93,11 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<RawMaterialPOHeader> RawMaterialPOHeader { get; set; }
         public DbSet<RawMaterialPODetail> RawMaterialPODetail { get; set; }
 
+        // ── Arrival (Bale Inward) ──
+        public DbSet<ArrivalHeader> ArrivalHeader { get; set; }
+        public DbSet<ArrivalDetail> ArrivalDetail { get; set; }
+        public DbSet<StockLedgerRaw> StockLedgerRaw { get; set; }
+
         //Rfq
         public DbSet<RfqMaster> Rfqs { get; set; }
         public DbSet<RfqItem> RfqItems { get; set; }
@@ -98,6 +107,8 @@ namespace PurchaseManagement.Infrastructure.Data
         //QuotationEntry        
         public DbSet<QuotationHeader> QuotationHeaders { get; set; }
         public DbSet<QuotationDetail> QuotationDetails { get; set; }
+        public DbSet<FreightRfqHeader> FreightRfqHeaders { get; set; }
+        public DbSet<FreightRfqQuotation> FreightRfqQuotations { get; set; }
         public DbSet<TnCTemplateMaster> TnCTemplateMaster { get; set; }
         public DbSet<TnCTemplateApplicability> TnCTemplateApplicability { get; set; }        
         public DbSet<ActivityLog> ActivityLogs { get; set; }
@@ -203,6 +214,9 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new QuotationHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new QuotationDetailConfiguration());
 
+            modelBuilder.ApplyConfiguration(new FreightRfqHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new FreightRfqQuotationConfiguration());
+
 
             modelBuilder.ApplyConfiguration(new ActivityLogConfiguration());
 
@@ -246,6 +260,9 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new OCRQualityParameterConfiguration());
             modelBuilder.ApplyConfiguration(new RawMaterialPOHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new RawMaterialPODetailConfiguration());
+            modelBuilder.ApplyConfiguration(new ArrivalHeaderConfiguration());
+            modelBuilder.ApplyConfiguration(new ArrivalDetailConfiguration());
+            modelBuilder.ApplyConfiguration(new StockLedgerRawConfiguration());
             modelBuilder.ApplyConfiguration(new PurchaseDocumentConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new IssueReturnDetailConfiguration());

@@ -52,9 +52,11 @@ namespace GateEntryManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetVehicleMovementRecordAutoCompleteAsync([FromQuery] string? term = null)
+        public async Task<IActionResult> GetVehicleMovementRecordAutoCompleteAsync(
+            [FromQuery] string? term = null,
+            [FromQuery] int? purposeOfVisitId = null)
         {
-            var result = await Mediator.Send(new GetVehicleMovementRecordAutoCompleteQuery(term ?? string.Empty));
+            var result = await Mediator.Send(new GetVehicleMovementRecordAutoCompleteQuery(term ?? string.Empty, purposeOfVisitId));
 
             return Ok(new
             {

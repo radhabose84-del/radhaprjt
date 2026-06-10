@@ -82,6 +82,287 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("ActivityLog", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Arrival.ArrivalDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArrivalHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ArrivedQty")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("BalanceQty")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<long>("BaleNumberFrom")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BaleNumberTo")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<decimal>("CancelledQty")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("HsnId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MixCodeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("OrderedQty")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("PackTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalBaleCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UomId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArrivalHeaderId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("ArrivalDetail", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Arrival.ArrivalHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("ArrivalDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ArrivalNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("ContainerNo")
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal?>("FreightRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("GodownId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("GrossWeight")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("InvoiceGstNo")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsQcApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LorryIn")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LorryOut")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LrNumber")
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<decimal?>("MoisturePercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("NetWeight")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal>("PartyWeight")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<decimal?>("QcAcceptedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("QcApprovedIp")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("QcDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("QcPersonName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<decimal?>("QcRejectedQuantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<string>("QcRejectedRemarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("QcRemarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int?>("QcStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RawMaterialPOId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("StationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TareWeight")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<int>("TransporterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VehicleNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<decimal>("WeightDifference")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArrivalNumber")
+                        .IsUnique();
+
+                    b.HasIndex("QcStatusId");
+
+                    b.HasIndex("RawMaterialPOId");
+
+                    b.HasIndex("UnitId");
+
+                    b.ToTable("ArrivalHeader", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Arrival.StockLedgerRaw", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BaleCaptureMethodId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("BaleNo")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("BaleWeight")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.Property<long?>("BarcodeNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("DocDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DocType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(3)")
+                        .HasDefaultValue("ARV");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LotNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UomId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BarcodeNumber");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("LotNo");
+
+                    b.ToTable("StockLedgerRaw", "Purchase");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeAllocation", b =>
                 {
                     b.Property<int>("Id")
@@ -946,6 +1227,225 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasDatabaseName("UX_Rate_Base_Quote_Date");
 
                     b.ToTable("ExchangeRate", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApprovalRemarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<decimal?>("ApprovedFreightValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ApprovedRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ApprovedTransporterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ComparisonRemarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("DestinationLocation")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("DestinationStation")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("FreightRfqNumber")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int?>("PoReferenceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("RfqDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("RfqTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SelectedQuotationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceLocation")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("SourceStation")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalBaleCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PoReferenceId")
+                        .HasDatabaseName("IX_FreightRfqHeader_PoReferenceId");
+
+                    b.HasIndex("RfqTypeId");
+
+                    b.HasIndex("StatusId")
+                        .HasDatabaseName("IX_FreightRfqHeader_StatusId");
+
+                    b.HasIndex("FreightRfqNumber", "IsDeleted")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UQ_FreightRfqHeader_Number_NotDeleted")
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("FreightRfqHeader", "Purchase");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqQuotation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("FreightRfqHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("FreightValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsOverride")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSelected")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int?>("NoOfVehicles")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("QuotedRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("RateBasisId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("TransporterId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FreightRfqHeaderId")
+                        .HasDatabaseName("IX_FreightRfqQuotation_HeaderId");
+
+                    b.HasIndex("RateBasisId");
+
+                    b.ToTable("FreightRfqQuotation", "Purchase");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnDetail", b =>
@@ -7167,6 +7667,35 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.ToTable("PurchaseDocuments", "Purchase");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Arrival.ArrivalDetail", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.Arrival.ArrivalHeader", "ArrivalHeader")
+                        .WithMany("ArrivalDetails")
+                        .HasForeignKey("ArrivalHeaderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ArrivalHeader");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Arrival.ArrivalHeader", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "QcStatus")
+                        .WithMany()
+                        .HasForeignKey("QcStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.RawMaterialPO.RawMaterialPOHeader", "RawMaterialPO")
+                        .WithMany()
+                        .HasForeignKey("RawMaterialPOId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("QcStatus");
+
+                    b.Navigation("RawMaterialPO");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeAllocation", b =>
                 {
                     b.HasOne("PurchaseManagement.Domain.Entities.BarcodeSeries", "BarcodeSeries")
@@ -7312,6 +7841,47 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("MiscCOA");
 
                     b.Navigation("MiscDuty");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader", null)
+                        .WithMany()
+                        .HasForeignKey("PoReferenceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_FreightRfqHeader_PurchaseOrder");
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", null)
+                        .WithMany()
+                        .HasForeignKey("RfqTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FreightRfqHeader_RfqType");
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", null)
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FreightRfqHeader_Status");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqQuotation", b =>
+                {
+                    b.HasOne("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader", "Header")
+                        .WithMany("Quotations")
+                        .HasForeignKey("FreightRfqHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", null)
+                        .WithMany()
+                        .HasForeignKey("RateBasisId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_FreightRfqQuotation_RateBasis");
+
+                    b.Navigation("Header");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnDetail", b =>
@@ -8594,6 +9164,11 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Navigation("PODocumentId");
                 });
 
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.Arrival.ArrivalHeader", b =>
+                {
+                    b.Navigation("ArrivalDetails");
+                });
+
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.BarcodeSeries", b =>
                 {
                     b.Navigation("Allocations");
@@ -8629,6 +9204,11 @@ namespace PurchaseManagement.Infrastructure.Migrations
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.ExchangeRate", b =>
                 {
                     b.Navigation("importPOHeaderExRate");
+                });
+
+            modelBuilder.Entity("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader", b =>
+                {
+                    b.Navigation("Quotations");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.GRN.GRNEntry.GrnDetail", b =>

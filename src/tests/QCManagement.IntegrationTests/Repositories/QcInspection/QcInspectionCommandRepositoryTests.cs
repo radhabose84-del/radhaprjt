@@ -19,15 +19,58 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         }
 
         private static QcInspectionCommandRepository CreateRepo(ApplicationDbContext ctx) =>
-            new(ctx, new Mock<IGrnQcUpdate>(MockBehavior.Loose).Object);
+            new(ctx,
+                new Mock<IGrnQcUpdate>(MockBehavior.Loose).Object,
+                new Mock<IArrivalQcUpdate>(MockBehavior.Loose).Object);
 
-        private static QcInspectionHdr BuildEntity(string no = "QCI-2026-00001", int grnDetailId = 4321) =>
+        // SourceTypeId is FK to QC.MiscMaster — get-or-create a source-type row and return its Id.
+        // MiscMaster/MiscTypeMaster are shared reference tables (used by other test classes) and the
+        // MiscTypeCode is unique, so this is idempotent and never deletes them.
+        private async Task<int> SeedSourceTypeAsync(string code = "GRN")
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var type = await ctx.Set<QCManagement.Domain.Entities.MiscTypeMaster>()
+                .FirstOrDefaultAsync(t => t.MiscTypeCode == "QP_SOURCE_TYPE");
+            if (type == null)
+            {
+                type = new QCManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "QP_SOURCE_TYPE",
+                    Description = "QC Inspection Source Document Type",
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                };
+                ctx.Set<QCManagement.Domain.Entities.MiscTypeMaster>().Add(type);
+                await ctx.SaveChangesAsync();
+            }
+
+            var misc = await ctx.Set<QCManagement.Domain.Entities.MiscMaster>()
+                .FirstOrDefaultAsync(m => m.MiscTypeId == type.Id && m.Code == code);
+            if (misc == null)
+            {
+                misc = new QCManagement.Domain.Entities.MiscMaster
+                {
+                    MiscTypeId = type.Id,
+                    Code = code,
+                    Description = code,
+                    SortOrder = 1,
+                    IsActive = Status.Active,
+                    IsDeleted = IsDelete.NotDeleted
+                };
+                ctx.Set<QCManagement.Domain.Entities.MiscMaster>().Add(misc);
+                await ctx.SaveChangesAsync();
+            }
+            return misc.Id;
+        }
+
+        private static QcInspectionHdr BuildEntity(int sourceTypeId, string no = "QCI-2026-00001", int sourceDetailId = 4321) =>
             new QcInspectionHdr
             {
                 QcInspectionNo = no,
                 InspectionDate = DateTimeOffset.UtcNow,
-                GrnHeaderId = 100,
-                GrnDetailId = grnDetailId,
+                SourceTypeId = sourceTypeId,
+                SourceHeaderId = 100,
+                SourceDetailId = sourceDetailId,
                 QualitySpecificationId = 5,
                 QualitySpecificationCode = "QS-0001",
                 QualityTemplateId = 11,
@@ -65,41 +108,14 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         private async Task ClearAsync() =>
             await _fixture.ClearTablesAsync("QC.QcInspectionDtl", "QC.QcInspectionHdr");
 
-        // QcStatusId has a real DB FK to QC.MiscMaster — seed a status row and return its Id.
-        private static async Task<int> SeedQcStatusAsync(ApplicationDbContext ctx)
-        {
-            var miscType = new QCManagement.Domain.Entities.MiscTypeMaster
-            {
-                MiscTypeCode = "QC_STATUS",
-                Description = "QC Status",
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
-            };
-            ctx.Set<QCManagement.Domain.Entities.MiscTypeMaster>().Add(miscType);
-            await ctx.SaveChangesAsync();
-
-            var status = new QCManagement.Domain.Entities.MiscMaster
-            {
-                MiscTypeId = miscType.Id,
-                Code = "APPROVED",
-                Description = "Approved",
-                SortOrder = 1,
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
-            };
-            ctx.Set<QCManagement.Domain.Entities.MiscMaster>().Add(status);
-            await ctx.SaveChangesAsync();
-
-            return status.Id;
-        }
-
         [Fact]
         public async Task CreateAsync_Should_Return_NewId()
         {
             await ClearAsync();
+            var stid = await SeedSourceTypeAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
 
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity());
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(stid));
 
             id.Should().BeGreaterThan(0);
         }
@@ -108,8 +124,9 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         public async Task CreateAsync_Should_Persist_Header_And_Details()
         {
             await ClearAsync();
+            var stid = await SeedSourceTypeAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity());
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(stid));
             ctx.ChangeTracker.Clear();
 
             var saved = await ctx.QcInspectionHdr.Include(h => h.Details).FirstAsync(x => x.Id == id);
@@ -123,8 +140,9 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         public async Task SaveParameterResultsAsync_Should_Update_Detail()
         {
             await ClearAsync();
+            var stid = await SeedSourceTypeAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var entity = BuildEntity();
+            var entity = BuildEntity(stid);
             var id = await CreateRepo(ctx).CreateAsync(entity);
             var detailId = entity.Details.First().Id;
             ctx.ChangeTracker.Clear();
@@ -142,24 +160,27 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         public async Task SaveResultsAndDispositionAsync_Should_Persist_Readings_And_Disposition()
         {
             await ClearAsync();
+            var stid = await SeedSourceTypeAsync();
+            // QcStatusId is FK to QC.MiscMaster — seed a valid status misc row and use its Id.
+            var statusId = await SeedSourceTypeAsync("APR");
             await using var ctx = _fixture.CreateFreshDbContext();
-            var qcStatusId = await SeedQcStatusAsync(ctx);
-            var entity = BuildEntity();
+            var entity = BuildEntity(stid);
             var id = await CreateRepo(ctx).CreateAsync(entity);
             var detailId = entity.Details.First().Id;
             ctx.ChangeTracker.Clear();
 
+            // GRN source → write-back goes through the (no-op) IGrnQcUpdate mock; header disposition persists.
             await CreateRepo(ctx).SaveResultsAndDispositionAsync(
                 id,
                 new List<(int, string?, string?, string?)> { (detailId, "40", "PASS", "ok") },
-                qcStatusId: qcStatusId, acceptedQty: 1000m, rejectedQty: 0m, dispositionRemarks: "approved",
+                qcStatusId: statusId, acceptedQty: 1000m, rejectedQty: 0m, dispositionRemarks: "approved",
                 dispositionByUserId: 1, dispositionByName: "tester",
                 qcApprovedIp: "127.0.0.1", isQcApproved: true,
-                grnHeaderId: 100, grnDetailId: 4321);
+                sourceTypeCode: "GRN", sourceHeaderId: 100, sourceDetailId: 4321, arrivalStatusName: "Approved");
             ctx.ChangeTracker.Clear();
 
             var hdr = await ctx.QcInspectionHdr.FirstAsync(x => x.Id == id);
-            hdr.QcStatusId.Should().Be(qcStatusId);
+            hdr.QcStatusId.Should().Be(statusId);
             hdr.AcceptedQuantity.Should().Be(1000m);
             hdr.DispositionByName.Should().Be("tester");
 
@@ -172,8 +193,9 @@ namespace QCManagement.IntegrationTests.Repositories.QcInspection
         public async Task SoftDeleteAsync_Should_Set_IsDeleted_When_Draft()
         {
             await ClearAsync();
+            var stid = await SeedSourceTypeAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
-            var id = await CreateRepo(ctx).CreateAsync(BuildEntity());
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity(stid));
             ctx.ChangeTracker.Clear();
 
             var result = await CreateRepo(ctx).SoftDeleteAsync(id, CancellationToken.None);

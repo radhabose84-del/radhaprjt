@@ -484,6 +484,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             existingChildSalesType.PaymentTermsId = incoming.PaymentTermsId;
                             existingChildSalesType.ShippingConditionId = incoming.ShippingConditionId;
                             existingChildSalesType.AccountAssignmentId = incoming.AccountAssignmentId;
+                            existingChildSalesType.SalesGroupId = incoming.SalesGroupId;
+                            existingChildSalesType.SalesOfficeId = incoming.SalesOfficeId;
                             existingChildSalesType.Active = incoming.Active;
                         }
                     }
@@ -498,6 +500,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             PaymentTermsId = incoming.PaymentTermsId,
                             ShippingConditionId = incoming.ShippingConditionId,
                             AccountAssignmentId = incoming.AccountAssignmentId,
+                            SalesGroupId=incoming.SalesGroupId,
+                            SalesOfficeId=incoming.SalesOfficeId,
                             Active = incoming.Active
                         });
 
@@ -599,6 +603,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             existingChild.InsuranceProvider = incoming.InsuranceProvider;
                             existingChild.PolicyNo = incoming.PolicyNo;
                             existingChild.InsuranceExpiryDate = incoming.InsuranceExpiryDate;
+                            existingChild.DefaultProcurementRateBasisId=incoming.DefaultProcurementRateBasisId;
+                            existingChild.ModuleId=incoming.ModuleId;
                             existingChild.Status = incoming.Status;
                         }
                     }
@@ -620,6 +626,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             InsuranceProvider = incoming.InsuranceProvider,
                             PolicyNo = incoming.PolicyNo,
                             InsuranceExpiryDate = incoming.InsuranceExpiryDate,
+                            DefaultProcurementRateBasisId=incoming.DefaultProcurementRateBasisId,
+                            ModuleId=incoming.ModuleId,
                             Status = incoming.Status
                         });
 

@@ -414,14 +414,6 @@ namespace QCManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(500)")
                         .HasColumnName("DispositionRemarks");
 
-                    b.Property<int>("GrnDetailId")
-                        .HasColumnType("int")
-                        .HasColumnName("GrnDetailId");
-
-                    b.Property<int>("GrnHeaderId")
-                        .HasColumnType("int")
-                        .HasColumnName("GrnHeaderId");
-
                     b.Property<DateTimeOffset>("InspectionDate")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("InspectionDate");
@@ -506,15 +498,21 @@ namespace QCManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)")
                         .HasColumnName("RejectedQuantity");
 
+                    b.Property<int>("SourceDetailId")
+                        .HasColumnType("int")
+                        .HasColumnName("SourceDetailId");
+
+                    b.Property<int>("SourceHeaderId")
+                        .HasColumnType("int")
+                        .HasColumnName("SourceHeaderId");
+
+                    b.Property<int>("SourceTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SourceTypeId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BatchNumber");
-
-                    b.HasIndex("GrnDetailId")
-                        .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
-
-                    b.HasIndex("GrnHeaderId");
 
                     b.HasIndex("QcInspectionNo")
                         .IsUnique();
@@ -522,6 +520,12 @@ namespace QCManagement.Infrastructure.Migrations
                     b.HasIndex("QcStatusId");
 
                     b.HasIndex("InspectionDate", "QcStatusId");
+
+                    b.HasIndex("SourceTypeId", "SourceDetailId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SourceTypeId", "SourceHeaderId");
 
                     b.ToTable("QcInspectionHdr", "QC");
                 });
@@ -1054,7 +1058,15 @@ namespace QCManagement.Infrastructure.Migrations
                         .HasForeignKey("QcStatusId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("QCManagement.Domain.Entities.MiscMaster", "SourceType")
+                        .WithMany()
+                        .HasForeignKey("SourceTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("QcStatus");
+
+                    b.Navigation("SourceType");
                 });
 
             modelBuilder.Entity("QCManagement.Domain.Entities.QualityParameter", b =>

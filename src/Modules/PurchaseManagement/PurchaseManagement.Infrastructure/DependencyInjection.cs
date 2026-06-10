@@ -8,6 +8,8 @@ using PurchaseManagement.Application.Common.Interfaces.IBarcodeSeries;
 using PurchaseManagement.Infrastructure.Repositories.BarcodeSeries;
 using PurchaseManagement.Application.Common.Interfaces.IBarcodeAllocation;
 using PurchaseManagement.Infrastructure.Repositories.BarcodeAllocation;
+using PurchaseManagement.Application.Common.Interfaces.IFreightRfq;
+using PurchaseManagement.Infrastructure.Repositories.FreightRfq;
 using PurchaseManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPurchaseIndent;
 using PurchaseManagement.Application.Common.Interfaces.IPartyMaster;
@@ -70,6 +72,8 @@ using PurchaseManagement.Application.Common.Interfaces.IOCREntry;
 using PurchaseManagement.Infrastructure.Repositories.OCREntry;
 using PurchaseManagement.Application.Common.Interfaces.IRawMaterialPO;
 using PurchaseManagement.Infrastructure.Repositories.RawMaterialPO;
+using PurchaseManagement.Application.Common.Interfaces.IArrival;
+using PurchaseManagement.Infrastructure.Repositories.Arrival;
 //using PurchaseManagement.Infrastructure.Repositories.Lookups.Workflow;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
 using PurchaseManagement.Application.Common.Interfaces.IPoMethodLookup;
@@ -210,6 +214,8 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IBarcodeSeriesQueryRepository, BarcodeSeriesQueryRepository>();
             services.AddScoped<IBarcodeAllocationCommandRepository, BarcodeAllocationCommandRepository>();
             services.AddScoped<IBarcodeAllocationQueryRepository, BarcodeAllocationQueryRepository>();
+            services.AddScoped<IFreightRfqCommandRepository, FreightRfqCommandRepository>();
+            services.AddScoped<IFreightRfqQueryRepository, FreightRfqQueryRepository>();
 
             // Pending reference-document resolvers consumed by GateEntryManagement.GateInward.
             // One implementation per Finance.TransactionTypeMaster.Id within ModuleId = 21 (Purchase).
@@ -277,6 +283,8 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IRawMaterialPOCommandRepository, RawMaterialPOCommandRepository>();
             services.AddScoped<IRawMaterialPOQueryRepository, RawMaterialPOQueryRepository>();
             services.AddScoped<IRawMaterialPOFileStorage, RawMaterialPOFileStorage>();
+            services.AddScoped<IArrivalCommandRepository, ArrivalCommandRepository>();
+            services.AddScoped<IArrivalQueryRepository, ArrivalQueryRepository>();
             services.AddScoped<IOCREntryFileStorage, OCREntryFileStorage>();
           //  services.AddScoped<IWorkflowLookup, WorkflowLookupRepository>();
             // StockLedger ownership moved to InventoryManagement (Pattern D: Shared Transaction)
@@ -290,6 +298,10 @@ namespace PurchaseManagement.Infrastructure
             // QC inspection cross-module read + write-back (SCRUM-1667)
             services.AddScoped<IGrnLookup, GrnLookupRepository>();
             services.AddScoped<IGrnQcUpdate, GrnQcUpdateRepository>();
+
+            // QC inspection cross-module read + write-back — Arrival source
+            services.AddScoped<IArrivalLookup, ArrivalLookupRepository>();
+            services.AddScoped<IArrivalQcUpdate, ArrivalQcUpdateRepository>();
 
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();

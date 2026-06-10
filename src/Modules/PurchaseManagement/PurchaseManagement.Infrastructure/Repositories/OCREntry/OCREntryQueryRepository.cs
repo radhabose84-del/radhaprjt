@@ -185,17 +185,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             return (items, total);
         }
 
-        public async Task<IReadOnlyList<OCREntryLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<OCREntryLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool approved = true)
         {
+            // When approved = true (default), only Approved OCRs are returned — these are the
+            // ones eligible for Raw Material PO creation. When false, all active OCRs are returned.
             const string sql = @"
                 SELECT TOP 50 o.Id, o.OcrNumber
                 FROM Purchase.OCREntry o
+                LEFT JOIN Purchase.MiscMaster st ON o.StatusId = st.Id AND st.IsDeleted = 0
                 WHERE o.IsActive = 1 AND o.IsDeleted = 0
                   AND (@Term = '' OR o.OcrNumber LIKE @Search)
+                  AND (@Approved = 0 OR st.Description = 'Approved')
                 ORDER BY o.Id DESC;";
 
             var cmd = new CommandDefinition(sql,
-                new { Term = term ?? string.Empty, Search = $"%{term}%" }, cancellationToken: ct);
+                new { Term = term ?? string.Empty, Search = $"%{term}%", Approved = approved ? 1 : 0 },
+                cancellationToken: ct);
             var rows = await _conn.QueryAsync<OCREntryLookupDto>(cmd);
             return rows.ToList();
         }
@@ -205,6 +210,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             const string sql = "SELECT COUNT(1) FROM Purchase.OCREntry WHERE Id = @Id AND IsDeleted = 0;";
             var count = await _conn.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;
+        }
+
+        public async Task<bool> DuplicateOcrExistsAsync(DateTimeOffset ocrDate, int itemId, int supplierId, int? excludeId = null)
+        {
+            const string sql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM Purchase.OCREntry
+                    WHERE CAST(OcrDate AS date) = CAST(@OcrDate AS date)
+                      AND ItemId = @ItemId
+                      AND SupplierId = @SupplierId
+                      AND IsDeleted = 0
+                      AND (@ExcludeId IS NULL OR Id <> @ExcludeId)
+                ) THEN 1 ELSE 0 END;";
+
+            return await _conn.ExecuteScalarAsync<bool>(sql,
+                new { OcrDate = ocrDate, ItemId = itemId, SupplierId = supplierId, ExcludeId = excludeId });
         }
 
         public async Task<bool> IsEditableAsync(int id)

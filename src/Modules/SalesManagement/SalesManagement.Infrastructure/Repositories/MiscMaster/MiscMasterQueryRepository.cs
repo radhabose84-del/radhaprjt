@@ -154,8 +154,6 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
                     UNION ALL
                     SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE FreightTypeId = @id AND IsDeleted = 0
                     UNION ALL
-                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE CountListId = @id AND IsDeleted = 0
-                    UNION ALL
                     SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE StatusId = @id AND IsDeleted = 0
                 ) THEN 1 ELSE 0 END";
 
@@ -193,8 +191,6 @@ namespace SalesManagement.Infrastructure.Repositories.MiscMaster
                     SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE PaymentTypeId = @id AND IsDeleted = 0 AND IsActive = 1
                     UNION ALL
                     SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE FreightTypeId = @id AND IsDeleted = 0 AND IsActive = 1
-                    UNION ALL
-                    SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE CountListId = @id AND IsDeleted = 0 AND IsActive = 1
                     UNION ALL
                     SELECT 1 FROM [Sales].[SalesOrderHeader] WHERE StatusId = @id AND IsDeleted = 0 AND IsActive = 1
                 ) THEN 1 ELSE 0 END";

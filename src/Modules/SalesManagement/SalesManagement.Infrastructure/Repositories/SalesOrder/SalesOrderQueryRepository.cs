@@ -29,6 +29,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
         private readonly IIPAddressService _ipAddressService;
         private readonly ICompanyLookup _companyLookup;
         private readonly IPackTypeLookup _packTypeLookup;
+        private readonly IYarnTypeLookup _yarnTypeLookup;
         private readonly ITransactionTypeLookup _transactionTypeLookup;
         private readonly IMarketingOfficerAccessFilter _accessFilter;
         private readonly IDivisionLookup _divisionLookup;
@@ -44,6 +45,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             IIPAddressService ipAddressService,
             ICompanyLookup companyLookup,
             IPackTypeLookup packTypeLookup,
+            IYarnTypeLookup yarnTypeLookup,
             ITransactionTypeLookup transactionTypeLookup,
             IMarketingOfficerAccessFilter accessFilter,
             IDivisionLookup divisionLookup)
@@ -58,6 +60,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
             _ipAddressService = ipAddressService;
             _companyLookup = companyLookup;
             _packTypeLookup = packTypeLookup;
+            _yarnTypeLookup = yarnTypeLookup;
             _transactionTypeLookup = transactionTypeLookup;
             _accessFilter = accessFilter;
             _divisionLookup = divisionLookup;
@@ -135,8 +138,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     pt.Description AS PaymentTypeName,
                     h.FreightTypeId,
                     ft.Description AS FreightTypeName,
-                    h.CountListId,
-                    cl.Description AS CountListName,
                     h.Remarks,
                     h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdDiscountPercentage, h.MdDiscountValue, h.TotalDiscountValue, h.MdApprovalDocument,
                     h.AgentCommissionId, h.AgentPaymentTermsId, h.AgentCommissionSlabId,
@@ -186,7 +187,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderHeader parent ON h.SalesOrderSplitId = parent.Id AND parent.IsDeleted = 0
                 LEFT JOIN (
@@ -341,8 +341,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     pt.Description AS PaymentTypeName,
                     h.FreightTypeId,
                     ft.Description AS FreightTypeName,
-                    h.CountListId,
-                    cl.Description AS CountListName,
                     h.Remarks,
                     h.IsMdDiscountEnabled, h.MdDiscountRate, h.MdDiscountPercentage, h.MdDiscountValue, h.TotalDiscountValue, h.MdApprovalDocument,
                     h.AgentCommissionId, h.AgentPaymentTermsId, h.AgentCommissionSlabId,
@@ -371,7 +369,6 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 LEFT JOIN Sales.MiscMaster et ON h.EnquiryType = et.Id AND et.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster pt ON h.PaymentTypeId = pt.Id AND pt.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster ft ON h.FreightTypeId = ft.Id AND ft.IsDeleted = 0
-                LEFT JOIN Sales.MiscMaster cl ON h.CountListId = cl.Id AND cl.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster st ON h.StatusId = st.Id AND st.IsDeleted = 0
                 LEFT JOIN Sales.SalesOrderHeader parent ON h.SalesOrderSplitId = parent.Id AND parent.IsDeleted = 0
                 LEFT JOIN (
@@ -401,6 +398,7 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 SELECT d.Id, d.SalesOrderHeaderId,
                     d.ItemId, d.VariantId, d.HSNId,
                     d.PackTypeId,
+                    d.YarnTypeId,
                     d.QtyInBags, d.BagWeight, d.SaleUOMId, d.TotalWeight,
                     d.ExMillRate, d.DiscountPerUnit, d.Freight, d.Handling, d.Charity,
                     d.TaxableAmount, d.TaxPercentage, d.TaxAmount,
@@ -519,6 +517,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                 var packTypes = packTypeIds.Any() ? await _packTypeLookup.GetByIdsAsync(packTypeIds) : [];
                 var packTypeDict = packTypes.ToDictionary(p => p.Id, p => p.PackTypeName);
 
+                // Cross-module YarnType lookup (ProductionManagement) — same pattern as PackType.
+                var yarnTypeIds = details.Where(d => d.YarnTypeId.HasValue).Select(d => d.YarnTypeId!.Value).Distinct().ToList();
+                var yarnTypeDict = yarnTypeIds.Count > 0
+                    ? (await _yarnTypeLookup.GetByIdsAsync(yarnTypeIds)).ToDictionary(y => y.Id, y => y.YarnTypeName)
+                    : new Dictionary<int, string?>();
+
                 foreach (var detail in details)
                 {
                     detail.ItemName = itemDict.TryGetValue(detail.ItemId, out var iName) ? iName : null;
@@ -528,6 +532,8 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrder
                     detail.UOMName = uomDict.TryGetValue(detail.SaleUOMId, out var uName) ? uName : null;
                     if (detail.PackTypeId.HasValue)
                         detail.PackTypeName = packTypeDict.TryGetValue(detail.PackTypeId.Value, out var ptName) ? ptName : null;
+                    if (detail.YarnTypeId.HasValue)
+                        detail.YarnTypeName = yarnTypeDict.TryGetValue(detail.YarnTypeId.Value, out var yName) ? yName : null;
                 }
             }
 

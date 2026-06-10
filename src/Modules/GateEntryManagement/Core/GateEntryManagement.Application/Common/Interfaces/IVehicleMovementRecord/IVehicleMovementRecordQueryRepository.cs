@@ -6,7 +6,7 @@ namespace GateEntryManagement.Application.Common.Interfaces.IVehicleMovementReco
     {
         Task<(List<VehicleMovementRecordDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
         Task<VehicleMovementRecordDto?> GetByIdAsync(int id);
-        Task<IReadOnlyList<VehicleMovementRecordAutoCompleteDto>> AutocompleteAsync(string term, CancellationToken ct);
+        Task<IReadOnlyList<VehicleMovementRecordAutoCompleteDto>> AutocompleteAsync(string term, int? purposeOfVisitId, CancellationToken ct);
         Task<List<PendingVehicleDto>> GetPendingVehiclesAsync(string? vehicleMovementId, string? vehicleNumber, CancellationToken ct);
         Task<bool> NotFoundAsync(int id);
         Task<bool> HasOpenVMRForVehicleAsync(string vehicleNumber);
