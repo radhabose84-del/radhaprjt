@@ -37,8 +37,9 @@ namespace QCManagement.UnitTests.Domain
             {
                 Id = 1,
                 QcInspectionNo = "QCI-2026-00001",
-                GrnHeaderId = 100,
-                GrnDetailId = 4321,
+                SourceTypeId = 60,
+                SourceHeaderId = 100,
+                SourceDetailId = 4321,
                 ReceivedQuantity = 1000m,
                 ReceivedUomId = 3,
                 BatchNumber = "BN-1"
@@ -46,7 +47,9 @@ namespace QCManagement.UnitTests.Domain
 
             entity.Id.Should().Be(1);
             entity.QcInspectionNo.Should().Be("QCI-2026-00001");
-            entity.GrnDetailId.Should().Be(4321);
+            entity.SourceTypeId.Should().Be(60);
+            entity.SourceHeaderId.Should().Be(100);
+            entity.SourceDetailId.Should().Be(4321);
             entity.ReceivedQuantity.Should().Be(1000m);
         }
 

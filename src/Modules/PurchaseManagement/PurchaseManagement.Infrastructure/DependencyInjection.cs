@@ -299,6 +299,10 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IGrnLookup, GrnLookupRepository>();
             services.AddScoped<IGrnQcUpdate, GrnQcUpdateRepository>();
 
+            // QC inspection cross-module read + write-back — Arrival source
+            services.AddScoped<IArrivalLookup, ArrivalLookupRepository>();
+            services.AddScoped<IArrivalQcUpdate, ArrivalQcUpdateRepository>();
+
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();
 

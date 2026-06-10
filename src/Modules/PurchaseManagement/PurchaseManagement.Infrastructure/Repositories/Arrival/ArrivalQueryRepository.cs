@@ -3,6 +3,7 @@ using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.QC;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
@@ -22,6 +23,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
         private readonly IHSNLookup _hsnLookup;
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly IUOMLookup _uomLookup;
+        private readonly IQcMiscMasterLookup _qcMiscMasterLookup;
         private readonly IIPAddressService _ipAddressService;
 
         public ArrivalQueryRepository(
@@ -34,6 +36,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             IHSNLookup hsnLookup,
             IPackTypeLookup packTypeLookup,
             IUOMLookup uomLookup,
+            IQcMiscMasterLookup qcMiscMasterLookup,
             IIPAddressService ipAddressService)
         {
             _conn = conn;
@@ -45,6 +48,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             _hsnLookup = hsnLookup;
             _packTypeLookup = packTypeLookup;
             _uomLookup = uomLookup;
+            _qcMiscMasterLookup = qcMiscMasterLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -60,13 +64,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 h.LorryIn, h.LorryOut,
                 h.GrossWeight, h.TareWeight, h.NetWeight, h.PartyWeight, h.WeightDifference,
                 h.MoisturePercentage,
-                h.QcStatusId, qc.Description AS QcStatusName,
+                h.QcStatusId,
                 h.Remarks, h.IsActive, h.IsDeleted,
                 h.CreatedBy, h.CreatedDate, h.CreatedByName,
                 h.ModifiedBy, h.ModifiedDate, h.ModifiedByName
             FROM Purchase.ArrivalHeader h
-            LEFT JOIN Purchase.RawMaterialPOHeader po ON h.RawMaterialPOId = po.Id AND po.IsDeleted = 0
-            LEFT JOIN Purchase.MiscMaster qc ON h.QcStatusId = qc.Id AND qc.IsDeleted = 0";
+            LEFT JOIN Purchase.RawMaterialPOHeader po ON h.RawMaterialPOId = po.Id AND po.IsDeleted = 0";
 
         // ArrivalDetail has no IsDeleted column — do NOT filter on it.
         private const string DetailSelect = @"
@@ -263,10 +266,17 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             var godownMap = (await _warehouseLookup.GetByIdsAsync(headers.Select(h => h.GodownId).Distinct()))
                 .ToDictionary(x => x.Id, x => x.WarehouseName);
 
+            // QcStatusId references QC.MiscMaster (cross-module) — resolve via lookup, never a SQL JOIN.
+            var qcStatusIds = headers.Where(h => h.QcStatusId.HasValue).Select(h => h.QcStatusId!.Value).Distinct().ToList();
+            var qcStatusMap = qcStatusIds.Count > 0
+                ? (await _qcMiscMasterLookup.GetByIdsAsync(qcStatusIds)).ToDictionary(x => x.Id, x => x.Description)
+                : new Dictionary<int, string?>();
+
             foreach (var h in headers)
             {
                 h.StationName = stationMap.TryGetValue(h.StationId, out var sName) ? sName : null;
                 h.GodownName = godownMap.TryGetValue(h.GodownId, out var gName) ? gName : null;
+                h.QcStatusName = h.QcStatusId.HasValue && qcStatusMap.TryGetValue(h.QcStatusId.Value, out var qcName) ? qcName : null;
 
                 var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(h.SupplierId);
                 h.SupplierName = supplier?.VendorName;

@@ -21,7 +21,7 @@ namespace GateEntryManagement.Application.VehicleMovementRecord.Queries.GetVehic
 
         public async Task<IReadOnlyList<VehicleMovementRecordAutoCompleteDto>> Handle(GetVehicleMovementRecordAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, request.PurposeOfVisitId, cancellationToken);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",

@@ -12,11 +12,16 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IGrnQcUpdate _grnQcUpdate;
+        private readonly IArrivalQcUpdate _arrivalQcUpdate;
 
-        public QcInspectionCommandRepository(ApplicationDbContext dbContext, IGrnQcUpdate grnQcUpdate)
+        public QcInspectionCommandRepository(
+            ApplicationDbContext dbContext,
+            IGrnQcUpdate grnQcUpdate,
+            IArrivalQcUpdate arrivalQcUpdate)
         {
             _dbContext = dbContext;
             _grnQcUpdate = grnQcUpdate;
+            _arrivalQcUpdate = arrivalQcUpdate;
         }
 
         public async Task<int> CreateAsync(QcInspectionHdr entity)
@@ -59,7 +64,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             int qcStatusId, decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
             int dispositionByUserId, string? dispositionByName,
             string? qcApprovedIp, bool isQcApproved,
-            int grnHeaderId, int grnDetailId)
+            string sourceTypeCode, int sourceHeaderId, int sourceDetailId, string arrivalStatusName)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
@@ -103,15 +108,26 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
 
                     await _dbContext.SaveChangesAsync();
 
-                    // 3) Cross-module GRN write-back on the SAME connection + transaction (atomic).
-                    // QC is line-level: full disposition written to GrnDetail, located by Id.
+                    // 3) Cross-module write-back on the SAME connection + transaction (atomic).
                     var conn = _dbContext.Database.GetDbConnection();
                     var tx = transaction.GetDbTransaction();
 
-                    await _grnQcUpdate.UpdateGrnDetailQcAsync(
-                        grnDetailId, qcStatusId, acceptedQty, rejectedQty,
-                        dispositionRemarks, dispositionByName, qcApprovedIp, now, isQcApproved,
-                        conn, tx);
+                    if (string.Equals(sourceTypeCode, "ARRIVAL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Arrival QC is header-level: full disposition written to ArrivalHeader.
+                        await _arrivalQcUpdate.UpdateArrivalQcAsync(
+                            sourceHeaderId, arrivalStatusName, acceptedQty, rejectedQty,
+                            dispositionRemarks, dispositionByName, qcApprovedIp, now, isQcApproved,
+                            conn, tx);
+                    }
+                    else
+                    {
+                        // GRN QC is line-level: full disposition written to GrnDetail, located by Id.
+                        await _grnQcUpdate.UpdateGrnDetailQcAsync(
+                            sourceDetailId, qcStatusId, acceptedQty, rejectedQty,
+                            dispositionRemarks, dispositionByName, qcApprovedIp, now, isQcApproved,
+                            conn, tx);
+                    }
 
                     await transaction.CommitAsync();
                     return hdr.Id;

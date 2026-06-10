@@ -9,9 +9,12 @@ namespace QCManagement.Application.QcInspection.Dto
     {
         public int? InspectionId { get; set; }
         public string? QcInspectionNo { get; set; }
-        public int GrnHeaderId { get; set; }
-        public int GrnDetailId { get; set; }
-        public string? GrnNo { get; set; }
+        public int SourceTypeId { get; set; }
+        public string? SourceTypeCode { get; set; }   // GRN / ARRIVAL
+        public string? SourceTypeName { get; set; }
+        public int SourceHeaderId { get; set; }
+        public int SourceDetailId { get; set; }
+        public string? SourceNo { get; set; }          // GrnNo or ArrivalNumber
         public int SupplierId { get; set; }
         public string? SupplierName { get; set; }
         public int ItemId { get; set; }
