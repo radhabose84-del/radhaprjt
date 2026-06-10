@@ -38,8 +38,7 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Arrival
 
             // ── Consolidated bale range ──
             b.Property(x => x.BatchNumber)
-                .IsRequired()
-                .HasColumnType("varchar(30)");
+                .HasColumnType("varchar(30)");   // nullable — Batch Number is optional
             b.Property(x => x.BaleNumberFrom);
             b.Property(x => x.BaleNumberTo);
             b.Property(x => x.TotalBaleCount);

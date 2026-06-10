@@ -29,7 +29,7 @@ namespace PurchaseManagement.Domain.Entities.Arrival
         public decimal BalanceQty { get; set; }      // computed Ordered − Arrived − Cancelled
 
         // ── Consolidated bale range (per line) ──
-        public string BatchNumber { get; set; } = default!;
+        public string? BatchNumber { get; set; }   // optional
         public long BaleNumberFrom { get; set; }
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }

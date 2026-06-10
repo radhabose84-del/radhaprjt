@@ -278,6 +278,8 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IImportPOCommandRepository, ImportPOCommandRepository>();
             services.AddScoped<IDutyMasterQueryRepository, DutyMasterQueryRepository>();
             services.AddScoped<IDutyMasterCommandRepository, DutyMasterCommandRepository>();
+            services.AddScoped<PurchaseManagement.Application.Common.Interfaces.IMixCodeMaster.IMixCodeMasterCommandRepository, PurchaseManagement.Infrastructure.Repositories.MixCodeMaster.MixCodeMasterCommandRepository>();
+            services.AddScoped<PurchaseManagement.Application.Common.Interfaces.IMixCodeMaster.IMixCodeMasterQueryRepository, PurchaseManagement.Infrastructure.Repositories.MixCodeMaster.MixCodeMasterQueryRepository>();
             services.AddScoped<IOCREntryCommandRepository, OCREntryCommandRepository>();
             services.AddScoped<IOCREntryQueryRepository, OCREntryQueryRepository>();
             services.AddScoped<IRawMaterialPOCommandRepository, RawMaterialPOCommandRepository>();

@@ -78,9 +78,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
         private const string DetailSelect = @"
             SELECT
                 d.Id, d.ArrivalHeaderId, d.ItemId, d.HsnId, d.PackTypeId, d.MixCodeId, d.UomId,
+                mc.MixCodeDesc,
                 d.Rate, d.OrderedQty, d.ArrivedQty, d.CancelledQty, d.BalanceQty,
                 d.BatchNumber, d.BaleNumberFrom, d.BaleNumberTo, d.TotalBaleCount
             FROM Purchase.ArrivalDetail d
+            LEFT JOIN Purchase.MixCodeMaster mc ON d.MixCodeId = mc.Id AND mc.IsDeleted = 0
             WHERE d.ArrivalHeaderId IN @Ids";
 
         public async Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, bool? pendingStatus = null)
@@ -218,7 +220,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 if (!byItem.TryGetValue(detail.ItemId, out var baleRows))
                     continue;
 
-                detail.IsIndividual = true;
                 detail.Bales = baleRows.Select(r => new ArrivalBaleRowDto
                 {
                     BaleNo = (long)r.BaleNo,

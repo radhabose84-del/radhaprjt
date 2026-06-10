@@ -52,7 +52,7 @@ namespace PurchaseManagement.Application.Arrival.Commands.UpdateArrival
         public decimal ArrivedQty { get; set; }
         public decimal CancelledQty { get; set; }
 
-        public string BatchNumber { get; set; } = default!;
+        public string? BatchNumber { get; set; }
         public long BaleNumberFrom { get; set; }
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }
