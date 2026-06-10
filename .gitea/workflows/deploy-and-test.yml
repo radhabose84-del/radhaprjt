@@ -31,11 +31,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # ── Step 2: Setup .NET 8 ────────────────────────────────────────────
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: "8.0.x"
+      # ── Step 2: (removed) Setup .NET 8 ──────────────────────────────────
+      # The self-hosted QA runner has the .NET 8 SDK pre-installed at
+      # C:\Program Files\dotnet. actions/setup-dotnet was reinstalling 8.0.x into that
+      # same location on every run (as SYSTEM, under act) and producing INCOMPLETE
+      # installs — first an empty SDK 'Sdks' folder, then a Microsoft.NETCore.App.Ref
+      # targeting pack missing its ref DLLs (CS0006). Removing this step so the build
+      # uses the machine's pre-installed, complete SDK. Manage the SDK on the runner
+      # directly; do not re-add this step.
 
       # ── Step 3: Restore packages ────────────────────────────────────────
       # Restore only the API project (with its transitive module refs) — the deploy
