@@ -38,8 +38,13 @@ jobs:
           dotnet-version: "8.0.x"
 
       # ── Step 3: Restore packages ────────────────────────────────────────
+      # Restore only the API project (with its transitive module refs) — the deploy
+      # builds/publishes BSOFT.Api alone. Restoring the whole solution dragged in
+      # BSOFT.Worker, whose Microsoft.NET.Sdk.Worker SDK fails to resolve on this
+      # runner and collapsed the entire static restore graph. The later `dotnet test`
+      # steps restore their own projects (none reference BSOFT.Worker).
       - name: Restore packages
-        run: dotnet restore BSOFT.sln
+        run: dotnet restore src/BSOFT.Api/BSOFT.Api.csproj
 
       # ── Step 3b: SonarQube — BEGIN analysis (wraps the build below) ─────
       # The API build pulls in all 10 modules, so Sonar analyzes all production C#. Coverage
