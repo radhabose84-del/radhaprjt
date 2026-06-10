@@ -68,7 +68,6 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
     {
         public long BaleNumber { get; set; }
         public decimal BaleWeight { get; set; }
-        public int BaleCaptureMethodId { get; set; }   // MiscMaster (manual entry / barcode scan) — metadata
         public long? BarcodeNumber { get; set; }        // scanned barcode; null when not scanned
     }
 }

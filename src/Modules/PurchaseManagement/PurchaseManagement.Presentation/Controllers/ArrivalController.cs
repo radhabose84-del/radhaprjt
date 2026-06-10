@@ -18,13 +18,15 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllArrivalAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] bool? PendingStatus = null)
         {
             var result = await Mediator.Send(new GetAllArrivalQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                PendingStatus = PendingStatus
             });
 
             return Ok(new

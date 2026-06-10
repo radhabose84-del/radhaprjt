@@ -17,7 +17,7 @@ namespace PurchaseManagement.UnitTests.Application.Arrival.Queries
         public async Task Handle_ReturnsSuccess()
         {
             var list = new List<ArrivalDto> { ArrivalBuilders.ValidDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((list, 1));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null)).ReturnsAsync((list, 1));
 
             var result = await CreateSut().Handle(
                 new GetAllArrivalQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
@@ -30,7 +30,7 @@ namespace PurchaseManagement.UnitTests.Application.Arrival.Queries
         public async Task Handle_ReturnsPaginationMetadata()
         {
             var list = new List<ArrivalDto> { ArrivalBuilders.ValidDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "ARV")).ReturnsAsync((list, 11));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "ARV", null)).ReturnsAsync((list, 11));
 
             var result = await CreateSut().Handle(
                 new GetAllArrivalQuery { PageNumber = 2, PageSize = 5, SearchTerm = "ARV" }, CancellationToken.None);
@@ -43,13 +43,27 @@ namespace PurchaseManagement.UnitTests.Application.Arrival.Queries
         [Fact]
         public async Task Handle_EmptyResult_ReturnsSuccess()
         {
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((new List<ArrivalDto>(), 0));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null)).ReturnsAsync((new List<ArrivalDto>(), 0));
 
             var result = await CreateSut().Handle(
                 new GetAllArrivalQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
 
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Handle_ForwardsPendingStatusFilter()
+        {
+            var list = new List<ArrivalDto> { ArrivalBuilders.ValidDto() };
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, true)).ReturnsAsync((list, 1));
+
+            var result = await CreateSut().Handle(
+                new GetAllArrivalQuery { PageNumber = 1, PageSize = 10, PendingStatus = true }, CancellationToken.None);
+
+            result.IsSuccess.Should().BeTrue();
+            result.Data.Should().HaveCount(1);
+            _mockQueryRepo.Verify(r => r.GetAllAsync(1, 10, null, true), Times.Once);
         }
     }
 }

@@ -45,6 +45,12 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public int? QcStatusId { get; set; }
         public string? QcStatusName { get; set; }
 
+        // QC.MiscMaster Id for QP_SOURCE_TYPE / code 'ARRIVAL' — resolved via IQcMiscMasterLookup.
+        public int? SourceTypeId { get; set; }
+
+        // Edit is blocked once QC is signed off (QcStatusId set). Computed — no DB column.
+        public bool IsEditAllowed => !QcStatusId.HasValue;
+
         public string? Remarks { get; set; }
 
         public bool IsActive { get; set; }
