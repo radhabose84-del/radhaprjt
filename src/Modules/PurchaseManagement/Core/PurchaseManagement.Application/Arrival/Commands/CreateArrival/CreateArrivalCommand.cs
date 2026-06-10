@@ -52,7 +52,7 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
 
         // Line-level bale summary (persisted on ArrivalDetail). Used as the consolidated
         // range when no per-bale BaleDetails are supplied, and for duplicate-range checks.
-        public string BatchNumber { get; set; } = default!;
+        public string? BatchNumber { get; set; }
         public long BaleNumberFrom { get; set; }
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }

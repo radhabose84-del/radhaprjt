@@ -117,7 +117,6 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                 d.RuleFor(p => p.OrderedQty).GreaterThan(0).WithMessage("OrderedQty must be greater than zero.");
                 d.RuleFor(p => p.ArrivedQty).GreaterThanOrEqualTo(0).WithMessage("ArrivedQty must be zero or positive.");
                 d.RuleFor(p => p.CancelledQty).GreaterThanOrEqualTo(0).WithMessage("CancelledQty must be zero or positive.");
-                d.RuleFor(p => p.BatchNumber).NotEmpty().WithMessage("Batch Number is required.");
 
                 d.RuleFor(p => p.BaleNumberTo)
                     .GreaterThanOrEqualTo(p => p.BaleNumberFrom)

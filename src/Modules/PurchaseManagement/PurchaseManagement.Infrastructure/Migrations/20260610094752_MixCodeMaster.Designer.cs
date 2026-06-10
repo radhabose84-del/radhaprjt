@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PurchaseManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PurchaseManagement.Infrastructure.Data;
 namespace PurchaseManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260610094752_MixCodeMaster")]
+    partial class MixCodeMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1314,9 +1317,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int>("RfqTypeId")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("RfqValidTill")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<int?>("SelectedQuotationId")
                         .HasColumnType("int");
 
@@ -1388,7 +1388,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int>("FreightRfqHeaderId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("FreightValue")
+                    b.Property<decimal>("FreightValue")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
 
@@ -1425,33 +1425,18 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int?>("NoOfVehicles")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("NotifiedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<decimal?>("QuotedRate")
+                    b.Property<decimal>("QuotedRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("RateBasisId")
+                    b.Property<int>("RateBasisId")
                         .HasColumnType("int");
 
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(500)");
 
-                    b.Property<int?>("TransportDetailId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TransportModeName")
-                        .HasColumnType("varchar(50)");
-
                     b.Property<int>("TransporterId")
                         .HasColumnType("int");
-
-                    b.Property<string>("VehicleNo")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("VehicleTypeName")
-                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -3023,64 +3008,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MiscTypeMaster", "Purchase");
-                });
-
-            modelBuilder.Entity("PurchaseManagement.Domain.Entities.MixCodeMaster", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedByName")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CreatedIP")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<string>("MixCode")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)");
-
-                    b.Property<string>("MixCodeDesc")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MixCode")
-                        .IsUnique();
-
-                    b.ToTable("MixCodeMaster", "Purchase");
                 });
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.OCREntry", b =>
@@ -7918,11 +7845,11 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader", b =>
                 {
-                    b.HasOne("PurchaseManagement.Domain.Entities.RawMaterialPO.RawMaterialPOHeader", null)
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader", null)
                         .WithMany()
                         .HasForeignKey("PoReferenceId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_FreightRfqHeader_RawMaterialPO");
+                        .HasConstraintName("FK_FreightRfqHeader_PurchaseOrder");
 
                     b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", null)
                         .WithMany()
@@ -7951,6 +7878,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RateBasisId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("FK_FreightRfqQuotation_RateBasis");
 
                     b.Navigation("Header");
