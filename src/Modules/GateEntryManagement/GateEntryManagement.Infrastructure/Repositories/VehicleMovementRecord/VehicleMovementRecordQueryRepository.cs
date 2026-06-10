@@ -101,19 +101,24 @@ namespace GateEntryManagement.Infrastructure.Repositories.VehicleMovementRecord
             return dto;
         }
 
-        public async Task<IReadOnlyList<VehicleMovementRecordAutoCompleteDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<VehicleMovementRecordAutoCompleteDto>> AutocompleteAsync(string term, int? purposeOfVisitId, CancellationToken ct)
         {
-            const string sql = @"
+            var whereClause = @"vmr.IsDeleted = 0 AND vmr.IsActive = 1
+                AND (vmr.VehicleMovementId LIKE @Term OR vmr.VehicleNumber LIKE @Term OR vmr.DriverName LIKE @Term)";
+
+            if (purposeOfVisitId.HasValue && purposeOfVisitId.Value > 0)
+                whereClause += " AND vmr.PurposeOfVisitId = @PurposeOfVisitId";
+
+            var sql = $@"
                 SELECT vmr.Id, vmr.VehicleMovementId, vmr.VehicleNumber, vmr.DriverName,
                     st.Description AS StatusName
                 FROM Gate.VehicleMovementRecord vmr
                 LEFT JOIN Gate.MiscMaster st ON vmr.StatusId = st.Id AND st.IsDeleted = 0
-                WHERE vmr.IsDeleted = 0 AND vmr.IsActive = 1
-                AND (vmr.VehicleMovementId LIKE @Term OR vmr.VehicleNumber LIKE @Term OR vmr.DriverName LIKE @Term)
+                WHERE {whereClause}
                 ORDER BY vmr.Id DESC";
 
             var result = await _dbConnection.QueryAsync<VehicleMovementRecordAutoCompleteDto>(
-                new CommandDefinition(sql, new { Term = $"%{term}%" }, cancellationToken: ct));
+                new CommandDefinition(sql, new { Term = $"%{term}%", PurposeOfVisitId = purposeOfVisitId }, cancellationToken: ct));
             return result.ToList();
         }
 

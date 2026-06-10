@@ -70,12 +70,6 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                 .WithMessage("TransporterId is inactive/deleted.")
                 .When(x => x.TransporterId > 0);
 
-            RuleFor(x => x.QcStatusId)
-                .GreaterThan(0).WithMessage("QC Status is required.")
-                .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
-                .WithMessage("QcStatusId is inactive/deleted.")
-                .When(x => x.QcStatusId > 0);
-
             RuleFor(x => x.Details)
                 .NotEmpty().WithMessage("At least one detail line is required.");
 

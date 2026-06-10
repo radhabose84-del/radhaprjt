@@ -502,12 +502,13 @@ namespace InventoryManagement.Infrastructure.Repositories.Item.ItemDetail.Querie
             searchPattern = searchPattern ?? string.Empty;
 
             var query = @"
-                SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IM.ItemGroupId,IM.TariffNumber,
+                SELECT IM.Id, ItemName, ItemCode, ParentItemId,HSNId,HSNCode,GSTPercentage,IM.ItemCategoryId,IC.ItemCategoryName,IM.ItemGroupId,IG.ItemGroupName,IM.TariffNumber,
                 P.PurchaseUomId,IM.StockUomId,U.Code as PurchaseUom,U1.Code as StockUom,ISNULL(ST.CurrentStockQty, 0) AS CurrentStockQty,
                 IC.EmergencyPOById, IC.EmergencyValueLimit, IC.EmergencyActionId
                 FROM Inventory.ItemMaster IM
                 Inner join Inventory.HSNMaster HM on IM.HSNId=HM.id
                 LEFT JOIN Inventory.ItemCategory IC ON IC.Id = IM.ItemCategoryId AND IC.IsDeleted = 0
+                LEFT JOIN Inventory.ItemGroup IG ON IG.Id = IM.ItemGroupId AND IG.IsDeleted = 0
                	left join Inventory.ItemPurchase P on P.ItemId=IM.Id
                 left join Inventory.UOM U on U.Id=P.PurchaseUomId
                 left join Inventory.UOM U1 on U1.Id=IM.StockUomId

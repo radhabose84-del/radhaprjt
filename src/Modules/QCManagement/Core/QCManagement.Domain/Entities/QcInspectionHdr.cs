@@ -7,9 +7,13 @@ namespace QCManagement.Domain.Entities
         public string? QcInspectionNo { get; set; }
         public DateTimeOffset InspectionDate { get; set; }
 
-        // GRN source (cross-module — no DB FK constraint)
-        public int GrnHeaderId { get; set; }
-        public int GrnDetailId { get; set; }
+        // Source document (GRN or Arrival). SourceTypeId → QC.MiscMaster (QP_SOURCE_TYPE: GRN / ARRIVAL).
+        public int SourceTypeId { get; set; }
+        // Cross-module references (no DB FK constraint):
+        //   GRN     → SourceHeaderId = GrnHeaderId,     SourceDetailId = GrnDetailId
+        //   ARRIVAL → SourceHeaderId = ArrivalHeaderId, SourceDetailId = ArrivalDetailId
+        public int SourceHeaderId { get; set; }
+        public int SourceDetailId { get; set; }
 
         // Quality specification snapshot (snapshotted — no DB FK constraint, survives spec changes)
         public int QualitySpecificationId { get; set; }
@@ -39,6 +43,9 @@ namespace QCManagement.Domain.Entities
 
         // Same-module FK navigation (QcStatusId → QC.MiscMaster)
         public MiscMaster? QcStatus { get; set; }
+
+        // Same-module FK navigation (SourceTypeId → QC.MiscMaster)
+        public MiscMaster? SourceType { get; set; }
 
         // Child parameter rows
         public ICollection<QcInspectionDtl>? Details { get; set; }

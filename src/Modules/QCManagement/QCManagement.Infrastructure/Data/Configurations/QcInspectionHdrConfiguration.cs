@@ -31,8 +31,9 @@ namespace QCManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.InspectionDate)
                 .HasColumnName("InspectionDate").HasColumnType("datetimeoffset").IsRequired();
 
-            builder.Property(t => t.GrnHeaderId).HasColumnName("GrnHeaderId").HasColumnType("int").IsRequired();
-            builder.Property(t => t.GrnDetailId).HasColumnName("GrnDetailId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.SourceTypeId).HasColumnName("SourceTypeId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.SourceHeaderId).HasColumnName("SourceHeaderId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.SourceDetailId).HasColumnName("SourceDetailId").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.QualitySpecificationId).HasColumnName("QualitySpecificationId").HasColumnType("int").IsRequired();
             builder.Property(t => t.QualitySpecificationCode).HasColumnName("QualitySpecificationCode").HasColumnType("varchar(20)").IsRequired();
@@ -72,8 +73,9 @@ namespace QCManagement.Infrastructure.Data.Configurations
 
             // Indexes
             builder.HasIndex(t => t.QcInspectionNo).IsUnique();
-            builder.HasIndex(t => t.GrnDetailId).IsUnique().HasFilter("[IsDeleted] = 0");
-            builder.HasIndex(t => t.GrnHeaderId);
+            // One live inspection per source line (unique across source type + detail).
+            builder.HasIndex(t => new { t.SourceTypeId, t.SourceDetailId }).IsUnique().HasFilter("[IsDeleted] = 0");
+            builder.HasIndex(t => new { t.SourceTypeId, t.SourceHeaderId });
             builder.HasIndex(t => new { t.InspectionDate, t.QcStatusId });
             builder.HasIndex(t => t.BatchNumber);
 
@@ -83,8 +85,14 @@ namespace QCManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.QcStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Same-module FK: SourceTypeId → QC.MiscMaster (QP_SOURCE_TYPE), no reverse navigation
+            builder.HasOne(t => t.SourceType)
+                .WithMany()
+                .HasForeignKey(t => t.SourceTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Snapshot FKs (QualitySpecificationId, QualityTemplateId, QcTypeId) and cross-module FKs
-            // (GrnHeaderId, GrnDetailId, ReceivedUomId) have NO DB constraint per CLAUDE.md.
+            // (SourceHeaderId, SourceDetailId, ReceivedUomId) have NO DB constraint per CLAUDE.md.
         }
     }
 }

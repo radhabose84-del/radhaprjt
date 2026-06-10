@@ -6,12 +6,15 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
     {
         Task<QcInspectionDto?> GetByIdAsync(int id);
 
-        /// <summary>Inspection summaries for a set of GRN detail lines — used to build the unified grid.</summary>
-        Task<IReadOnlyList<QcInspectionSummaryDto>> GetInspectionSummariesByGrnDetailIdsAsync(IEnumerable<int> grnDetailIds);
+        /// <summary>Inspection summaries for a set of source detail lines (per source type) — used to build the unified grid.</summary>
+        Task<IReadOnlyList<QcInspectionSummaryDto>> GetInspectionSummariesBySourceAsync(int sourceTypeId, IEnumerable<int> sourceDetailIds);
+
+        /// <summary>Resolves the QC.MiscMaster Id for a QP_SOURCE_TYPE code (GRN / ARRIVAL).</summary>
+        Task<int?> GetSourceTypeIdByCodeAsync(string sourceTypeCode);
 
         // ── validation / existence helpers ──
         Task<bool> NotFoundAsync(int id);
-        Task<bool> InspectionExistsForGrnDetailAsync(int grnDetailId);
+        Task<bool> InspectionExistsForSourceAsync(int sourceTypeId, int sourceDetailId);
         Task<bool> IsDisposedAsync(int id);
         Task<bool> AllParametersEvaluatedAsync(int id);
         Task<bool> HasCriticalFailureAsync(int id);

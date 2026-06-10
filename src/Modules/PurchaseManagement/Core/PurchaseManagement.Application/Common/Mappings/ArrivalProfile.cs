@@ -14,6 +14,8 @@ namespace PurchaseManagement.Application.Common.Mappings
             CreateMap<CreateArrivalCommand, Domain.Entities.Arrival.ArrivalHeader>()
                 .ForMember(d => d.IsActive, o => o.MapFrom(_ => Status.Active))
                 .ForMember(d => d.IsDeleted, o => o.MapFrom(_ => IsDelete.NotDeleted))
+                // QcStatusId is not supplied on create — left null, set later by QC sign-off.
+                .ForMember(d => d.QcStatusId, o => o.Ignore())
                 .ForMember(d => d.ArrivalDetails, o => o.Ignore());
 
             CreateMap<UpdateArrivalCommand, Domain.Entities.Arrival.ArrivalHeader>()

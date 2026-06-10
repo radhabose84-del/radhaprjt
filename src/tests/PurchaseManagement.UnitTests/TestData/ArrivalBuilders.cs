@@ -29,7 +29,6 @@ namespace PurchaseManagement.UnitTests.TestData
                 PartyWeight = 19900m,
                 WeightDifference = -100m,
                 MoisturePercentage = 7.5m,
-                QcStatusId = 1,
                 Details = new List<CreateArrivalDetailDto>
                 {
                     new()

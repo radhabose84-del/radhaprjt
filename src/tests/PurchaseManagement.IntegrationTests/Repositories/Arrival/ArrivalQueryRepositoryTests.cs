@@ -10,6 +10,7 @@ using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
+using Contracts.Interfaces.Lookups.QC;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Microsoft.Data.SqlClient;
@@ -37,6 +38,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
         private readonly Mock<IHSNLookup> _hsnMock = new(MockBehavior.Loose);
         private readonly Mock<IPackTypeLookup> _packTypeMock = new(MockBehavior.Loose);
         private readonly Mock<IUOMLookup> _uomMock = new(MockBehavior.Loose);
+        private readonly Mock<IQcMiscMasterLookup> _qcMiscMock = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _ipMock = new(MockBehavior.Loose);
 
         public ArrivalQueryRepositoryTests(DbFixture fixture)
@@ -69,7 +71,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var conn = new SqlConnection(_fixture.ConnectionString);
             return new ArrivalQueryRepository(conn, _supplierMock.Object, _stationMock.Object, _warehouseMock.Object,
                 _transporterMock.Object, _itemMock.Object, _hsnMock.Object, _packTypeMock.Object, _uomMock.Object,
-                _ipMock.Object);
+                _qcMiscMock.Object, _ipMock.Object);
         }
 
         private ArrivalCommandRepository CreateCommandRepo(ApplicationDbContext ctx) =>

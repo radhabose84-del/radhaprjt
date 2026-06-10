@@ -23,7 +23,9 @@ namespace InventoryManagement.Application.Item.ItemDetail.Queries.GetItemAutoCom
         public decimal GSTPercentage { get; set; }
         public string? ParentItemId { get; set; }
         public int ItemCategoryId { get; set; }
+        public string? ItemCategoryName { get; set; }
         public int ItemGroupId { get; set; }
+        public string? ItemGroupName { get; set; }
         public string? TariffNumber { get; set; }
         public int PurchaseUomId { get; set; }
         public string? PurchaseUom { get; set; }

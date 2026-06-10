@@ -57,11 +57,12 @@ namespace QCManagement.Application.QcInspection.Dto
         public string? SeverityCode { get; set; }
     }
 
-    /// <summary>Inspection summary keyed by GRN detail line — merged into the unified grid.</summary>
+    /// <summary>Inspection summary keyed by source detail line — merged into the unified grid.</summary>
     public class QcInspectionSummaryDto
     {
         public int Id { get; set; }
-        public int GrnDetailId { get; set; }
+        public int SourceTypeId { get; set; }
+        public int SourceDetailId { get; set; }
         public string? QcInspectionNo { get; set; }
         public int? QcStatusId { get; set; }
         public string? QcStatusCode { get; set; }

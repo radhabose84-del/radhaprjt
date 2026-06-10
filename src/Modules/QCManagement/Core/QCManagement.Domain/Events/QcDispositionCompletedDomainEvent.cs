@@ -10,8 +10,9 @@ namespace QCManagement.Domain.Events
     public sealed record QcDispositionCompletedDomainEvent(
         int QcInspectionHdrId,
         string QcInspectionNo,
-        int GrnHeaderId,
-        int GrnDetailId,
+        int SourceTypeId,
+        int SourceHeaderId,
+        int SourceDetailId,
         int ItemId,
         int QcStatusId,
         string QcStatusCode,

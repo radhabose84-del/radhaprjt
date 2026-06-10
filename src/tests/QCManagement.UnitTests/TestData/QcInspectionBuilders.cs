@@ -10,8 +10,13 @@ namespace QCManagement.UnitTests.TestData
 {
     public static class QcInspectionBuilders
     {
-        public static CreateQcInspectionCommand ValidCreateCommand(int grnDetailId = 4321) =>
-            new() { GrnDetailId = grnDetailId };
+        // Source-type discriminator ids (QC.MiscMaster QP_SOURCE_TYPE) used in tests.
+        public const int GrnSourceTypeId = 60;
+        public const int ArrivalSourceTypeId = 61;
+
+        public static CreateQcInspectionCommand ValidCreateCommand(
+            int sourceTypeId = GrnSourceTypeId, int sourceDetailId = 4321) =>
+            new() { SourceTypeId = sourceTypeId, SourceDetailId = sourceDetailId };
 
         public static GrnLookupDto ValidGrnLookup(int grnDetailId = 4321, int grnHeaderId = 100, int itemId = 7) =>
             new()
@@ -25,6 +30,20 @@ namespace QCManagement.UnitTests.TestData
                 ItemId = itemId,
                 BatchNumber = "BN-1",
                 ReceivedQuantity = 1000m,
+                ReceivedUomId = 3
+            };
+
+        public static ArrivalLookupDto ValidArrivalLookup(int arrivalDetailId = 7777, int arrivalHeaderId = 200, int itemId = 7) =>
+            new()
+            {
+                ArrivalHeaderId = arrivalHeaderId,
+                ArrivalDetailId = arrivalDetailId,
+                ArrivalNumber = "ARR-000123",
+                ArrivalDate = DateTimeOffset.UtcNow,
+                SupplierId = 50,
+                ItemId = itemId,
+                BatchNumber = "BN-A1",
+                ReceivedQuantity = 500m,
                 ReceivedUomId = 3
             };
 
@@ -97,8 +116,9 @@ namespace QCManagement.UnitTests.TestData
         public static QcDispositionContextDto ValidContext(int hdrId = 88) =>
             new()
             {
-                GrnHeaderId = 100,
-                GrnDetailId = 4321,
+                SourceTypeId = GrnSourceTypeId,
+                SourceHeaderId = 100,
+                SourceDetailId = 4321,
                 ReceivedQuantity = 1000m,
                 ReceivedUomId = 3,
                 QcInspectionNo = "QCI-2026-00001"
@@ -109,8 +129,10 @@ namespace QCManagement.UnitTests.TestData
             {
                 InspectionId = id,
                 QcInspectionNo = "QCI-2026-00001",
-                GrnHeaderId = 100,
-                GrnDetailId = 4321,
+                SourceTypeId = GrnSourceTypeId,
+                SourceTypeCode = "GRN",
+                SourceHeaderId = 100,
+                SourceDetailId = 4321,
                 ReceivedQuantity = 1000m,
                 QcStatusCode = "APR",
                 QcStatusName = "Approved",
@@ -122,8 +144,10 @@ namespace QCManagement.UnitTests.TestData
             {
                 Id = id,
                 QcInspectionNo = "QCI-2026-00001",
-                GrnHeaderId = 100,
-                GrnDetailId = 4321,
+                SourceTypeId = GrnSourceTypeId,
+                SourceTypeCode = "GRN",
+                SourceHeaderId = 100,
+                SourceDetailId = 4321,
                 QualitySpecificationId = 5,
                 ReceivedQuantity = 1000m,
                 InspectionDate = DateTimeOffset.UtcNow,
@@ -136,8 +160,9 @@ namespace QCManagement.UnitTests.TestData
                 Id = id,
                 QcInspectionNo = "QCI-2026-00001",
                 InspectionDate = DateTimeOffset.UtcNow,
-                GrnHeaderId = 100,
-                GrnDetailId = 4321,
+                SourceTypeId = GrnSourceTypeId,
+                SourceHeaderId = 100,
+                SourceDetailId = 4321,
                 QualitySpecificationId = 5,
                 QualitySpecificationCode = "QS-0001",
                 QualityTemplateId = 11,

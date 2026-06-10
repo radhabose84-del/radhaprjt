@@ -31,9 +31,6 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
         public decimal WeightDifference { get; set; }
         public decimal? MoisturePercentage { get; set; }
 
-        // Same-module MiscMaster FK (QC status — Pending selected on the UI)
-        public int QcStatusId { get; set; }
-
         public string? Remarks { get; set; }
 
         public List<CreateArrivalDetailDto> Details { get; set; } = new();

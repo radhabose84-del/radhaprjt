@@ -46,8 +46,19 @@ namespace PurchaseManagement.Domain.Entities.Arrival
         public decimal? MoisturePercentage { get; set; }
 
         // ── Same-module FK (MiscMaster) — DB constraint, Dapper JOIN on read ──
-        public int QcStatusId { get; set; }            // Pending / Approved / Rejected
-        public MiscMaster QcStatus { get; set; } = default!;
+        // Nullable: not set on create (defaults to null); populated later by QC sign-off.
+        public int? QcStatusId { get; set; }           // Pending / Approved / Rejected
+        public MiscMaster? QcStatus { get; set; }
+
+        // ── QC sign-off (header-level; written back by QCManagement via IArrivalQcUpdate — mirrors GrnDetail) ──
+        public decimal? QcAcceptedQuantity { get; set; }
+        public decimal? QcRejectedQuantity { get; set; }
+        public string? QcRejectedRemarks { get; set; }
+        public string? QcPersonName { get; set; }
+        public string? QcRemarks { get; set; }
+        public DateTimeOffset? QcDate { get; set; }
+        public string? QcApprovedIp { get; set; }
+        public bool IsQcApproved { get; set; }
 
         public string? Remarks { get; set; }
 

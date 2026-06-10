@@ -12,7 +12,9 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
 
         /// <summary>
         /// Saves the parameter readings AND the disposition on the header AND writes the QC result back to
-        /// the GRN line — all in one atomic transaction.
+        /// the source document (GRN line or Arrival header) — all in one atomic transaction.
+        /// <paramref name="sourceTypeCode"/> selects the write-back target (GRN / ARRIVAL);
+        /// <paramref name="arrivalStatusName"/> is the mapped Arrival status used only for the ARRIVAL branch.
         /// </summary>
         Task<int> SaveResultsAndDispositionAsync(
             int qcInspectionHdrId,
@@ -20,7 +22,7 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
             int qcStatusId, decimal acceptedQty, decimal rejectedQty, string? dispositionRemarks,
             int dispositionByUserId, string? dispositionByName,
             string? qcApprovedIp, bool isQcApproved,
-            int grnHeaderId, int grnDetailId);
+            string sourceTypeCode, int sourceHeaderId, int sourceDetailId, string arrivalStatusName);
 
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
     }
