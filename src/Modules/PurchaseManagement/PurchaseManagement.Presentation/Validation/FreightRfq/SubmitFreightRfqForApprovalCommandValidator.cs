@@ -28,10 +28,10 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
                 .WithName("Freight RFQ")
                 .WithMessage("Freight RFQ does not exist.");
 
-            // E2 — only a Draft RFQ can be submitted (prevents duplicate submission).
+            // E2 — only a Quotation Pending RFQ can be submitted (prevents duplicate submission).
             RuleFor(x => x.FreightRfqId)
-                .MustAsync(async (id, ct) => (await _queryRepository.GetStatusCodeAsync(id)) == MiscEnumEntity.Draft)
-                .WithMessage("Only a Draft Freight RFQ can be submitted for approval.")
+                .MustAsync(async (id, ct) => (await _queryRepository.GetStatusCodeAsync(id)) == MiscEnumEntity.FreightRfqQuotationPending)
+                .WithMessage("Only a Quotation Pending Freight RFQ can be submitted for approval.")
                 .WithName("Freight RFQ")
                 .When(x => x.FreightRfqId > 0);
 

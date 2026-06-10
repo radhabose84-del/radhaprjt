@@ -10,23 +10,24 @@ namespace PurchaseManagement.Domain.Entities.FreightRfq;
 public class FreightRfqHeader : BaseEntity, IActivityTracked
 {
     // Identity
-    public string FreightRfqNumber { get; set; } = string.Empty;   // System-generated, immutable (FRFQ-YYYY-NNNN)
+    public string FreightRfqNumber { get; set; } = string.Empty;   // System-generated via TransactionType (Id 59) document sequence, immutable
     public DateTimeOffset RfqDate { get; set; }                     // System date on create
+    public DateTimeOffset? RfqValidTill { get; set; }              // RFQ expiry date (optional)
 
     // Type & PO linkage
     public int RfqTypeId { get; set; }                             // FK Purchase.MiscMaster -> "PO Based" / "Non-PO Based"
-    public int? PoReferenceId { get; set; }                        // FK Purchase.PurchaseOrderHeader (only when PO Based)
-    public int? SupplierId { get; set; }                          // Snapshot of PO VendorId (cross-module Party, no DB FK)
+    public int? PoReferenceId { get; set; }                        // FK Purchase.RawMaterialPOHeader (only when PO Based)
+    public int? SupplierId { get; set; }                          // From PO -> OCR SupplierId (cross-module Party, no DB FK)
 
-    // Route (manual — the PO does not carry these)
+    // Route — Source prefilled from PO -> OCR (Location/Station); Destination is user input
     public string SourceLocation { get; set; } = string.Empty;
     public string SourceStation { get; set; } = string.Empty;
     public string DestinationLocation { get; set; } = string.Empty;
     public string DestinationStation { get; set; } = string.Empty;
 
     // Freight calculation basis
-    public decimal TotalQuantity { get; set; }                     // MT (prefilled = sum of PO line qty, editable)
-    public int TotalBaleCount { get; set; }                        // Manual
+    public decimal TotalQuantity { get; set; }                     // MT (prefilled = sum of RM PO detail Weight / 1000, editable)
+    public int TotalBaleCount { get; set; }                        // Prefilled = sum of RM PO detail Quantity (bales)
 
     // Approval workflow (self-contained)
     public int StatusId { get; set; }                             // FK Purchase.MiscMaster -> Draft/Pending Approval/Approved/Rejected

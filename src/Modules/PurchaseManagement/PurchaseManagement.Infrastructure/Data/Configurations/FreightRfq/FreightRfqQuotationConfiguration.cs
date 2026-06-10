@@ -25,10 +25,16 @@ public class FreightRfqQuotationConfiguration : IEntityTypeConfiguration<Freight
 
         b.Property(x => x.FreightRfqHeaderId).IsRequired();
         b.Property(x => x.TransporterId).IsRequired();
-        b.Property(x => x.RateBasisId).IsRequired();
-        b.Property(x => x.QuotedRate).HasColumnType("decimal(18,2)").IsRequired();
+        b.Property(x => x.TransportDetailId).IsRequired(false);
+        b.Property(x => x.RateBasisId).IsRequired(false);
+        b.Property(x => x.QuotedRate).HasColumnType("decimal(18,2)").IsRequired(false);
         b.Property(x => x.NoOfVehicles).IsRequired(false);
-        b.Property(x => x.FreightValue).HasColumnType("decimal(18,2)").IsRequired();
+        b.Property(x => x.FreightValue).HasColumnType("decimal(18,2)").IsRequired(false);
+
+        b.Property(x => x.VehicleNo).HasColumnType("varchar(50)").IsRequired(false);
+        b.Property(x => x.TransportModeName).HasColumnType("varchar(50)").IsRequired(false);
+        b.Property(x => x.VehicleTypeName).HasColumnType("varchar(50)").IsRequired(false);
+        b.Property(x => x.NotifiedDate).HasColumnType("datetimeoffset").IsRequired(false);
 
         b.Property(x => x.IsSelected).HasColumnType("bit").IsRequired();
         b.Property(x => x.IsOverride).HasColumnType("bit").IsRequired();

@@ -9,8 +9,10 @@ namespace PurchaseManagement.Application.Common.Mappings
     {
         public FreightRfqProfile()
         {
-            // FreightRfqNumber + StatusId (default "Draft") are resolved in the command repository.
+            // FreightRfqNumber (document sequence) + StatusId ("Quotation Pending") are resolved in the handler/repo.
+            // Quotation rows are built from the Transporters list in the handler, so ignore the dest collection here.
             CreateMap<CreateFreightRfqCommand, PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader>()
+                .ForMember(d => d.Quotations, opt => opt.Ignore())
                 .ForMember(d => d.IsActive, opt => opt.MapFrom(_ => Status.Active))
                 .ForMember(d => d.IsDeleted, opt => opt.MapFrom(_ => IsDelete.NotDeleted));
 
