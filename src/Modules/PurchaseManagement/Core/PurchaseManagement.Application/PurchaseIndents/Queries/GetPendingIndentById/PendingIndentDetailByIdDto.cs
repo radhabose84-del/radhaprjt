@@ -12,6 +12,9 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPendingInden
         public int ItemUOMId { get; set; }
         public string UOMName { get; set; } = default!;
         public decimal QuantityRequired { get; set; }
+        // Original quantity captured by the command repo when the approver edits the line during
+        // approval. Null on creator-side edits and on lines the approver hasn't touched.
+        public decimal? OldQuantityRequired { get; set; }
         public DateOnly RequiredDate { get; set; }
         public decimal TotalEstimatedCost { get; set; }
         public int PRConsumptionDays { get; set; }
