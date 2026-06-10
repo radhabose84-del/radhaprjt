@@ -14,7 +14,8 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public int PackTypeId { get; set; }
         public string? PackTypeName { get; set; }
 
-        public int MixCodeId { get; set; }   // lookup/master TBD — name not populated yet
+        public int MixCodeId { get; set; }
+        public string? MixCodeDesc { get; set; }   // same-module JOIN to Purchase.MixCodeMaster
 
         public int UomId { get; set; }
         public string? UomName { get; set; }
@@ -31,9 +32,7 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }
 
-        // True when the line has per-bale rows in the stock ledger; a line with no bale entries
-        // in the payload returns an empty Bales list.
-        public bool IsIndividual { get; set; }
+        // Per-bale rows from the stock ledger; empty when the payload had no bale entries.
         public List<ArrivalBaleRowDto> Bales { get; set; } = new();
     }
 

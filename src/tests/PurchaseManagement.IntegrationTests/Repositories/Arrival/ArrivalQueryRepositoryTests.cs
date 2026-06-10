@@ -192,7 +192,6 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
 
             dto.Should().NotBeNull();
             var line = dto!.Details.Single(d => d.ItemId == 13);
-            line.IsIndividual.Should().BeTrue();
             line.Bales.Should().HaveCount(2);
             line.Bales[0].BaleNo.Should().Be(100001);
             line.Bales[0].BarcodeNumber.Should().Be(900001);
@@ -215,7 +214,6 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var dto = await CreateQueryRepo().GetByIdAsync(id);
 
             var line = dto!.Details.Single(d => d.ItemId == 13);
-            line.IsIndividual.Should().BeFalse();
             line.Bales.Should().BeEmpty();
         }
 
