@@ -14,6 +14,7 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
         private readonly IQcInspectionQueryRepository _queryRepository;
         private readonly IInspectionEvaluator _evaluator;
         private readonly IGrnLookup _grnLookup;
+        private readonly IArrivalLookup _arrivalLookup;
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
 
@@ -22,6 +23,7 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
             IQcInspectionQueryRepository queryRepository,
             IInspectionEvaluator evaluator,
             IGrnLookup grnLookup,
+            IArrivalLookup arrivalLookup,
             IMediator mediator,
             IIPAddressService ipAddressService)
         {
@@ -29,9 +31,18 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
             _queryRepository = queryRepository;
             _evaluator = evaluator;
             _grnLookup = grnLookup;
+            _arrivalLookup = arrivalLookup;
             _mediator = mediator;
             _ipAddressService = ipAddressService;
         }
+
+        /// <summary>Maps a QC disposition code to the semantic Arrival status name (Purchase resolves the id).</summary>
+        private static string MapToArrivalStatus(string qcStatusCode) => qcStatusCode switch
+        {
+            "APR" or "CAP" => "Approved",
+            "RJC" => "Rejected",
+            _ => "Pending"   // HLD and anything else
+        };
 
         public async Task<ApiResponseDTO<int>> Handle(SaveDispositionCommand request, CancellationToken cancellationToken)
         {
@@ -64,22 +75,39 @@ namespace QCManagement.Application.QcInspection.Commands.SaveDisposition
             var dispositionByName = _ipAddressService.GetUserName();
             var qcApprovedIp = _ipAddressService.GetUserIPAddress();
 
-            // Readings + disposition + GRN write-back, all in ONE transaction.
+            // Determine the source document type (GRN / ARRIVAL) for the write-back branch.
+            var arrivalTypeId = await _queryRepository.GetSourceTypeIdByCodeAsync("ARRIVAL");
+            var isArrival = arrivalTypeId.HasValue && ctx.SourceTypeId == arrivalTypeId.Value;
+            var sourceTypeCode = isArrival ? "ARRIVAL" : "GRN";
+            var arrivalStatusName = MapToArrivalStatus(statusCode);
+
+            // Readings + disposition + source write-back, all in ONE transaction.
             await _commandRepository.SaveResultsAndDispositionAsync(
                 request.QcInspectionHdrId, results,
                 qcStatusId, request.AcceptedQuantity, request.RejectedQuantity, request.DispositionRemarks,
                 dispositionByUserId, dispositionByName,
                 qcApprovedIp, isQcApproved,
-                ctx.GrnHeaderId, ctx.GrnDetailId);
+                sourceTypeCode, ctx.SourceHeaderId, ctx.SourceDetailId, arrivalStatusName);
 
-            var grn = await _grnLookup.GetByGrnDetailIdAsync(ctx.GrnDetailId, cancellationToken);
+            int itemId;
+            if (isArrival)
+            {
+                var arrival = await _arrivalLookup.GetByArrivalDetailIdAsync(ctx.SourceDetailId, cancellationToken);
+                itemId = arrival?.ItemId ?? 0;
+            }
+            else
+            {
+                var grn = await _grnLookup.GetByGrnDetailIdAsync(ctx.SourceDetailId, cancellationToken);
+                itemId = grn?.ItemId ?? 0;
+            }
 
             var movementEvent = new QcDispositionCompletedDomainEvent(
                 QcInspectionHdrId: request.QcInspectionHdrId,
                 QcInspectionNo: ctx.QcInspectionNo ?? string.Empty,
-                GrnHeaderId: ctx.GrnHeaderId,
-                GrnDetailId: ctx.GrnDetailId,
-                ItemId: grn?.ItemId ?? 0,
+                SourceTypeId: ctx.SourceTypeId,
+                SourceHeaderId: ctx.SourceHeaderId,
+                SourceDetailId: ctx.SourceDetailId,
+                ItemId: itemId,
                 QcStatusId: qcStatusId,
                 QcStatusCode: statusCode,
                 AcceptedQuantity: request.AcceptedQuantity,

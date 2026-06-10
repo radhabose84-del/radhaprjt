@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PurchaseManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PurchaseManagement.Infrastructure.Data;
 namespace PurchaseManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260610035909_ArrivalHeaderQcColumns")]
+    partial class ArrivalHeaderQcColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,7 +266,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("QcRemarks")
                         .HasColumnType("varchar(500)");
 
-                    b.Property<int?>("QcStatusId")
+                    b.Property<int>("QcStatusId")
                         .HasColumnType("int");
 
                     b.Property<int>("RawMaterialPOId")
@@ -7683,7 +7686,8 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "QcStatus")
                         .WithMany()
                         .HasForeignKey("QcStatusId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("PurchaseManagement.Domain.Entities.RawMaterialPO.RawMaterialPOHeader", "RawMaterialPO")
                         .WithMany()

@@ -24,7 +24,7 @@ namespace GateEntryManagement.UnitTests.Application.VehicleMovementRecord.Querie
                 new VehicleMovementRecordAutoCompleteDto { Id = 1, VehicleMovementId = "VMR001", VehicleNumber = "KA01AB1234" }
             };
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync("KA01", It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync("KA01", It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(lookupList);
 
             _mockMediator
@@ -48,7 +48,7 @@ namespace GateEntryManagement.UnitTests.Application.VehicleMovementRecord.Querie
                 new VehicleMovementRecordAutoCompleteDto { Id = 2, VehicleMovementId = "VMR002" }
             };
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync("", It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync("", It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(lookupList);
 
             _mockMediator
@@ -66,7 +66,7 @@ namespace GateEntryManagement.UnitTests.Application.VehicleMovementRecord.Querie
         public async Task Handle_PublishesAuditEvent()
         {
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync("Test", It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync("Test", It.IsAny<int?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<VehicleMovementRecordAutoCompleteDto>());
 
             _mockMediator

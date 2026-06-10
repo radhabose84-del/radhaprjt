@@ -42,7 +42,7 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public decimal WeightDifference { get; set; }
         public decimal? MoisturePercentage { get; set; }
 
-        public int QcStatusId { get; set; }
+        public int? QcStatusId { get; set; }
         public string? QcStatusName { get; set; }
 
         public string? Remarks { get; set; }

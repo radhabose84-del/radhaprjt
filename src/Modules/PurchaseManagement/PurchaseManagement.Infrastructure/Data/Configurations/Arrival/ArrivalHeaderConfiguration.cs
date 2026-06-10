@@ -58,6 +58,16 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Arrival
 
             b.Property(x => x.Remarks).HasColumnType("varchar(500)");
 
+            // ── QC sign-off (header-level; mirrors GrnDetail) ──
+            b.Property(x => x.QcAcceptedQuantity).HasPrecision(18, 3);
+            b.Property(x => x.QcRejectedQuantity).HasPrecision(18, 3);
+            b.Property(x => x.QcRejectedRemarks).HasColumnType("varchar(500)");
+            b.Property(x => x.QcPersonName).HasColumnType("varchar(100)");
+            b.Property(x => x.QcRemarks).HasColumnType("varchar(500)");
+            b.Property(x => x.QcDate);
+            b.Property(x => x.QcApprovedIp).HasColumnType("varchar(50)");
+            b.Property(x => x.IsQcApproved).HasColumnType("bit").IsRequired();
+
             // Transient payload-only collection — never persisted.
             b.Ignore(x => x.StockRows);
 

@@ -34,7 +34,7 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
     {
         "Purchase Indent", "Quotation Comparison", "Item Price Master",
         "Purchase Order", "Purchase Contract",
-        "Material Request", "ServicePO", "Service Entry Sheet", "Issue Return","Blanket Master","OCR Entry",
+        "Material Request", "ServicePO", "Service Entry Sheet", "Issue Return","Blanket Master","OCR",
         "Local Purchase Order", "Contract Purchase Order", "Import Purchase Order", "Emergency Purchase Order", "Service Purchase Order", "Blanket Purchase Order",
         "Purchase Return", "Freight RFQ"
     };

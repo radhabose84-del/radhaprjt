@@ -134,6 +134,10 @@ namespace QCManagement.Infrastructure
             // its parameters dynamically. Cached automatically by AddLookupCaching().
             services.AddScoped<IQualityTemplateLookup, QualityTemplateLookupRepository>();
 
+            // Cross-module lookup — Purchase (Arrival/GRN) resolves QcStatusId → status name from
+            // QC.MiscMaster without a cross-module JOIN. Cached automatically by AddLookupCaching().
+            services.AddScoped<IQcMiscMasterLookup, QcMiscMasterLookupRepository>();
+
             // ── QcInspection (SCRUM-1667) ────────────────────────────────────
             services.AddScoped<IQcInspectionCommandRepository, QcInspectionCommandRepository>();
             services.AddScoped<IQcInspectionQueryRepository, QcInspectionQueryRepository>();

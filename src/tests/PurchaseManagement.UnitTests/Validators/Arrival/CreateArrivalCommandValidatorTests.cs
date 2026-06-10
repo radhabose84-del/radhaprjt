@@ -34,7 +34,6 @@ namespace PurchaseManagement.UnitTests.Validators.Arrival
         private void SetupAllValid()
         {
             _queryRepo.Setup(r => r.RawMaterialPOExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _queryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _queryRepo.Setup(r => r.BaleRangeOverlapsAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<int?>()))
                 .ReturnsAsync(false);
 

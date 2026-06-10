@@ -17,6 +17,7 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
     {
         private readonly IQcInspectionQueryRepository _queryRepository;
         private readonly IGrnLookup _grnLookup;
+        private readonly IArrivalLookup _arrivalLookup;
         private readonly IItemLookup _itemLookup;
         private readonly ISupplierLookup _supplierLookup;
         private readonly IMediator _mediator;
@@ -24,33 +25,97 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
         public GetAllQcInspectionQueryHandler(
             IQcInspectionQueryRepository queryRepository,
             IGrnLookup grnLookup,
+            IArrivalLookup arrivalLookup,
             IItemLookup itemLookup,
             ISupplierLookup supplierLookup,
             IMediator mediator)
         {
             _queryRepository = queryRepository;
             _grnLookup = grnLookup;
+            _arrivalLookup = arrivalLookup;
             _itemLookup = itemLookup;
             _supplierLookup = supplierLookup;
             _mediator = mediator;
         }
 
+        // A source-neutral grid line projected from either a GRN line or an Arrival header.
+        private sealed class SourceLine
+        {
+            public int SourceTypeId { get; init; }
+            public string SourceTypeCode { get; init; } = "";
+            public int SourceHeaderId { get; init; }
+            public int SourceDetailId { get; init; }
+            public string? SourceNo { get; init; }
+            public int SupplierId { get; init; }
+            public int ItemId { get; init; }
+            public string? BatchNumber { get; init; }
+            public decimal ReceivedQuantity { get; init; }
+        }
+
         public async Task<ApiResponseDTO<List<QcInspectionListDto>>> Handle(GetAllQcInspectionQuery request, CancellationToken cancellationToken)
         {
-            // 1. All generated GRN lines, then keep only QC-required items
+            // Resolve the source-type discriminator ids (GRN / ARRIVAL).
+            var grnTypeId = await _queryRepository.GetSourceTypeIdByCodeAsync("GRN") ?? 0;
+            var arrivalTypeId = await _queryRepository.GetSourceTypeIdByCodeAsync("ARRIVAL") ?? 0;
+
+            // 1a. GRN lines → source-neutral (one row per QC-required GRN detail line).
             var grnLines = await _grnLookup.GetGrnLinesAsync(null, null, null, cancellationToken);
-            var itemIds = grnLines.Select(l => l.ItemId).Distinct().ToList();
+            var grnSourceLines = grnLines.Select(l => new SourceLine
+            {
+                SourceTypeId = grnTypeId,
+                SourceTypeCode = "GRN",
+                SourceHeaderId = l.GrnHeaderId,
+                SourceDetailId = l.GrnDetailId,
+                SourceNo = l.GrnNo,
+                SupplierId = l.SupplierId,
+                ItemId = l.ItemId,
+                BatchNumber = l.BatchNumber,
+                ReceivedQuantity = l.ReceivedQuantity
+            });
+
+            // 1b. Arrival lines → source-neutral (header-level: one row per ArrivalHeader,
+            //     using the representative QC-required line for item/qty/batch).
+            var arrivalLines = await _arrivalLookup.GetArrivalLinesAsync(null, null, null, cancellationToken);
+            var arrivalSourceLines = arrivalLines.Select(l => new SourceLine
+            {
+                SourceTypeId = arrivalTypeId,
+                SourceTypeCode = "ARRIVAL",
+                SourceHeaderId = l.ArrivalHeaderId,
+                SourceDetailId = l.ArrivalDetailId,
+                SourceNo = l.ArrivalNumber,
+                SupplierId = l.SupplierId,
+                ItemId = l.ItemId,
+                BatchNumber = l.BatchNumber,
+                ReceivedQuantity = l.ReceivedQuantity
+            });
+
+            // 2. Resolve items once, keep only QC-required lines.
+            var allLines = grnSourceLines.Concat(arrivalSourceLines).ToList();
+            var itemIds = allLines.Select(l => l.ItemId).Distinct().ToList();
             var itemDict = (await _itemLookup.GetByIdsAsync(itemIds, cancellationToken)).ToDictionary(i => i.Id);
 
-            var qcLines = grnLines
+            var qcLines = allLines
                 .Where(l => itemDict.TryGetValue(l.ItemId, out var it) && it.InspectionRequired)
                 .ToList();
 
-            // 2. Merge with existing inspections (keyed by GRN detail)
-            var summaryList = await _queryRepository.GetInspectionSummariesByGrnDetailIdsAsync(qcLines.Select(l => l.GrnDetailId));
-            var summaries = summaryList.GroupBy(s => s.GrnDetailId).ToDictionary(g => g.Key, g => g.First());
+            // Arrival is header-level → collapse to one representative line per ArrivalHeader.
+            var grnQcLines = qcLines.Where(l => l.SourceTypeCode == "GRN");
+            var arrivalQcLines = qcLines
+                .Where(l => l.SourceTypeCode == "ARRIVAL")
+                .GroupBy(l => l.SourceHeaderId)
+                .Select(g => g.OrderBy(l => l.SourceDetailId).First());
+            qcLines = grnQcLines.Concat(arrivalQcLines).ToList();
 
-            // 3. Supplier names (distinct)
+            // 3. Merge with existing inspections (keyed by source type + detail).
+            var grnSummaries = await _queryRepository.GetInspectionSummariesBySourceAsync(
+                grnTypeId, qcLines.Where(l => l.SourceTypeCode == "GRN").Select(l => l.SourceDetailId));
+            var arrivalSummaries = await _queryRepository.GetInspectionSummariesBySourceAsync(
+                arrivalTypeId, qcLines.Where(l => l.SourceTypeCode == "ARRIVAL").Select(l => l.SourceDetailId));
+            var summaries = grnSummaries.Concat(arrivalSummaries)
+                .GroupBy(s => (s.SourceTypeId, s.SourceDetailId))
+                .ToDictionary(g => g.Key, g => g.First());
+
+            // 4. Supplier names (distinct)
             var supplierNames = new Dictionary<int, string?>();
             foreach (var sid in qcLines.Select(l => l.SupplierId).Distinct())
             {
@@ -58,15 +123,18 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
                 supplierNames[sid] = s?.VendorName;
             }
 
-            // 4. Build unified rows (Pending status set here, not in the DTO)
+            // 5. Build unified rows (Pending status set here, not in the DTO)
             var rows = qcLines.Select(l =>
             {
                 itemDict.TryGetValue(l.ItemId, out var it);
                 var row = new QcInspectionListDto
                 {
-                    GrnHeaderId = l.GrnHeaderId,
-                    GrnDetailId = l.GrnDetailId,
-                    GrnNo = l.GrnNo,
+                    SourceTypeId = l.SourceTypeId,
+                    SourceTypeCode = l.SourceTypeCode,
+                    SourceTypeName = l.SourceTypeCode == "ARRIVAL" ? "Arrival" : "GRN",
+                    SourceHeaderId = l.SourceHeaderId,
+                    SourceDetailId = l.SourceDetailId,
+                    SourceNo = l.SourceNo,
                     SupplierId = l.SupplierId,
                     SupplierName = supplierNames.TryGetValue(l.SupplierId, out var sn) ? sn : null,
                     ItemId = l.ItemId,
@@ -77,7 +145,7 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
                     QcStatusName = "Pending QC"
                 };
 
-                if (summaries.TryGetValue(l.GrnDetailId, out var ins))
+                if (summaries.TryGetValue((l.SourceTypeId, l.SourceDetailId), out var ins))
                 {
                     row.InspectionId = ins.Id;
                     row.QcInspectionNo = ins.QcInspectionNo;
@@ -104,7 +172,7 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
                 var term = request.SearchTerm.Trim();
                 rows = rows.Where(r =>
                     (r.QcInspectionNo?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (r.GrnNo?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (r.SourceNo?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.SupplierName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.ItemName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (r.BatchNumber?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
@@ -118,7 +186,7 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
 
             var ordered = rows
                 .OrderByDescending(r => r.InspectionId ?? 0)
-                .ThenByDescending(r => r.GrnDetailId)
+                .ThenByDescending(r => r.SourceDetailId)
                 .ToList();
 
             var totalCount = ordered.Count;
