@@ -13,6 +13,9 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPurchaseInde
         public int ItemCategoryId { get; set; }
         public string? ItemCategory { get; set; }
         public decimal QuantityRequired { get; set; }
+        // Original quantity at submit time — populated by the command repo only when the
+        // approver edits the line during approval. Null otherwise.
+        public decimal? OldQuantityRequired { get; set; }
         public DateOnly RequiredDate { get; set; }
         public decimal TotalEstimatedCost { get; set; }
         public int PRConsumptionDays { get; set; }
