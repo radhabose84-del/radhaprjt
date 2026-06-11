@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PurchaseManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PurchaseManagement.Infrastructure.Data;
 namespace PurchaseManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260610120032_ArrivalDetailBatchNumberNullable")]
+    partial class ArrivalDetailBatchNumberNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -235,12 +238,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasPrecision(18, 3)
                         .HasColumnType("decimal(18,3)");
 
-                    b.Property<int?>("PRFrom")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PRTo")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("PartyWeight")
                         .HasPrecision(18, 3)
                         .HasColumnType("decimal(18,3)");
@@ -283,9 +280,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int>("SupplierId")
                         .HasColumnType("int");
 
-                    b.Property<string>("SupplierLotNo")
-                        .HasColumnType("varchar(50)");
-
                     b.Property<decimal>("TareWeight")
                         .HasPrecision(18, 3)
                         .HasColumnType("decimal(18,3)");
@@ -299,9 +293,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("VehicleNumber")
                         .IsRequired()
                         .HasColumnType("varchar(30)");
-
-                    b.Property<int?>("VmrId")
-                        .HasColumnType("int");
 
                     b.Property<decimal>("WeightDifference")
                         .HasPrecision(18, 3)
@@ -317,8 +308,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.HasIndex("RawMaterialPOId");
 
                     b.HasIndex("UnitId");
-
-                    b.HasIndex("VmrId");
 
                     b.ToTable("ArrivalHeader", "Purchase");
                 });
@@ -1327,9 +1316,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int>("RfqTypeId")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("RfqValidTill")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<int?>("SelectedQuotationId")
                         .HasColumnType("int");
 
@@ -1401,7 +1387,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int>("FreightRfqHeaderId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("FreightValue")
+                    b.Property<decimal>("FreightValue")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
 
@@ -1438,33 +1424,18 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<int?>("NoOfVehicles")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset?>("NotifiedDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<decimal?>("QuotedRate")
+                    b.Property<decimal>("QuotedRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("RateBasisId")
+                    b.Property<int>("RateBasisId")
                         .HasColumnType("int");
 
                     b.Property<string>("Remarks")
                         .HasColumnType("varchar(500)");
 
-                    b.Property<int?>("TransportDetailId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TransportModeName")
-                        .HasColumnType("varchar(50)");
-
                     b.Property<int>("TransporterId")
                         .HasColumnType("int");
-
-                    b.Property<string>("VehicleNo")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("VehicleTypeName")
-                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -3192,9 +3163,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("OcrNumber")
                         .IsRequired()
                         .HasColumnType("varchar(20)");
-
-                    b.Property<int?>("PackTypeId")
-                        .HasColumnType("int");
 
                     b.Property<int?>("PaymentModeId")
                         .HasColumnType("int");
@@ -7769,11 +7737,18 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.Arrival.ArrivalHeader", b =>
                 {
+                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "QcStatus")
+                        .WithMany()
+                        .HasForeignKey("QcStatusId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PurchaseManagement.Domain.Entities.RawMaterialPO.RawMaterialPOHeader", "RawMaterialPO")
                         .WithMany()
                         .HasForeignKey("RawMaterialPOId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("QcStatus");
 
                     b.Navigation("RawMaterialPO");
                 });
@@ -7927,11 +7902,11 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader", b =>
                 {
-                    b.HasOne("PurchaseManagement.Domain.Entities.RawMaterialPO.RawMaterialPOHeader", null)
+                    b.HasOne("PurchaseManagement.Domain.Entities.PurchaseOrder.PurchaseOrderHeader", null)
                         .WithMany()
                         .HasForeignKey("PoReferenceId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("FK_FreightRfqHeader_RawMaterialPO");
+                        .HasConstraintName("FK_FreightRfqHeader_PurchaseOrder");
 
                     b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", null)
                         .WithMany()
@@ -7960,6 +7935,7 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RateBasisId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("FK_FreightRfqQuotation_RateBasis");
 
                     b.Navigation("Header");

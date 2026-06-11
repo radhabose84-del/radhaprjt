@@ -18,6 +18,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
         private readonly IStationLookup _stationLookup;
         private readonly IItemLookup _itemLookup;
         private readonly ICountMasterLookup _countLookup;
+        private readonly IPackTypeLookup _packTypeLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IQualityTemplateLookup _qualityTemplateLookup;
 
@@ -28,6 +29,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             IStationLookup stationLookup,
             IItemLookup itemLookup,
             ICountMasterLookup countLookup,
+            IPackTypeLookup packTypeLookup,
             IUOMLookup uomLookup,
             IQualityTemplateLookup qualityTemplateLookup)
         {
@@ -37,6 +39,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             _stationLookup = stationLookup;
             _itemLookup = itemLookup;
             _countLookup = countLookup;
+            _packTypeLookup = packTypeLookup;
             _uomLookup = uomLookup;
             _qualityTemplateLookup = qualityTemplateLookup;
         }
@@ -60,7 +63,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 o.ModeOfTransportId, mot.Description AS ModeOfTransportName,
                 o.MillSampleNo, o.CottonPassedBy, o.GstPercentage,
                 o.DiscountPercentage, o.InsurancePercentage, o.Remarks,
-                o.UomId, o.QualityTemplateId,
+                o.UomId, o.QualityTemplateId, o.PackTypeId,
                 o.IsActive, o.IsDeleted,
                 CAST(CASE WHEN EXISTS (
                     SELECT 1 FROM Purchase.RawMaterialPOHeader rp
@@ -308,6 +311,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 ? (await _qualityTemplateLookup.GetByIdsAsync(templateIds)).ToDictionary(x => x.Id, x => x.TemplateName)
                 : new Dictionary<int, string?>();
 
+            // Pack type name (cross-module Production.PackType, optional).
+            var packTypeIds = items
+                .Where(x => x.PackTypeId.HasValue && x.PackTypeId.Value > 0)
+                .Select(x => x.PackTypeId!.Value)
+                .Distinct()
+                .ToList();
+            var packTypeMap = packTypeIds.Count > 0
+                ? (await _packTypeLookup.GetByIdsAsync(packTypeIds)).ToDictionary(x => x.Id, x => x.PackTypeName)
+                : new Dictionary<int, string?>();
+
             foreach (var dto in items)
             {
                 dto.ItemName = itemMap.TryGetValue(dto.ItemId, out var itemName) ? itemName : null;
@@ -319,6 +332,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                     && uomMap.TryGetValue(dto.UomId.Value, out var uomName) ? uomName : null;
                 dto.QualityTemplateName = dto.QualityTemplateId.HasValue
                     && templateMap.TryGetValue(dto.QualityTemplateId.Value, out var tplName) ? tplName : null;
+                dto.PackTypeName = dto.PackTypeId.HasValue
+                    && packTypeMap.TryGetValue(dto.PackTypeId.Value, out var packName) ? packName : null;
             }
         }
     }

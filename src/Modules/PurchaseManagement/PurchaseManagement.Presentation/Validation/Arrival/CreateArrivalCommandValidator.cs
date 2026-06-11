@@ -122,7 +122,7 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                     if (line.BaleNumberFrom <= 0 || line.BaleNumberTo < line.BaleNumberFrom)
                         continue;
 
-                    if (await queryRepo.BaleRangeOverlapsAsync(line.BaleNumberFrom, line.BaleNumberTo, null))
+                    if (await queryRepo.BaleRangeOverlapsAsync(line.BaleNumberFrom, line.BaleNumberTo, cmd.RawMaterialPOId, null))
                         context.AddFailure(
                             $"Bale range {line.BaleNumberFrom}–{line.BaleNumberTo} overlaps an existing arrival.");
                 }

@@ -62,6 +62,7 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Purchase
             b.Property(x => x.StationId).IsRequired();
             b.Property(x => x.ItemId).IsRequired();
             b.Property(x => x.CountId).IsRequired();
+            b.Property(x => x.PackTypeId);   // Production.PackType — optional, no DB constraint
 
             // ── Same-module FK constraints (Restrict) ──
             b.HasOne(x => x.ProcurementSource)

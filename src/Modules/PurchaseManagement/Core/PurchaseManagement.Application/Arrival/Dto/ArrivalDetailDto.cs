@@ -20,6 +20,10 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public int UomId { get; set; }
         public string? UomName { get; set; }
 
+        // "Y"/"N" — whether the item (or its category) has an active QC QualitySpecification,
+        // i.e. a QC inspection template is available for this line. Resolved cross-module via QC.
+        public string? IsTemplateAvailable { get; set; }
+
         public decimal Rate { get; set; }
 
         public decimal OrderedQty { get; set; }

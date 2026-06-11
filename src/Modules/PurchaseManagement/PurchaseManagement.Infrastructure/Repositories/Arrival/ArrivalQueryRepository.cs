@@ -1,5 +1,7 @@
 using System.Data;
+using Contracts.Dtos.Lookups.Gate;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Gate;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
@@ -25,6 +27,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
         private readonly IUOMLookup _uomLookup;
         private readonly IQcMiscMasterLookup _qcMiscMasterLookup;
         private readonly IQualitySpecificationLookup _qualitySpecificationLookup;
+        private readonly IVehicleMovementRecordLookup _vmrLookup;
         private readonly IIPAddressService _ipAddressService;
 
         public ArrivalQueryRepository(
@@ -39,6 +42,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             IUOMLookup uomLookup,
             IQcMiscMasterLookup qcMiscMasterLookup,
             IQualitySpecificationLookup qualitySpecificationLookup,
+            IVehicleMovementRecordLookup vmrLookup,
             IIPAddressService ipAddressService)
         {
             _conn = conn;
@@ -52,6 +56,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             _uomLookup = uomLookup;
             _qcMiscMasterLookup = qcMiscMasterLookup;
             _qualitySpecificationLookup = qualitySpecificationLookup;
+            _vmrLookup = vmrLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -63,10 +68,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 h.Id, h.UnitId, h.ArrivalNumber, h.ArrivalDate,
                 h.RawMaterialPOId, po.PONumber,
                 h.VehicleNumber, h.SupplierId, h.StationId, h.GodownId, h.TransporterId,
+                h.VmrId, h.SupplierLotNo,
                 h.FreightRate, h.InvoiceGstNo, h.LrNumber, h.ContainerNo,
                 h.LorryIn, h.LorryOut,
                 h.GrossWeight, h.TareWeight, h.NetWeight, h.PartyWeight, h.WeightDifference,
                 h.MoisturePercentage,
+                h.PRFrom, h.PRTo,
                 h.QcStatusId,
                 h.Remarks, h.IsActive, h.IsDeleted,
                 h.CreatedBy, h.CreatedDate, h.CreatedByName,
@@ -94,22 +101,27 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 where += " AND (h.ArrivalNumber LIKE @Search OR po.PONumber LIKE @Search OR h.VehicleNumber LIKE @Search)";
 
-            // Pending = QC not yet signed off (QcStatusId is null); set later by QCManagement.
+            // Pending = QC not yet completed: either no inspection exists (QcStatusId IS NULL) or an
+            // inspection exists and is still 'Pending' (QcStatusId = QC.MiscMaster QP_QC_STATUS/'PENDING').
+            // Non-pending = disposed (Approved / Rejected — any non-pending QcStatusId).
+            int? pendingQcStatusId = null;
             if (pendingStatus.HasValue)
-                where += pendingStatus.Value ? " AND h.QcStatusId IS NULL" : " AND h.QcStatusId IS NOT NULL";
+            {
+                pendingQcStatusId = await _qcMiscMasterLookup.GetIdByTypeAndCodeAsync("QP_QC_STATUS", "PENDING");
+                where += pendingStatus.Value
+                    ? " AND (h.QcStatusId IS NULL OR h.QcStatusId = @PendingQcStatusId)"
+                    : " AND h.QcStatusId IS NOT NULL AND (@PendingQcStatusId IS NULL OR h.QcStatusId <> @PendingQcStatusId)";
+            }
 
-            // When listing pending arrivals, only show those a QC inspection actually applies to —
-            // i.e. at least one detail item (or its item category) has an active Qc.QualitySpecification.
-            // QC applicability is cross-module (Inventory category + QC spec) so it cannot be a SQL filter;
-            // resolve the eligible header ids first, then constrain the paged query (keeps count correct).
+            // When listing pending arrivals: an un-inspected header (QcStatusId IS NULL) only qualifies if
+            // a QC inspection actually applies — i.e. at least one detail item (or its category) has an
+            // active Qc.QualitySpecification. A header already 'Pending' in QC (inspection exists) is always
+            // included. QC applicability is cross-module, so the eligible NULL-status ids are resolved first.
             List<int>? qcApplicableIds = null;
             if (pendingStatus == true)
             {
                 qcApplicableIds = await GetQcApplicablePendingHeaderIdsAsync(CurrentUnitId());
-                if (qcApplicableIds.Count == 0)
-                    return (new List<ArrivalDto>(), 0);
-
-                where += " AND h.Id IN @QcApplicableIds";
+                where += " AND (h.QcStatusId = @PendingQcStatusId OR h.Id IN @QcApplicableIds)";
             }
 
             var sql = $@"
@@ -129,7 +141,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize,
-                QcApplicableIds = qcApplicableIds
+                QcApplicableIds = qcApplicableIds,
+                PendingQcStatusId = pendingQcStatusId
             };
 
             using var multi = await _conn.QueryMultipleAsync(sql, args);
@@ -265,19 +278,21 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             return count > 0;
         }
 
-        public async Task<bool> BaleRangeOverlapsAsync(long from, long to, int? excludeHeaderId)
+        public async Task<bool> BaleRangeOverlapsAsync(long from, long to, int rawMaterialPoId, int? excludeHeaderId)
         {
+            // Overlap is scoped to the SAME Raw Material PO (lot) — bale numbers may repeat across lots.
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
                     SELECT 1
                     FROM Purchase.ArrivalDetail d
                     JOIN Purchase.ArrivalHeader h ON d.ArrivalHeaderId = h.Id
                     WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId
+                      AND h.RawMaterialPOId = @RawMaterialPOId
                       AND (@ExcludeHeaderId IS NULL OR h.Id <> @ExcludeHeaderId)
                       AND d.BaleNumberFrom <= @To AND d.BaleNumberTo >= @From
                 ) THEN 1 ELSE 0 END;";
             var overlaps = await _conn.ExecuteScalarAsync<int>(sql,
-                new { From = from, To = to, ExcludeHeaderId = excludeHeaderId, UnitId = CurrentUnitId() });
+                new { From = from, To = to, RawMaterialPOId = rawMaterialPoId, ExcludeHeaderId = excludeHeaderId, UnitId = CurrentUnitId() });
             return overlaps == 1;
         }
 
@@ -291,8 +306,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
 
             if (details.Count > 0)
             {
-                var itemMap = (await _itemLookup.GetByIdsAsync(details.Select(d => d.ItemId).Distinct()))
-                    .ToDictionary(x => x.Id, x => x.ItemName);
+                var distinctItemIds = details.Select(d => d.ItemId).Distinct().ToList();
+                var items = await _itemLookup.GetByIdsAsync(distinctItemIds);
+                var itemMap = items.ToDictionary(x => x.Id, x => x.ItemName);
+                var itemCategoryMap = items.ToDictionary(x => x.Id, x => x.ItemCategoryId);
                 var hsnMap = (await _hsnLookup.GetByIdsAsync(details.Select(d => d.HsnId).Distinct()))
                     .ToDictionary(x => x.Id, x => x.HSNCode);
                 var packMap = (await _packTypeLookup.GetByIdsAsync(details.Select(d => d.PackTypeId).Distinct()))
@@ -300,12 +317,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 var uomMap = (await _uomLookup.GetByIdsAsync(details.Select(d => d.UomId).Distinct()))
                     .ToDictionary(x => x.Id, x => x.UOMName);
 
+                // QC template availability per line — same Y/N rule as GetGrnPendingHeaderQueryHandler:
+                // the item (or its item category) has an active Qc.QualitySpecification.
+                var categoryIds = itemCategoryMap.Values.Where(c => c > 0).Distinct().ToList();
+                var templateMatch = await _qualitySpecificationLookup.GetMatchingAsync(distinctItemIds, categoryIds);
+
                 foreach (var d in details)
                 {
                     d.ItemName = itemMap.TryGetValue(d.ItemId, out var itemName) ? itemName : null;
                     d.HsnCode = hsnMap.TryGetValue(d.HsnId, out var hsnCode) ? hsnCode : null;
                     d.PackTypeName = packMap.TryGetValue(d.PackTypeId, out var packName) ? packName : null;
                     d.UomName = uomMap.TryGetValue(d.UomId, out var uomName) ? uomName : null;
+
+                    var itemMatched = templateMatch.MatchedItemIds.Contains(d.ItemId);
+                    var categoryMatched = itemCategoryMap.TryGetValue(d.ItemId, out var catId)
+                        && catId > 0 && templateMatch.MatchedItemCategoryIds.Contains(catId);
+                    d.IsTemplateAvailable = (itemMatched || categoryMatched) ? "Y" : "N";
                 }
             }
 
@@ -330,6 +357,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 ? (await _qcMiscMasterLookup.GetByIdsAsync(qcStatusIds)).ToDictionary(x => x.Id, x => x.Description)
                 : new Dictionary<int, string?>();
 
+            // VmrId references Gate.VehicleMovementRecord (cross-module) — resolve details via lookup, never a JOIN.
+            var vmrIds = headers.Where(h => h.VmrId.HasValue && h.VmrId.Value > 0).Select(h => h.VmrId!.Value).Distinct().ToList();
+            var vmrMap = vmrIds.Count > 0
+                ? (await _vmrLookup.GetByIdsAsync(vmrIds)).ToDictionary(x => x.Id, x => x)
+                : new Dictionary<int, VehicleMovementRecordLookupDto>();
+
             // QC.MiscMaster Id for QP_SOURCE_TYPE / code 'ARRIVAL' — single value, used to create a QC
             // inspection from an arrival. Resolved once via lookup — no cross-module JOIN.
             var arrivalSourceTypeId = await _qcMiscMasterLookup.GetIdByTypeAndCodeAsync("QP_SOURCE_TYPE", "ARRIVAL");
@@ -340,6 +373,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 h.GodownName = godownMap.TryGetValue(h.GodownId, out var gName) ? gName : null;
                 h.QcStatusName = h.QcStatusId.HasValue && qcStatusMap.TryGetValue(h.QcStatusId.Value, out var qcName) ? qcName : null;
                 h.SourceTypeId = arrivalSourceTypeId;
+                h.Vmr = h.VmrId.HasValue && vmrMap.TryGetValue(h.VmrId.Value, out var vmr) ? vmr : null;
 
                 var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(h.SupplierId);
                 h.SupplierName = supplier?.VendorName;

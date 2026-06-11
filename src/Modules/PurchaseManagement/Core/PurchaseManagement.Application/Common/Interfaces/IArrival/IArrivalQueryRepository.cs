@@ -15,9 +15,10 @@ namespace PurchaseManagement.Application.Common.Interfaces.IArrival
         Task<bool> MiscMasterExistsAsync(int id);
 
         /// <summary>
-        /// True when any non-deleted ArrivalDetail (excluding the optional header) already overlaps
-        /// the given bale range — supports duplicate-range prevention (R3).
+        /// True when any non-deleted ArrivalDetail under the SAME Raw Material PO (lot) — excluding the
+        /// optional header — already overlaps the given bale range. Supports duplicate-range prevention (R3);
+        /// bale numbers may repeat across different POs/lots.
         /// </summary>
-        Task<bool> BaleRangeOverlapsAsync(long from, long to, int? excludeHeaderId);
+        Task<bool> BaleRangeOverlapsAsync(long from, long to, int rawMaterialPoId, int? excludeHeaderId);
     }
 }

@@ -122,6 +122,11 @@ namespace GateEntryManagement.Infrastructure
             services.AddScoped<Contracts.Interfaces.Lookups.Gate.IGateInwardLookup,
                 Repositories.Lookups.GateInwardLookupRepository>();
 
+            // Cross-module lookup — exposes Gate.VehicleMovementRecord (VMR) details by id to
+            // PurchaseManagement (Arrival) without a cross-schema JOIN. Auto-cached by AddLookupCaching.
+            services.AddScoped<Contracts.Interfaces.Lookups.Gate.IVehicleMovementRecordLookup,
+                Repositories.Lookups.VehicleMovementRecordLookupRepository>();
+
             return services;
         }
     }

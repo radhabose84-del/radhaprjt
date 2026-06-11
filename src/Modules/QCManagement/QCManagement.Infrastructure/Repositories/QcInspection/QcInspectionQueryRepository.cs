@@ -249,6 +249,20 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             return await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = qcStatusId }) > 0;
         }
 
+        public async Task<int?> GetQcStatusIdByCodeAsync(string statusCode)
+        {
+            const string sql = @"
+                SELECT TOP 1 mm.Id
+                FROM QC.MiscMaster mm
+                INNER JOIN QC.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
+                WHERE mtm.MiscTypeCode = 'QP_QC_STATUS'
+                  AND mm.Code = @Code
+                  AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                  AND mtm.IsDeleted = 0
+                ORDER BY mm.Id ASC";
+            return await _dbConnection.ExecuteScalarAsync<int?>(sql, new { Code = statusCode });
+        }
+
         public async Task<int> GetMaxInspectionSequenceAsync(int year)
         {
             const string sql = @"

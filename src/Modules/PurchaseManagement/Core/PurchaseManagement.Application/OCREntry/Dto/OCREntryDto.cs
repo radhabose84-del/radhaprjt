@@ -43,6 +43,9 @@ namespace PurchaseManagement.Application.OCREntry.Dto
         public int CountId { get; set; }
         public string? CountName { get; set; }
 
+        public int? PackTypeId { get; set; }
+        public string? PackTypeName { get; set; }
+
         // Cotton commercial details
         public decimal Quantity { get; set; }
         public decimal? Weight { get; set; }
