@@ -67,6 +67,7 @@ using BackgroundService.Application.Interfaces.IInbox;
 using BackgroundService.Infrastructure.Repositories.Inbox;
 using Contracts.Interfaces.Lookups.Workflow;
 using BackgroundService.Infrastructure.Repositories.Lookups.Workflow;
+using Contracts.Interfaces.Workflow;
 
 
 
@@ -426,6 +427,8 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<IApprovalRuleCommand, ApprovalRuleCommandRepository >();
             services.AddScoped<IApprovalRequestQuery, ApprovalRequestQueryRepository >();
             services.AddScoped<IApprovalRequestCommand, ApprovalRequestCommandRepository >();
+            // Non-cached cross-module provider — lets source modules (e.g. Freight RFQ) surface the ApprovalRequest id.
+            services.AddScoped<IApprovalRequestRefProvider, ApprovalRequestRefProvider>();
             services.AddScoped<IEventPublisher, EventPublisher>();
             services.AddScoped<INotificationResolverHandler, NotificationResolverHandler>();
             services.AddScoped<INotificationTablePresetRepository, NotificationTablePresetRepository>();

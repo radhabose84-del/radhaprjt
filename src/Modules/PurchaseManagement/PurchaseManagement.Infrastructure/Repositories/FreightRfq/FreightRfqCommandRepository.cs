@@ -1,6 +1,7 @@
 using Contracts.Common;
-using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Finance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PurchaseManagement.Application.Common.Interfaces.IFreightRfq;
 using PurchaseManagement.Application.Common.Interfaces.IMiscMaster;
 using PurchaseManagement.Application.FreightRfq.Dto;
@@ -13,37 +14,66 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
 {
     public class FreightRfqCommandRepository : IFreightRfqCommandRepository
     {
-        // Fixed document-type token for freight RFQ numbers (FRFQ-{FY}-{serial}).
-        private const string RfqPrefixToken = "FRFQ";
-
         private readonly ApplicationDbContext _dbContext;
-        private readonly IFinancialYearLookup _financialYearLookup;
+        private readonly IDocumentSequenceLookup _documentSequenceLookup;
         private readonly IMiscMasterQueryRepository _miscMasterQueryRepository;
 
         public FreightRfqCommandRepository(
             ApplicationDbContext dbContext,
-            IFinancialYearLookup financialYearLookup,
+            IDocumentSequenceLookup documentSequenceLookup,
             IMiscMasterQueryRepository miscMasterQueryRepository)
         {
             _dbContext = dbContext;
-            _financialYearLookup = financialYearLookup;
+            _documentSequenceLookup = documentSequenceLookup;
             _miscMasterQueryRepository = miscMasterQueryRepository;
         }
 
-        public async Task<int> CreateAsync(FreightRfqHeader entity)
+        public async Task<int> CreateAsync(FreightRfqHeader entity, int transactionTypeId, CancellationToken ct)
         {
-            var draftStatus = await _miscMasterQueryRepository.GetMiscMasterByName(
-                MiscEnumEntity.FreightRfqStatus, MiscEnumEntity.Draft);
-            if (draftStatus == null)
-                throw new ExceptionRules("Freight RFQ status 'Draft' is not configured.");
+            var quotationPending = await _miscMasterQueryRepository.GetMiscMasterByName(
+                MiscEnumEntity.FreightRfqStatus, MiscEnumEntity.FreightRfqQuotationPending);
+            if (quotationPending == null)
+                throw new ExceptionRules("Freight RFQ status 'Quotation Pending' is not configured.");
 
-            entity.StatusId = draftStatus.Id;
-            entity.FreightRfqNumber = await GenerateRfqNumberAsync(entity.RfqDate);
+            entity.StatusId = quotationPending.Id;
 
-            await _dbContext.FreightRfqHeaders.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            // Transporter rows start unselected; FreightValue stays null until a quoted rate is entered.
+            var rateBasisCodes = await GetRateBasisCodesAsync(
+                entity.Quotations.Where(q => q.RateBasisId.HasValue).Select(q => q.RateBasisId!.Value));
+            foreach (var q in entity.Quotations)
+            {
+                q.IsSelected = false;
+                q.IsOverride = false;
+                q.FreightValue = CalculateFreightValue(
+                    q.RateBasisId.HasValue ? rateBasisCodes.GetValueOrDefault(q.RateBasisId.Value) : null,
+                    entity.TotalQuantity, entity.TotalBaleCount, q.QuotedRate, q.NoOfVehicles);
+            }
 
-            return entity.Id;
+            // Persist + bump the document sequence inside one transaction (mirrors OCR).
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var tx = await _dbContext.Database.BeginTransactionAsync(
+                    System.Data.IsolationLevel.ReadCommitted, ct);
+                try
+                {
+                    await _dbContext.FreightRfqHeaders.AddAsync(entity, ct);
+                    await _dbContext.SaveChangesAsync(ct);
+
+                    var conn = _dbContext.Database.GetDbConnection();
+                    var dbTx = tx.GetDbTransaction();
+                    await _documentSequenceLookup.IncrementDocNoAsync(transactionTypeId, conn, dbTx);
+
+                    await _dbContext.SaveChangesAsync(ct);
+                    await tx.CommitAsync(ct);
+                    return entity.Id;
+                }
+                catch
+                {
+                    await tx.RollbackAsync(ct);
+                    throw;
+                }
+            });
         }
 
         public async Task<int> UpdateAsync(FreightRfqHeader entity)
@@ -58,6 +88,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
             existing.RfqTypeId = entity.RfqTypeId;
             existing.PoReferenceId = entity.PoReferenceId;
             existing.SupplierId = entity.SupplierId;
+            existing.RfqValidTill = entity.RfqValidTill;
             existing.SourceLocation = entity.SourceLocation;
             existing.SourceStation = entity.SourceStation;
             existing.DestinationLocation = entity.DestinationLocation;
@@ -72,6 +103,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
             return existing.Id;
         }
 
+        // Incremental merge: update quoted rates on existing transporter rows, insert newly-added transporters
+        // (NotifiedDate stays null so the handler can email them), and drop rows the user removed.
         public async Task<int> SaveQuotationsAsync(int rfqId, IReadOnlyList<FreightRfqQuotation> rows)
         {
             var header = await _dbContext.FreightRfqHeaders
@@ -81,28 +114,56 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
             if (header == null)
                 return 0;
 
-            // Replace strategy — drop the existing rows, add the incoming set.
-            if (header.Quotations.Count > 0)
-                _dbContext.FreightRfqQuotations.RemoveRange(header.Quotations);
+            var rateBasisCodes = await GetRateBasisCodesAsync(
+                rows.Where(r => r.RateBasisId.HasValue).Select(r => r.RateBasisId!.Value));
 
-            var rateBasisCodes = await GetRateBasisCodesAsync(rows.Select(r => r.RateBasisId));
+            var incomingIds = rows.Where(r => r.Id > 0).Select(r => r.Id).ToHashSet();
+
+            var toRemove = header.Quotations
+                .Where(q => q.Id > 0 && !incomingIds.Contains(q.Id))
+                .ToList();
+            if (toRemove.Count > 0)
+                _dbContext.FreightRfqQuotations.RemoveRange(toRemove);
 
             foreach (var row in rows)
             {
-                row.FreightRfqHeaderId = rfqId;
-                row.IsSelected = false;
-                row.IsOverride = false;
-                row.FreightValue = CalculateFreightValue(
-                    rateBasisCodes.GetValueOrDefault(row.RateBasisId),
+                var freight = CalculateFreightValue(
+                    row.RateBasisId.HasValue ? rateBasisCodes.GetValueOrDefault(row.RateBasisId.Value) : null,
                     header.TotalQuantity, header.TotalBaleCount, row.QuotedRate, row.NoOfVehicles);
 
-                await _dbContext.FreightRfqQuotations.AddAsync(row);
+                var existing = row.Id > 0
+                    ? header.Quotations.FirstOrDefault(q => q.Id == row.Id)
+                    : null;
+
+                if (existing != null)
+                {
+                    existing.TransporterId = row.TransporterId;
+                    existing.TransportDetailId = row.TransportDetailId;
+                    existing.RateBasisId = row.RateBasisId;
+                    existing.QuotedRate = row.QuotedRate;
+                    existing.NoOfVehicles = row.NoOfVehicles;
+                    existing.Remarks = row.Remarks;
+                    existing.VehicleNo = row.VehicleNo;
+                    existing.TransportModeName = row.TransportModeName;
+                    existing.VehicleTypeName = row.VehicleTypeName;
+                    existing.FreightValue = freight;
+                }
+                else
+                {
+                    row.Id = 0;
+                    row.FreightRfqHeaderId = rfqId;
+                    row.IsSelected = false;
+                    row.IsOverride = false;
+                    row.FreightValue = freight;
+                    await _dbContext.FreightRfqQuotations.AddAsync(row);
+                }
             }
 
-            // The previously selected row no longer exists once rows are replaced.
-            header.SelectedQuotationId = null;
-            _dbContext.FreightRfqHeaders.Update(header);
+            // Clear the selection if the previously-selected row was removed.
+            if (header.SelectedQuotationId.HasValue && !incomingIds.Contains(header.SelectedQuotationId.Value))
+                header.SelectedQuotationId = null;
 
+            _dbContext.FreightRfqHeaders.Update(header);
             await _dbContext.SaveChangesAsync();
             return rfqId;
         }
@@ -218,17 +279,20 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
             return true;
         }
 
-        // Freight value = quantity driver × quoted rate, per the rate basis.
-        private static decimal CalculateFreightValue(
-            string? rateBasisCode, decimal totalQuantity, int totalBaleCount, decimal quotedRate, int? noOfVehicles)
+        // Freight value = quantity driver × quoted rate, per the rate basis. Null until a rate + basis exist.
+        private static decimal? CalculateFreightValue(
+            string? rateBasisCode, decimal totalQuantity, int totalBaleCount, decimal? quotedRate, int? noOfVehicles)
         {
+            if (quotedRate is null || string.IsNullOrWhiteSpace(rateBasisCode))
+                return null;
+
             if (string.Equals(rateBasisCode, MiscEnumEntity.FreightRateBasisPerBale, StringComparison.OrdinalIgnoreCase))
-                return totalBaleCount * quotedRate;
+                return totalBaleCount * quotedRate.Value;
             if (string.Equals(rateBasisCode, MiscEnumEntity.FreightRateBasisPerMt, StringComparison.OrdinalIgnoreCase))
-                return totalQuantity * quotedRate;
+                return totalQuantity * quotedRate.Value;
             if (string.Equals(rateBasisCode, MiscEnumEntity.FreightRateBasisPerVehicle, StringComparison.OrdinalIgnoreCase))
-                return (noOfVehicles ?? 0) * quotedRate;
-            return 0m;
+                return (noOfVehicles ?? 0) * quotedRate.Value;
+            return null;
         }
 
         private async Task<Dictionary<int, string?>> GetRateBasisCodesAsync(IEnumerable<int> rateBasisIds)
@@ -240,38 +304,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.FreightRfq
             return await _dbContext.MiscMaster
                 .Where(m => ids.Contains(m.Id))
                 .ToDictionaryAsync(m => m.Id, m => (string?)m.Code);
-        }
-
-        // Builds FRFQ-{FinancialYear.StartYear}-{nextSerial:D4} (e.g. FRFQ-2025-0005).
-        private async Task<string> GenerateRfqNumberAsync(DateTimeOffset rfqDate)
-        {
-            var rfqDay = rfqDate.Date;
-
-            var financialYears = await _financialYearLookup.GetAllFinancialYearAsync();
-            var financialYear = financialYears
-                .FirstOrDefault(f => f.StartDate.Date <= rfqDay && rfqDay <= f.EndDate.Date);
-
-            if (financialYear == null || string.IsNullOrWhiteSpace(financialYear.StartYear))
-                throw new ExceptionRules($"Financial year not configured for {rfqDay:yyyy-MM-dd}.");
-
-            var prefix = $"{RfqPrefixToken}-{financialYear.StartYear}-";
-
-            var lastNumber = await _dbContext.FreightRfqHeaders
-                .AsNoTracking()
-                .Where(h => h.FreightRfqNumber.StartsWith(prefix))
-                .OrderByDescending(h => h.FreightRfqNumber)
-                .Select(h => h.FreightRfqNumber)
-                .FirstOrDefaultAsync();
-
-            var nextSerial = 1;
-            if (!string.IsNullOrEmpty(lastNumber))
-            {
-                var lastDash = lastNumber.LastIndexOf('-');
-                if (lastDash >= 0 && int.TryParse(lastNumber[(lastDash + 1)..], out var parsed))
-                    nextSerial = parsed + 1;
-            }
-
-            return $"{prefix}{nextSerial:D4}";
         }
     }
 }

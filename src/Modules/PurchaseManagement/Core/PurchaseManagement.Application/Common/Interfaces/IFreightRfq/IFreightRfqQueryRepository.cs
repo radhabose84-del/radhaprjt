@@ -13,8 +13,14 @@ namespace PurchaseManagement.Application.Common.Interfaces.IFreightRfq
         // Full record (header + quotations + derived stats). Names enriched via lookups.
         Task<FreightRfqDto?> GetByIdAsync(int id);
 
-        // Display-only peek of the next FreightRfqNumber for the supplied date.
+        // Display-only peek of the next FreightRfqNumber (document sequence).
         Task<string> PeekNextNumberAsync(DateTimeOffset rfqDate);
+
+        // Raw Material PO options for the "PO Reference" dropdown (PONumber + supplier from OCR).
+        Task<IReadOnlyList<PoReferenceLookupDto>> GetRawMaterialPoReferencesAsync(string? term);
+
+        // Auto-fill values for a selected Raw Material PO: supplier + source route (OCR) + Σ bale / Σ MT (details).
+        Task<FreightRfqPoPrefillDto?> GetPoPrefillAsync(int rawMaterialPoId);
 
         // Existence (module NotFoundAsync convention: returns true when the RFQ exists, not deleted).
         Task<bool> NotFoundAsync(int id);
