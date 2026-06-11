@@ -15,6 +15,8 @@ namespace PurchaseManagement.Application.Arrival.Commands.UpdateArrival
         public int StationId { get; set; }
         public int GodownId { get; set; }
         public int TransporterId { get; set; }
+        public int? VmrId { get; set; }            // Gate.VehicleMovementRecord
+        public string? SupplierLotNo { get; set; }
 
         public decimal? FreightRate { get; set; }
         public string? InvoiceGstNo { get; set; }
@@ -30,6 +32,10 @@ namespace PurchaseManagement.Application.Arrival.Commands.UpdateArrival
         public decimal PartyWeight { get; set; }
         public decimal WeightDifference { get; set; }
         public decimal? MoisturePercentage { get; set; }
+
+        // PR range (from–to) — optional
+        public int? PRFrom { get; set; }
+        public int? PRTo { get; set; }
 
         public int QcStatusId { get; set; }
 

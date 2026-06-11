@@ -22,5 +22,13 @@ namespace Contracts.Interfaces.Updates.Purchase
             string? qcRemarks, string? qcPersonName, string? qcApprovedIp,
             DateTimeOffset whenUtc, bool isQcApproved,
             IDbConnection connection, IDbTransaction transaction);
+
+        /// <summary>
+        /// Sets ONLY the Arrival header's <c>QcStatusId</c> to the given QC.MiscMaster id
+        /// (no disposition quantities/remarks). Used when a QC inspection is first created against an
+        /// Arrival, so the header reflects "Pending QC" immediately. The caller (QC module) resolves
+        /// the id from QC.MiscMaster. Manages its own connection (not part of an external transaction).
+        /// </summary>
+        Task SetArrivalQcStatusAsync(int arrivalHeaderId, int qcStatusId, CancellationToken ct = default);
     }
 }

@@ -9,6 +9,28 @@ namespace PurchaseManagement.Infrastructure.Repositories.Updates.Purchase
         // Arrival QC status master lives under MiscType "ApprovalStatus" (Pending / Approved / Rejected).
         private const string ArrivalStatusTypeCode = "ApprovalStatus";
 
+        private readonly IDbConnection _connection;
+
+        public ArrivalQcUpdateRepository(IDbConnection connection)
+        {
+            _connection = connection;
+        }
+
+        public async Task SetArrivalQcStatusAsync(int arrivalHeaderId, int qcStatusId, CancellationToken ct = default)
+        {
+            // QcStatusId is a cross-module reference to QC.MiscMaster — the QC module resolved the id,
+            // so this only writes it onto the header (no Purchase-side status resolution).
+            const string updateSql = @"
+                UPDATE Purchase.ArrivalHeader
+                SET QcStatusId = @QcStatusId
+                WHERE Id = @ArrivalHeaderId;";
+
+            await _connection.ExecuteAsync(new CommandDefinition(
+                updateSql,
+                new { QcStatusId = qcStatusId, ArrivalHeaderId = arrivalHeaderId },
+                cancellationToken: ct));
+        }
+
         public async Task UpdateArrivalQcAsync(
             int arrivalHeaderId, string arrivalStatusName,
             decimal acceptedQty, decimal rejectedQty,

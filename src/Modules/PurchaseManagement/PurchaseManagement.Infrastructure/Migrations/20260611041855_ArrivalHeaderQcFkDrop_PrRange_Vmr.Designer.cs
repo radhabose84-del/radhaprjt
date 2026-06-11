@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PurchaseManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PurchaseManagement.Infrastructure.Data;
 namespace PurchaseManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611041855_ArrivalHeaderQcFkDrop_PrRange_Vmr")]
+    partial class ArrivalHeaderQcFkDrop_PrRange_Vmr
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3174,9 +3177,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                     b.Property<string>("OcrNumber")
                         .IsRequired()
                         .HasColumnType("varchar(20)");
-
-                    b.Property<int?>("PackTypeId")
-                        .HasColumnType("int");
 
                     b.Property<int?>("PaymentModeId")
                         .HasColumnType("int");

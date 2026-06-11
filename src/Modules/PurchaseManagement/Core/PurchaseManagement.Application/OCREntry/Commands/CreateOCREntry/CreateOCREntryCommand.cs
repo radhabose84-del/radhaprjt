@@ -22,6 +22,7 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
         public int StationId { get; set; }
         public int ItemId { get; set; }
         public int CountId { get; set; }
+        public int? PackTypeId { get; set; }   // Production.PackType (optional)
 
         // Cotton commercial details
         public decimal Quantity { get; set; }

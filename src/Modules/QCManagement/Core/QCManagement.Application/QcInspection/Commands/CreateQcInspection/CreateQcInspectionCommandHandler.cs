@@ -2,6 +2,7 @@ using Contracts.Common;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Updates.Purchase;
 using MediatR;
 using QCManagement.Application.Common.Interfaces.IQcInspection;
 using QCManagement.Application.QcInspection.Dto;
@@ -17,6 +18,7 @@ namespace QCManagement.Application.QcInspection.Commands.CreateQcInspection
         private readonly IQcInspectionQueryRepository _queryRepository;
         private readonly IGrnLookup _grnLookup;
         private readonly IArrivalLookup _arrivalLookup;
+        private readonly IArrivalQcUpdate _arrivalQcUpdate;
         private readonly IItemLookup _itemLookup;
         private readonly IMediator _mediator;
         private readonly IIPAddressService _ipAddressService;
@@ -26,6 +28,7 @@ namespace QCManagement.Application.QcInspection.Commands.CreateQcInspection
             IQcInspectionQueryRepository queryRepository,
             IGrnLookup grnLookup,
             IArrivalLookup arrivalLookup,
+            IArrivalQcUpdate arrivalQcUpdate,
             IItemLookup itemLookup,
             IMediator mediator,
             IIPAddressService ipAddressService)
@@ -34,6 +37,7 @@ namespace QCManagement.Application.QcInspection.Commands.CreateQcInspection
             _queryRepository = queryRepository;
             _grnLookup = grnLookup;
             _arrivalLookup = arrivalLookup;
+            _arrivalQcUpdate = arrivalQcUpdate;
             _itemLookup = itemLookup;
             _mediator = mediator;
             _ipAddressService = ipAddressService;
@@ -134,6 +138,16 @@ namespace QCManagement.Application.QcInspection.Commands.CreateQcInspection
             };
 
             var newId = await _commandRepository.CreateAsync(entity);
+
+            // Arrival QC is header-level: as soon as an inspection exists, mark the source
+            // ArrivalHeader as "Pending" (QC.MiscMaster QP_QC_STATUS / 'PENDING') so the Arrival grid
+            // reflects it immediately. QcStatusId on ArrivalHeader is a cross-module ref to QC.MiscMaster.
+            if (isArrival)
+            {
+                var pendingQcStatusId = await _queryRepository.GetQcStatusIdByCodeAsync("PENDING");
+                if (pendingQcStatusId.HasValue)
+                    await _arrivalQcUpdate.SetArrivalQcStatusAsync(sourceHeaderId, pendingQcStatusId.Value, cancellationToken);
+            }
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

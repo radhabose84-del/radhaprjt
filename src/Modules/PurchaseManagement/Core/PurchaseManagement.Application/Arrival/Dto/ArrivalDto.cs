@@ -26,6 +26,11 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public int TransporterId { get; set; }
         public string? TransporterName { get; set; }
 
+        public int? VmrId { get; set; }
+        public string? SupplierLotNo { get; set; }
+        // VMR details fetched from Gate.VehicleMovementRecord via IVehicleMovementRecordLookup (by VmrId).
+        public Contracts.Dtos.Lookups.Gate.VehicleMovementRecordLookupDto? Vmr { get; set; }
+
         public decimal? FreightRate { get; set; }
         public string? InvoiceGstNo { get; set; }
         public string? LrNumber { get; set; }
@@ -41,6 +46,10 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public decimal PartyWeight { get; set; }
         public decimal WeightDifference { get; set; }
         public decimal? MoisturePercentage { get; set; }
+
+        // PR range (from–to) — optional
+        public int? PRFrom { get; set; }
+        public int? PRTo { get; set; }
 
         public int? QcStatusId { get; set; }
         public string? QcStatusName { get; set; }

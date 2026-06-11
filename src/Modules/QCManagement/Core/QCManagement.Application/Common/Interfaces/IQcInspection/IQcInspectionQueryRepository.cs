@@ -22,6 +22,9 @@ namespace QCManagement.Application.Common.Interfaces.IQcInspection
         Task<bool> DetailBelongsToHeaderAsync(int detailId, int headerId);
         Task<bool> QcStatusIdExistsAsync(int qcStatusId);
 
+        /// <summary>Resolves the QC.MiscMaster Id for a QP_QC_STATUS code (e.g. "PENDING").</summary>
+        Task<int?> GetQcStatusIdByCodeAsync(string statusCode);
+
         // ── create-time resolution ──
         Task<int> GetMaxInspectionSequenceAsync(int year);
         Task<int?> GetPurchasedGoodsQcTypeIdAsync();

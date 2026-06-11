@@ -39,6 +39,8 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Arrival
             b.Property(x => x.StationId).IsRequired();
             b.Property(x => x.GodownId).IsRequired();
             b.Property(x => x.TransporterId).IsRequired();
+            b.Property(x => x.VmrId);   // cross-module (Gate.VehicleMovementRecord) — nullable, no DB constraint
+            b.Property(x => x.SupplierLotNo).HasColumnType("varchar(50)");
 
             b.Property(x => x.FreightRate).HasPrecision(18, 2);
             b.Property(x => x.InvoiceGstNo).HasColumnType("varchar(20)");
@@ -55,6 +57,10 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Arrival
             b.Property(x => x.PartyWeight).HasPrecision(18, 3);
             b.Property(x => x.WeightDifference).HasPrecision(18, 3);
             b.Property(x => x.MoisturePercentage).HasPrecision(5, 2);
+
+            // ── PR range ──
+            b.Property(x => x.PRFrom).IsRequired(false);
+            b.Property(x => x.PRTo).IsRequired(false);
 
             b.Property(x => x.Remarks).HasColumnType("varchar(500)");
 
@@ -77,16 +83,15 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Arrival
                 .HasForeignKey(x => x.RawMaterialPOId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            b.HasOne(x => x.QcStatus)
-                .WithMany()
-                .HasForeignKey(x => x.QcStatusId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // QcStatusId is a CROSS-MODULE reference to QC.MiscMaster (QP_QC_STATUS) — no DB constraint
+            // and no navigation; the status name is resolved via IQcMiscMasterLookup on read.
 
             // ── Indexes ──
             b.HasIndex(x => x.ArrivalNumber).IsUnique();
             b.HasIndex(x => x.RawMaterialPOId);
             b.HasIndex(x => x.QcStatusId);
             b.HasIndex(x => x.UnitId);
+            b.HasIndex(x => x.VmrId);
 
             // ── Audit / soft-delete ──
             b.Property(x => x.IsActive)
