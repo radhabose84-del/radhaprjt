@@ -27,7 +27,12 @@ namespace PurchaseManagement.UnitTests.TestData
                 DestinationLocation = "Dindigul",
                 DestinationStation = "Dindigul Mill Gate",
                 TotalQuantity = totalQuantity,
-                TotalBaleCount = totalBaleCount
+                TotalBaleCount = totalBaleCount,
+                Transporters = new List<FreightRfqTransporterInputDto>
+                {
+                    new() { TransporterId = 101, RateBasisId = 21, Name = "Transporter A", Email = "a@trans.com", Mobile = "9000000001" },
+                    new() { TransporterId = 102, RateBasisId = 21, Name = "Transporter B", Email = "b@trans.com", Mobile = "9000000002" }
+                }
             };
 
         public static UpdateFreightRfqCommand ValidUpdateCommand(

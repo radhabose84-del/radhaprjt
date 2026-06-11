@@ -1,5 +1,5 @@
 using MediatR;
-using PurchaseManagement.Application.Common.Interfaces.IPurchaseOrder.Local;
+using PurchaseManagement.Application.Common.Interfaces.IFreightRfq;
 using PurchaseManagement.Application.FreightRfq.Dto;
 
 namespace PurchaseManagement.Application.FreightRfq.Queries.GetPendingPoReferences
@@ -7,25 +7,14 @@ namespace PurchaseManagement.Application.FreightRfq.Queries.GetPendingPoReferenc
     public class GetPendingPoReferencesQueryHandler
         : IRequestHandler<GetPendingPoReferencesQuery, IReadOnlyList<PoReferenceLookupDto>>
     {
-        private readonly IPurchaseOrderQueryRepository _purchaseOrderQueryRepository;
+        private readonly IFreightRfqQueryRepository _queryRepository;
 
-        public GetPendingPoReferencesQueryHandler(IPurchaseOrderQueryRepository purchaseOrderQueryRepository)
+        public GetPendingPoReferencesQueryHandler(IFreightRfqQueryRepository queryRepository)
         {
-            _purchaseOrderQueryRepository = purchaseOrderQueryRepository;
+            _queryRepository = queryRepository;
         }
 
         public async Task<IReadOnlyList<PoReferenceLookupDto>> Handle(GetPendingPoReferencesQuery request, CancellationToken cancellationToken)
-        {
-            var (rows, _) = await _purchaseOrderQueryRepository.GetPOPendingAsync(
-                page: null, size: null, search: request.Term, poId: null, poMethodId: null, ct: cancellationToken);
-
-            return rows.Select(r => new PoReferenceLookupDto
-            {
-                Id = r.Id,
-                PoNumber = r.PONumber,
-                VendorId = r.VendorId,
-                VendorName = r.VendorName
-            }).ToList();
-        }
+            => await _queryRepository.GetRawMaterialPoReferencesAsync(request.Term);
     }
 }
