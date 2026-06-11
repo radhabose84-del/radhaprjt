@@ -123,20 +123,30 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                     .WithMessage("Bale Number To must be greater than or equal to Bale Number From.");
             });
 
-            // R3 — duplicate bale ranges are not allowed (excluding this arrival)
-            RuleFor(x => x).CustomAsync(async (cmd, context, ct) =>
+            // R3 — within this arrival (one lotno = ArrivalHeader Id), bale numbers may not be duplicated:
+            // no two detail lines may have overlapping bale ranges. The arrival's existing bales are fully
+            // replaced on save, and bale numbers may repeat across different arrivals — so this is a
+            // payload-only check, identical to create.
+            RuleFor(x => x).Custom((cmd, context) =>
             {
                 if (cmd.Details == null)
                     return;
 
-                foreach (var line in cmd.Details)
-                {
-                    if (line.BaleNumberFrom <= 0 || line.BaleNumberTo < line.BaleNumberFrom)
-                        continue;
+                var ranges = cmd.Details
+                    .Where(l => l.BaleNumberFrom > 0 && l.BaleNumberTo >= l.BaleNumberFrom)
+                    .ToList();
 
-                    if (await queryRepo.BaleRangeOverlapsAsync(line.BaleNumberFrom, line.BaleNumberTo, cmd.RawMaterialPOId, cmd.Id))
-                        context.AddFailure(
-                            $"Bale range {line.BaleNumberFrom}–{line.BaleNumberTo} overlaps an existing arrival.");
+                for (var i = 0; i < ranges.Count; i++)
+                {
+                    for (var j = i + 1; j < ranges.Count; j++)
+                    {
+                        if (ranges[i].BaleNumberFrom <= ranges[j].BaleNumberTo &&
+                            ranges[j].BaleNumberFrom <= ranges[i].BaleNumberTo)
+                        {
+                            context.AddFailure(
+                                $"Bale range {ranges[j].BaleNumberFrom}–{ranges[j].BaleNumberTo} overlaps another line in this arrival.");
+                        }
+                    }
                 }
             });
         }

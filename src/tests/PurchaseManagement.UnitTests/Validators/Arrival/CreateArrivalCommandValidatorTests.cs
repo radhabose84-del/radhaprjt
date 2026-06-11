@@ -9,6 +9,7 @@ using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using FluentValidation.TestHelper;
+using PurchaseManagement.Application.Arrival.Commands.CreateArrival;
 using PurchaseManagement.Application.Common.Interfaces.IArrival;
 using PurchaseManagement.Presentation.Validation.Arrival;
 using PurchaseManagement.UnitTests.TestData;
@@ -34,8 +35,6 @@ namespace PurchaseManagement.UnitTests.Validators.Arrival
         private void SetupAllValid()
         {
             _queryRepo.Setup(r => r.RawMaterialPOExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _queryRepo.Setup(r => r.BaleRangeOverlapsAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<int?>()))
-                .ReturnsAsync(false);
 
             _supplier.Setup(s => s.GetActiveSupplierByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SupplierLookupDto { Id = 1, VendorName = "Sree Lakshmi" });
@@ -86,14 +85,39 @@ namespace PurchaseManagement.UnitTests.Validators.Arrival
         }
 
         [Fact]
-        public async Task Validate_OverlappingBaleRange_FailsValidation()
+        public async Task Validate_OverlappingBaleRange_WithinPayload_FailsValidation()
         {
             SetupAllValid();
-            _queryRepo.Setup(r => r.BaleRangeOverlapsAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<int?>()))
-                .ReturnsAsync(true);
+            // Two lines in the SAME arrival (lotno) whose bale ranges overlap → rejected.
+            var command = ArrivalBuilders.ValidCreateCommand();
+            command.Details.Add(new CreateArrivalDetailDto
+            {
+                ItemId = 1, HsnId = 1, PackTypeId = 1, MixCodeId = 1, UomId = 1,
+                Rate = 68500m, OrderedQty = 500m, ArrivedQty = 150m, CancelledQty = 0m,
+                BatchNumber = "BATCH-0012-B",
+                BaleNumberFrom = 100100, BaleNumberTo = 100200, TotalBaleCount = 101
+            });
 
-            var result = await CreateValidator().TestValidateAsync(ArrivalBuilders.ValidCreateCommand());
+            var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldHaveAnyValidationError();
+        }
+
+        [Fact]
+        public async Task Validate_NonOverlappingBaleRanges_WithinPayload_PassesValidation()
+        {
+            SetupAllValid();
+            // Two lines with disjoint bale ranges in the same arrival → allowed.
+            var command = ArrivalBuilders.ValidCreateCommand();
+            command.Details.Add(new CreateArrivalDetailDto
+            {
+                ItemId = 1, HsnId = 1, PackTypeId = 1, MixCodeId = 1, UomId = 1,
+                Rate = 68500m, OrderedQty = 500m, ArrivedQty = 150m, CancelledQty = 0m,
+                BatchNumber = "BATCH-0012-B",
+                BaleNumberFrom = 100151, BaleNumberTo = 100200, TotalBaleCount = 50
+            });
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldNotHaveAnyValidationErrors();
         }
     }
 }

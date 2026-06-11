@@ -111,20 +111,29 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                     .WithMessage("Bale Number To must be greater than or equal to Bale Number From.");
             });
 
-            // R3 — duplicate bale ranges are not allowed across non-deleted arrivals
-            RuleFor(x => x).CustomAsync(async (cmd, context, ct) =>
+            // R3 — within this arrival (one lotno = ArrivalHeader Id), bale numbers may not be duplicated:
+            // no two detail lines may have overlapping bale ranges. Bale numbers may repeat across different
+            // arrivals, so there is no cross-arrival check on insert (the new lot has no captured bales yet).
+            RuleFor(x => x).Custom((cmd, context) =>
             {
                 if (cmd.Details == null)
                     return;
 
-                foreach (var line in cmd.Details)
-                {
-                    if (line.BaleNumberFrom <= 0 || line.BaleNumberTo < line.BaleNumberFrom)
-                        continue;
+                var ranges = cmd.Details
+                    .Where(l => l.BaleNumberFrom > 0 && l.BaleNumberTo >= l.BaleNumberFrom)
+                    .ToList();
 
-                    if (await queryRepo.BaleRangeOverlapsAsync(line.BaleNumberFrom, line.BaleNumberTo, cmd.RawMaterialPOId, null))
-                        context.AddFailure(
-                            $"Bale range {line.BaleNumberFrom}–{line.BaleNumberTo} overlaps an existing arrival.");
+                for (var i = 0; i < ranges.Count; i++)
+                {
+                    for (var j = i + 1; j < ranges.Count; j++)
+                    {
+                        if (ranges[i].BaleNumberFrom <= ranges[j].BaleNumberTo &&
+                            ranges[j].BaleNumberFrom <= ranges[i].BaleNumberTo)
+                        {
+                            context.AddFailure(
+                                $"Bale range {ranges[j].BaleNumberFrom}–{ranges[j].BaleNumberTo} overlaps another line in this arrival.");
+                        }
+                    }
                 }
             });
         }

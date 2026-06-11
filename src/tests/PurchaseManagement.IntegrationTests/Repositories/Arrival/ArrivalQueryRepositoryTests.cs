@@ -7,6 +7,7 @@ using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces;
 using PurchaseManagement.Application.Arrival.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Gate;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Dtos.Lookups.QC;
@@ -41,6 +42,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
         private readonly Mock<IUOMLookup> _uomMock = new(MockBehavior.Loose);
         private readonly Mock<IQcMiscMasterLookup> _qcMiscMock = new(MockBehavior.Loose);
         private readonly Mock<IQualitySpecificationLookup> _qualitySpecMock = new(MockBehavior.Loose);
+        private readonly Mock<IVehicleMovementRecordLookup> _vmrMock = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _ipMock = new(MockBehavior.Loose);
 
         public ArrivalQueryRepositoryTests(DbFixture fixture)
@@ -77,7 +79,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var conn = new SqlConnection(_fixture.ConnectionString);
             return new ArrivalQueryRepository(conn, _supplierMock.Object, _stationMock.Object, _warehouseMock.Object,
                 _transporterMock.Object, _itemMock.Object, _hsnMock.Object, _packTypeMock.Object, _uomMock.Object,
-                _qcMiscMock.Object, _qualitySpecMock.Object, _ipMock.Object);
+                _qcMiscMock.Object, _qualitySpecMock.Object, _vmrMock.Object, _ipMock.Object);
         }
 
         private ArrivalCommandRepository CreateCommandRepo(ApplicationDbContext ctx) =>
@@ -290,31 +292,6 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var dto = await CreateQueryRepo().GetByIdAsync(id);
 
             dto.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task BaleRangeOverlapsAsync_Should_Return_True_For_Overlap()
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var (rmpoId, qcId, statusId) = await SeedAsync(ctx);
-            await CreateCommandRepo(ctx).CreateAsync(BuildHeader(rmpoId, qcId, statusId, "ARV-Q-0004"), 0, CancellationToken.None);
-
-            // Seeded range is 100001..100003 → overlaps 100002..100010
-            var overlaps = await CreateQueryRepo().BaleRangeOverlapsAsync(100002, 100010, null);
-
-            overlaps.Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task BaleRangeOverlapsAsync_Should_Return_False_For_Disjoint_Range()
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var (rmpoId, qcId, statusId) = await SeedAsync(ctx);
-            await CreateCommandRepo(ctx).CreateAsync(BuildHeader(rmpoId, qcId, statusId, "ARV-Q-0005"), 0, CancellationToken.None);
-
-            var overlaps = await CreateQueryRepo().BaleRangeOverlapsAsync(200001, 200010, null);
-
-            overlaps.Should().BeFalse();
         }
 
         [Fact]
