@@ -4,7 +4,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IOCREntry
 {
     public interface IOCREntryQueryRepository
     {
-        Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null);
         Task<OCREntryDto?> GetByIdAsync(int id);
         Task<(List<OCREntryDto> Items, int Total)> GetPendingAsync(int pageNumber, int pageSize);
         /// <summary>

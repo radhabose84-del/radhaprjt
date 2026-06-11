@@ -4,7 +4,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IRawMaterialPO
 {
     public interface IRawMaterialPOQueryRepository
     {
-        Task<(List<RawMaterialPODto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<RawMaterialPODto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null);
         Task<RawMaterialPODto?> GetByIdAsync(int id);
         /// <summary>
         /// Autocomplete list of Raw Material POs. When <paramref name="showAll"/> is false (default),

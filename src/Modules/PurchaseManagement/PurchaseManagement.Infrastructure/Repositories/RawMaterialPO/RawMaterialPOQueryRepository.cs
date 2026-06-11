@@ -60,7 +60,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
             FROM Purchase.RawMaterialPODetail d
             WHERE d.IsDeleted = 0 AND d.POHeaderId IN @Ids";
 
-        public async Task<(List<RawMaterialPODto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<RawMaterialPODto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null)
         {
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             pageSize = pageSize <= 0 ? 20 : pageSize;
@@ -68,6 +68,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
             var where = "WHERE h.IsDeleted = 0";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 where += " AND (h.PONumber LIKE @Search OR o.OcrNumber LIKE @Search OR st.Description LIKE @Search)";
+
+            // PODate range filter — compared on the date part only (inclusive on both ends).
+            if (fromDate.HasValue)
+                where += " AND CAST(h.PODate AS date) >= @FromDate";
+            if (toDate.HasValue)
+                where += " AND CAST(h.PODate AS date) <= @ToDate";
 
             var sql = $@"
                 {HeaderSelect}
@@ -85,7 +91,9 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
             {
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
+                PageSize = pageSize,
+                FromDate = fromDate?.Date,
+                ToDate = toDate?.Date
             };
 
             using var multi = await _conn.QueryMultipleAsync(sql, args);

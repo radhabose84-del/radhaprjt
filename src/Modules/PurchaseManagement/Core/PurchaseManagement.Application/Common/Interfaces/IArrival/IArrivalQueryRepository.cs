@@ -4,7 +4,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IArrival
 {
     public interface IArrivalQueryRepository
     {
-        Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, bool? pendingStatus = null);
+        Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, bool? pendingStatus = null, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null);
         Task<ArrivalDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<ArrivalLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
 

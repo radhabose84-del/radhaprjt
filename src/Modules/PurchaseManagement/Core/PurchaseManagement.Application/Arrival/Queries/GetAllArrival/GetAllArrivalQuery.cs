@@ -12,5 +12,12 @@ namespace PurchaseManagement.Application.Arrival.Queries.GetAllArrival
 
         // null = all, true = pending QC (QcStatusId null), false = QC signed off (QcStatusId set)
         public bool? PendingStatus { get; set; }
+
+        // Explicit QC status filter (QcStatusId). null = no filter.
+        public int? StatusId { get; set; }
+
+        // ArrivalDate range filter (inclusive). null = no bound.
+        public DateTimeOffset? FromDate { get; set; }
+        public DateTimeOffset? ToDate { get; set; }
     }
 }
