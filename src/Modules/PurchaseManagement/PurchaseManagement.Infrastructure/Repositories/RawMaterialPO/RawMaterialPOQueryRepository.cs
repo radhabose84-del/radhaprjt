@@ -107,17 +107,34 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
             return dto;
         }
 
-        public async Task<IReadOnlyList<RawMaterialPOLookupDto>> AutocompleteAsync(string term, CancellationToken ct)
+        public async Task<IReadOnlyList<RawMaterialPOLookupDto>> AutocompleteAsync(string term, bool showAll, CancellationToken ct)
         {
+            // When showAll is false, hide POs that are fully arrived: an arrival exists against the PO
+            // AND the total arrived qty (across all its arrivals) has reached the PO ordered qty.
             const string sql = @"
                 SELECT TOP 50 h.Id, h.PONumber
                 FROM Purchase.RawMaterialPOHeader h
                 WHERE h.IsActive = 1 AND h.IsDeleted = 0
                   AND (@Term = '' OR h.PONumber LIKE @Search)
+                  AND (
+                        @ShowAll = 1
+                        OR NOT (
+                              EXISTS (SELECT 1 FROM Purchase.ArrivalHeader a
+                                      WHERE a.RawMaterialPOId = h.Id AND a.IsDeleted = 0)
+                              AND ISNULL((SELECT SUM(ad.ArrivedQty)
+                                          FROM Purchase.ArrivalDetail ad
+                                          JOIN Purchase.ArrivalHeader a2 ON ad.ArrivalHeaderId = a2.Id
+                                          WHERE a2.RawMaterialPOId = h.Id AND a2.IsDeleted = 0), 0)
+                                 >= ISNULL((SELECT SUM(pd.Quantity)
+                                            FROM Purchase.RawMaterialPODetail pd
+                                            WHERE pd.POHeaderId = h.Id AND pd.IsDeleted = 0), 0)
+                        )
+                  )
                 ORDER BY h.Id DESC;";
 
             var cmd = new CommandDefinition(sql,
-                new { Term = term ?? string.Empty, Search = $"%{term}%" }, cancellationToken: ct);
+                new { Term = term ?? string.Empty, Search = $"%{term}%", ShowAll = showAll ? 1 : 0 },
+                cancellationToken: ct);
             var rows = await _conn.QueryAsync<RawMaterialPOLookupDto>(cmd);
             return rows.ToList();
         }
