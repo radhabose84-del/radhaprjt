@@ -16,7 +16,7 @@ namespace PurchaseManagement.UnitTests.Application.RawMaterialPO.Queries
         public async Task Handle_ReturnsMatches()
         {
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(RawMaterialPOBuilders.ValidLookupList());
 
             var result = await CreateSut().Handle(new GetRawMaterialPOAutoCompleteQuery("RMPO"), CancellationToken.None);
@@ -29,13 +29,13 @@ namespace PurchaseManagement.UnitTests.Application.RawMaterialPO.Queries
         public async Task Handle_NullTerm_PassesEmptyString()
         {
             _mockQueryRepo
-                .Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()))
+                .Setup(r => r.AutocompleteAsync(string.Empty, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(RawMaterialPOBuilders.ValidLookupList());
 
             var result = await CreateSut().Handle(new GetRawMaterialPOAutoCompleteQuery(null!), CancellationToken.None);
 
             result.Should().HaveCount(1);
-            _mockQueryRepo.Verify(r => r.AutocompleteAsync(string.Empty, It.IsAny<CancellationToken>()), Times.Once);
+            _mockQueryRepo.Verify(r => r.AutocompleteAsync(string.Empty, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

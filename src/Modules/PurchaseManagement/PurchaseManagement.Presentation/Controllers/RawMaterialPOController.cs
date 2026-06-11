@@ -52,9 +52,9 @@ namespace PurchaseManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetRawMaterialPOAutoCompleteAsync([FromQuery] string term = "")
+        public async Task<IActionResult> GetRawMaterialPOAutoCompleteAsync([FromQuery] string term = "", [FromQuery] bool showAll = false)
         {
-            var result = await Mediator.Send(new GetRawMaterialPOAutoCompleteQuery(term));
+            var result = await Mediator.Send(new GetRawMaterialPOAutoCompleteQuery(term, showAll));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

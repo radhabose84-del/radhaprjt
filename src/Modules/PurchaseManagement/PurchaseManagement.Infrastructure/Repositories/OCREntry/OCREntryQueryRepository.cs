@@ -188,10 +188,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             return (items, total);
         }
 
-        public async Task<IReadOnlyList<OCREntryLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool approved = true)
+        public async Task<IReadOnlyList<OCREntryLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool approved = true, bool showAll = false)
         {
             // When approved = true (default), only Approved OCRs are returned — these are the
             // ones eligible for Raw Material PO creation. When false, all active OCRs are returned.
+            // When showAll = false (default), hide OCRs that are fully converted: a Raw Material PO
+            // exists against the OCR AND the total converted qty (Σ RawMaterialPODetail.Quantity) has
+            // reached the OCR quantity.
             const string sql = @"
                 SELECT TOP 50 o.Id, o.OcrNumber
                 FROM Purchase.OCREntry o
@@ -199,10 +202,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 WHERE o.IsActive = 1 AND o.IsDeleted = 0
                   AND (@Term = '' OR o.OcrNumber LIKE @Search)
                   AND (@Approved = 0 OR st.Description = 'Approved')
+                  AND (
+                        @ShowAll = 1
+                        OR NOT (
+                              EXISTS (SELECT 1 FROM Purchase.RawMaterialPOHeader h
+                                      WHERE h.OcrId = o.Id AND h.IsDeleted = 0)
+                              AND ISNULL((SELECT SUM(d.Quantity)
+                                          FROM Purchase.RawMaterialPODetail d
+                                          JOIN Purchase.RawMaterialPOHeader h2 ON d.POHeaderId = h2.Id
+                                          WHERE h2.OcrId = o.Id AND h2.IsDeleted = 0 AND d.IsDeleted = 0), 0)
+                                 >= o.Quantity
+                        )
+                  )
                 ORDER BY o.Id DESC;";
 
             var cmd = new CommandDefinition(sql,
-                new { Term = term ?? string.Empty, Search = $"%{term}%", Approved = approved ? 1 : 0 },
+                new { Term = term ?? string.Empty, Search = $"%{term}%", Approved = approved ? 1 : 0, ShowAll = showAll ? 1 : 0 },
                 cancellationToken: ct);
             var rows = await _conn.QueryAsync<OCREntryLookupDto>(cmd);
             return rows.ToList();

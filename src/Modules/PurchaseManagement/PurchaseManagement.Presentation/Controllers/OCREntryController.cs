@@ -53,9 +53,9 @@ namespace PurchaseManagement.Presentation.Controllers
         }
 
         [HttpGet("by-name")]
-        public async Task<IActionResult> GetOCREntryAutoCompleteAsync([FromQuery] string term = "", [FromQuery] bool approved = true)
+        public async Task<IActionResult> GetOCREntryAutoCompleteAsync([FromQuery] string term = "", [FromQuery] bool approved = true, [FromQuery] bool showAll = false)
         {
-            var result = await Mediator.Send(new GetOCREntryAutoCompleteQuery(term, approved));
+            var result = await Mediator.Send(new GetOCREntryAutoCompleteQuery(term, approved, showAll));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

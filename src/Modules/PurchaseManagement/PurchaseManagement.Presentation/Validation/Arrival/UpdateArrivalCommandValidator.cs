@@ -123,6 +123,32 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                     .WithMessage("Bale Number To must be greater than or equal to Bale Number From.");
             });
 
+            // R4 — an arrival line's ArrivedQty may not exceed the PO ordered quantity for that item.
+            // Compared per ItemId (summing payload lines that share an item) against the PO quantity.
+            RuleFor(x => x).CustomAsync(async (cmd, context, ct) =>
+            {
+                if (cmd.Details == null || cmd.Details.Count == 0 || cmd.RawMaterialPOId <= 0)
+                    return;
+
+                var poQtyByItem = await queryRepo.GetRawMaterialPOItemQuantitiesAsync(cmd.RawMaterialPOId);
+                if (poQtyByItem == null || poQtyByItem.Count == 0)
+                    return;
+
+                var arrivedByItem = cmd.Details
+                    .Where(d => d.ItemId > 0)
+                    .GroupBy(d => d.ItemId)
+                    .Select(g => new { ItemId = g.Key, Arrived = g.Sum(x => x.ArrivedQty) });
+
+                foreach (var line in arrivedByItem)
+                {
+                    if (poQtyByItem.TryGetValue(line.ItemId, out var orderedQty) && line.Arrived > orderedQty)
+                    {
+                        context.AddFailure(
+                            $"Arrived quantity ({line.Arrived}) cannot exceed the PO ordered quantity ({orderedQty}) for item {line.ItemId}.");
+                    }
+                }
+            });
+
             // R3 — within this arrival (one lotno = ArrivalHeader Id), bale numbers may not be duplicated:
             // no two detail lines may have overlapping bale ranges. The arrival's existing bales are fully
             // replaced on save, and bale numbers may repeat across different arrivals — so this is a

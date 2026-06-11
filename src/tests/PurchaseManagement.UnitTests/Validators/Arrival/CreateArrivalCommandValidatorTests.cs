@@ -35,6 +35,8 @@ namespace PurchaseManagement.UnitTests.Validators.Arrival
         private void SetupAllValid()
         {
             _queryRepo.Setup(r => r.RawMaterialPOExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+            _queryRepo.Setup(r => r.GetRawMaterialPOItemQuantitiesAsync(It.IsAny<int>()))
+                .ReturnsAsync(new Dictionary<int, decimal> { [1] = 500m });
 
             _supplier.Setup(s => s.GetActiveSupplierByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SupplierLookupDto { Id = 1, VendorName = "Sree Lakshmi" });
@@ -100,6 +102,30 @@ namespace PurchaseManagement.UnitTests.Validators.Arrival
 
             var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldHaveAnyValidationError();
+        }
+
+        [Fact]
+        public async Task Validate_ArrivedQtyExceedsPoQuantity_FailsValidation()
+        {
+            SetupAllValid();
+            // PO ordered qty for item 1 is 500 (see SetupAllValid). Arrive 600 → rejected.
+            var command = ArrivalBuilders.ValidCreateCommand();
+            command.Details[0].ArrivedQty = 600m;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldHaveAnyValidationError();
+        }
+
+        [Fact]
+        public async Task Validate_ArrivedQtyEqualsPoQuantity_PassesValidation()
+        {
+            SetupAllValid();
+            // Arriving exactly the PO ordered qty (500) is allowed.
+            var command = ArrivalBuilders.ValidCreateCommand();
+            command.Details[0].ArrivedQty = 500m;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact]

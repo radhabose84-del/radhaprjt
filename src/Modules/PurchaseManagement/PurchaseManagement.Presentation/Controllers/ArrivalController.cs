@@ -6,7 +6,9 @@ using PurchaseManagement.Application.Arrival.Commands.DeleteArrival;
 using PurchaseManagement.Application.Arrival.Commands.UpdateArrival;
 using PurchaseManagement.Application.Arrival.Queries.GetAllArrival;
 using PurchaseManagement.Application.Arrival.Queries.GetArrivalAutoComplete;
+using PurchaseManagement.Application.Arrival.Queries.GetArrivalBalanceQty;
 using PurchaseManagement.Application.Arrival.Queries.GetArrivalById;
+using PurchaseManagement.Application.Arrival.Queries.GetArrivalLastLotNo;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
@@ -54,6 +56,30 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetArrivalAutoCompleteAsync([FromQuery] string term = "")
         {
             var result = await Mediator.Send(new GetArrivalAutoCompleteQuery(term));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Last lot number (latest arrival) for the current unit.
+        [HttpGet("last-lotno")]
+        public async Task<IActionResult> GetArrivalLastLotNoAsync()
+        {
+            var result = await Mediator.Send(new GetArrivalLastLotNoQuery());
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Remaining/balance qty per item for a Raw Material PO (unit-scoped): PO qty − arrived qty.
+        [HttpGet("balance-qty")]
+        public async Task<IActionResult> GetArrivalBalanceQtyAsync([FromQuery] int rawMaterialPoId)
+        {
+            var result = await Mediator.Send(new GetArrivalBalanceQtyQuery(rawMaterialPoId));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

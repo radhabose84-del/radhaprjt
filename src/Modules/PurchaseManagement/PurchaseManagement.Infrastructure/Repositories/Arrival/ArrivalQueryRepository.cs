@@ -278,6 +278,78 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             return count > 0;
         }
 
+        public async Task<IReadOnlyDictionary<int, decimal>> GetRawMaterialPOItemQuantitiesAsync(int rawMaterialPOId)
+        {
+            const string sql = @"
+                SELECT d.ItemId AS ItemId, SUM(d.Quantity) AS Quantity
+                FROM Purchase.RawMaterialPODetail d
+                WHERE d.POHeaderId = @POId AND d.IsDeleted = 0
+                GROUP BY d.ItemId;";
+
+            var rows = await _conn.QueryAsync<PoItemQtyRow>(sql, new { POId = rawMaterialPOId });
+            return rows.ToDictionary(r => r.ItemId, r => r.Quantity);
+        }
+
+        private sealed class PoItemQtyRow
+        {
+            public int ItemId { get; set; }
+            public decimal Quantity { get; set; }
+        }
+
+        public async Task<ArrivalLastLotNoDto?> GetLastLotNoAsync()
+        {
+            // LotNo = ArrivalHeader Id (lot reference). The unit's last lot is its most recent arrival.
+            const string sql = @"
+                SELECT TOP 1 h.Id AS LotNo, h.ArrivalNumber
+                FROM Purchase.ArrivalHeader h
+                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId
+                ORDER BY h.Id DESC;";
+
+            return await _conn.QueryFirstOrDefaultAsync<ArrivalLastLotNoDto>(sql, new { UnitId = CurrentUnitId() });
+        }
+
+        public async Task<IReadOnlyList<ArrivalBalanceQtyDto>> GetBalanceQuantitiesAsync(int rawMaterialPOId)
+        {
+            // PO ordered qty per item (PO-scoped).
+            const string poSql = @"
+                SELECT d.ItemId AS ItemId, SUM(d.Quantity) AS Quantity
+                FROM Purchase.RawMaterialPODetail d
+                WHERE d.POHeaderId = @POId AND d.IsDeleted = 0
+                GROUP BY d.ItemId;";
+
+            // Already-arrived qty per item against this PO, scoped to the current unit.
+            const string arrivedSql = @"
+                SELECT ad.ItemId AS ItemId, SUM(ad.ArrivedQty) AS Quantity
+                FROM Purchase.ArrivalDetail ad
+                JOIN Purchase.ArrivalHeader a ON ad.ArrivalHeaderId = a.Id
+                WHERE a.RawMaterialPOId = @POId AND a.IsDeleted = 0 AND a.UnitId = @UnitId
+                GROUP BY ad.ItemId;";
+
+            var poRows = (await _conn.QueryAsync<PoItemQtyRow>(poSql, new { POId = rawMaterialPOId })).ToList();
+            if (poRows.Count == 0)
+                return new List<ArrivalBalanceQtyDto>();
+
+            var arrivedRows = (await _conn.QueryAsync<PoItemQtyRow>(arrivedSql,
+                new { POId = rawMaterialPOId, UnitId = CurrentUnitId() })).ToList();
+            var arrivedByItem = arrivedRows.ToDictionary(r => r.ItemId, r => r.Quantity);
+
+            var itemMap = (await _itemLookup.GetByIdsAsync(poRows.Select(r => r.ItemId).Distinct()))
+                .ToDictionary(x => x.Id, x => x.ItemName);
+
+            return poRows.Select(po =>
+            {
+                var arrived = arrivedByItem.TryGetValue(po.ItemId, out var a) ? a : 0m;
+                return new ArrivalBalanceQtyDto
+                {
+                    ItemId = po.ItemId,
+                    ItemName = itemMap.TryGetValue(po.ItemId, out var name) ? name : null,
+                    OrderedQty = po.Quantity,
+                    ArrivedQty = arrived,
+                    BalanceQty = po.Quantity - arrived
+                };
+            }).ToList();
+        }
+
         private async Task LoadDetailsAsync(List<ArrivalDto> headers)
         {
             if (headers.Count == 0)
