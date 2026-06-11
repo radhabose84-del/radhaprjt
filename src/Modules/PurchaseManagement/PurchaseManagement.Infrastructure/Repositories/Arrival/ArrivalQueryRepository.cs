@@ -278,24 +278,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             return count > 0;
         }
 
-        public async Task<bool> BaleRangeOverlapsAsync(long from, long to, int rawMaterialPoId, int? excludeHeaderId)
-        {
-            // Overlap is scoped to the SAME Raw Material PO (lot) — bale numbers may repeat across lots.
-            const string sql = @"
-                SELECT CASE WHEN EXISTS (
-                    SELECT 1
-                    FROM Purchase.ArrivalDetail d
-                    JOIN Purchase.ArrivalHeader h ON d.ArrivalHeaderId = h.Id
-                    WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId
-                      AND h.RawMaterialPOId = @RawMaterialPOId
-                      AND (@ExcludeHeaderId IS NULL OR h.Id <> @ExcludeHeaderId)
-                      AND d.BaleNumberFrom <= @To AND d.BaleNumberTo >= @From
-                ) THEN 1 ELSE 0 END;";
-            var overlaps = await _conn.ExecuteScalarAsync<int>(sql,
-                new { From = from, To = to, RawMaterialPOId = rawMaterialPoId, ExcludeHeaderId = excludeHeaderId, UnitId = CurrentUnitId() });
-            return overlaps == 1;
-        }
-
         private async Task LoadDetailsAsync(List<ArrivalDto> headers)
         {
             if (headers.Count == 0)

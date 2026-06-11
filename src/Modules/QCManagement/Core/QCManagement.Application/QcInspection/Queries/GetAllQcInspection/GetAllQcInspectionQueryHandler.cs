@@ -50,6 +50,7 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
             public int ItemId { get; init; }
             public string? BatchNumber { get; init; }
             public decimal ReceivedQuantity { get; init; }
+            public string? IsTemplateAvailable { get; init; }
         }
 
         public async Task<ApiResponseDTO<List<QcInspectionListDto>>> Handle(GetAllQcInspectionQuery request, CancellationToken cancellationToken)
@@ -70,7 +71,8 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
                 SupplierId = l.SupplierId,
                 ItemId = l.ItemId,
                 BatchNumber = l.BatchNumber,
-                ReceivedQuantity = l.ReceivedQuantity
+                ReceivedQuantity = l.ReceivedQuantity,
+                IsTemplateAvailable = l.IsTemplateAvailable
             });
 
             // 1b. Arrival lines → source-neutral (header-level: one row per ArrivalHeader,
@@ -86,7 +88,8 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
                 SupplierId = l.SupplierId,
                 ItemId = l.ItemId,
                 BatchNumber = l.BatchNumber,
-                ReceivedQuantity = l.ReceivedQuantity
+                ReceivedQuantity = l.ReceivedQuantity,
+                IsTemplateAvailable = l.IsTemplateAvailable
             });
 
             // 2. Resolve items once, keep only QC-required lines.
@@ -142,7 +145,8 @@ namespace QCManagement.Application.QcInspection.Queries.GetAllQcInspection
                     BatchNumber = l.BatchNumber,
                     ReceivedQuantity = l.ReceivedQuantity,
                     QcStatusCode = "PENDING_QC",
-                    QcStatusName = "Pending QC"
+                    QcStatusName = "Pending QC",
+                    IsTemplateAvailable = l.IsTemplateAvailable
                 };
 
                 if (summaries.TryGetValue((l.SourceTypeId, l.SourceDetailId), out var ins))

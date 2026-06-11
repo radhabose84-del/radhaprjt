@@ -17,5 +17,9 @@ namespace Contracts.Dtos.Lookups.Purchase
         public string? BatchNumber { get; set; }
         public decimal ReceivedQuantity { get; set; }   // mapped from ArrivalDetail.ArrivedQty
         public int? ReceivedUomId { get; set; }          // mapped from ArrivalDetail.UomId
+
+        // "Y" when the item (or its item category) has an active Qc.QualitySpecification;
+        // otherwise "N". Resolved cross-module via IItemLookup + IQualitySpecificationLookup.
+        public string? IsTemplateAvailable { get; set; }
     }
 }

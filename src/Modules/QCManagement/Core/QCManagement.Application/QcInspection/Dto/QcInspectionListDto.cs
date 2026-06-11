@@ -21,6 +21,9 @@ namespace QCManagement.Application.QcInspection.Dto
         public string? ItemName { get; set; }
         public string? BatchNumber { get; set; }
         public decimal ReceivedQuantity { get; set; }
+
+        // "Y"/"N" QC template availability — the item (or its category) has an active Qc.QualitySpecification.
+        public string? IsTemplateAvailable { get; set; }
         public decimal? AcceptedQuantity { get; set; }
         public decimal? RejectedQuantity { get; set; }
         public int? QcStatusId { get; set; }
