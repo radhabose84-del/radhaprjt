@@ -92,7 +92,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             LEFT JOIN Purchase.MixCodeMaster mc ON d.MixCodeId = mc.Id AND mc.IsDeleted = 0
             WHERE d.ArrivalHeaderId IN @Ids";
 
-        public async Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, bool? pendingStatus = null)
+        public async Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, bool? pendingStatus = null, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null)
         {
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             pageSize = pageSize <= 0 ? 20 : pageSize;
@@ -100,6 +100,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             var where = "WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 where += " AND (h.ArrivalNumber LIKE @Search OR po.PONumber LIKE @Search OR h.VehicleNumber LIKE @Search)";
+
+            // Explicit QC status filter (independent of the pending/non-pending toggle below).
+            if (statusId.HasValue && statusId.Value > 0)
+                where += " AND h.QcStatusId = @StatusId";
+
+            // ArrivalDate range filter — compared on the date part only (inclusive on both ends).
+            if (fromDate.HasValue)
+                where += " AND CAST(h.ArrivalDate AS date) >= @FromDate";
+            if (toDate.HasValue)
+                where += " AND CAST(h.ArrivalDate AS date) <= @ToDate";
 
             // Pending = QC not yet completed: either no inspection exists (QcStatusId IS NULL) or an
             // inspection exists and is still 'Pending' (QcStatusId = QC.MiscMaster QP_QC_STATUS/'PENDING').
@@ -142,7 +152,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize,
                 QcApplicableIds = qcApplicableIds,
-                PendingQcStatusId = pendingQcStatusId
+                PendingQcStatusId = pendingQcStatusId,
+                StatusId = statusId,
+                FromDate = fromDate?.Date,
+                ToDate = toDate?.Date
             };
 
             using var multi = await _conn.QueryMultipleAsync(sql, args);

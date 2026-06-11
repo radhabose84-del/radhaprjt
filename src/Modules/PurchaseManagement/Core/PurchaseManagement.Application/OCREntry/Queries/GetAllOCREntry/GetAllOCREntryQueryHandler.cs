@@ -19,7 +19,7 @@ namespace PurchaseManagement.Application.OCREntry.Queries.GetAllOCREntry
 
         public async Task<ApiResponseDTO<List<OCREntryDto>>> Handle(GetAllOCREntryQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm);
+            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.StatusId, request.FromDate, request.ToDate);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAllOCREntryQuery",

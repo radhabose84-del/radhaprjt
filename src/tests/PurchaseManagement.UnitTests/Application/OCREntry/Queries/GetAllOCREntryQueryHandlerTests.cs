@@ -18,7 +18,7 @@ namespace PurchaseManagement.UnitTests.Application.OCREntry.Queries
         public async Task Handle_ReturnsSuccessWithData()
         {
             var data = new List<OCREntryDto> { OCREntryBuilders.ValidDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((data, 1));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null, null, null)).ReturnsAsync((data, 1));
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(
@@ -32,7 +32,7 @@ namespace PurchaseManagement.UnitTests.Application.OCREntry.Queries
         public async Task Handle_ReturnsPaginationMetadata()
         {
             var data = new List<OCREntryDto> { OCREntryBuilders.ValidDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "OCR")).ReturnsAsync((data, 11));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "OCR", null, null, null)).ReturnsAsync((data, 11));
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(
@@ -46,7 +46,7 @@ namespace PurchaseManagement.UnitTests.Application.OCREntry.Queries
         [Fact]
         public async Task Handle_EmptyResult_ReturnsSuccess()
         {
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null)).ReturnsAsync((new List<OCREntryDto>(), 0));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, null, null, null)).ReturnsAsync((new List<OCREntryDto>(), 0));
             _mockMediator.Setup(m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             var result = await CreateSut().Handle(

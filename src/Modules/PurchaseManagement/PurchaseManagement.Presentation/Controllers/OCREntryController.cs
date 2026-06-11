@@ -22,13 +22,19 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllOCREntryAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] int? StatusId = null,
+            [FromQuery] DateTimeOffset? FromDate = null,
+            [FromQuery] DateTimeOffset? ToDate = null)
         {
             var result = await Mediator.Send(new GetAllOCREntryQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                StatusId = StatusId,
+                FromDate = FromDate,
+                ToDate = ToDate
             });
 
             return Ok(new

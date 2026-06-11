@@ -21,13 +21,17 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetAllRawMaterialPOAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] DateTimeOffset? FromDate = null,
+            [FromQuery] DateTimeOffset? ToDate = null)
         {
             var result = await Mediator.Send(new GetAllRawMaterialPOQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                FromDate = FromDate,
+                ToDate = ToDate
             });
 
             return Ok(new

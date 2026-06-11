@@ -84,7 +84,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             LEFT JOIN Purchase.MiscMaster lfr ON o.LorryFreightId = lfr.Id AND lfr.IsDeleted = 0
             LEFT JOIN Purchase.MiscMaster mot ON o.ModeOfTransportId = mot.Id AND mot.IsDeleted = 0";
 
-        public async Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null)
         {
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             pageSize = pageSize <= 0 ? 20 : pageSize;
@@ -92,6 +92,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             var where = "WHERE o.IsDeleted = 0";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 where += " AND (o.OcrNumber LIKE @Search OR ps.Description LIKE @Search OR st.Description LIKE @Search)";
+
+            // Status filter (StatusId).
+            if (statusId.HasValue && statusId.Value > 0)
+                where += " AND o.StatusId = @StatusId";
+
+            // OcrDate range filter — compared on the date part only (inclusive on both ends).
+            if (fromDate.HasValue)
+                where += " AND CAST(o.OcrDate AS date) >= @FromDate";
+            if (toDate.HasValue)
+                where += " AND CAST(o.OcrDate AS date) <= @ToDate";
 
             var sql = $@"
                 {BaseSelect}
@@ -109,7 +119,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             {
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
+                PageSize = pageSize,
+                StatusId = statusId,
+                FromDate = fromDate?.Date,
+                ToDate = toDate?.Date
             };
 
             using var multi = await _conn.QueryMultipleAsync(sql, args);
