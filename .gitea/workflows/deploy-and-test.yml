@@ -1,11 +1,11 @@
 name: Deploy to QA and Run Tests
 
 on:
-  push:
-    branches:
-      - BSOFTERP_Dev_V0.1_BK_04062026
-      - Radha_QATest_Implementations  # TEMP: validate the new QA suites; remove before merge
-  # Manual trigger: Gitea repo -> Actions -> this workflow -> "Run workflow".
+  # MANUAL ONE-CLICK DEPLOY ONLY (no push trigger).
+  # The team pushes to BSOFTERP_Dev_V0.1 all day; when ready to deploy, the designated
+  # developer runs this once: Gitea -> Actions -> "Deploy to QA and Run Tests" -> Run workflow
+  # -> branch BSOFTERP_Dev_V0.1. It builds + publishes + deploys to the QA IIS app + runs the
+  # full QA/Functional suite, replacing the manual build/publish/deploy-to-IIS process.
   workflow_dispatch:
 
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,

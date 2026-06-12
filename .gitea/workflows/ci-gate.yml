@@ -4,11 +4,17 @@ name: CI Gate (build + tests)
 # Purpose: fast merge gate — build + unit tests + integration tests.
 # NO deploy, NO live QA. Keeps flaky live tests from blocking code merges.
 on:
+  # Run on PRs into the protected branches so the gate can be a REQUIRED merge check
+  # (feature branch -> PR -> green CI -> merge). Keeps the dev branch always-green.
+  pull_request:
+    branches:
+      - BSOFTERP_Dev_V0.1
+      - Main
+  # Also run on direct pushes (transition period / hotfixes on the protected branches).
   push:
     branches:
-      - BSOFTERP_Dev_V0.1_BK_04062026
+      - BSOFTERP_Dev_V0.1
       - Main
-      - Radha_QATest_Implementations  # TEMP: validate Sonar+coverage on the working branch; remove before merge
   workflow_dispatch:
 
 # One run at a time per ref. Cancel the older run when a newer push arrives —
