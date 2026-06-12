@@ -97,6 +97,7 @@ namespace PurchaseManagement.Infrastructure.Data
         public DbSet<ArrivalHeader> ArrivalHeader { get; set; }
         public DbSet<ArrivalDetail> ArrivalDetail { get; set; }
         public DbSet<StockLedgerRaw> StockLedgerRaw { get; set; }
+        public DbSet<MixCodeMaster> MixCodeMaster { get; set; }
 
         //Rfq
         public DbSet<RfqMaster> Rfqs { get; set; }
@@ -256,6 +257,7 @@ namespace PurchaseManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new ImportPOHeaderConfiguration());
             modelBuilder.ApplyConfiguration(new ImportPODetailConfiguration());
             modelBuilder.ApplyConfiguration(new DutyMasterConfiguration());
+            modelBuilder.ApplyConfiguration(new MixCodeMasterConfiguration());
             modelBuilder.ApplyConfiguration(new OCREntryConfiguration());
             modelBuilder.ApplyConfiguration(new OCRQualityParameterConfiguration());
             modelBuilder.ApplyConfiguration(new RawMaterialPOHeaderConfiguration());

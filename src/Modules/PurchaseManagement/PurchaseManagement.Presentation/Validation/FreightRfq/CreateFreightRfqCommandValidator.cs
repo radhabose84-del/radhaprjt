@@ -100,6 +100,16 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
                 .MustAsync(async (cmd, poId, ct) => !await IsPoBasedAsync(cmd.RfqTypeId) || (poId is > 0))
                 .WithMessage("PO Reference is required for a PO Based Freight RFQ.")
                 .WithName(nameof(CreateFreightRfqCommand.PoReferenceId));
+
+            // At least one transporter selected (the RFQ is emailed to them on save).
+            RuleFor(x => x.Transporters)
+                .NotEmpty().WithMessage("At least one transporter must be selected.");
+
+            RuleForEach(x => x.Transporters).ChildRules(t =>
+            {
+                t.RuleFor(r => r.TransporterId)
+                    .GreaterThan(0).WithMessage("Transporter is required.");
+            });
         }
 
         private async Task<bool> IsPoBasedAsync(int rfqTypeId)

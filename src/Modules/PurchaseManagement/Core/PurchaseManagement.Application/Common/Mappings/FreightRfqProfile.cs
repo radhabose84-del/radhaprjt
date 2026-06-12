@@ -9,11 +9,10 @@ namespace PurchaseManagement.Application.Common.Mappings
     {
         public FreightRfqProfile()
         {
-            // FreightRfqNumber + StatusId (default "Draft") are resolved in the command repository.
-            // Identity, audit, workflow/approval, and navigation members are NOT set from the command
-            // (set by the repository/handler or only during the approval flow) — ignore them so the
-            // mapping configuration is explicit and valid.
+            // FreightRfqNumber (document sequence) + StatusId ("Quotation Pending") are resolved in the handler/repo.
+            // Quotation rows are built from the Transporters list in the handler, so ignore the dest collection here.
             CreateMap<CreateFreightRfqCommand, PurchaseManagement.Domain.Entities.FreightRfq.FreightRfqHeader>()
+                .ForMember(d => d.Quotations, opt => opt.Ignore())
                 .ForMember(d => d.IsActive, opt => opt.MapFrom(_ => Status.Active))
                 .ForMember(d => d.IsDeleted, opt => opt.MapFrom(_ => IsDelete.NotDeleted))
                 .ForMember(d => d.Id, opt => opt.Ignore())
@@ -40,6 +39,7 @@ namespace PurchaseManagement.Application.Common.Mappings
                 .ForMember(d => d.IsDeleted, opt => opt.Ignore())
                 .ForMember(d => d.FreightRfqNumber, opt => opt.Ignore())
                 .ForMember(d => d.RfqDate, opt => opt.Ignore())
+                .ForMember(d => d.RfqValidTill, opt => opt.Ignore())
                 .ForMember(d => d.StatusId, opt => opt.Ignore())
                 .ForMember(d => d.SelectedQuotationId, opt => opt.Ignore())
                 .ForMember(d => d.ComparisonRemarks, opt => opt.Ignore())

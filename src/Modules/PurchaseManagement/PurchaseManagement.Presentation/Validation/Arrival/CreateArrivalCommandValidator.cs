@@ -104,7 +104,6 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                 d.RuleFor(p => p.OrderedQty).GreaterThan(0).WithMessage("OrderedQty must be greater than zero.");
                 d.RuleFor(p => p.ArrivedQty).GreaterThanOrEqualTo(0).WithMessage("ArrivedQty must be zero or positive.");
                 d.RuleFor(p => p.CancelledQty).GreaterThanOrEqualTo(0).WithMessage("CancelledQty must be zero or positive.");
-                d.RuleFor(p => p.BatchNumber).NotEmpty().WithMessage("Batch Number is required.");
 
                 // R2 — bale range must be valid
                 d.RuleFor(p => p.BaleNumberTo)
@@ -112,20 +111,55 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                     .WithMessage("Bale Number To must be greater than or equal to Bale Number From.");
             });
 
-            // R3 — duplicate bale ranges are not allowed across non-deleted arrivals
+            // R4 — an arrival line's ArrivedQty may not exceed the PO ordered quantity for that item.
+            // Compared per ItemId (summing payload lines that share an item) against the PO quantity.
             RuleFor(x => x).CustomAsync(async (cmd, context, ct) =>
+            {
+                if (cmd.Details == null || cmd.Details.Count == 0 || cmd.RawMaterialPOId <= 0)
+                    return;
+
+                var poQtyByItem = await queryRepo.GetRawMaterialPOItemQuantitiesAsync(cmd.RawMaterialPOId);
+                if (poQtyByItem == null || poQtyByItem.Count == 0)
+                    return;
+
+                var arrivedByItem = cmd.Details
+                    .Where(d => d.ItemId > 0)
+                    .GroupBy(d => d.ItemId)
+                    .Select(g => new { ItemId = g.Key, Arrived = g.Sum(x => x.ArrivedQty) });
+
+                foreach (var line in arrivedByItem)
+                {
+                    if (poQtyByItem.TryGetValue(line.ItemId, out var orderedQty) && line.Arrived > orderedQty)
+                    {
+                        context.AddFailure(
+                            $"Arrived quantity ({line.Arrived}) cannot exceed the PO ordered quantity ({orderedQty}) for item {line.ItemId}.");
+                    }
+                }
+            });
+
+            // R3 — within this arrival (one lotno = ArrivalHeader Id), bale numbers may not be duplicated:
+            // no two detail lines may have overlapping bale ranges. Bale numbers may repeat across different
+            // arrivals, so there is no cross-arrival check on insert (the new lot has no captured bales yet).
+            RuleFor(x => x).Custom((cmd, context) =>
             {
                 if (cmd.Details == null)
                     return;
 
-                foreach (var line in cmd.Details)
-                {
-                    if (line.BaleNumberFrom <= 0 || line.BaleNumberTo < line.BaleNumberFrom)
-                        continue;
+                var ranges = cmd.Details
+                    .Where(l => l.BaleNumberFrom > 0 && l.BaleNumberTo >= l.BaleNumberFrom)
+                    .ToList();
 
-                    if (await queryRepo.BaleRangeOverlapsAsync(line.BaleNumberFrom, line.BaleNumberTo, null))
-                        context.AddFailure(
-                            $"Bale range {line.BaleNumberFrom}–{line.BaleNumberTo} overlaps an existing arrival.");
+                for (var i = 0; i < ranges.Count; i++)
+                {
+                    for (var j = i + 1; j < ranges.Count; j++)
+                    {
+                        if (ranges[i].BaleNumberFrom <= ranges[j].BaleNumberTo &&
+                            ranges[j].BaleNumberFrom <= ranges[i].BaleNumberTo)
+                        {
+                            context.AddFailure(
+                                $"Bale range {ranges[j].BaleNumberFrom}–{ranges[j].BaleNumberTo} overlaps another line in this arrival.");
+                        }
+                    }
                 }
             });
         }

@@ -120,5 +120,11 @@ namespace PurchaseManagement.Domain.Common
         public const string FreightRateBasisPerBale = "Per Bale";
         public const string FreightRateBasisPerMt = "Per MT";
         public const string FreightRateBasisPerVehicle = "Per Vehicle";
+
+        // Freight RFQ number generation — Finance.TransactionTypeMaster.TypeName (Id 59) for the document sequence.
+        public const string TransactionTypeFreightRfqQuotation = "Freight RFQ Quotation";
+
+        // Freight RFQ initial saved status (renamed from Draft) — code stored in FreightRfqStatus MiscMaster.
+        public const string FreightRfqQuotationPending = "QuotationPending";
     }
 }

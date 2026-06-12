@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PurchaseManagement.Domain.Entities;
 using PurchaseManagement.Domain.Entities.FreightRfq;
-using PurchaseManagement.Domain.Entities.PurchaseOrder;
+using PurchaseManagement.Domain.Entities.RawMaterialPO;
 using static PurchaseManagement.Domain.Common.BaseEntity;
 
 namespace PurchaseManagement.Infrastructure.Data.Configurations.FreightRfq;
@@ -27,6 +27,7 @@ public class FreightRfqHeaderConfiguration : IEntityTypeConfiguration<FreightRfq
         // Identity
         b.Property(x => x.FreightRfqNumber).HasColumnType("varchar(20)").IsRequired();
         b.Property(x => x.RfqDate).HasColumnType("datetimeoffset").IsRequired();
+        b.Property(x => x.RfqValidTill).HasColumnType("datetimeoffset").IsRequired(false);
 
         // Type & PO linkage
         b.Property(x => x.RfqTypeId).IsRequired();
@@ -66,12 +67,12 @@ public class FreightRfqHeaderConfiguration : IEntityTypeConfiguration<FreightRfq
          .OnDelete(DeleteBehavior.Restrict)
          .HasConstraintName("FK_FreightRfqHeader_Status");
 
-        // FK: PO Reference -> Purchase.PurchaseOrderHeader (same module, nullable)
-        b.HasOne<PurchaseOrderHeader>()
+        // FK: PO Reference -> Purchase.RawMaterialPOHeader (same module, nullable)
+        b.HasOne<RawMaterialPOHeader>()
          .WithMany()
          .HasForeignKey(x => x.PoReferenceId)
          .OnDelete(DeleteBehavior.Restrict)
-         .HasConstraintName("FK_FreightRfqHeader_PurchaseOrder");
+         .HasConstraintName("FK_FreightRfqHeader_RawMaterialPO");
 
         // SupplierId, SelectedQuotationId, ApprovedTransporterId -> no DB FK (cross-module / self-cycle)
 

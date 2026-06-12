@@ -15,5 +15,6 @@ namespace PurchaseManagement.Application.FreightRfq.Dto
         public decimal? ApprovedFreightValue { get; set; }
         public int StatusId { get; set; }
         public string? StatusName { get; set; }
+        public int? ApprovalRequestHeaderId { get; set; }         // workflow ApprovalRequest.Id (for the approve call)
     }
 }

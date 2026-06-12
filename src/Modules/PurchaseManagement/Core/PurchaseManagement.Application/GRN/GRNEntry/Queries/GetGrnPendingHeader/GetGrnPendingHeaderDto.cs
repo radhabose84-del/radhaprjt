@@ -32,6 +32,9 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
         public bool? IsQcApproved { get; set; }
         public string? RejectedImage { get; set; }
 
+        // QC.MiscMaster Id for QP_SOURCE_TYPE / code 'GRN' — resolved by the handler via IQcMiscMasterLookup.
+        public int? SourceTypeId { get; set; }
+
         // GRN line items for this header row. Populated by the repo (qty/Po/Item Ids) and enriched
         // by the handler (ItemCode/ItemName via IItemLookup, IsTemplateAvailable via IQualitySpecificationLookup).
         public List<GrnPendingHeaderDetailDto> GrnDetails { get; set; } = new();

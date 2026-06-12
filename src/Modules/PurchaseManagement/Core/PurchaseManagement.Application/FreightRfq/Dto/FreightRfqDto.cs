@@ -6,6 +6,7 @@ namespace PurchaseManagement.Application.FreightRfq.Dto
         public int Id { get; set; }
         public string? FreightRfqNumber { get; set; }
         public DateTimeOffset RfqDate { get; set; }
+        public DateTimeOffset? RfqValidTill { get; set; }
 
         public int RfqTypeId { get; set; }
         public string? RfqTypeName { get; set; }
@@ -26,6 +27,7 @@ namespace PurchaseManagement.Application.FreightRfq.Dto
 
         public int StatusId { get; set; }
         public string? StatusName { get; set; }
+        public int? ApprovalRequestHeaderId { get; set; }   // workflow ApprovalRequest.Id (for the approve call)
 
         public int? SelectedQuotationId { get; set; }
         public string? ComparisonRemarks { get; set; }

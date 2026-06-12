@@ -18,7 +18,7 @@ namespace PurchaseManagement.Application.RawMaterialPO.Queries.GetRawMaterialPOA
 
         public async Task<IReadOnlyList<RawMaterialPOLookupDto>> Handle(GetRawMaterialPOAutoCompleteQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, cancellationToken);
+            var result = await _queryRepository.AutocompleteAsync(request.Term ?? string.Empty, request.ShowAll, cancellationToken);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",

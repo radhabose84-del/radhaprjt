@@ -14,6 +14,8 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
         public int StationId { get; set; }
         public int GodownId { get; set; }
         public int TransporterId { get; set; }
+        public int? VmrId { get; set; }            // Gate.VehicleMovementRecord
+        public string? SupplierLotNo { get; set; }
 
         public decimal? FreightRate { get; set; }
         public string? InvoiceGstNo { get; set; }
@@ -30,6 +32,10 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
         public decimal PartyWeight { get; set; }
         public decimal WeightDifference { get; set; }
         public decimal? MoisturePercentage { get; set; }
+
+        // PR range (from–to) — optional
+        public int? PRFrom { get; set; }
+        public int? PRTo { get; set; }
 
         public string? Remarks { get; set; }
 
@@ -52,7 +58,7 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
 
         // Line-level bale summary (persisted on ArrivalDetail). Used as the consolidated
         // range when no per-bale BaleDetails are supplied, and for duplicate-range checks.
-        public string BatchNumber { get; set; } = default!;
+        public string? BatchNumber { get; set; }
         public long BaleNumberFrom { get; set; }
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }
@@ -68,7 +74,6 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
     {
         public long BaleNumber { get; set; }
         public decimal BaleWeight { get; set; }
-        public int BaleCaptureMethodId { get; set; }   // MiscMaster (manual entry / barcode scan) — metadata
         public long? BarcodeNumber { get; set; }        // scanned barcode; null when not scanned
     }
 }

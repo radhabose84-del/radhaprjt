@@ -55,7 +55,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.PurchaseIndents
                 IH.Purpose,
                 IH.IsActive,
                 ID.Id,ID.IndentHeaderId,ID.ItemId,ID.ItemCategoryId,ID.ItemUOMId,ID.Rate,
-                ID.QuantityRequired,ID.RequiredDate,ID.TotalEstimatedCost,ID.PRConsumptionDays,ID.Remark,ID.IsActive,ID.IsRFQDone,HeaderStatus.Id,HeaderStatus.Code,
+                ID.QuantityRequired,ID.OldQuantityRequired,ID.RequiredDate,ID.TotalEstimatedCost,ID.PRConsumptionDays,ID.Remark,ID.IsActive,ID.IsRFQDone,HeaderStatus.Id,HeaderStatus.Code,
                 LineStatus.Id,LineStatus.Code,IndentType.Id,IndentType.Code
             FROM [Purchase].[IndentHeader] IH
             INNER JOIN [Purchase].[IndentDetail] ID on ID.IndentHeaderId=IH.Id

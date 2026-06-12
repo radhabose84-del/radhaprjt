@@ -20,7 +20,6 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Arrival
             b.Property(x => x.BaleNo);
             b.Property(x => x.BarcodeNumber);
             b.Property(x => x.BaleWeight).HasPrecision(18, 3);
-            b.Property(x => x.BaleCaptureMethodId);   // nullable — Individual bales only
 
             // ── Cross-module FK columns (no DB constraint) ──
             b.Property(x => x.ItemId).IsRequired();

@@ -4,9 +4,14 @@ namespace PurchaseManagement.Application.Common.Interfaces.IRawMaterialPO
 {
     public interface IRawMaterialPOQueryRepository
     {
-        Task<(List<RawMaterialPODto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<RawMaterialPODto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null);
         Task<RawMaterialPODto?> GetByIdAsync(int id);
-        Task<IReadOnlyList<RawMaterialPOLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
+        /// <summary>
+        /// Autocomplete list of Raw Material POs. When <paramref name="showAll"/> is false (default),
+        /// POs that are fully arrived — an arrival exists and total arrived qty has reached the PO
+        /// ordered qty — are excluded. When true, every active PO is returned.
+        /// </summary>
+        Task<IReadOnlyList<RawMaterialPOLookupDto>> AutocompleteAsync(string term, bool showAll, CancellationToken ct);
 
         Task<bool> NotFoundAsync(int id);
 

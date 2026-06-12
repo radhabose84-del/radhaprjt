@@ -7,8 +7,10 @@ using Contracts.Dtos.Lookups.Warehouse;
 using Contracts.Interfaces;
 using PurchaseManagement.Application.Arrival.Common;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Lookups.Gate;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
+using Contracts.Dtos.Lookups.QC;
 using Contracts.Interfaces.Lookups.Production;
 using Contracts.Interfaces.Lookups.QC;
 using Contracts.Interfaces.Lookups.Users;
@@ -39,6 +41,8 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
         private readonly Mock<IPackTypeLookup> _packTypeMock = new(MockBehavior.Loose);
         private readonly Mock<IUOMLookup> _uomMock = new(MockBehavior.Loose);
         private readonly Mock<IQcMiscMasterLookup> _qcMiscMock = new(MockBehavior.Loose);
+        private readonly Mock<IQualitySpecificationLookup> _qualitySpecMock = new(MockBehavior.Loose);
+        private readonly Mock<IVehicleMovementRecordLookup> _vmrMock = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _ipMock = new(MockBehavior.Loose);
 
         public ArrivalQueryRepositoryTests(DbFixture fixture)
@@ -64,6 +68,10 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
                 .ReturnsAsync(new List<PackTypeLookupDto> { new() { Id = 2, PackTypeName = "Bale" } });
             _uomMock.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<UOMLookupDto> { new() { Id = 4, UOMName = "Bale" } });
+            // Item 13 has a QC quality specification → pending arrivals for it are QC-applicable.
+            _qualitySpecMock.Setup(q => q.GetMatchingAsync(
+                    It.IsAny<IEnumerable<int>>(), It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new QualitySpecificationMatchDto { MatchedItemIds = new HashSet<int> { 13 } });
         }
 
         private ArrivalQueryRepository CreateQueryRepo()
@@ -71,7 +79,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var conn = new SqlConnection(_fixture.ConnectionString);
             return new ArrivalQueryRepository(conn, _supplierMock.Object, _stationMock.Object, _warehouseMock.Object,
                 _transporterMock.Object, _itemMock.Object, _hsnMock.Object, _packTypeMock.Object, _uomMock.Object,
-                _qcMiscMock.Object, _ipMock.Object);
+                _qcMiscMock.Object, _qualitySpecMock.Object, _vmrMock.Object, _ipMock.Object);
         }
 
         private ArrivalCommandRepository CreateCommandRepo(ApplicationDbContext ctx) =>
@@ -171,13 +179,13 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
 
             var header = BuildHeader(rmpoId, qcId, statusId, "ARV-Q-IND-1");
             header.StockRows = ArrivalStockLedgerFactory.Build(
-                header.ArrivalDate, header.NetWeight,
+                header.ArrivalDate,
                 new[]
                 {
-                    new ArrivalStockLedgerFactory.LineInput(13, 4, 100001, 100002, new[]
+                    new ArrivalStockLedgerFactory.LineInput(13, 4, new[]
                     {
-                        new ArrivalStockLedgerFactory.BaleEntry(100001, 221.5m, 1312, 900001),
-                        new ArrivalStockLedgerFactory.BaleEntry(100002, 223.0m, 1312, 900002)
+                        new ArrivalStockLedgerFactory.BaleEntry(100001, 221.5m, 900001),
+                        new ArrivalStockLedgerFactory.BaleEntry(100002, 223.0m, 900002)
                     })
                 });
             var id = await CreateCommandRepo(ctx).CreateAsync(header, 0, CancellationToken.None);
@@ -186,12 +194,10 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
 
             dto.Should().NotBeNull();
             var line = dto!.Details.Single(d => d.ItemId == 13);
-            line.IsIndividual.Should().BeTrue();
             line.Bales.Should().HaveCount(2);
             line.Bales[0].BaleNo.Should().Be(100001);
             line.Bales[0].BarcodeNumber.Should().Be(900001);
             line.Bales[0].BaleWeight.Should().Be(221.5m);
-            line.Bales[0].BaleCaptureMethodId.Should().Be(1312);
         }
 
         [Fact]
@@ -201,16 +207,15 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var (rmpoId, qcId, statusId) = await SeedAsync(ctx);
 
             var header = BuildHeader(rmpoId, qcId, statusId, "ARV-Q-CON-1");
-            // Consolidated → expand the line range (no bale entries).
+            // No bale entries in the payload → no StockLedgerRaw rows → empty Bales on read.
             header.StockRows = ArrivalStockLedgerFactory.Build(
-                header.ArrivalDate, header.NetWeight,
-                new[] { new ArrivalStockLedgerFactory.LineInput(13, 4, 100001, 100003, null) });
+                header.ArrivalDate,
+                new[] { new ArrivalStockLedgerFactory.LineInput(13, 4, null) });
             var id = await CreateCommandRepo(ctx).CreateAsync(header, 0, CancellationToken.None);
 
             var dto = await CreateQueryRepo().GetByIdAsync(id);
 
             var line = dto!.Details.Single(d => d.ItemId == 13);
-            line.IsIndividual.Should().BeFalse();
             line.Bales.Should().BeEmpty();
         }
 
@@ -228,6 +233,55 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
         }
 
         [Fact]
+        public async Task GetAllAsync_PendingStatus_Filters_By_QcStatus()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (rmpoId, qcId, statusId) = await SeedAsync(ctx);
+
+            // QC signed off — QcStatusId set (not pending)
+            await CreateCommandRepo(ctx).CreateAsync(BuildHeader(rmpoId, qcId, statusId, "ARV-Q-DONE"), 0, CancellationToken.None);
+
+            // Pending QC — QcStatusId null, distinct bale range
+            var pending = BuildHeader(rmpoId, qcId, statusId, "ARV-Q-PEND");
+            pending.QcStatusId = null;
+            pending.ArrivalDetails!.First().BaleNumberFrom = 200001;
+            pending.ArrivalDetails!.First().BaleNumberTo = 200003;
+            await CreateCommandRepo(ctx).CreateAsync(pending, 0, CancellationToken.None);
+
+            var (_, allTotal) = await CreateQueryRepo().GetAllAsync(1, 10, null, null);
+            var (pendingItems, pendingTotal) = await CreateQueryRepo().GetAllAsync(1, 10, null, true);
+            var (doneItems, doneTotal) = await CreateQueryRepo().GetAllAsync(1, 10, null, false);
+
+            allTotal.Should().Be(2);
+            pendingTotal.Should().Be(1);
+            pendingItems.Should().ContainSingle(x => x.ArrivalNumber == "ARV-Q-PEND");
+            doneTotal.Should().Be(1);
+            doneItems.Should().ContainSingle(x => x.ArrivalNumber == "ARV-Q-DONE");
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Pending_Excludes_Arrivals_With_No_QcSpec()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (rmpoId, qcId, statusId) = await SeedAsync(ctx);
+
+            var pending = BuildHeader(rmpoId, qcId, statusId, "ARV-Q-NOQC");
+            pending.QcStatusId = null;
+            await CreateCommandRepo(ctx).CreateAsync(pending, 0, CancellationToken.None);
+
+            // No quality specification matches any item/category → QC inspection does not apply →
+            // the pending arrival must not appear in the pending list.
+            _qualitySpecMock.Setup(q => q.GetMatchingAsync(
+                    It.IsAny<IEnumerable<int>>(), It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new QualitySpecificationMatchDto());
+
+            var (items, total) = await CreateQueryRepo().GetAllAsync(1, 10, null, true);
+
+            total.Should().Be(0);
+            items.Should().BeEmpty();
+        }
+
+        [Fact]
         public async Task GetByIdAsync_Should_Return_Null_When_SoftDeleted()
         {
             await using var ctx = _fixture.CreateFreshDbContext();
@@ -238,31 +292,6 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var dto = await CreateQueryRepo().GetByIdAsync(id);
 
             dto.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task BaleRangeOverlapsAsync_Should_Return_True_For_Overlap()
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var (rmpoId, qcId, statusId) = await SeedAsync(ctx);
-            await CreateCommandRepo(ctx).CreateAsync(BuildHeader(rmpoId, qcId, statusId, "ARV-Q-0004"), 0, CancellationToken.None);
-
-            // Seeded range is 100001..100003 → overlaps 100002..100010
-            var overlaps = await CreateQueryRepo().BaleRangeOverlapsAsync(100002, 100010, null);
-
-            overlaps.Should().BeTrue();
-        }
-
-        [Fact]
-        public async Task BaleRangeOverlapsAsync_Should_Return_False_For_Disjoint_Range()
-        {
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var (rmpoId, qcId, statusId) = await SeedAsync(ctx);
-            await CreateCommandRepo(ctx).CreateAsync(BuildHeader(rmpoId, qcId, statusId, "ARV-Q-0005"), 0, CancellationToken.None);
-
-            var overlaps = await CreateQueryRepo().BaleRangeOverlapsAsync(200001, 200010, null);
-
-            overlaps.Should().BeFalse();
         }
 
         [Fact]

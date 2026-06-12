@@ -21,6 +21,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
         private readonly IGateInwardLookup _gateInwardLookup;
         private readonly IItemLookup _itemLookup;
         private readonly IQualitySpecificationLookup _qualitySpecificationLookup;
+        private readonly IQcMiscMasterLookup _qcMiscMasterLookup;
 
         public GetGrnPendingHeaderQueryHandler(
             IGRNEntryQueryRepository iGrnEntryQueryRepository,
@@ -30,7 +31,8 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
             IWarehouseLookup warehouseLookup,
             IGateInwardLookup gateInwardLookup,
             IItemLookup itemLookup,
-            IQualitySpecificationLookup qualitySpecificationLookup)
+            IQualitySpecificationLookup qualitySpecificationLookup,
+            IQcMiscMasterLookup qcMiscMasterLookup)
         {
             _iGrnEntryQueryRepository = iGrnEntryQueryRepository;
             _mapper = mapper;
@@ -40,6 +42,7 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
             _gateInwardLookup = gateInwardLookup;
             _itemLookup = itemLookup;
             _qualitySpecificationLookup = qualitySpecificationLookup;
+            _qcMiscMasterLookup = qcMiscMasterLookup;
         }
 
         
@@ -57,6 +60,12 @@ namespace PurchaseManagement.Application.GRN.GRNEntry.Queries.GetGrnPendingHeade
         );
 
         var pendingGrnList = _mapper.Map<List<GetGrnPendingHeaderDto>>(result);
+
+        // ── Cross-module: resolve the QC.MiscMaster Id for QP_SOURCE_TYPE / code 'GRN' (single value,
+        // used to create a QC inspection from a GRN). Resolved once via lookup — no cross-module JOIN. ──
+        var grnSourceTypeId = await _qcMiscMasterLookup.GetIdByTypeAndCodeAsync("QP_SOURCE_TYPE", "GRN", cancellationToken);
+        foreach (var header in pendingGrnList)
+            header.SourceTypeId = grnSourceTypeId;
 
         // Collect unique Party and Warehouse IDs
         var partyIds = pendingGrnList

@@ -107,10 +107,10 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
                 }
             }
 
-            // R4 — only a Draft RFQ may be edited.
+            // R4 — only a Quotation Pending RFQ may be edited.
             RuleFor(x => x.Id)
-                .MustAsync(async (id, ct) => (await _queryRepository.GetStatusCodeAsync(id)) == MiscEnumEntity.Draft)
-                .WithMessage("Only a Draft Freight RFQ can be edited.")
+                .MustAsync(async (id, ct) => (await _queryRepository.GetStatusCodeAsync(id)) == MiscEnumEntity.FreightRfqQuotationPending)
+                .WithMessage("Only a Quotation Pending Freight RFQ can be edited.")
                 .WithName("Freight RFQ")
                 .When(x => x.Id > 0);
 

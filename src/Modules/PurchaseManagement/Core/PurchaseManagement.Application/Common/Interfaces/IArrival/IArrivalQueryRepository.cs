@@ -4,7 +4,7 @@ namespace PurchaseManagement.Application.Common.Interfaces.IArrival
 {
     public interface IArrivalQueryRepository
     {
-        Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm);
+        Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, bool? pendingStatus = null, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null);
         Task<ArrivalDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<ArrivalLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
 
@@ -15,9 +15,18 @@ namespace PurchaseManagement.Application.Common.Interfaces.IArrival
         Task<bool> MiscMasterExistsAsync(int id);
 
         /// <summary>
-        /// True when any non-deleted ArrivalDetail (excluding the optional header) already overlaps
-        /// the given bale range — supports duplicate-range prevention (R3).
+        /// Total ordered (PO) quantity per ItemId for the given Raw Material PO header, keyed by ItemId.
+        /// Used to validate that an arrival line's ArrivedQty does not exceed the PO quantity.
         /// </summary>
-        Task<bool> BaleRangeOverlapsAsync(long from, long to, int? excludeHeaderId);
+        Task<IReadOnlyDictionary<int, decimal>> GetRawMaterialPOItemQuantitiesAsync(int rawMaterialPOId);
+
+        /// <summary>Most recent lot number (= latest ArrivalHeader Id) for the current unit, or null when none exists.</summary>
+        Task<ArrivalLastLotNoDto?> GetLastLotNoAsync();
+
+        /// <summary>
+        /// Remaining (balance) quantity per item for a Raw Material PO, scoped to the current unit:
+        /// PO ordered qty − total arrived qty. One row per PO item.
+        /// </summary>
+        Task<IReadOnlyList<ArrivalBalanceQtyDto>> GetBalanceQuantitiesAsync(int rawMaterialPOId);
     }
 }

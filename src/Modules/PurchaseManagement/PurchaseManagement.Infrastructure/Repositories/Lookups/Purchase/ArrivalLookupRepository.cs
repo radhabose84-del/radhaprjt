@@ -1,6 +1,8 @@
 using System.Data;
 using Contracts.Dtos.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Lookups.QC;
 using Dapper;
 
 namespace PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase
@@ -8,10 +10,17 @@ namespace PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase
     internal sealed class ArrivalLookupRepository : IArrivalLookup
     {
         private readonly IDbConnection _dbConnection;
+        private readonly IItemLookup _itemLookup;
+        private readonly IQualitySpecificationLookup _qualitySpecificationLookup;
 
-        public ArrivalLookupRepository(IDbConnection dbConnection)
+        public ArrivalLookupRepository(
+            IDbConnection dbConnection,
+            IItemLookup itemLookup,
+            IQualitySpecificationLookup qualitySpecificationLookup)
         {
             _dbConnection = dbConnection;
+            _itemLookup = itemLookup;
+            _qualitySpecificationLookup = qualitySpecificationLookup;
         }
 
         // ArrivalDetail has no IsDeleted column; the header carries soft-delete.
@@ -57,12 +66,44 @@ namespace PurchaseManagement.Infrastructure.Repositories.Lookups.Purchase
                   AND (@ToDate     IS NULL OR h.ArrivalDate <= @ToDate)
                 ORDER BY h.ArrivalDate DESC, d.Id ASC;";
 
-            var result = await _dbConnection.QueryAsync<ArrivalLookupDto>(
+            var lines = (await _dbConnection.QueryAsync<ArrivalLookupDto>(
                 new CommandDefinition(
                     sql,
                     new { SupplierId = supplierId, FromDate = fromDate, ToDate = toDate },
-                    cancellationToken: ct));
-            return result.ToList();
+                    cancellationToken: ct))).ToList();
+
+            await PopulateTemplateAvailabilityAsync(lines, ct);
+            return lines;
+        }
+
+        // QC template availability per line — same Y/N rule as ArrivalQueryRepository.LoadDetailsAsync:
+        // the item (or its item category) has an active Qc.QualitySpecification.
+        private async Task PopulateTemplateAvailabilityAsync(List<ArrivalLookupDto> lines, CancellationToken ct)
+        {
+            if (lines.Count == 0)
+                return;
+
+            var distinctItemIds = lines.Select(l => l.ItemId).Where(i => i > 0).Distinct().ToList();
+            if (distinctItemIds.Count == 0)
+            {
+                foreach (var l in lines)
+                    l.IsTemplateAvailable = "N";
+                return;
+            }
+
+            var itemCategoryMap = (await _itemLookup.GetByIdsAsync(distinctItemIds, ct))
+                .ToDictionary(x => x.Id, x => x.ItemCategoryId);
+            var categoryIds = itemCategoryMap.Values.Where(c => c > 0).Distinct().ToList();
+
+            var templateMatch = await _qualitySpecificationLookup.GetMatchingAsync(distinctItemIds, categoryIds, ct);
+
+            foreach (var l in lines)
+            {
+                var itemMatched = templateMatch.MatchedItemIds.Contains(l.ItemId);
+                var categoryMatched = itemCategoryMap.TryGetValue(l.ItemId, out var catId)
+                    && catId > 0 && templateMatch.MatchedItemCategoryIds.Contains(catId);
+                l.IsTemplateAvailable = (itemMatched || categoryMatched) ? "Y" : "N";
+            }
         }
 
         public async Task<int> GetLineCountAsync(int arrivalHeaderId, CancellationToken ct = default)

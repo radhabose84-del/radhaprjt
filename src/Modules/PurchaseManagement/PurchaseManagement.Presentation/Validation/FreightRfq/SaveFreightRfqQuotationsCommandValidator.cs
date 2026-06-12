@@ -33,21 +33,23 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
                 .WithName("Freight RFQ")
                 .WithMessage("Freight RFQ does not exist.");
 
-            // R4 — quotations can only be saved on a Draft RFQ.
+            // R4 — quotations can only be saved while the RFQ is still in Quotation Pending.
             RuleFor(x => x.FreightRfqId)
-                .MustAsync(async (id, ct) => (await _queryRepository.GetStatusCodeAsync(id)) == MiscEnumEntity.Draft)
-                .WithMessage("Quotations can only be saved on a Draft Freight RFQ.")
+                .MustAsync(async (id, ct) => (await _queryRepository.GetStatusCodeAsync(id)) == MiscEnumEntity.FreightRfqQuotationPending)
+                .WithMessage("Quotations can only be saved while the Freight RFQ is in Quotation Pending.")
                 .WithName("Freight RFQ")
                 .When(x => x.FreightRfqId > 0);
 
-            // R1 — at least one quotation row.
+            // R1 — at least one transporter row.
             RuleFor(x => x.Quotations)
-                .NotEmpty().WithMessage("At least one transporter quotation is required.");
+                .NotEmpty().WithMessage("At least one transporter is required.");
 
             RuleForEach(x => x.Quotations).ChildRules(row =>
             {
+                // Quoted rate is optional until the transporter replies; when present it must be positive.
                 row.RuleFor(q => q.QuotedRate)
-                    .GreaterThan(0).WithMessage("Quoted Rate must be greater than zero.");
+                    .GreaterThan(0).WithMessage("Quoted Rate must be greater than zero.")
+                    .When(q => q.QuotedRate.HasValue);
 
                 // R2 / E3 — only active transporters can be quoted.
                 row.RuleFor(q => q.TransporterId)
@@ -57,11 +59,11 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
                     .WithMessage("Transporter is inactive or does not exist.")
                     .When(q => q.TransporterId > 0);
 
+                // Rate basis is optional until a quote is entered; when present it must exist.
                 row.RuleFor(q => q.RateBasisId)
-                    .GreaterThan(0).WithMessage("Rate Basis is required.")
-                    .MustAsync(async (rateBasisId, ct) => await _queryRepository.MiscExistsAsync(rateBasisId))
+                    .MustAsync(async (rateBasisId, ct) => await _queryRepository.MiscExistsAsync(rateBasisId!.Value))
                     .WithMessage("Rate Basis is inactive or does not exist.")
-                    .When(q => q.RateBasisId > 0);
+                    .When(q => q.RateBasisId.HasValue && q.RateBasisId.Value > 0);
             });
         }
     }

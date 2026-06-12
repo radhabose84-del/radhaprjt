@@ -35,5 +35,23 @@ namespace QCManagement.Infrastructure.Repositories.Lookups
                 new CommandDefinition(sql, new { Ids = idList }, cancellationToken: ct));
             return rows.ToList();
         }
+
+        public async Task<int?> GetIdByTypeAndCodeAsync(string miscTypeCode, string code, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(miscTypeCode) || string.IsNullOrWhiteSpace(code))
+                return null;
+
+            const string sql = @"
+                SELECT TOP 1 mm.Id
+                FROM QC.MiscMaster mm
+                INNER JOIN QC.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id
+                WHERE mtm.MiscTypeCode = @MiscTypeCode
+                  AND mm.Code = @Code
+                  AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                ORDER BY mm.Id ASC;";
+
+            return await _dbConnection.ExecuteScalarAsync<int?>(
+                new CommandDefinition(sql, new { MiscTypeCode = miscTypeCode, Code = code }, cancellationToken: ct));
+        }
     }
 }

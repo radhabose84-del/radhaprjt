@@ -18,6 +18,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
         private readonly IStationLookup _stationLookup;
         private readonly IItemLookup _itemLookup;
         private readonly ICountMasterLookup _countLookup;
+        private readonly IPackTypeLookup _packTypeLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IQualityTemplateLookup _qualityTemplateLookup;
 
@@ -28,6 +29,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             IStationLookup stationLookup,
             IItemLookup itemLookup,
             ICountMasterLookup countLookup,
+            IPackTypeLookup packTypeLookup,
             IUOMLookup uomLookup,
             IQualityTemplateLookup qualityTemplateLookup)
         {
@@ -37,6 +39,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             _stationLookup = stationLookup;
             _itemLookup = itemLookup;
             _countLookup = countLookup;
+            _packTypeLookup = packTypeLookup;
             _uomLookup = uomLookup;
             _qualityTemplateLookup = qualityTemplateLookup;
         }
@@ -60,7 +63,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 o.ModeOfTransportId, mot.Description AS ModeOfTransportName,
                 o.MillSampleNo, o.CottonPassedBy, o.GstPercentage,
                 o.DiscountPercentage, o.InsurancePercentage, o.Remarks,
-                o.UomId, o.QualityTemplateId,
+                o.UomId, o.QualityTemplateId, o.PackTypeId,
                 o.IsActive, o.IsDeleted,
                 CAST(CASE WHEN EXISTS (
                     SELECT 1 FROM Purchase.RawMaterialPOHeader rp
@@ -81,7 +84,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             LEFT JOIN Purchase.MiscMaster lfr ON o.LorryFreightId = lfr.Id AND lfr.IsDeleted = 0
             LEFT JOIN Purchase.MiscMaster mot ON o.ModeOfTransportId = mot.Id AND mot.IsDeleted = 0";
 
-        public async Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null)
         {
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             pageSize = pageSize <= 0 ? 20 : pageSize;
@@ -89,6 +92,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             var where = "WHERE o.IsDeleted = 0";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 where += " AND (o.OcrNumber LIKE @Search OR ps.Description LIKE @Search OR st.Description LIKE @Search)";
+
+            // Status filter (StatusId).
+            if (statusId.HasValue && statusId.Value > 0)
+                where += " AND o.StatusId = @StatusId";
+
+            // OcrDate range filter — compared on the date part only (inclusive on both ends).
+            if (fromDate.HasValue)
+                where += " AND CAST(o.OcrDate AS date) >= @FromDate";
+            if (toDate.HasValue)
+                where += " AND CAST(o.OcrDate AS date) <= @ToDate";
 
             var sql = $@"
                 {BaseSelect}
@@ -106,7 +119,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             {
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
+                PageSize = pageSize,
+                StatusId = statusId,
+                FromDate = fromDate?.Date,
+                ToDate = toDate?.Date
             };
 
             using var multi = await _conn.QueryMultipleAsync(sql, args);
@@ -185,10 +201,13 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             return (items, total);
         }
 
-        public async Task<IReadOnlyList<OCREntryLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool approved = true)
+        public async Task<IReadOnlyList<OCREntryLookupDto>> AutocompleteAsync(string term, CancellationToken ct, bool approved = true, bool showAll = false)
         {
             // When approved = true (default), only Approved OCRs are returned — these are the
             // ones eligible for Raw Material PO creation. When false, all active OCRs are returned.
+            // When showAll = false (default), hide OCRs that are fully converted: a Raw Material PO
+            // exists against the OCR AND the total converted qty (Σ RawMaterialPODetail.Quantity) has
+            // reached the OCR quantity.
             const string sql = @"
                 SELECT TOP 50 o.Id, o.OcrNumber
                 FROM Purchase.OCREntry o
@@ -196,10 +215,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 WHERE o.IsActive = 1 AND o.IsDeleted = 0
                   AND (@Term = '' OR o.OcrNumber LIKE @Search)
                   AND (@Approved = 0 OR st.Description = 'Approved')
+                  AND (
+                        @ShowAll = 1
+                        OR NOT (
+                              EXISTS (SELECT 1 FROM Purchase.RawMaterialPOHeader h
+                                      WHERE h.OcrId = o.Id AND h.IsDeleted = 0)
+                              AND ISNULL((SELECT SUM(d.Quantity)
+                                          FROM Purchase.RawMaterialPODetail d
+                                          JOIN Purchase.RawMaterialPOHeader h2 ON d.POHeaderId = h2.Id
+                                          WHERE h2.OcrId = o.Id AND h2.IsDeleted = 0 AND d.IsDeleted = 0), 0)
+                                 >= o.Quantity
+                        )
+                  )
                 ORDER BY o.Id DESC;";
 
             var cmd = new CommandDefinition(sql,
-                new { Term = term ?? string.Empty, Search = $"%{term}%", Approved = approved ? 1 : 0 },
+                new { Term = term ?? string.Empty, Search = $"%{term}%", Approved = approved ? 1 : 0, ShowAll = showAll ? 1 : 0 },
                 cancellationToken: ct);
             var rows = await _conn.QueryAsync<OCREntryLookupDto>(cmd);
             return rows.ToList();
@@ -308,6 +339,16 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 ? (await _qualityTemplateLookup.GetByIdsAsync(templateIds)).ToDictionary(x => x.Id, x => x.TemplateName)
                 : new Dictionary<int, string?>();
 
+            // Pack type name (cross-module Production.PackType, optional).
+            var packTypeIds = items
+                .Where(x => x.PackTypeId.HasValue && x.PackTypeId.Value > 0)
+                .Select(x => x.PackTypeId!.Value)
+                .Distinct()
+                .ToList();
+            var packTypeMap = packTypeIds.Count > 0
+                ? (await _packTypeLookup.GetByIdsAsync(packTypeIds)).ToDictionary(x => x.Id, x => x.PackTypeName)
+                : new Dictionary<int, string?>();
+
             foreach (var dto in items)
             {
                 dto.ItemName = itemMap.TryGetValue(dto.ItemId, out var itemName) ? itemName : null;
@@ -319,6 +360,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                     && uomMap.TryGetValue(dto.UomId.Value, out var uomName) ? uomName : null;
                 dto.QualityTemplateName = dto.QualityTemplateId.HasValue
                     && templateMap.TryGetValue(dto.QualityTemplateId.Value, out var tplName) ? tplName : null;
+                dto.PackTypeName = dto.PackTypeId.HasValue
+                    && packTypeMap.TryGetValue(dto.PackTypeId.Value, out var packName) ? packName : null;
             }
         }
     }

@@ -70,10 +70,17 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             };
 
             // StockLedgerRaw rows are built by the handler/factory; mirror that here for the repo test.
-            // No bale entries → factory falls back to the line range as a single consolidated entry.
+            // The factory saves payload bale entries verbatim — expand the range into explicit
+            // per-bale entries (even-split weight, no barcode) to represent the payload.
+            var count = baleTo - baleFrom + 1;
+            var perBaleWeight = count > 0 ? header.NetWeight / count : 0m;
+            var bales = new List<ArrivalStockLedgerFactory.BaleEntry>();
+            for (var b = baleFrom; b <= baleTo; b++)
+                bales.Add(new ArrivalStockLedgerFactory.BaleEntry(b, perBaleWeight, null));
+
             header.StockRows = ArrivalStockLedgerFactory.Build(
-                header.ArrivalDate, header.NetWeight,
-                new[] { new ArrivalStockLedgerFactory.LineInput(13, 4, baleFrom, baleTo, null) });
+                header.ArrivalDate,
+                new[] { new ArrivalStockLedgerFactory.LineInput(13, 4, bales) });
 
             return header;
         }
@@ -181,13 +188,13 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var header = BuildHeader(rmpoId, qcId, statusId, "ARV-2025-0099", 100001, 100002);
             // Override with an Individual capture (barcode scan → BarcodeNumber present, explicit weights).
             header.StockRows = ArrivalStockLedgerFactory.Build(
-                header.ArrivalDate, header.NetWeight,
+                header.ArrivalDate,
                 new[]
                 {
-                    new ArrivalStockLedgerFactory.LineInput(13, 4, 100001, 100002, new[]
+                    new ArrivalStockLedgerFactory.LineInput(13, 4, new[]
                     {
-                        new ArrivalStockLedgerFactory.BaleEntry(100001, 221.5m, 1312, 900001),
-                        new ArrivalStockLedgerFactory.BaleEntry(100002, 223.0m, 1312, 900002)
+                        new ArrivalStockLedgerFactory.BaleEntry(100001, 221.5m, 900001),
+                        new ArrivalStockLedgerFactory.BaleEntry(100002, 223.0m, 900002)
                     })
                 });
 

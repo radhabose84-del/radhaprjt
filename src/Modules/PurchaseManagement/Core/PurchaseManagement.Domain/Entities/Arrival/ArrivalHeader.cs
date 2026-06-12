@@ -27,6 +27,8 @@ namespace PurchaseManagement.Domain.Entities.Arrival
         public int StationId { get; set; }         // Station (IStationLookup) — from PO
         public int GodownId { get; set; }          // Warehouse / godown (IWarehouseLookup)
         public int TransporterId { get; set; }     // Transport (ITransporterLookup)
+        public int? VmrId { get; set; }            // Gate.VehicleMovementRecord (IVehicleMovementRecordLookup) — no DB constraint
+        public string? SupplierLotNo { get; set; } // supplier's lot number
 
         public decimal? FreightRate { get; set; }  // From PO
         public string? InvoiceGstNo { get; set; }
@@ -45,10 +47,14 @@ namespace PurchaseManagement.Domain.Entities.Arrival
 
         public decimal? MoisturePercentage { get; set; }
 
-        // ── Same-module FK (MiscMaster) — DB constraint, Dapper JOIN on read ──
-        // Nullable: not set on create (defaults to null); populated later by QC sign-off.
-        public int? QcStatusId { get; set; }           // Pending / Approved / Rejected
-        public MiscMaster? QcStatus { get; set; }
+        // ── PR range (from–to) — optional ──
+        public int? PRFrom { get; set; }
+        public int? PRTo { get; set; }
+
+        // ── Cross-module FK (QC.MiscMaster QP_QC_STATUS) — NO DB constraint; name resolved via IQcMiscMasterLookup ──
+        // Nullable: not set on create (defaults to null); set to QC 'PENDING' when an inspection is created,
+        // then to the disposition status on QC sign-off.
+        public int? QcStatusId { get; set; }           // QC.MiscMaster id (Pending / Approved / Rejected)
 
         // ── QC sign-off (header-level; written back by QCManagement via IArrivalQcUpdate — mirrors GrnDetail) ──
         public decimal? QcAcceptedQuantity { get; set; }

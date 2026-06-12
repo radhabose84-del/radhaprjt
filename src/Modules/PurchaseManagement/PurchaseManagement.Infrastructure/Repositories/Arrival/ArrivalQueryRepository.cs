@@ -1,5 +1,7 @@
 using System.Data;
+using Contracts.Dtos.Lookups.Gate;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Gate;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Production;
@@ -24,6 +26,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
         private readonly IPackTypeLookup _packTypeLookup;
         private readonly IUOMLookup _uomLookup;
         private readonly IQcMiscMasterLookup _qcMiscMasterLookup;
+        private readonly IQualitySpecificationLookup _qualitySpecificationLookup;
+        private readonly IVehicleMovementRecordLookup _vmrLookup;
         private readonly IIPAddressService _ipAddressService;
 
         public ArrivalQueryRepository(
@@ -37,6 +41,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             IPackTypeLookup packTypeLookup,
             IUOMLookup uomLookup,
             IQcMiscMasterLookup qcMiscMasterLookup,
+            IQualitySpecificationLookup qualitySpecificationLookup,
+            IVehicleMovementRecordLookup vmrLookup,
             IIPAddressService ipAddressService)
         {
             _conn = conn;
@@ -49,6 +55,8 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             _packTypeLookup = packTypeLookup;
             _uomLookup = uomLookup;
             _qcMiscMasterLookup = qcMiscMasterLookup;
+            _qualitySpecificationLookup = qualitySpecificationLookup;
+            _vmrLookup = vmrLookup;
             _ipAddressService = ipAddressService;
         }
 
@@ -60,10 +68,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 h.Id, h.UnitId, h.ArrivalNumber, h.ArrivalDate,
                 h.RawMaterialPOId, po.PONumber,
                 h.VehicleNumber, h.SupplierId, h.StationId, h.GodownId, h.TransporterId,
+                h.VmrId, h.SupplierLotNo,
                 h.FreightRate, h.InvoiceGstNo, h.LrNumber, h.ContainerNo,
                 h.LorryIn, h.LorryOut,
                 h.GrossWeight, h.TareWeight, h.NetWeight, h.PartyWeight, h.WeightDifference,
                 h.MoisturePercentage,
+                h.PRFrom, h.PRTo,
                 h.QcStatusId,
                 h.Remarks, h.IsActive, h.IsDeleted,
                 h.CreatedBy, h.CreatedDate, h.CreatedByName,
@@ -75,12 +85,14 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
         private const string DetailSelect = @"
             SELECT
                 d.Id, d.ArrivalHeaderId, d.ItemId, d.HsnId, d.PackTypeId, d.MixCodeId, d.UomId,
+                mc.MixCodeDesc,
                 d.Rate, d.OrderedQty, d.ArrivedQty, d.CancelledQty, d.BalanceQty,
                 d.BatchNumber, d.BaleNumberFrom, d.BaleNumberTo, d.TotalBaleCount
             FROM Purchase.ArrivalDetail d
+            LEFT JOIN Purchase.MixCodeMaster mc ON d.MixCodeId = mc.Id AND mc.IsDeleted = 0
             WHERE d.ArrivalHeaderId IN @Ids";
 
-        public async Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm)
+        public async Task<(List<ArrivalDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, bool? pendingStatus = null, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null)
         {
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             pageSize = pageSize <= 0 ? 20 : pageSize;
@@ -88,6 +100,39 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             var where = "WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 where += " AND (h.ArrivalNumber LIKE @Search OR po.PONumber LIKE @Search OR h.VehicleNumber LIKE @Search)";
+
+            // Explicit QC status filter (independent of the pending/non-pending toggle below).
+            if (statusId.HasValue && statusId.Value > 0)
+                where += " AND h.QcStatusId = @StatusId";
+
+            // ArrivalDate range filter — compared on the date part only (inclusive on both ends).
+            if (fromDate.HasValue)
+                where += " AND CAST(h.ArrivalDate AS date) >= @FromDate";
+            if (toDate.HasValue)
+                where += " AND CAST(h.ArrivalDate AS date) <= @ToDate";
+
+            // Pending = QC not yet completed: either no inspection exists (QcStatusId IS NULL) or an
+            // inspection exists and is still 'Pending' (QcStatusId = QC.MiscMaster QP_QC_STATUS/'PENDING').
+            // Non-pending = disposed (Approved / Rejected — any non-pending QcStatusId).
+            int? pendingQcStatusId = null;
+            if (pendingStatus.HasValue)
+            {
+                pendingQcStatusId = await _qcMiscMasterLookup.GetIdByTypeAndCodeAsync("QP_QC_STATUS", "PENDING");
+                where += pendingStatus.Value
+                    ? " AND (h.QcStatusId IS NULL OR h.QcStatusId = @PendingQcStatusId)"
+                    : " AND h.QcStatusId IS NOT NULL AND (@PendingQcStatusId IS NULL OR h.QcStatusId <> @PendingQcStatusId)";
+            }
+
+            // When listing pending arrivals: an un-inspected header (QcStatusId IS NULL) only qualifies if
+            // a QC inspection actually applies — i.e. at least one detail item (or its category) has an
+            // active Qc.QualitySpecification. A header already 'Pending' in QC (inspection exists) is always
+            // included. QC applicability is cross-module, so the eligible NULL-status ids are resolved first.
+            List<int>? qcApplicableIds = null;
+            if (pendingStatus == true)
+            {
+                qcApplicableIds = await GetQcApplicablePendingHeaderIdsAsync(CurrentUnitId());
+                where += " AND (h.QcStatusId = @PendingQcStatusId OR h.Id IN @QcApplicableIds)";
+            }
 
             var sql = $@"
                 {HeaderSelect}
@@ -105,7 +150,12 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 UnitId = CurrentUnitId(),
                 Search = $"%{searchTerm}%",
                 Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
+                PageSize = pageSize,
+                QcApplicableIds = qcApplicableIds,
+                PendingQcStatusId = pendingQcStatusId,
+                StatusId = statusId,
+                FromDate = fromDate?.Date,
+                ToDate = toDate?.Date
             };
 
             using var multi = await _conn.QueryMultipleAsync(sql, args);
@@ -115,6 +165,47 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             await LoadDetailsAsync(items);
             await PopulateHeaderNamesAsync(items);
             return (items, total);
+        }
+
+        // Pending arrival headers for which a QC inspection applies — i.e. at least one detail item
+        // (or its item category) has an active Qc.QualitySpecification. Item category comes from
+        // Inventory (IItemLookup) and the spec match from QC (IQualitySpecificationLookup) — both
+        // cross-module, so this is resolved here rather than in SQL.
+        private async Task<List<int>> GetQcApplicablePendingHeaderIdsAsync(int unitId)
+        {
+            const string sql = @"
+                SELECT h.Id AS HeaderId, d.ItemId AS ItemId
+                FROM Purchase.ArrivalHeader h
+                JOIN Purchase.ArrivalDetail d ON d.ArrivalHeaderId = h.Id
+                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId AND h.QcStatusId IS NULL;";
+
+            var rows = (await _conn.QueryAsync<HeaderItemRow>(sql, new { UnitId = unitId })).ToList();
+            if (rows.Count == 0)
+                return new List<int>();
+
+            var itemIds = rows.Select(r => r.ItemId).Where(i => i > 0).Distinct().ToList();
+            if (itemIds.Count == 0)
+                return new List<int>();
+
+            var itemCategory = (await _itemLookup.GetByIdsAsync(itemIds))
+                .ToDictionary(x => x.Id, x => x.ItemCategoryId);
+            var categoryIds = itemCategory.Values.Where(c => c > 0).Distinct().ToList();
+
+            var match = await _qualitySpecificationLookup.GetMatchingAsync(itemIds, categoryIds);
+
+            return rows
+                .Where(r =>
+                    match.MatchedItemIds.Contains(r.ItemId) ||
+                    (itemCategory.TryGetValue(r.ItemId, out var cat) && cat > 0 && match.MatchedItemCategoryIds.Contains(cat)))
+                .Select(r => r.HeaderId)
+                .Distinct()
+                .ToList();
+        }
+
+        private sealed class HeaderItemRow
+        {
+            public int HeaderId { get; set; }
+            public int ItemId { get; set; }
         }
 
         public async Task<ArrivalDto?> GetByIdAsync(int id)
@@ -131,15 +222,15 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             return dto;
         }
 
-        // Attaches the per-bale StockLedgerRaw rows to Individual detail lines (BaleCaptureMethodId set).
-        // Consolidated lines (all bales have null method) are left with an empty Bales list.
+        // Attaches the per-bale StockLedgerRaw rows (saved verbatim from the payload) to their detail line.
+        // A line with no bale rows is left with an empty Bales list.
         private async Task LoadIndividualBalesAsync(ArrivalDto header)
         {
             if (header.Details.Count == 0)
                 return;
 
             const string sql = @"
-                SELECT BaleNo, BarcodeNumber, BaleWeight, BaleCaptureMethodId, ItemId
+                SELECT BaleNo, BarcodeNumber, BaleWeight, ItemId
                 FROM Purchase.StockLedgerRaw
                 WHERE LotNo = @LotNo AND DocType = 'ARV' AND UnitId = @UnitId
                 ORDER BY BaleNo;";
@@ -155,17 +246,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 if (!byItem.TryGetValue(detail.ItemId, out var baleRows))
                     continue;
 
-                // Individual when at least one bale carries a capture method.
-                if (!baleRows.Any(r => r.BaleCaptureMethodId != null))
-                    continue;
-
-                detail.IsIndividual = true;
                 detail.Bales = baleRows.Select(r => new ArrivalBaleRowDto
                 {
                     BaleNo = (long)r.BaleNo,
                     BarcodeNumber = (long?)r.BarcodeNumber,
-                    BaleWeight = (decimal)r.BaleWeight,
-                    BaleCaptureMethodId = (int?)r.BaleCaptureMethodId
+                    BaleWeight = (decimal)r.BaleWeight
                 }).ToList();
             }
         }
@@ -206,20 +291,76 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             return count > 0;
         }
 
-        public async Task<bool> BaleRangeOverlapsAsync(long from, long to, int? excludeHeaderId)
+        public async Task<IReadOnlyDictionary<int, decimal>> GetRawMaterialPOItemQuantitiesAsync(int rawMaterialPOId)
         {
             const string sql = @"
-                SELECT CASE WHEN EXISTS (
-                    SELECT 1
-                    FROM Purchase.ArrivalDetail d
-                    JOIN Purchase.ArrivalHeader h ON d.ArrivalHeaderId = h.Id
-                    WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId
-                      AND (@ExcludeHeaderId IS NULL OR h.Id <> @ExcludeHeaderId)
-                      AND d.BaleNumberFrom <= @To AND d.BaleNumberTo >= @From
-                ) THEN 1 ELSE 0 END;";
-            var overlaps = await _conn.ExecuteScalarAsync<int>(sql,
-                new { From = from, To = to, ExcludeHeaderId = excludeHeaderId, UnitId = CurrentUnitId() });
-            return overlaps == 1;
+                SELECT d.ItemId AS ItemId, SUM(d.Quantity) AS Quantity
+                FROM Purchase.RawMaterialPODetail d
+                WHERE d.POHeaderId = @POId AND d.IsDeleted = 0
+                GROUP BY d.ItemId;";
+
+            var rows = await _conn.QueryAsync<PoItemQtyRow>(sql, new { POId = rawMaterialPOId });
+            return rows.ToDictionary(r => r.ItemId, r => r.Quantity);
+        }
+
+        private sealed class PoItemQtyRow
+        {
+            public int ItemId { get; set; }
+            public decimal Quantity { get; set; }
+        }
+
+        public async Task<ArrivalLastLotNoDto?> GetLastLotNoAsync()
+        {
+            // LotNo = ArrivalHeader Id (lot reference). The unit's last lot is its most recent arrival.
+            const string sql = @"
+                SELECT TOP 1 h.Id AS LotNo, h.ArrivalNumber
+                FROM Purchase.ArrivalHeader h
+                WHERE h.IsDeleted = 0 AND h.UnitId = @UnitId
+                ORDER BY h.Id DESC;";
+
+            return await _conn.QueryFirstOrDefaultAsync<ArrivalLastLotNoDto>(sql, new { UnitId = CurrentUnitId() });
+        }
+
+        public async Task<IReadOnlyList<ArrivalBalanceQtyDto>> GetBalanceQuantitiesAsync(int rawMaterialPOId)
+        {
+            // PO ordered qty per item (PO-scoped).
+            const string poSql = @"
+                SELECT d.ItemId AS ItemId, SUM(d.Quantity) AS Quantity
+                FROM Purchase.RawMaterialPODetail d
+                WHERE d.POHeaderId = @POId AND d.IsDeleted = 0
+                GROUP BY d.ItemId;";
+
+            // Already-arrived qty per item against this PO, scoped to the current unit.
+            const string arrivedSql = @"
+                SELECT ad.ItemId AS ItemId, SUM(ad.ArrivedQty) AS Quantity
+                FROM Purchase.ArrivalDetail ad
+                JOIN Purchase.ArrivalHeader a ON ad.ArrivalHeaderId = a.Id
+                WHERE a.RawMaterialPOId = @POId AND a.IsDeleted = 0 AND a.UnitId = @UnitId
+                GROUP BY ad.ItemId;";
+
+            var poRows = (await _conn.QueryAsync<PoItemQtyRow>(poSql, new { POId = rawMaterialPOId })).ToList();
+            if (poRows.Count == 0)
+                return new List<ArrivalBalanceQtyDto>();
+
+            var arrivedRows = (await _conn.QueryAsync<PoItemQtyRow>(arrivedSql,
+                new { POId = rawMaterialPOId, UnitId = CurrentUnitId() })).ToList();
+            var arrivedByItem = arrivedRows.ToDictionary(r => r.ItemId, r => r.Quantity);
+
+            var itemMap = (await _itemLookup.GetByIdsAsync(poRows.Select(r => r.ItemId).Distinct()))
+                .ToDictionary(x => x.Id, x => x.ItemName);
+
+            return poRows.Select(po =>
+            {
+                var arrived = arrivedByItem.TryGetValue(po.ItemId, out var a) ? a : 0m;
+                return new ArrivalBalanceQtyDto
+                {
+                    ItemId = po.ItemId,
+                    ItemName = itemMap.TryGetValue(po.ItemId, out var name) ? name : null,
+                    OrderedQty = po.Quantity,
+                    ArrivedQty = arrived,
+                    BalanceQty = po.Quantity - arrived
+                };
+            }).ToList();
         }
 
         private async Task LoadDetailsAsync(List<ArrivalDto> headers)
@@ -232,8 +373,10 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
 
             if (details.Count > 0)
             {
-                var itemMap = (await _itemLookup.GetByIdsAsync(details.Select(d => d.ItemId).Distinct()))
-                    .ToDictionary(x => x.Id, x => x.ItemName);
+                var distinctItemIds = details.Select(d => d.ItemId).Distinct().ToList();
+                var items = await _itemLookup.GetByIdsAsync(distinctItemIds);
+                var itemMap = items.ToDictionary(x => x.Id, x => x.ItemName);
+                var itemCategoryMap = items.ToDictionary(x => x.Id, x => x.ItemCategoryId);
                 var hsnMap = (await _hsnLookup.GetByIdsAsync(details.Select(d => d.HsnId).Distinct()))
                     .ToDictionary(x => x.Id, x => x.HSNCode);
                 var packMap = (await _packTypeLookup.GetByIdsAsync(details.Select(d => d.PackTypeId).Distinct()))
@@ -241,12 +384,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 var uomMap = (await _uomLookup.GetByIdsAsync(details.Select(d => d.UomId).Distinct()))
                     .ToDictionary(x => x.Id, x => x.UOMName);
 
+                // QC template availability per line — same Y/N rule as GetGrnPendingHeaderQueryHandler:
+                // the item (or its item category) has an active Qc.QualitySpecification.
+                var categoryIds = itemCategoryMap.Values.Where(c => c > 0).Distinct().ToList();
+                var templateMatch = await _qualitySpecificationLookup.GetMatchingAsync(distinctItemIds, categoryIds);
+
                 foreach (var d in details)
                 {
                     d.ItemName = itemMap.TryGetValue(d.ItemId, out var itemName) ? itemName : null;
                     d.HsnCode = hsnMap.TryGetValue(d.HsnId, out var hsnCode) ? hsnCode : null;
                     d.PackTypeName = packMap.TryGetValue(d.PackTypeId, out var packName) ? packName : null;
                     d.UomName = uomMap.TryGetValue(d.UomId, out var uomName) ? uomName : null;
+
+                    var itemMatched = templateMatch.MatchedItemIds.Contains(d.ItemId);
+                    var categoryMatched = itemCategoryMap.TryGetValue(d.ItemId, out var catId)
+                        && catId > 0 && templateMatch.MatchedItemCategoryIds.Contains(catId);
+                    d.IsTemplateAvailable = (itemMatched || categoryMatched) ? "Y" : "N";
                 }
             }
 
@@ -271,11 +424,23 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 ? (await _qcMiscMasterLookup.GetByIdsAsync(qcStatusIds)).ToDictionary(x => x.Id, x => x.Description)
                 : new Dictionary<int, string?>();
 
+            // VmrId references Gate.VehicleMovementRecord (cross-module) — resolve details via lookup, never a JOIN.
+            var vmrIds = headers.Where(h => h.VmrId.HasValue && h.VmrId.Value > 0).Select(h => h.VmrId!.Value).Distinct().ToList();
+            var vmrMap = vmrIds.Count > 0
+                ? (await _vmrLookup.GetByIdsAsync(vmrIds)).ToDictionary(x => x.Id, x => x)
+                : new Dictionary<int, VehicleMovementRecordLookupDto>();
+
+            // QC.MiscMaster Id for QP_SOURCE_TYPE / code 'ARRIVAL' — single value, used to create a QC
+            // inspection from an arrival. Resolved once via lookup — no cross-module JOIN.
+            var arrivalSourceTypeId = await _qcMiscMasterLookup.GetIdByTypeAndCodeAsync("QP_SOURCE_TYPE", "ARRIVAL");
+
             foreach (var h in headers)
             {
                 h.StationName = stationMap.TryGetValue(h.StationId, out var sName) ? sName : null;
                 h.GodownName = godownMap.TryGetValue(h.GodownId, out var gName) ? gName : null;
                 h.QcStatusName = h.QcStatusId.HasValue && qcStatusMap.TryGetValue(h.QcStatusId.Value, out var qcName) ? qcName : null;
+                h.SourceTypeId = arrivalSourceTypeId;
+                h.Vmr = h.VmrId.HasValue && vmrMap.TryGetValue(h.VmrId.Value, out var vmr) ? vmr : null;
 
                 var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(h.SupplierId);
                 h.SupplierName = supplier?.VendorName;

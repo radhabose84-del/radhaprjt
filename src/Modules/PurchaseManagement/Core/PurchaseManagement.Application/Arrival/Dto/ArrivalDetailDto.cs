@@ -14,10 +14,15 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public int PackTypeId { get; set; }
         public string? PackTypeName { get; set; }
 
-        public int MixCodeId { get; set; }   // lookup/master TBD — name not populated yet
+        public int MixCodeId { get; set; }
+        public string? MixCodeDesc { get; set; }   // same-module JOIN to Purchase.MixCodeMaster
 
         public int UomId { get; set; }
         public string? UomName { get; set; }
+
+        // "Y"/"N" — whether the item (or its category) has an active QC QualitySpecification,
+        // i.e. a QC inspection template is available for this line. Resolved cross-module via QC.
+        public string? IsTemplateAvailable { get; set; }
 
         public decimal Rate { get; set; }
 
@@ -31,11 +36,7 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public long BaleNumberTo { get; set; }
         public int TotalBaleCount { get; set; }
 
-        /// <summary>
-        /// Capture mode (derived from the stock ledger). Consolidated lines return an empty Bales
-        /// list; Individual lines return one Bales entry per captured bale.
-        /// </summary>
-        public bool IsIndividual { get; set; }
+        // Per-bale rows from the stock ledger; empty when the payload had no bale entries.
         public List<ArrivalBaleRowDto> Bales { get; set; } = new();
     }
 
@@ -44,6 +45,5 @@ namespace PurchaseManagement.Application.Arrival.Dto
         public long BaleNo { get; set; }
         public long? BarcodeNumber { get; set; }
         public decimal BaleWeight { get; set; }
-        public int? BaleCaptureMethodId { get; set; }
     }
 }

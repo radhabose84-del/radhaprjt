@@ -72,6 +72,7 @@ namespace PurchaseManagement.Domain.Entities
         public int StationId { get; set; }    // AppData.Station   (new IStationLookup)
         public int ItemId { get; set; }       // Inventory ItemMaster (IItemLookup) — cotton type
         public int CountId { get; set; }       // Production.CountMaster (ICountMasterLookup)
+        public int? PackTypeId { get; set; }   // Production.PackType (IPackTypeLookup) — optional, no DB constraint
 
         // ── Cotton commercial details ──
         public decimal Quantity { get; set; }            // Bales (label fixed, no UOM)

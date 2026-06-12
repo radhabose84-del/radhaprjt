@@ -18,12 +18,9 @@ namespace PurchaseManagement.Domain.Entities.Arrival
         // Lot reference = ArrivalHeader Id (logical link, no DB FK).
         public int LotNo { get; set; }
 
-        public long BaleNo { get; set; }            // bale number (from the line's bale range / per bale)
-        public long? BarcodeNumber { get; set; }    // scanned barcode — null for consolidated/manual capture
+        public long BaleNo { get; set; }            // bale number (from the payload's per-bale entry)
+        public long? BarcodeNumber { get; set; }    // scanned barcode — null when not scanned
         public decimal BaleWeight { get; set; }     // per-bale weight
-
-        // MiscMaster (manual entry / barcode scan) — set for Individual bales only; null for Consolidated.
-        public int? BaleCaptureMethodId { get; set; }
 
         // ── Cross-module FK columns — NO DB constraint, populated via lookup on read ──
         public int ItemId { get; set; }           // Inventory ItemMaster (IItemLookup)

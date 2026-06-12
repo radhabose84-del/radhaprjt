@@ -116,6 +116,10 @@ namespace PurchaseManagement.Presentation.Validation.Common
             services.AddScoped<IValidator<GetLatestRateQuery>, GetLatestRateQueryValidator>();
             services.AddScoped<IValidator<ExchangeRateCommand>, ExchangeRateCommandValidator>();
 
+            services.AddScoped<IValidator<PurchaseManagement.Application.MixCodeMaster.Commands.CreateMixCodeMaster.CreateMixCodeMasterCommand>, PurchaseManagement.Presentation.Validation.MixCodeMaster.CreateMixCodeMasterCommandValidator>();
+            services.AddScoped<IValidator<PurchaseManagement.Application.MixCodeMaster.Commands.UpdateMixCodeMaster.UpdateMixCodeMasterCommand>, PurchaseManagement.Presentation.Validation.MixCodeMaster.UpdateMixCodeMasterCommandValidator>();
+            services.AddScoped<IValidator<PurchaseManagement.Application.MixCodeMaster.Commands.DeleteMixCodeMaster.DeleteMixCodeMasterCommand>, PurchaseManagement.Presentation.Validation.MixCodeMaster.DeleteMixCodeMasterCommandValidator>();
+
             services.AddScoped<IValidator<CreatePortMasterCommand>, CreatePortMasterValidator>();
             services.AddScoped<IValidator<DeletePortMasterCommand>, DeletePortMasterValidator>();
             services.AddScoped<IValidator<UpdatePortMasterCommand>, UpdatePortMasterValidator>();

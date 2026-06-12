@@ -35,14 +35,13 @@ namespace PurchaseManagement.Application.Arrival.Commands.UpdateArrival
 
             entity.ArrivalDetails = request.Details.Select(MapDetail).ToList();
 
-            // Rebuild StockLedgerRaw rows (individual bales from payload, or expanded consolidated range).
+            // Rebuild StockLedgerRaw rows verbatim from the payload's per-bale entries.
             entity.StockRows = ArrivalStockLedgerFactory.Build(
                 entity.ArrivalDate,
-                entity.NetWeight,
                 request.Details.Select(d => new ArrivalStockLedgerFactory.LineInput(
-                    d.ItemId, d.UomId, d.BaleNumberFrom, d.BaleNumberTo,
+                    d.ItemId, d.UomId,
                     d.BaleDetails?.Select(b => new ArrivalStockLedgerFactory.BaleEntry(
-                        b.BaleNumber, b.BaleWeight, b.BaleCaptureMethodId, b.BarcodeNumber)).ToList())).ToList());
+                        b.BaleNumber, b.BaleWeight, b.BarcodeNumber)).ToList())).ToList());
 
             var result = await _commandRepository.UpdateAsync(entity, cancellationToken);
 
