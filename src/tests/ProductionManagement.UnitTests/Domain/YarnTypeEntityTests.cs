@@ -33,12 +33,16 @@ namespace ProductionManagement.UnitTests.Domain
                 Id = 1,
                 YarnTypeCode = "YT001",
                 YarnTypeName = "Cotton",
-                Description = "100% Cotton yarn"
+                Description = "100% Cotton yarn",
+                AdditionalPrice = 12.3456m,
+                CurrencyId = 1
             };
             entity.Id.Should().Be(1);
             entity.YarnTypeCode.Should().Be("YT001");
             entity.YarnTypeName.Should().Be("Cotton");
             entity.Description.Should().Be("100% Cotton yarn");
+            entity.AdditionalPrice.Should().Be(12.3456m);
+            entity.CurrencyId.Should().Be(1);
         }
 
         [Fact]
@@ -48,11 +52,15 @@ namespace ProductionManagement.UnitTests.Domain
             {
                 YarnTypeCode = null,
                 YarnTypeName = null,
-                Description = null
+                Description = null,
+                AdditionalPrice = null,
+                CurrencyId = null
             };
             entity.YarnTypeCode.Should().BeNull();
             entity.YarnTypeName.Should().BeNull();
             entity.Description.Should().BeNull();
+            entity.AdditionalPrice.Should().BeNull();
+            entity.CurrencyId.Should().BeNull();
         }
     }
 }

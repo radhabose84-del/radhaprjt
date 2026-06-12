@@ -1110,6 +1110,74 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("FinancialYear", "AppData");
                 });
 
+            modelBuilder.Entity("UserManagement.Domain.Entities.IconMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("CreatedIP")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("IconLibrary")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("IconName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<string>("Keyword")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Style")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Keyword")
+                        .IsUnique();
+
+                    b.ToTable("IconMaster", "AppData");
+                });
+
             modelBuilder.Entity("UserManagement.Domain.Entities.Language", b =>
                 {
                     b.Property<int>("Id")

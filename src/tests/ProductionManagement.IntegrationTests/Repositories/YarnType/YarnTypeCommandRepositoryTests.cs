@@ -18,12 +18,16 @@ namespace ProductionManagement.IntegrationTests.Repositories.YarnType
         private static Domain.Entities.YarnType BuildEntity(
             string code = "YT001",
             string name = "Cotton",
-            string desc = "Cotton yarn") =>
+            string desc = "Cotton yarn",
+            decimal? additionalPrice = null,
+            int? currencyId = null) =>
             new()
             {
                 YarnTypeCode = code,
                 YarnTypeName = name,
                 Description = desc,
+                AdditionalPrice = additionalPrice,
+                CurrencyId = currencyId,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted
             };
@@ -99,6 +103,43 @@ namespace ProductionManagement.IntegrationTests.Repositories.YarnType
 
             var updated = await ctx.YarnType.FirstAsync(x => x.Id == id);
             updated.YarnTypeName.Should().Be("Updated Yarn");
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_AdditionalPrice_And_CurrencyId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTableAsync(ctx);
+
+            var newId = await CreateRepo(ctx).CreateAsync(
+                BuildEntity("YT003", "Silk", "Silk yarn", additionalPrice: 99.1234m, currencyId: 2));
+            ctx.ChangeTracker.Clear();
+
+            var saved = await ctx.YarnType.FirstOrDefaultAsync(x => x.Id == newId);
+
+            saved.Should().NotBeNull();
+            saved!.AdditionalPrice.Should().Be(99.1234m);
+            saved.CurrencyId.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Persist_AdditionalPrice_And_CurrencyId()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearTableAsync(ctx);
+
+            var id = await CreateRepo(ctx).CreateAsync(BuildEntity());
+            ctx.ChangeTracker.Clear();
+
+            var entity = await ctx.YarnType.FirstAsync(x => x.Id == id);
+            entity.AdditionalPrice = 45.6789m;
+            entity.CurrencyId = 3;
+            await CreateRepo(ctx).UpdateAsync(entity);
+            ctx.ChangeTracker.Clear();
+
+            var updated = await ctx.YarnType.FirstAsync(x => x.Id == id);
+            updated.AdditionalPrice.Should().Be(45.6789m);
+            updated.CurrencyId.Should().Be(3);
         }
 
         [Fact]
