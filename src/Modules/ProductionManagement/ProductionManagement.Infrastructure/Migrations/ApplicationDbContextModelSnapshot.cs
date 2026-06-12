@@ -1227,6 +1227,9 @@ namespace ProductionManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal?>("AdditionalPrice")
+                        .HasColumnType("decimal(18,4)");
+
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
 
@@ -1238,6 +1241,9 @@ namespace ProductionManagement.Infrastructure.Migrations
 
                     b.Property<string>("CreatedIP")
                         .HasColumnType("varchar(50)");
+
+                    b.Property<int?>("CurrencyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasColumnType("varchar(200)");
@@ -1269,6 +1275,8 @@ namespace ProductionManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CurrencyId");
 
                     b.HasIndex("YarnTypeCode")
                         .IsUnique();

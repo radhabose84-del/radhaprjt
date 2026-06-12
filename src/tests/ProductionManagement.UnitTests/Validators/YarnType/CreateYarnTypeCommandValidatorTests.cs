@@ -20,5 +20,62 @@ namespace ProductionManagement.UnitTests.Validators.YarnType
             var result = await CreateValidator().TestValidateAsync(new CreateYarnTypeCommand());
             result.ShouldHaveAnyValidationError();
         }
+
+        private static CreateYarnTypeCommand ValidBase() =>
+            new() { YarnTypeCode = "YT001", YarnTypeName = "Cotton" };
+
+        [Fact]
+        public async Task Validate_NegativeAdditionalPrice_FailsValidation()
+        {
+            var command = ValidBase();
+            command.AdditionalPrice = -1m;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.AdditionalPrice);
+        }
+
+        [Fact]
+        public async Task Validate_AdditionalPriceWithoutCurrency_FailsValidation()
+        {
+            var command = ValidBase();
+            command.AdditionalPrice = 100m;
+            command.CurrencyId = null;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.CurrencyId);
+        }
+
+        [Fact]
+        public async Task Validate_NonExistentCurrency_FailsValidation()
+        {
+            _mockQueryRepo.Setup(r => r.CurrencyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+
+            var command = ValidBase();
+            command.AdditionalPrice = 100m;
+            command.CurrencyId = 999;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.CurrencyId);
+        }
+
+        [Fact]
+        public async Task Validate_ValidPriceAndCurrency_PassesPriceAndCurrencyRules()
+        {
+            _mockQueryRepo.Setup(r => r.CurrencyExistsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var command = ValidBase();
+            command.AdditionalPrice = 100m;
+            command.CurrencyId = 1;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.AdditionalPrice);
+            result.ShouldNotHaveValidationErrorFor(x => x.CurrencyId);
+        }
     }
 }

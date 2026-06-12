@@ -31,6 +31,8 @@ namespace ProductionManagement.Infrastructure.Repositories.YarnType
 
             existingEntity.YarnTypeName = entity.YarnTypeName;
             existingEntity.Description = entity.Description;
+            existingEntity.AdditionalPrice = entity.AdditionalPrice;
+            existingEntity.CurrencyId = entity.CurrencyId;
             existingEntity.IsActive = entity.IsActive;
 
             _applicationDbContext.YarnType.Update(existingEntity);

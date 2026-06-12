@@ -34,6 +34,13 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.Description)
                 .HasColumnType("varchar(200)");
 
+            builder.Property(t => t.AdditionalPrice)
+                .HasColumnType("decimal(18,4)");
+
+            // Cross-module FK to UserManagement.Currency — no DB constraint (resolved via ICurrencyLookup)
+            builder.Property(t => t.CurrencyId)
+                .HasColumnType("int");
+
             builder.Property(b => b.IsActive)
                 .HasColumnType("bit")
                 .HasConversion(statusConverter)
@@ -55,6 +62,7 @@ namespace ProductionManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => t.YarnTypeCode).IsUnique();
             builder.HasIndex(t => t.YarnTypeName).IsUnique();
+            builder.HasIndex(t => t.CurrencyId);
         }
     }
 }
