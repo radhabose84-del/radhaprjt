@@ -16,6 +16,7 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
         private void SetupHappyPath(int id = 1)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.IsClosedAsync(It.IsAny<int>())).ReturnsAsync(false);
         }
 
         [Fact]
@@ -38,6 +39,7 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
         public async Task NotFound_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.IsClosedAsync(It.IsAny<int>())).ReturnsAsync(false);
             var result = await CreateValidator().TestValidateAsync(new DeleteSalesLeadCommand(1));
             result.ShouldHaveAnyValidationError();
         }
