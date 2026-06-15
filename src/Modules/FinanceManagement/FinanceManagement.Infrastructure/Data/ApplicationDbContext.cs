@@ -40,6 +40,9 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<ScheduleIIISubTotal> ScheduleIIISubTotal => Set<ScheduleIIISubTotal>();
         public DbSet<ScheduleIIISubTotalFormula> ScheduleIIISubTotalFormula => Set<ScheduleIIISubTotalFormula>();
 
+        // Property-level change trail (IActivityTracked entities)
+        public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

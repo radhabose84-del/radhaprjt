@@ -31,7 +31,8 @@ using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
 
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
-using FinanceManagement.Infrastructure.Repositories.ScheduleIII;using FinanceManagement.Infrastructure.Services;
+using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
+using FinanceManagement.Infrastructure.Logging;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
 using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
@@ -56,15 +57,18 @@ namespace FinanceManagement.Infrastructure
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found or is empty.");
 
+            // Activity-log interceptor (writes Finance.ActivityLog for IActivityTracked entities)
+            services.AddScoped<ActivityLogSaveChangesInterceptor>();
+
             // Register ApplicationDbContext with SQL Server
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>((sp, options) =>
                 options.UseSqlServer(connectionString, sqlOptions =>
                 {
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorNumbersToAdd: null);
-                }));
+                }).AddInterceptors(sp.GetRequiredService<ActivityLogSaveChangesInterceptor>()));
 
             // Register IDbConnection for Dapper
             services.AddTransient<IDbConnection>(sp => new SqlConnection(connectionString));

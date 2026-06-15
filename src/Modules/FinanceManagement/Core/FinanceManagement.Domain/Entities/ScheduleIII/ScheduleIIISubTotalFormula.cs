@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    public class ScheduleIIISubTotalFormula : BaseEntity
+    public class ScheduleIIISubTotalFormula : BaseEntity, IActivityTracked
     {
         public int SubTotalId { get; set; }             // same-module FK -> ScheduleIIISubTotal
         public int OperandTypeId { get; set; }          // same-module FK -> Finance.MiscMaster (S3_OPERAND_TYPE)

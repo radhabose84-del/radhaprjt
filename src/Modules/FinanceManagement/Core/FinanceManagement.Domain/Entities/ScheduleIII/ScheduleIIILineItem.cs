@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    public class ScheduleIIILineItem : BaseEntity
+    public class ScheduleIIILineItem : BaseEntity, IActivityTracked
     {
         public int StructureId { get; set; }            // same-module FK -> ScheduleIIIStructure
         public int SectionId { get; set; }              // same-module FK -> ScheduleIIISection

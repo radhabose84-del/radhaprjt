@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    public class ScheduleIIIStructure : BaseEntity
+    public class ScheduleIIIStructure : BaseEntity, IActivityTracked
     {
         public int CompanyId { get; set; }              // cross-module FK (ICompanyLookup) — no DB constraint
         public int DivisionId { get; set; }             // cross-module FK -> AppData.Division (IDivisionLookup) — no DB constraint

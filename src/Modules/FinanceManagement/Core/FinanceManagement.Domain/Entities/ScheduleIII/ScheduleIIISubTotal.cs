@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    public class ScheduleIIISubTotal : BaseEntity
+    public class ScheduleIIISubTotal : BaseEntity, IActivityTracked
     {
         public int StructureId { get; set; }            // same-module FK -> ScheduleIIIStructure
         public string? SubTotalName { get; set; }
