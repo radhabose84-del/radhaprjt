@@ -68,7 +68,8 @@ namespace UserManagement.Infrastructure.Data.Configurations
             builder.Property(b => b.ModifiedIP)
                 .HasColumnType("varchar(255)");
 
-            builder.HasIndex(t => t.Keyword).IsUnique();
+            // Unique only among live rows — a soft-deleted keyword can be created again
+            builder.HasIndex(t => t.Keyword).IsUnique().HasFilter("[IsDeleted] = 0");
         }
     }
 }

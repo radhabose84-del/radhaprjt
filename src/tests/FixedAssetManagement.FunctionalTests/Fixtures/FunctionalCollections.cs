@@ -29,3 +29,12 @@ public sealed class DepreciationRunCollection : ICollectionFixture<QAServerFixtu
 
 [CollectionDefinition("US-FAM-09-Disposal")]
 public sealed class DisposalCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-FAM-10-MiscMasterSetup")]
+public sealed class MiscMasterSetupCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-FAM-11-DashboardReporting")]
+public sealed class DashboardReportingCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-FAM-12-AuditLog")]
+public sealed class AuditLogCollection : ICollectionFixture<QAServerFixture> { }

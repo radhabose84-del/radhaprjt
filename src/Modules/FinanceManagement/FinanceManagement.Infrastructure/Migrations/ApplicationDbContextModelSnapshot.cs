@@ -115,6 +115,90 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("AccountGroup", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.AccountTypeMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountCodeLength")
+                        .HasColumnType("int")
+                        .HasColumnName("AccountCodeLength");
+
+                    b.Property<string>("AccountTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("AccountTypeName");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int")
+                        .HasColumnName("SortOrder");
+
+                    b.Property<string>("StartCode")
+                        .IsRequired()
+                        .HasColumnType("char(1)")
+                        .HasColumnName("StartCode");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CompanyId", "AccountTypeName")
+                        .IsUnique();
+
+                    b.HasIndex("CompanyId", "StartCode")
+                        .IsUnique();
+
+                    b.ToTable("AccountTypeMaster", "Finance");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.DocumentSequence", b =>
                 {
                     b.Property<int>("Id")

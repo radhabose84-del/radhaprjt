@@ -189,6 +189,79 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesLead
             result.Should().BeFalse();
         }
 
+        private async Task<int> EnsureMiscMasterAsync(string description)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var existing = await ctx.MiscMaster.FirstOrDefaultAsync(x => x.Description == description);
+            if (existing != null) return existing.Id;
+
+            var type = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "SLC_CLOSURE");
+            if (type == null)
+            {
+                type = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "SLC_CLOSURE", Description = "Lead Closure",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(type);
+                await ctx.SaveChangesAsync();
+            }
+
+            var mm = new SalesManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = type.Id, Code = description, Description = description,
+                SortOrder = 1, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(mm);
+            await ctx.SaveChangesAsync();
+            return mm.Id;
+        }
+
+        [Fact]
+        public async Task CloseAsync_Should_Persist_Closure_Fields()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            await ClearAsync(ctx);
+            var id = await CreateRepo(ctx).CreateAsync(await BuildEntityAsync("SL_CL1"), 1);
+            var typeId = await EnsureMiscMasterAsync("Lost");
+            var reasonId = await EnsureMiscMasterAsync("Competitor Selected");
+            ctx.ChangeTracker.Clear();
+
+            var closeEntity = new SalesManagement.Domain.Entities.SalesLead
+            {
+                Id = id,
+                ClosureTypeId = typeId,
+                ClosureReasonId = reasonId,
+                ClosureRemarks = "Closed - lost to competitor",
+                ClosureDate = DateTimeOffset.UtcNow
+            };
+
+            var result = await CreateRepo(ctx).CloseAsync(closeEntity);
+            ctx.ChangeTracker.Clear();
+
+            result.Should().Be(id);
+            var reloaded = await ctx.SalesLead.FirstAsync(x => x.Id == id);
+            reloaded.ClosureTypeId.Should().Be(typeId);
+            reloaded.ClosureReasonId.Should().Be(reasonId);
+            reloaded.ClosureRemarks.Should().Be("Closed - lost to competitor");
+            reloaded.ClosureDate.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task CloseAsync_Should_Return_Zero_When_NotFound()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var ghost = new SalesManagement.Domain.Entities.SalesLead
+            {
+                Id = 9999999, ClosureRemarks = "x", ClosureDate = DateTimeOffset.UtcNow
+            };
+
+            var result = await CreateRepo(ctx).CloseAsync(ghost);
+
+            result.Should().Be(0);
+        }
+
         [Fact]
         public async Task UpdateAsync_Should_Persist_UomId_Change()
         {

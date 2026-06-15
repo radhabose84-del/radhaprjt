@@ -11,6 +11,6 @@ namespace UserManagement.Application.IconMaster.Commands.UpdateIconMaster
         public string? IconLibrary { get; set; }
         public int Size { get; set; } = 18;
         public JsonElement? Style { get; set; }
-        public byte IsActive { get; set; }
+        // No IsActive — an icon edit never changes active state (admin page does not manage it)
     }
 }

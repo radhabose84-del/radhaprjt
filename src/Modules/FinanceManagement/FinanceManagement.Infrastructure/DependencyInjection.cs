@@ -14,6 +14,7 @@ using FinanceManagement.Application.Common.Interfaces.IEWaybillHeader;
 using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
+using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
 using FinanceManagement.Infrastructure.Repositories.AuditLog;
@@ -26,9 +27,10 @@ using FinanceManagement.Infrastructure.Repositories.Lookups.Finance;
 using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscMaster;
+using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
+
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
-using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
-using FinanceManagement.Infrastructure.Services;
+using FinanceManagement.Infrastructure.Repositories.ScheduleIII;using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Shared.Infrastructure.Resilience;
@@ -128,15 +130,17 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
-            // Schedule III line-item & sub-total configuration (US-GL02-03A)
-            services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
-            services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
+            services.AddScoped<IAccountTypeMasterCommandRepository, AccountTypeMasterCommandRepository>();
+            services.AddScoped<IAccountTypeMasterQueryRepository, AccountTypeMasterQueryRepository>();
 
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
             services.AddScoped<ITransactionTypeLookup, TransactionTypeLookupRepository>();
             services.AddScoped<IEInvoiceLookup, EInvoiceLookupRepository>();
             services.AddScoped<IEWaybillLookup, EWaybillLookupRepository>();
+            services.AddScoped<IAccountTypeMasterLookup, AccountTypeMasterLookupRepository>();
+           services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
+            services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically

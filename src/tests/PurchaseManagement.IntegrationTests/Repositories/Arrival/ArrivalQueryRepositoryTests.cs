@@ -68,6 +68,10 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
                 .ReturnsAsync(new List<PackTypeLookupDto> { new() { Id = 2, PackTypeName = "Bale" } });
             _uomMock.Setup(u => u.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<UOMLookupDto> { new() { Id = 4, UOMName = "Bale" } });
+            // QcStatusId → QC.MiscMaster cross-module lookup — echo the requested ids so QcStatusName resolves.
+            _qcMiscMock.Setup(q => q.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IEnumerable<int> ids, CancellationToken _) =>
+                    ids.Select(id => new QcMiscMasterLookupDto { Id = id, Code = "QCS", Description = "QC Status" }).ToList());
             // Item 13 has a QC quality specification → pending arrivals for it are QC-applicable.
             _qualitySpecMock.Setup(q => q.GetMatchingAsync(
                     It.IsAny<IEnumerable<int>>(), It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))

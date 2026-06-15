@@ -190,6 +190,12 @@ namespace SalesManagement.Domain.Common
         public const string ClosureStatusReadyForClosure = "Ready for Closure";
         public const string ClosureStatusClosed = "Closed";
 
+        // Lead Closure (Close Lead) — MiscType groups + the special "Won" type
+        public const string LeadClosureType = "Lead Closure Type";
+        public const string LeadClosureTypeWon = "Won";
+        public const string LeadClosureReason = "Lead Closure Reason";
+        public const string WonConversionTarget = "Won Conversion Target";
+
         // STO Receipt Status
         public const string StoReceiptLineStatus = "StoReceiptLineStatus";
         public const string StoReceiptStatusPending = "Pending";
