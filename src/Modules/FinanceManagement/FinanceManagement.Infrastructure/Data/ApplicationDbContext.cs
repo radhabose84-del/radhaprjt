@@ -28,6 +28,8 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<EInvoiceDetail> EInvoiceDetail => Set<EInvoiceDetail>();
         public DbSet<EWaybillHeader> EWaybillHeader => Set<EWaybillHeader>();
         public DbSet<EWaybillDetail> EWaybillDetail => Set<EWaybillDetail>();
+        public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
+        public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
