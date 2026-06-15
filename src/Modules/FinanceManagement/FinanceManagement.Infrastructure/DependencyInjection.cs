@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using FinanceManagement.Application.Common.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.AuditLog;
+using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.IDocumentSequence;
 using FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader;
 using FinanceManagement.Application.Common.Interfaces.IEWaybillHeader;
@@ -17,6 +18,7 @@ using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
 using FinanceManagement.Infrastructure.Repositories.AuditLog;
 using Contracts.Interfaces.Lookups.Finance;
+using FinanceManagement.Infrastructure.Repositories.AccountGroup;
 using FinanceManagement.Infrastructure.Repositories.DocumentSequence;
 using FinanceManagement.Infrastructure.Repositories.EInvoiceHeader;
 using FinanceManagement.Infrastructure.Repositories.EWaybillHeader;
@@ -108,6 +110,9 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IDocumentSequenceCommandRepository, DocumentSequenceCommandRepository>();
             services.AddScoped<IDocumentSequenceQueryRepository, DocumentSequenceQueryRepository>();
+
+            services.AddScoped<IAccountGroupCommandRepository, AccountGroupCommandRepository>();
+            services.AddScoped<IAccountGroupQueryRepository, AccountGroupQueryRepository>();
 
             services.AddScoped<IEInvoiceHeaderCommandRepository, EInvoiceHeaderCommandRepository>();
             services.AddScoped<IEInvoiceHeaderQueryRepository, EInvoiceHeaderQueryRepository>();
