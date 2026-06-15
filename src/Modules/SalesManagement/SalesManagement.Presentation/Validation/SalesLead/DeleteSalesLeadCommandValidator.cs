@@ -38,6 +38,12 @@ namespace SalesManagement.Presentation.Validation.SalesLead
                         RuleFor(x => x.Id)
                             .MustAsync(async (id, ct) => !await _queryRepository.NotFoundAsync(id))
                             .WithMessage($"Sales Lead {rule.Error}");
+
+                        // Closed leads are read-only
+                        RuleFor(x => x.Id)
+                            .MustAsync(async (id, ct) => !await _queryRepository.IsClosedAsync(id))
+                            .WithMessage("This lead is closed and cannot be deleted.")
+                            .When(x => x.Id > 0);
                         break;
 
                     case "MarketingOfficerAccess":

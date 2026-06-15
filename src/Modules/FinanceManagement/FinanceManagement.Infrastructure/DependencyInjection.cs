@@ -29,6 +29,9 @@ using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
+
+using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
+using FinanceManagement.Infrastructure.Repositories.ScheduleIII;using FinanceManagement.Infrastructure.Services;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
 using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
@@ -142,6 +145,8 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IEInvoiceLookup, EInvoiceLookupRepository>();
             services.AddScoped<IEWaybillLookup, EWaybillLookupRepository>();
             services.AddScoped<IAccountTypeMasterLookup, AccountTypeMasterLookupRepository>();
+           services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
+            services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────

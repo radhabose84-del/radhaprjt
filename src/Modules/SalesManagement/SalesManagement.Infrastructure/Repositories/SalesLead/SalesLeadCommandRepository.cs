@@ -88,6 +88,25 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
             return existingEntity.Id;
         }
 
+        public async Task<int> CloseAsync(Domain.Entities.SalesLead entity)
+        {
+            var existingEntity = await _applicationDbContext.SalesLead
+                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
+
+            if (existingEntity == null)
+                return 0;
+
+            existingEntity.ClosureTypeId = entity.ClosureTypeId;
+            existingEntity.ClosureReasonId = entity.ClosureReasonId;
+            existingEntity.ConvertWonLeadToId = entity.ConvertWonLeadToId;
+            existingEntity.ClosureRemarks = entity.ClosureRemarks;
+            existingEntity.ClosureDate = entity.ClosureDate;
+
+            _applicationDbContext.SalesLead.Update(existingEntity);
+            await _applicationDbContext.SaveChangesAsync();
+            return existingEntity.Id;
+        }
+
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
         {
             var existing = await _applicationDbContext.SalesLead

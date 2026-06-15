@@ -40,9 +40,11 @@ namespace MaintenanceManagement.Presentation.Controllers.Power
         {
             var FeederopeningReading = await Mediator.Send(new GetClosingReaderValueByIdQuery() { FeederId = feederId });
 
+            if (FeederopeningReading == null)
+                return NotFound(new { StatusCode = StatusCodes.Status404NotFound, message = $"Feeder with ID {feederId} not found.", errors = "" });
 
                 return Ok(new { StatusCode = StatusCodes.Status200OK, data = FeederopeningReading, message = FeederopeningReading });
-          
+
         }
         [HttpPost]
         public async Task<IActionResult> CreateAsync(CreatePowerConsumptionCommand createPowerConsumptionCommand)

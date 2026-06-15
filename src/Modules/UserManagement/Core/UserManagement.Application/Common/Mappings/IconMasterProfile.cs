@@ -26,9 +26,9 @@ namespace UserManagement.Application.Common.Mappings
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => Status.Active))
                 .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
 
+            // IsActive deliberately not mapped — update must not change active state
             CreateMap<UpdateIconMasterCommand, UserManagement.Domain.Entities.IconMaster>()
-                .ForMember(dest => dest.Style, opt => opt.MapFrom(src => IconStyleJson.ToJsonString(src.Style)))
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == 1 ? Status.Active : Status.Inactive));
+                .ForMember(dest => dest.Style, opt => opt.MapFrom(src => IconStyleJson.ToJsonString(src.Style)));
 
             CreateMap<DeleteIconMasterCommand, UserManagement.Domain.Entities.IconMaster>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))

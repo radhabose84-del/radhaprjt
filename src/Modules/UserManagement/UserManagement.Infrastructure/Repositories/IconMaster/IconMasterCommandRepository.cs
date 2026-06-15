@@ -1,6 +1,7 @@
 using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Common.Interfaces.IIconMaster;
 using Microsoft.EntityFrameworkCore;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Repositories.IconMaster
 {
@@ -28,12 +29,13 @@ namespace UserManagement.Infrastructure.Repositories.IconMaster
                 return -1;
             }
 
-            // Keyword is immutable — never updated
+            // Keyword is immutable — never updated.
+            // IsActive is intentionally NOT touched — an icon edit must never change
+            // active state (admin page does not manage active/inactive).
             existing.IconName = iconMaster.IconName;
             existing.IconLibrary = iconMaster.IconLibrary;
             existing.Size = iconMaster.Size;
             existing.Style = iconMaster.Style;
-            existing.IsActive = iconMaster.IsActive;
 
             _applicationDbContext.IconMasters.Update(existing);
             await _applicationDbContext.SaveChangesAsync();
@@ -42,7 +44,9 @@ namespace UserManagement.Infrastructure.Repositories.IconMaster
 
         public async Task<bool> ExistsByKeywordAsync(string keyword)
         {
-            return await _applicationDbContext.IconMasters.AnyAsync(c => c.Keyword == keyword);
+            // Only live rows reserve a keyword — a soft-deleted keyword can be reused
+            return await _applicationDbContext.IconMasters
+                .AnyAsync(c => c.Keyword == keyword && c.IsDeleted == IsDelete.NotDeleted);
         }
 
         public async Task<int> DeleteIconMasterAsync(int id, UserManagement.Domain.Entities.IconMaster iconMaster)

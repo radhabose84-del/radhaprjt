@@ -101,6 +101,27 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasColumnType("datetimeoffset")
                 .IsRequired();
 
+            // Closure (Close Lead)
+            builder.Property(t => t.ClosureTypeId)
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.ClosureReasonId)
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.ConvertWonLeadToId)
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.ClosureRemarks)
+                .HasColumnType("varchar(500)")
+                .IsRequired(false);
+
+            builder.Property(t => t.ClosureDate)
+                .HasColumnType("datetimeoffset")
+                .IsRequired(false);
+
             // Status
             builder.Property(b => b.IsActive)
                 .HasColumnType("bit")
@@ -139,6 +160,10 @@ namespace SalesManagement.Infrastructure.Data.Configurations
                 .HasDatabaseName("IX_SalesLead_UomId")
                 .HasFilter("[UomId] IS NOT NULL");
 
+            builder.HasIndex(t => t.ClosureTypeId)
+                .HasDatabaseName("IX_SalesLead_ClosureTypeId")
+                .HasFilter("[ClosureTypeId] IS NOT NULL");
+
             // Same-module FK: ContactId → Sales.SalesContact
             // No navigation collection on SalesContact — relationship is one-directional
             builder.HasOne(t => t.Contact)
@@ -159,6 +184,27 @@ namespace SalesManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.MarketingOfficer)
                 .WithMany()
                 .HasForeignKey(t => t.MarketingOfficerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK: ClosureTypeId → Sales.MiscMaster
+            builder.HasOne(t => t.ClosureType)
+                .WithMany()
+                .HasForeignKey(t => t.ClosureTypeId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK: ClosureReasonId → Sales.MiscMaster
+            builder.HasOne(t => t.ClosureReason)
+                .WithMany()
+                .HasForeignKey(t => t.ClosureReasonId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Same-module FK: ConvertWonLeadToId → Sales.MiscMaster
+            builder.HasOne(t => t.ConvertWonLeadTo)
+                .WithMany()
+                .HasForeignKey(t => t.ConvertWonLeadToId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Cross-module FKs (PartyId, CityId, ItemId) — no DB constraint

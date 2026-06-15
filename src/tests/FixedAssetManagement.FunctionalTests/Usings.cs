@@ -6,3 +6,4 @@ global using Xunit;
 global using Shared.QAInfrastructure.Fixtures;
 global using Shared.QAInfrastructure.Infrastructure;
 global using Shared.QAInfrastructure.Helpers;
+global using FixedAssetManagement.FunctionalTests.Fixtures;

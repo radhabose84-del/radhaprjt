@@ -7,7 +7,7 @@ namespace MaintenanceManagement.Application.Common.Interfaces.Power.IPowerConsum
     public interface IPowerConsumptionQueryRepository
     {
         Task<List<GetFeederSubFeederDto>> GetFeederSubFeedersById(int feederTypeId);
-        Task<GetClosingReaderValueDto> GetOpeningReaderValueById(int feederId);
+        Task<GetClosingReaderValueDto?> GetOpeningReaderValueById(int feederId);
         Task<(List<GetPowerConsumptionDto>, int)> GetAllPowerConsumptionAsync(int PageNumber, int PageSize, string? SearchTerm);
         Task<GetPowerConsumptionDto> GetPowerConsumptionById(int id);
 

@@ -34,6 +34,18 @@ namespace MaintenanceManagement.UnitTests.Application.CostCenter.Queries
             var result = await CreateSut().Handle(new GetCostCenterByIdQuery { Id = 1 }, CancellationToken.None);
             result.Should().NotBeNull();
         }
+
+        [Fact]
+        public async Task Handle_NotFound_ReturnsNull_DoesNotThrow()
+        {
+            // Repo returns null (missing id / out of unit scope) → handler must return null,
+            // NOT dereference a null DTO (regression test for the GetById NullReferenceException 500).
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((MaintenanceManagement.Domain.Entities.CostCenter?)null);
+
+            var result = await CreateSut().Handle(new GetCostCenterByIdQuery { Id = 99 }, CancellationToken.None);
+
+            result.Should().BeNull();
+        }
     }
 
     public sealed class GetCostCenterAutoCompleteQueryHandlerTests

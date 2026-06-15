@@ -4361,12 +4361,27 @@ namespace SalesManagement.Infrastructure.Migrations
                     b.Property<int?>("CityId")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("ClosureDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ClosureReasonId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClosureRemarks")
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int?>("ClosureTypeId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ContactId")
                         .HasColumnType("int");
 
                     b.Property<string>("ContactName")
                         .IsRequired()
                         .HasColumnType("varchar(100)");
+
+                    b.Property<int?>("ConvertWonLeadToId")
+                        .HasColumnType("int");
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
@@ -4446,7 +4461,15 @@ namespace SalesManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClosureReasonId");
+
+                    b.HasIndex("ClosureTypeId")
+                        .HasDatabaseName("IX_SalesLead_ClosureTypeId")
+                        .HasFilter("[ClosureTypeId] IS NOT NULL");
+
                     b.HasIndex("ContactId");
+
+                    b.HasIndex("ConvertWonLeadToId");
 
                     b.HasIndex("InteractionDate")
                         .HasDatabaseName("IX_SalesLead_InteractionDate");
@@ -7912,9 +7935,24 @@ namespace SalesManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("SalesManagement.Domain.Entities.SalesLead", b =>
                 {
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ClosureReason")
+                        .WithMany()
+                        .HasForeignKey("ClosureReasonId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ClosureType")
+                        .WithMany()
+                        .HasForeignKey("ClosureTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SalesManagement.Domain.Entities.SalesContact", "Contact")
                         .WithMany()
                         .HasForeignKey("ContactId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "ConvertWonLeadTo")
+                        .WithMany()
+                        .HasForeignKey("ConvertWonLeadToId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SalesManagement.Domain.Entities.MiscMaster", "LeadSource")
@@ -7928,7 +7966,13 @@ namespace SalesManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ClosureReason");
+
+                    b.Navigation("ClosureType");
+
                     b.Navigation("Contact");
+
+                    b.Navigation("ConvertWonLeadTo");
 
                     b.Navigation("LeadSource");
 
