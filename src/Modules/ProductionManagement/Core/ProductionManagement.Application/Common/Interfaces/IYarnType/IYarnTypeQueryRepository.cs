@@ -11,5 +11,6 @@ namespace ProductionManagement.Application.Common.Interfaces.IYarnType
         Task<bool> AlreadyExistsAsync(string yarnTypeCode, int? id = null);
         Task<bool> YarnTypeNameExistsAsync(string yarnTypeName, int? id = null);
         Task<bool> NotFoundAsync(int id);
+        Task<bool> CurrencyExistsAsync(int currencyId, CancellationToken ct = default);
     }
 }

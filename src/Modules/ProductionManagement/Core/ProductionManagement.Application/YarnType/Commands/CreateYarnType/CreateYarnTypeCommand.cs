@@ -8,5 +8,7 @@ namespace ProductionManagement.Application.YarnType.Commands.CreateYarnType
         public string? YarnTypeCode { get; set; }
         public string? YarnTypeName { get; set; }
         public string? Description { get; set; }
+        public decimal? AdditionalPrice { get; set; }
+        public int? CurrencyId { get; set; }
     }
 }

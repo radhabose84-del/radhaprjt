@@ -6,6 +6,10 @@ namespace ProductionManagement.Application.YarnType.Dto
         public string? YarnTypeCode { get; set; }
         public string? YarnTypeName { get; set; }
         public string? Description { get; set; }
+        public decimal? AdditionalPrice { get; set; }
+        public int? CurrencyId { get; set; }
+        public string? CurrencyCode { get; set; }
+        public string? CurrencyName { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

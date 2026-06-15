@@ -67,6 +67,26 @@ namespace ProductionManagement.Presentation.Validation.YarnType
                             .WithMessage($"{nameof(UpdateYarnTypeCommand.IsActive)} {rule.Error}");
                         break;
 
+                    case "GreaterThanOrEqualToZero":
+                        RuleFor(x => x.AdditionalPrice)
+                            .GreaterThanOrEqualTo(0m)
+                            .WithMessage($"{nameof(UpdateYarnTypeCommand.AdditionalPrice)} {rule.Error}")
+                            .When(x => x.AdditionalPrice.HasValue);
+                        break;
+
+                    case "FKColumnDelete":
+                        RuleFor(x => x.CurrencyId)
+                            .MustAsync(async (id, ct) => await _queryRepo.CurrencyExistsAsync(id!.Value, ct))
+                            .WithMessage($"{nameof(UpdateYarnTypeCommand.CurrencyId)} {rule.Error}")
+                            .When(x => x.CurrencyId.HasValue && x.CurrencyId.Value > 0);
+
+                        // Currency is mandatory when an Additional Price is provided
+                        RuleFor(x => x.CurrencyId)
+                            .Must(id => id.HasValue && id.Value > 0)
+                            .WithMessage($"{nameof(UpdateYarnTypeCommand.CurrencyId)} is required when {nameof(UpdateYarnTypeCommand.AdditionalPrice)} is provided.")
+                            .When(x => x.AdditionalPrice.HasValue && x.AdditionalPrice.Value > 0);
+                        break;
+
                     default:
                         break;
                 }

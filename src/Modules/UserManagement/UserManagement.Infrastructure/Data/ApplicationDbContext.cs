@@ -35,6 +35,7 @@ namespace UserManagement.Infrastructure.Data
         public DbSet<Division> Divisions { get; set; }
         public DbSet<Modules> Modules { get; set; }
         public DbSet<Menu> Menus { get; set; }
+        public DbSet<IconMaster> IconMasters { get; set; }
         public DbSet<Countries> Countries { get; set; }
         public DbSet<States> States { get; set; }
         public DbSet<Cities> Cities { get; set; }
@@ -81,6 +82,7 @@ namespace UserManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new UnitContactsConfiguration());
             modelBuilder.ApplyConfiguration(new MenuConfiguration());
             modelBuilder.ApplyConfiguration(new ModulesConfiguration());
+            modelBuilder.ApplyConfiguration(new IconMasterConfiguration());
             modelBuilder.ApplyConfiguration(new CountryConfiguration());
             modelBuilder.ApplyConfiguration(new UnitConfiguration());
             modelBuilder.ApplyConfiguration(new CompanyConfiguration());

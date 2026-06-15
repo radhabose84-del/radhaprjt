@@ -349,6 +349,9 @@ namespace UserManagement.Infrastructure
             services.AddScoped<ICurrencyQueryRepository, CurrencyQueryRepository>();
             services.AddScoped<ICurrencyCommandRepository, CurrencyCommandRepository>();
 
+            services.AddScoped<UserManagement.Application.Common.Interfaces.IIconMaster.IIconMasterQueryRepository, UserManagement.Infrastructure.Repositories.IconMaster.IconMasterQueryRepository>();
+            services.AddScoped<UserManagement.Application.Common.Interfaces.IIconMaster.IIconMasterCommandRepository, UserManagement.Infrastructure.Repositories.IconMaster.IconMasterCommandRepository>();
+
             services.AddScoped<ITimeZonesQueryRepository, TimeZonesQueryRepository>();
 
             services.AddScoped<ILanguageCommand, LanguageCommandRepository>();
