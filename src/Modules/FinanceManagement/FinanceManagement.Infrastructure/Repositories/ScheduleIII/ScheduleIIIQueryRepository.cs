@@ -85,7 +85,27 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             }
 
             structure.Sections = sections;
+            structure.SubTotals = await GetSubTotalsAsync(structure.Id);
             return structure;
+        }
+
+        public async Task<ScheduleIIIStructureDto?> GetByIdAsync(int structureId)
+        {
+            var ids = await _dbConnection.QueryFirstOrDefaultAsync(
+                "SELECT CompanyId, DivisionId FROM [Finance].[ScheduleIIIStructure] WHERE Id = @Id AND IsDeleted = 0;",
+                new { Id = structureId });
+
+            if (ids == null)
+                return null;
+
+            return await GetStructureAsync((int)ids.CompanyId, (int)ids.DivisionId);
+        }
+
+        public async Task<bool> StructureNotFoundAsync(int id)
+        {
+            const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIIStructure] WHERE Id = @Id AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
         }
 
         public async Task<Preview03BDto> Get03BPreviewAsync(int structureId)
