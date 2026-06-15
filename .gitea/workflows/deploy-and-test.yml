@@ -1,13 +1,10 @@
 name: Deploy to QA and Run Tests
 
 on:
-  # TEMP TRIAL — run on push to this feature branch to test the pipeline end-to-end.
-  # ❗ REMOVE this push: block before merging to dev (then it's manual-only again).
-  push:
-    branches:
-      - Radha_QATest_Implementations
-  # MANUAL ONE-CLICK DEPLOY (normal mode after the temp block above is removed):
-  # Gitea -> Actions -> "Deploy to QA and Run Tests" -> Run workflow -> branch BSOFTERP_Dev_V0.1.
+  # MANUAL ONE-CLICK DEPLOY ONLY (no push trigger). When ready to deploy, the designated
+  # developer runs this: Gitea -> Actions -> "Deploy to QA and Run Tests" -> Run workflow
+  # -> branch BSOFTERP_Dev_V0.1. Builds + publishes + deploys to the QA IIS app + runs the
+  # full QA/Functional suite, replacing the manual build/publish/deploy-to-IIS process.
   workflow_dispatch:
 
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,

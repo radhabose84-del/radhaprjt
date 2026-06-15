@@ -15,7 +15,6 @@ on:
     branches:
       - BSOFTERP_Dev_V0.1
       - Main
-      - Radha_QATest_Implementations   # TEMP trial: test the gate on this branch; REMOVE before merge
   workflow_dispatch:
 
 # One run at a time per ref. Cancel the older run when a newer push arrives —

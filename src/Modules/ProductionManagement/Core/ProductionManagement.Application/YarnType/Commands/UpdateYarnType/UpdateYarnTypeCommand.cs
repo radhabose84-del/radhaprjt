@@ -8,6 +8,8 @@ namespace ProductionManagement.Application.YarnType.Commands.UpdateYarnType
         public int Id { get; set; }
         public string? YarnTypeName { get; set; }
         public string? Description { get; set; }
+        public decimal? AdditionalPrice { get; set; }
+        public int? CurrencyId { get; set; }
         public int IsActive { get; set; }
         public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
