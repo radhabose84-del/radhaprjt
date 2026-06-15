@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetInsurance.Commands.UpdateAssetInsurance
 {
-    public class UpdateAssetInsuranceCommand  :   IRequest<bool>
+    public class UpdateAssetInsuranceCommand  :   IRequest<bool>, IRequirePermission
     {   
         public int Id { get; set; }
          public int  AssetId { get; set; }       
@@ -15,5 +16,6 @@ namespace FAM.Application.AssetMaster.AssetInsurance.Commands.UpdateAssetInsuran
         public int RenewalStatus { get; set; }
         public DateOnly RenewedDate { get; set; }
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

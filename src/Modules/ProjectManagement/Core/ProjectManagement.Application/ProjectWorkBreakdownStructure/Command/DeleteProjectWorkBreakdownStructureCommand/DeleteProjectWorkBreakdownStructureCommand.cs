@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.SoftDeleteProjectWorkBreakdownStructureCommand
 {
-    public class DeleteProjectWorkBreakdownStructureCommand : IRequest<bool>
+    public class DeleteProjectWorkBreakdownStructureCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
 
@@ -10,5 +11,6 @@ namespace ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.So
         {
             Id = id;
         }
+        public PermissionType RequiredPermission => PermissionType.CanDelete;
     }
 }

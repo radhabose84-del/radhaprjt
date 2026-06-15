@@ -4,7 +4,7 @@ using SalesManagement.Application.SalesQuotation.Dto;
 
 namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotationAmendment
 {
-    public class CreateSalesQuotationAmendmentCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateSalesQuotationAmendmentCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int SalesQuotationHeaderId { get; set; }
         public string? Reason { get; set; }
@@ -19,5 +19,6 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
         public decimal GrandTotal { get; set; }
 
         public List<CreateSalesQuotationAmendmentDetailDto>? AmendmentDetails { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

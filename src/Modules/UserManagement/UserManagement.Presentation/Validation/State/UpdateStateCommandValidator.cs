@@ -47,8 +47,15 @@ namespace UserManagement.Presentation.Validation.State
                         RuleFor(x => x.StateCode)
                             .MaximumLength(stateCodeMaxLength)
                             .WithMessage($"{nameof(UpdateStateCommand.StateCode)} {rule.Error} {stateCodeMaxLength}");
-                        break;                                 
-                    default:                        
+                        break;
+
+                    case "ByteValue":
+                        RuleFor(x => x.IsActive)
+                            .InclusiveBetween((byte)0, (byte)1)
+                            .WithMessage($"{nameof(UpdateStateCommand.IsActive)} {rule.Error}");
+                        break;
+
+                    default:
                         break;
                 }
             }

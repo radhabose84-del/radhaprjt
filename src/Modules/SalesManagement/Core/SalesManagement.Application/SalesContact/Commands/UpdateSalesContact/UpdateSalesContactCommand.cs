@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesContact.Commands.UpdateSalesContact
 {
-    public class UpdateSalesContactCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateSalesContactCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? ContactName { get; set; }
@@ -13,5 +13,6 @@ namespace SalesManagement.Application.SalesContact.Commands.UpdateSalesContact
         public string? Email { get; set; }
         public string? Remarks { get; set; }
         public int IsActive { get; set; }  // 1=Active, 0=Inactive
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

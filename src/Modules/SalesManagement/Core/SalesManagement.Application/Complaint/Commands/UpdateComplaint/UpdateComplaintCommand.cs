@@ -4,7 +4,7 @@ using SalesManagement.Application.Complaint.Dto;
 
 namespace SalesManagement.Application.Complaint.Commands.UpdateComplaint
 {
-    public class UpdateComplaintCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateComplaintCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public DateOnly ComplaintDate { get; set; }
@@ -27,5 +27,6 @@ namespace SalesManagement.Application.Complaint.Commands.UpdateComplaint
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
         public List<CreateComplaintDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

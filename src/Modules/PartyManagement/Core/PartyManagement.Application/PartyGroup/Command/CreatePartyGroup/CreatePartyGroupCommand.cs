@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace PartyManagement.Application.PartyGroup.Command.CreatePartyGroup
 {
-    public class CreatePartyGroupCommand : IRequest<int>
+    public class CreatePartyGroupCommand : IRequest<int>, IRequirePermission
     {
         public string? PartyGroupName { get; set; }
         public int? ParentPartyGroupId { get; set; }
@@ -11,5 +12,6 @@ namespace PartyManagement.Application.PartyGroup.Command.CreatePartyGroup
         public string? Glcode { get; set; }
         public int GlCategoryId { get; set; }
         public byte IsGroup { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

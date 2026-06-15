@@ -1,8 +1,9 @@
     // UpdateRfqCommand.cs
     using System.Text.Json.Serialization;
     using MediatR;
+using Contracts.Common;
 
-    public class UpdateRfqCommand : IRequest<Unit>
+    public class UpdateRfqCommand : IRequest<Unit>, IRequirePermission
     {
         public int Id { get; set; }
         public int InitiationTypeId { get; set; }
@@ -10,6 +11,7 @@
         public int IsActive { get; set; }
         public List<RfqItemUpsertDto> Items { get; set; } = new();
         public List<RfqSupplierUpsertDto> Suppliers { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 
     public class RfqItemUpsertDto

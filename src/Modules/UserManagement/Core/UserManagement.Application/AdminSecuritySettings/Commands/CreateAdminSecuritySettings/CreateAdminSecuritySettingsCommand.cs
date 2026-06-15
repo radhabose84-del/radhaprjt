@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.AdminSecuritySettings.Commands.CreateAdminSecuritySettings
 {
-    public class CreateAdminSecuritySettingsCommand : IRequest<int>
+    public class CreateAdminSecuritySettingsCommand : IRequest<int>, IRequirePermission
     {  public int Id { get; set; }
     public int PasswordHistoryCount { get; set; }
     public int SessionTimeoutMinutes { get; set; }
@@ -16,5 +17,6 @@ namespace UserManagement.Application.AdminSecuritySettings.Commands.CreateAdminS
     public int PasswordResetCodeExpiryMinutes { get; set; }
     public byte IsCaptchaEnabledOnLogin { get; set; }
         
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

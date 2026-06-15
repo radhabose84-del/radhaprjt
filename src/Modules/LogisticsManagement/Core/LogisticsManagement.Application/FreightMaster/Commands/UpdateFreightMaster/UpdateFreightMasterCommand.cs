@@ -3,7 +3,7 @@ using MediatR;
 
 namespace LogisticsManagement.Application.FreightMaster.Commands.UpdateFreightMaster
 {
-    public class UpdateFreightMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateFreightMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int FreightModeId { get; set; }
@@ -11,5 +11,6 @@ namespace LogisticsManagement.Application.FreightMaster.Commands.UpdateFreightMa
         public decimal Rate { get; set; }
         public int ModuleId { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

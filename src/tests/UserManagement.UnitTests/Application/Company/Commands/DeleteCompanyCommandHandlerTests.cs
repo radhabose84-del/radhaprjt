@@ -47,16 +47,17 @@ namespace UserManagement.UnitTests.Application.Company.Commands
         }
 
         [Fact]
-        public async Task Handle_NotFound_ThrowsValidationException()
+        public async Task Handle_NotFound_ReturnsFalse()
         {
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(999))
                 .ReturnsAsync((UserManagement.Domain.Entities.Company?)null!);
 
-            Func<Task> act = () => CreateSut().Handle(
+            // Idempotent delete: a missing id is a no-op (returns false), not a thrown exception.
+            var result = await CreateSut().Handle(
                 new DeleteCompanyCommand { Id = 999 }, CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>();
+            result.Should().BeFalse();
         }
 
         [Fact]

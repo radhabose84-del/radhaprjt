@@ -1,5 +1,4 @@
 using AutoMapper;
-using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Common.Interfaces.ICurrency;
@@ -53,7 +52,7 @@ namespace UserManagement.UnitTests.Application.Currency.Queries
         }
 
         [Fact]
-        public async Task Handle_NonExistentId_ThrowsValidationException()
+        public async Task Handle_NonExistentId_ReturnsNull()
         {
             // Arrange
             _mockQueryRepo
@@ -63,13 +62,12 @@ namespace UserManagement.UnitTests.Application.Currency.Queries
             var sut = CreateSut();
 
             // Act
-            Func<Task> act = async () => await sut.Handle(
+            var result = await sut.Handle(
                 new GetCurrencyByIdQuery { CurrencyId = 999 },
                 CancellationToken.None);
 
             // Assert
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*not found*");
+            result.Should().BeNull();
         }
 
         [Fact]

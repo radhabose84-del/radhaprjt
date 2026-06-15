@@ -4,7 +4,7 @@ using SalesManagement.Application.CustomerVisit.Dto;
 
 namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
 {
-    public class UpdateCustomerVisitCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateCustomerVisitCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int CustomerId { get; set; }
@@ -19,5 +19,6 @@ namespace SalesManagement.Application.CustomerVisit.Commands.UpdateCustomerVisit
 
         // Detail list (replaces existing)
         public List<CreateCustomerVisitProductDto>? Products { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

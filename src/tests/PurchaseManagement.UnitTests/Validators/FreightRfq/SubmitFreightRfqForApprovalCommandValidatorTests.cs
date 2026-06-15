@@ -16,7 +16,7 @@ namespace PurchaseManagement.UnitTests.Validators.FreightRfq
         private void SetupHappyPath()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockQueryRepo.Setup(r => r.GetStatusCodeAsync(It.IsAny<int>())).ReturnsAsync(MiscEnumEntity.Draft);
+            _mockQueryRepo.Setup(r => r.GetStatusCodeAsync(It.IsAny<int>())).ReturnsAsync(MiscEnumEntity.FreightRfqQuotationPending);
             _mockQueryRepo.Setup(r => r.GetQuotationCountAsync(It.IsAny<int>())).ReturnsAsync(2);
             _mockQueryRepo.Setup(r => r.QuotationBelongsToRfqAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
         }

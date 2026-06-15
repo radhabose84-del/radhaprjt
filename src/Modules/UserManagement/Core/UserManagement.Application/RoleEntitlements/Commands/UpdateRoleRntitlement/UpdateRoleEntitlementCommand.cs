@@ -1,14 +1,16 @@
 using MediatR;
 using UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement;
+using Contracts.Common;
 
 namespace UserManagement.Application.RoleEntitlements.Commands.UpdateRoleRntitlement
 {
-    public class UpdateRoleEntitlementCommand : IRequest<bool>
+    public class UpdateRoleEntitlementCommand : IRequest<bool>, IRequirePermission
     {
         public int RoleId { get; set; }
      public IList<RoleModuleDTO>? RoleModules { get; set; }
      public IList<RoleParentDTO>? RoleParents { get; set; }
      public IList<RoleChildDTO>? RoleChildren { get; set; }
      public IList<RoleMenuPrivilegesDTO>? RoleMenuPrivileges { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

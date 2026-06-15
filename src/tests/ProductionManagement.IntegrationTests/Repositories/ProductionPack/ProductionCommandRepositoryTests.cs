@@ -86,16 +86,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                 IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted,
                 Details = new List<ProductionPackEntryDetail>
                 {
-                    new ProductionPackEntryDetail
-                    {
-                        LotId = lotId,
-                        TotalBags = 0,
-                        TotalNetWeight = 0m,
-                        OpeningLooseKgs = 0m,
-                        TotalProductionKgs = 0m,
-                        ProductionKgs = 0m,
-                        LooseConeKgs = 0m
-                    }
+                    new ProductionPackEntryDetail { LotId = lotId, TotalBags = 0, TotalNetWeight = 0m }
                 }
             };
 
@@ -129,6 +120,8 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
             var detail = entity.Details!.First();
             detail.TotalNetWeight = 100m;
             detail.TotalBags = 5;
+            detail.StartPackNo = 1;
+            detail.EndPackNo = 5;
             var id = await CreateRepo(ctx).CreateAsync(entity, typeId: 1);
             ctx.ChangeTracker.Clear();
 

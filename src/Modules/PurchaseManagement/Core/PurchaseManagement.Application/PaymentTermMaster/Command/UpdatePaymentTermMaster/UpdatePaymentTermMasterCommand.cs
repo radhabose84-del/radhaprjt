@@ -1,9 +1,10 @@
 using PurchaseManagement.Application.PaymentTermMaster.Queries.GetAllPaymentTermMaster;
 using MediatR;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.PaymentTermMaster.Command.UpdatePaymentTermMaster
 {
-    public class UpdatePaymentTermMasterCommand  : IRequest<bool>
+    public class UpdatePaymentTermMasterCommand  : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
 
@@ -23,5 +24,6 @@ namespace PurchaseManagement.Application.PaymentTermMaster.Command.UpdatePayment
 
         // Replace strategy: full list of installments to persist
         public List<PaymentTermInstallmentDto>? Installments { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

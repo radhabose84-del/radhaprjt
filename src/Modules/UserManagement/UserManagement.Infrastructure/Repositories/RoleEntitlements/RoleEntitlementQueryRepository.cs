@@ -31,7 +31,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
 
                 SELECT rmenu.Id, rmenu.RoleId, rmenu.MenuId, rmenu.CanView, rmenu.CanAdd, rmenu.CanUpdate, rmenu.CanDelete, rmenu.CanApprove, rmenu.CanExport FROM [AppData].[Menus] m
                 INNER JOIN [AppSecurity].[RoleMenuPrivilege] rmenu ON rmenu.MenuId = m.Id
-                WHERE rmenu.RoleId = @RoleEntitlementId AND m.IsDeleted = 0";
+                WHERE rmenu.RoleId = @RoleEntitlementId AND m.IsDeleted = 0 AND rmenu.IsDeleted = 0";
 
             using var multi = await _dbConnection.QueryMultipleAsync(query, new { RoleEntitlementId = roleEntitlementId });
 
@@ -77,7 +77,7 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
                 INNER JOIN [AppSecurity].[UserRoleAllocation] URA ON URA.UserRoleId = RM.RoleId AND URA.IsActive = 1
                 INNER JOIN [AppData].[Menus] Menu ON Menu.ModuleId = M.Id
                 INNER JOIN #MENUPERMISSION PM ON PM.MenuId = Menu.Id AND PM.RoleId = URA.UserRoleId
-                LEFT JOIN [AppSecurity].[RoleMenuPrivilege] RMP ON RMP.MenuId = Menu.Id AND RMP.RoleId = URA.UserRoleId
+                LEFT JOIN [AppSecurity].[RoleMenuPrivilege] RMP ON RMP.MenuId = Menu.Id AND RMP.RoleId = URA.UserRoleId AND RMP.IsDeleted = 0
                 WHERE URA.UserId = @UserId AND M.IsDeleted = 0 AND Menu.IsDeleted = 0
                 ORDER BY Menu.ParentId, Menu.SortOrder;";
 
@@ -100,13 +100,13 @@ namespace UserManagement.Infrastructure.Repositories.RoleEntitlements
                         menuDictionary.Add(menu.Id, menuEntry);
                     }
 
-                    if (privilege != null && !menuEntry.RoleMenus.Any(p => p.Id == privilege.Id))
-                        menuEntry.RoleMenus.Add(privilege);
+                    if (privilege != null && !(menuEntry.RoleMenus ?? []).Any(p => p.Id == privilege.Id))
+                        menuEntry.RoleMenus!.Add(privilege);
 
                     if (menu.ParentId == 0 || !menuDictionary.TryGetValue(menu.ParentId, out var parentMenu))
                     {
-                        if (!moduleEntry.Menus.Any(m => m.Id == menuEntry.Id))
-                            moduleEntry.Menus.Add(menuEntry);
+                        if (!(moduleEntry.Menus ?? []).Any(m => m.Id == menuEntry.Id))
+                            moduleEntry.Menus!.Add(menuEntry);
                     }
                     else
                     {

@@ -68,7 +68,7 @@ namespace UserManagement.UnitTests.Application.Division.Commands
         }
 
         [Fact]
-        public async Task Handle_DeleteFails_ThrowsException()
+        public async Task Handle_DeleteFails_ReturnsFalse_NoAudit()
         {
             var command = DivisionBuilders.ValidDeleteCommand();
             var mappedEntity = new UserManagement.Domain.Entities.Division
@@ -85,14 +85,13 @@ namespace UserManagement.UnitTests.Application.Division.Commands
                 .Setup(r => r.DeleteAsync(command.Id, It.IsAny<UserManagement.Domain.Entities.Division>()))
                 .ReturnsAsync(false);
 
-            _mockMediator
-                .Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            // Idempotent delete: a no-op returns false and publishes NO audit event.
+            var result = await CreateSut().Handle(command, CancellationToken.None);
 
-            Func<Task> act = async () => await CreateSut().Handle(command, CancellationToken.None);
-
-            await act.Should().ThrowAsync<Exception>()
-                .WithMessage("*not deleted*");
+            result.Should().BeFalse();
+            _mockMediator.Verify(
+                m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
 
         [Fact]

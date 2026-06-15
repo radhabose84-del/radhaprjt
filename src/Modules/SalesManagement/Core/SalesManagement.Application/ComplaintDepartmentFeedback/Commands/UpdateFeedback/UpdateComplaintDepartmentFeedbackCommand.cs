@@ -4,7 +4,7 @@ using SalesManagement.Application.ComplaintDepartmentFeedback.Dto;
 
 namespace SalesManagement.Application.ComplaintDepartmentFeedback.Commands.UpdateFeedback
 {
-    public class UpdateComplaintDepartmentFeedbackCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateComplaintDepartmentFeedbackCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? RootCauseText { get; set; }
@@ -14,5 +14,6 @@ namespace SalesManagement.Application.ComplaintDepartmentFeedback.Commands.Updat
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
         public List<SubmitAttachmentDto>? Attachments { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

@@ -37,9 +37,9 @@ namespace PurchaseManagement.UnitTests.TestData
                 ModuleId = moduleId,
                 TermsHtml = "<p>Updated terms and conditions</p>",
                 IsActive = isActive,
-                Applicabilities = new List<TncApplicabilityRequestDto>
+                Applicabilities = new List<TncApplicabilityDto>
                 {
-                    new TncApplicabilityRequestDto { TransactionTypeId = 1 }
+                    new TncApplicabilityDto { TransactionTypeId = 1 }
                 }
             };
 

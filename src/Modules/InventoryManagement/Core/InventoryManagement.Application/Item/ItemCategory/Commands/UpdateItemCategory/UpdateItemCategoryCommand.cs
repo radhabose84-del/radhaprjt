@@ -1,9 +1,10 @@
 using InventoryManagement.Application.Item.ItemCategory.Commands.Shared;
 using MediatR;
+using Contracts.Common;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemCategory
 {
-    public class UpdateItemCategoryCommand : IRequest<int>
+    public class UpdateItemCategoryCommand : IRequest<int>, IRequirePermission
     {
         public int Id { get; set; }
         public int ItemGroupId { get; set; }
@@ -17,5 +18,6 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.UpdateItemC
         public byte IsActive { get; set; }
         public List<int> ModuleIds { get; set; } = new();
         public List<SampleQuantityItem> SampleQuantities { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

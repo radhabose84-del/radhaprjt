@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ProductionManagement.Application.LotMaster.Commands.CreateLotMaster
 {
-    public class CreateLotMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateLotMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public string? LotCode { get; set; }
         public string? BatchNumber { get; set; }
@@ -14,5 +14,6 @@ namespace ProductionManagement.Application.LotMaster.Commands.CreateLotMaster
         public int StatusId { get; set; }
         public string? ProductionOrderRef { get; set; }
         public string? Remarks { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

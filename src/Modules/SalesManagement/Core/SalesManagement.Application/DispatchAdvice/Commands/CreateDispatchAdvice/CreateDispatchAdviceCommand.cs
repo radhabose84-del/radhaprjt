@@ -4,7 +4,7 @@ using SalesManagement.Application.DispatchAdvice.Dto;
 
 namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvice
 {
-    public class CreateDispatchAdviceCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateDispatchAdviceCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly DispatchDate { get; set; }
         public int SalesOrderId { get; set; }
@@ -23,5 +23,6 @@ namespace SalesManagement.Application.DispatchAdvice.Commands.CreateDispatchAdvi
         public int UnitId { get; set; }
         public decimal Distance { get; set; }
         public List<CreateDispatchAdviceDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

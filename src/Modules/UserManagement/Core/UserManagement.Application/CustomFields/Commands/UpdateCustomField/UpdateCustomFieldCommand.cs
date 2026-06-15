@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.CustomFields.Commands.UpdateCustomField
 {
-    public class UpdateCustomFieldCommand : IRequest<bool>
+    public class UpdateCustomFieldCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public string? LabelName { get; set; }
@@ -15,5 +16,6 @@ namespace UserManagement.Application.CustomFields.Commands.UpdateCustomField
         public List<CustomFieldUnitUpdateDto>? Unit { get; set; }
         public List<CustomFieldOptionalValueUpdateDto>? OptionalValues { get; set; }
 
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

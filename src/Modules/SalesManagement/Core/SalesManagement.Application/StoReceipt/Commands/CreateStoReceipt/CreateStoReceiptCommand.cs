@@ -4,7 +4,7 @@ using SalesManagement.Application.StoReceipt.Dto;
 
 namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
 {
-    public class CreateStoReceiptCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateStoReceiptCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly StoReceiptDate { get; set; }
         public int DeliveryChallanHeaderId { get; set; }
@@ -14,5 +14,6 @@ namespace SalesManagement.Application.StoReceipt.Commands.CreateStoReceipt
         public string? VehicleNumber { get; set; }
         public string? Remarks { get; set; }
         public List<CreateStoReceiptDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

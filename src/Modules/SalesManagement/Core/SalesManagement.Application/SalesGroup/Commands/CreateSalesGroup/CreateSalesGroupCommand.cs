@@ -3,12 +3,13 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesGroup.Commands.CreateSalesGroup
 {
-    public class CreateSalesGroupCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateSalesGroupCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public string? SalesGroupName { get; set; }
         public int SalesOfficeId { get; set; }
         public string? ResponsibleManager { get; set; }
         public int? ProductCategoryId { get; set; }
         public string? RegionTerritory { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

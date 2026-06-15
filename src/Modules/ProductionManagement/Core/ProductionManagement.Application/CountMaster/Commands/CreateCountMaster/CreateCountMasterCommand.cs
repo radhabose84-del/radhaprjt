@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ProductionManagement.Application.CountMaster.Commands.CreateCountMaster
 {
-    public class CreateCountMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateCountMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public decimal CountValue { get; set; }
         public string? ShortName { get; set; }
@@ -11,5 +11,6 @@ namespace ProductionManagement.Application.CountMaster.Commands.CreateCountMaste
         public int CountTypeId { get; set; }
         public string? CountDescription { get; set; }
         public int UOMId { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

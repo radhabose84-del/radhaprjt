@@ -3,7 +3,7 @@ using MediatR;
 
 namespace BudgetManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster
 {
-    public class UpdateMiscTypeMasterCommand : IRequest<ApiResponseDTO<bool>>
+    public class UpdateMiscTypeMasterCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
 
         public int Id { get; set; }
@@ -11,5 +11,6 @@ namespace BudgetManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMast
         public string? Description { get; set; }
         public byte IsActive { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

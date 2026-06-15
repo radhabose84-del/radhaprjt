@@ -1,9 +1,11 @@
 using MediatR;
+using Contracts.Common;
 
 namespace MaintenanceManagement.Application.MiscMaster.Command.DeleteMiscMaster
 {
-    public class DeleteMiscMasterCommand : IRequest<bool>
+    public class DeleteMiscMasterCommand : IRequest<bool>, IRequirePermission
     {
           public int Id { get; set; }
+          public PermissionType RequiredPermission => PermissionType.CanDelete;
     }
 }

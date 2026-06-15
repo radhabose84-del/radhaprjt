@@ -4,7 +4,7 @@ using SalesManagement.Application.DiscountMaster.Commands.CreateDiscountMaster;
 
 namespace SalesManagement.Application.DiscountMaster.Commands.UpdateDiscountMaster
 {
-    public class UpdateDiscountMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateDiscountMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? DiscountName { get; set; }
@@ -27,5 +27,6 @@ namespace SalesManagement.Application.DiscountMaster.Commands.UpdateDiscountMast
         public List<DiscountSlabItem>? Slabs { get; set; }
         public List<int>? SalesGroupIds { get; set; }
         public List<int>? PaymentTermIds { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

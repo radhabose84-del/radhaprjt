@@ -6,7 +6,6 @@ using UserManagement.Application.Common.Interfaces.ICity;
 using UserManagement.Domain.Entities;
 using UserManagement.Domain.Events;
 using UserManagement.UnitTests.TestData;
-using FluentValidation;
 
 namespace UserManagement.UnitTests.Application.City.Queries
 {
@@ -46,18 +45,17 @@ namespace UserManagement.UnitTests.Application.City.Queries
         }
 
         [Fact]
-        public async Task Handle_NoResults_ThrowsValidationException()
+        public async Task Handle_NoResults_ReturnsEmptyList()
         {
             _mockQueryRepo
                 .Setup(r => r.GetByCityNameAsync("NonExistent"))
                 .ReturnsAsync(new List<Cities>());
 
-            Func<Task> act = async () => await CreateSut().Handle(
+            var result = await CreateSut().Handle(
                 new GetCityAutoCompleteQuery { SearchPattern = "NonExistent" },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*No Cities found*");
+            result.Should().BeEmpty();
         }
 
         [Fact]

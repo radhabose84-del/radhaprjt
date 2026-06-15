@@ -8,6 +8,7 @@ namespace QCManagement.UnitTests.TestData
     {
         // Conventional FK ids used across QS unit tests (illustrative — match seed convention)
         public const int QualityTemplateId = 1;
+        public const int QcTypeId = 30;                       // QP_QC_TYPE (illustrative seed id)
         public const int ApplicableLevelItemCategoryId = 17;  // QP_APPLICABLE_LEVEL: ITEM CATEGORY
         public const int ApplicableLevelItemId = 18;          // QP_APPLICABLE_LEVEL: ITEM
         public const int ValidationTypeRangeId = 11;          // QP_VALIDATION: RNG
@@ -19,11 +20,11 @@ namespace QCManagement.UnitTests.TestData
         public const int SeverityCriticalId = 19;             // QP_SEVERITY: CRT
         public const int FailureActionAcceptId = 22;          // QP_FAILURE_ACTION: ACPT
         public const int FailureActionRejectId = 26;          // QP_FAILURE_ACTION: REJECT
-        public const int QcTypeId = 10;                        // QP_QC_TYPE: PG (Purchased Goods)
 
         public static CreateQualitySpecificationCommand ValidCreateCommand(
             string? name = "Cotton Yarn 40s — Standard Acceptance v1",
             int qualityTemplateId = QualityTemplateId,
+            int qcTypeId = QcTypeId,
             int applicableLevelId = ApplicableLevelItemCategoryId,
             int? itemCategoryId = 5,
             int? itemId = null,
@@ -34,7 +35,7 @@ namespace QCManagement.UnitTests.TestData
             {
                 SpecificationName = name,
                 QualityTemplateId = qualityTemplateId,
-                QcTypeId = QcTypeId,
+                QcTypeId = qcTypeId,
                 ApplicableLevelId = applicableLevelId,
                 ItemCategoryId = itemCategoryId,
                 ItemId = itemId,
@@ -71,6 +72,7 @@ namespace QCManagement.UnitTests.TestData
         public static UpdateQualitySpecificationCommand ValidUpdateCommand(
             int id = 1,
             string? name = "Updated Specification",
+            int qcTypeId = QcTypeId,
             DateTimeOffset? effectiveFrom = null,
             DateTimeOffset? effectiveTo = null,
             int isActive = 1,
@@ -79,7 +81,7 @@ namespace QCManagement.UnitTests.TestData
             {
                 Id = id,
                 SpecificationName = name,
-                QcTypeId = QcTypeId,
+                QcTypeId = qcTypeId,
                 Description = "Updated description",
                 EffectiveFrom = effectiveFrom ?? new DateTimeOffset(2026, 6, 1, 0, 0, 0, TimeSpan.Zero),
                 EffectiveTo = effectiveTo,

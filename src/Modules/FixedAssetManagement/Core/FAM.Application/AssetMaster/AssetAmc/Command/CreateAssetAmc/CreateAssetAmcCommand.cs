@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetAmc.Command.CreateAssetAmc
 {
-    public class CreateAssetAmcCommand :IRequest<int>
+    public class CreateAssetAmcCommand :IRequest<int>, IRequirePermission
     {
         public int AssetId { get; set; } 
         public DateOnly? StartDate { get; set; }
@@ -16,5 +17,6 @@ namespace FAM.Application.AssetMaster.AssetAmc.Command.CreateAssetAmc
         public int? RenewalStatus { get; set; }  
         public DateOnly? RenewedDate { get; set; } 
         public byte IsActive { get; set; }  
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

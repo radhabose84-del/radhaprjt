@@ -309,12 +309,12 @@ namespace UserManagement.Infrastructure.Repositories.Units
     /// <inheritdoc />
     public async Task<bool> SoftDeleteValidationAsync(int id)
     {
-      // Same-module: check if any non-deleted UnitAddress or UnitContacts or UserUnit references this unit
+      // Block deletion only when a real dependent references this unit (an active user assignment).
+      // UnitAddress/UnitContacts are the unit's own 1:1 child records — they are owned by the unit
+      // and removed with it, so they must NOT block deletion (otherwise no unit is ever deletable).
       const string sql = @"
         SELECT CASE WHEN
-            EXISTS (SELECT 1 FROM [AppData].[UnitAddress]  WHERE UnitId = @Id)
-            OR EXISTS (SELECT 1 FROM [AppData].[UnitContacts] WHERE UnitId = @Id)
-            OR EXISTS (SELECT 1 FROM [AppSecurity].[UserUnit] WHERE UnitId = @Id AND IsActive = 1)
+            EXISTS (SELECT 1 FROM [AppSecurity].[UserUnit] WHERE UnitId = @Id AND IsActive = 1)
         THEN 1 ELSE 0 END";
 
       return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });

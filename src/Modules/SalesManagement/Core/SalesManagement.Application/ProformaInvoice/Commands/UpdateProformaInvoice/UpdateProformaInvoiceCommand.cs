@@ -3,11 +3,12 @@ using MediatR;
 
 namespace SalesManagement.Application.ProformaInvoice.Commands.UpdateProformaInvoice
 {
-    public class UpdateProformaInvoiceCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateProformaInvoiceCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int? StatusId { get; set; }
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

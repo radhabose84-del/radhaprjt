@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.AgentCustomerMapping.Commands.UpdateAgentCustomerMapping
 {
-    public class UpdateAgentCustomerMappingCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateAgentCustomerMappingCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int CustomerId { get; set; }
@@ -15,5 +15,6 @@ namespace SalesManagement.Application.AgentCustomerMapping.Commands.UpdateAgentC
         public bool IsDefaultAgent { get; set; }
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

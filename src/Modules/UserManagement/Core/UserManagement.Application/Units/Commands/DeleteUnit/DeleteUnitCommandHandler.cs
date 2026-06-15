@@ -28,9 +28,9 @@ namespace UserManagement.Application.Units.Commands.DeleteUnit
             var existingunitId = await _IunitQueryRepository.GetByIdAsync(request.UnitId);
             if (existingunitId is null)
             {
+                // Idempotent delete: a missing / already-deleted id is a no-op → controller 200, not 400.
                 _logger.LogWarning($"Unit ID {request.UnitId} not found.");
-                throw new ValidationException("Unit Id not found / Unit is deleted .");
-
+                return 0;
             }
             
             var usedByUser  = await _IunitQueryRepository.IsUnitUsedByAnyUserAsync(request.UnitId);

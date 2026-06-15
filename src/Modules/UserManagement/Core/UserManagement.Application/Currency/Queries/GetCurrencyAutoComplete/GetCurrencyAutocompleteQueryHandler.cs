@@ -31,11 +31,10 @@ namespace UserManagement.Application.Currency.Queries.GetCurrencyAutoComplete
 
             _logger.LogInformation($"Fetching Currency Request started: {request.SearchPattern}");
             var newcurrency = await _currencyQueryRepository.GetByCurrencyNameAsync(request.SearchPattern);
-            if (newcurrency is null || !newcurrency.Any() || newcurrency.Count == 0)
+            if (newcurrency is null || newcurrency.Count == 0)
             {
-                _logger.LogWarning($"No Currency Record {newcurrency.Count} not found in DB.");
-                throw new ValidationException("No currency found");
-             
+                _logger.LogInformation($"No Currency matched pattern '{request.SearchPattern}'.");
+                return new List<CurrencyAutoCompleteDto>();
             }
             var currencylist = _mapper.Map<List<CurrencyAutoCompleteDto>>(newcurrency);
             _logger.LogInformation($"Fetching Currency Request Completed: {currencylist.Count}");

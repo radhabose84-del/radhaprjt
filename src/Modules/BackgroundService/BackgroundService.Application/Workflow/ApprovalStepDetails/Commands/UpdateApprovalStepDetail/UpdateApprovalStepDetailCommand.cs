@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using BackgroundService.Application.Workflow.ApprovalStepDetails.Commands.CreateApprovalStepDetail;
 using MediatR;
+using Contracts.Common;
 
 namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Commands.UpdateApprovalStepDetail
 {
-    public class UpdateApprovalStepDetailCommand : IRequest<bool>
+    public class UpdateApprovalStepDetailCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public int WorkFlowTypeId { get; set; }
@@ -21,5 +22,6 @@ namespace BackgroundService.Application.Workflow.ApprovalStepDetails.Commands.Up
         public List<ApprovalStepUnitMappingUpdateDto> ApprovalStepUnitMappings { get; set; }
         // public List<RuleSkipApproverMappingDto> RuleSkipApproverMappings { get; set; }
         public List<ApprovalStepDepartmentMappingUpdateDto>? ApprovalStepDepartmentMappings { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

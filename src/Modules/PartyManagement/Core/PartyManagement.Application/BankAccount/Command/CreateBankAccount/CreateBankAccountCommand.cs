@@ -1,3 +1,4 @@
+using Contracts.Common;
 using MediatR;
 
 
@@ -20,4 +21,7 @@ public record CreateBankAccountCommand(
         int? CityId = null,
         int? StateId = null,
         string? Pincode = null
-) : IRequest<int>; // returns new Id
+) : IRequest<int>, IRequirePermission
+{
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
+} // returns new Id

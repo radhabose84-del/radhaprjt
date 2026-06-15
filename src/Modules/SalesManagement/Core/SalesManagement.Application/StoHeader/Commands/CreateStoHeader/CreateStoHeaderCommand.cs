@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
 {
-    public class CreateStoHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateStoHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly DocumentDate { get; set; }
         public DateOnly ExpectedDeliveryDate { get; set; }
@@ -15,6 +15,7 @@ namespace SalesManagement.Application.StoHeader.Commands.CreateStoHeader
         public int ReceivingStorageLocationId { get; set; }
         public string? Remarks { get; set; }
         public List<CreateStoDetailDto>? StoDetails { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
     public class CreateStoDetailDto

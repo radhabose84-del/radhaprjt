@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ProductionManagement.Application.YarnType.Commands.UpdateYarnType
 {
-    public class UpdateYarnTypeCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateYarnTypeCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? YarnTypeName { get; set; }
@@ -11,5 +11,6 @@ namespace ProductionManagement.Application.YarnType.Commands.UpdateYarnType
         public decimal? AdditionalPrice { get; set; }
         public int? CurrencyId { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

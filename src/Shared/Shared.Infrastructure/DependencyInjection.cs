@@ -16,6 +16,8 @@ public static class DependencyInjection
         services.AddScoped<IIPAddressService, IPAddressService>();
         services.AddScoped<IDataAccessFilter, DataAccessFilterService>();
         services.AddScoped<IAppDataMiscMasterLookup, AppDataMiscMasterLookupRepository>();
+        services.AddScoped<IPermissionService, PermissionCacheService>();
+        services.AddScoped<IAccessPolicyService, AccessPolicyService>();
         return services;
     }
 }

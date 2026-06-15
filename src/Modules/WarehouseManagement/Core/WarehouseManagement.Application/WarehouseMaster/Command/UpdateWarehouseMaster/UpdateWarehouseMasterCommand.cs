@@ -3,7 +3,7 @@ using MediatR;
 
 namespace WarehouseManagement.Application.WarehouseMaster.Command.UpdateWarehouseMaster
 {
-    public class UpdateWarehouseMasterCommand : IRequest<ApiResponseDTO<bool>>
+    public class UpdateWarehouseMasterCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
     public int Id { get; set; }
     public string? WarehouseName { get; set; }
@@ -39,5 +39,6 @@ namespace WarehouseManagement.Application.WarehouseMaster.Command.UpdateWarehous
     public List<int>? AllowedItemGroupIds { get; set; }
 
         
+    public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

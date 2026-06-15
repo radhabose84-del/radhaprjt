@@ -4,7 +4,7 @@ using SalesManagement.Application.AgentCommissionConfig.Commands.CreateAgentComm
 
 namespace SalesManagement.Application.AgentCommissionConfig.Commands.UpdateAgentCommissionConfig
 {
-    public class UpdateAgentCommissionConfigCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateAgentCommissionConfigCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int AgentId { get; set; }
@@ -21,5 +21,6 @@ namespace SalesManagement.Application.AgentCommissionConfig.Commands.UpdateAgent
         public List<int>? SalesGroupIds { get; set; }
         public List<int>? PaymentTermIds { get; set; }
         public List<AgentCommissionSlabItem>? Slabs { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

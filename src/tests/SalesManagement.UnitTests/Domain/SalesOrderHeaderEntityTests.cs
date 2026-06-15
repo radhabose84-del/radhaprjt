@@ -62,7 +62,6 @@ public class SalesOrderHeaderEntityTests
             SalesOrderTypeId = null,
             OrderUnitId = null,
             PaymentTypeId = null,
-            CountListId = null,
             Remarks = null,
             VisitNotesAttachment = null,
             AgentPOAttachment = null,

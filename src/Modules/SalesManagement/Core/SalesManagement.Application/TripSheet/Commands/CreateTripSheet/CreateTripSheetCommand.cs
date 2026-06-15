@@ -3,12 +3,13 @@ using MediatR;
 
 namespace SalesManagement.Application.TripSheet.Commands.CreateTripSheet
 {
-    public class CreateTripSheetCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateTripSheetCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly TripDate { get; set; }
         public string? VehicleNo { get; set; }
         public string? Remarks { get; set; }
         public List<CreateTripSheetDetailItem>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
     public class CreateTripSheetDetailItem

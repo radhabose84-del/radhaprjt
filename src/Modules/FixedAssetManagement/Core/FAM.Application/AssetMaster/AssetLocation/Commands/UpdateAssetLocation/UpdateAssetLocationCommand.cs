@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetLocation.Commands.UpdateAssetLocation
 {
-    public class UpdateAssetLocationCommand :   IRequest<int>
+    public class UpdateAssetLocationCommand :   IRequest<int>, IRequirePermission
     {
 
         public int AssetId { get; set; }
@@ -12,5 +13,6 @@ namespace FAM.Application.AssetMaster.AssetLocation.Commands.UpdateAssetLocation
         public int SubLocationId { get; set; } 
         public int CustodianId { get; set; }
         public int UserID { get; set; }     
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

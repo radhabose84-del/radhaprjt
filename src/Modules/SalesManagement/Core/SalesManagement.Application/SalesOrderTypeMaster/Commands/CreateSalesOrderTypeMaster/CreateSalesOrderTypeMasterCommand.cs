@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesOrderTypeMaster.Commands.CreateSalesOrderTypeMaster
 {
-    public class CreateSalesOrderTypeMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateSalesOrderTypeMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         // Identification
         public int SoTypeId { get; set; }
@@ -27,5 +27,6 @@ namespace SalesManagement.Application.SalesOrderTypeMaster.Commands.CreateSalesO
         public bool AllowIGST { get; set; }
         public bool CountryMandatory { get; set; }
         public int? DefaultCurrencyId { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

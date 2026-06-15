@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetAmc.Command.UpdateAssetAmc
 {
-    public class UpdateAssetAmcCommand :IRequest<int>
+    public class UpdateAssetAmcCommand :IRequest<int>, IRequirePermission
     {
     
         public int Id {get;set;}
@@ -18,5 +19,6 @@ namespace FAM.Application.AssetMaster.AssetAmc.Command.UpdateAssetAmc
         public int? RenewalStatus { get; set; }  
         public DateOnly? RenewedDate { get; set; }  
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

@@ -8,6 +8,9 @@ namespace UserManagement.Application.Common.Interfaces.ICurrency
     Task<List<UserManagement.Domain.Entities.Currency>> GetByCurrencyNameAsync(string currency);
       Task<List<UserManagement.Domain.Entities.Currency>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default);
 
+    /// <summary>Returns true if the currency does NOT exist (used by delete/update validators).</summary>
+    Task<bool> NotFoundAsync(int id);
+
     /// <summary>Returns true if any non-deleted record across all modules references this currency (delete guard).</summary>
     Task<bool> SoftDeleteValidationAsync(int id);
 

@@ -37,12 +37,6 @@ namespace PurchaseManagement.UnitTests.Domain
                 CreatedDate = now,
                 CreatedByName = "admin",
                 CreatedIP = "127.0.0.1",
-                QcRemarks = "QC passed",
-                QcPersonName = "Inspector",
-                QcStatusId = 1,
-                QcDate = now,
-                QcApprovedIp = "127.0.0.1",
-                IsQcApproved = true,
                 QcWarehouseId = 2,
                 RejectedImage = "rejected.jpg",
                 ItemsTotal = 10000m,
@@ -60,7 +54,7 @@ namespace PurchaseManagement.UnitTests.Domain
             entity.GrnNo.Should().Be("GRN001");
             entity.PartyId.Should().Be(20);
             entity.IsGrnGenerated.Should().BeTrue();
-            entity.IsQcApproved.Should().BeTrue();
+            entity.QcWarehouseId.Should().Be(2);
             entity.PurchaseValue.Should().Be(11310.50m);
         }
 
@@ -82,12 +76,6 @@ namespace PurchaseManagement.UnitTests.Domain
                 ModifiedDate = null,
                 ModifiedByName = null,
                 ModifiedIP = null,
-                QcRemarks = null,
-                QcPersonName = null,
-                QcStatusId = null,
-                GrnQcStatus = null,
-                QcDate = null,
-                QcApprovedIp = null,
                 QcWarehouseId = null,
                 RejectedImage = null,
                 ItemsTotal = null,
@@ -104,7 +92,7 @@ namespace PurchaseManagement.UnitTests.Domain
 
             entity.GrnNo.Should().BeNull();
             entity.DcDate.Should().BeNull();
-            entity.QcStatusId.Should().BeNull();
+            entity.QcWarehouseId.Should().BeNull();
             entity.GrnDetails.Should().BeNull();
         }
 

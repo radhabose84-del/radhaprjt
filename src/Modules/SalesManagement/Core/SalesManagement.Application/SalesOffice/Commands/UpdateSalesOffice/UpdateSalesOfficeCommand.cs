@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.SalesOffice.Commands.UpdateSalesOffice
 {
-    public class UpdateSalesOfficeCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateSalesOfficeCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? SalesOfficeName { get; set; }
@@ -16,5 +16,6 @@ namespace SalesManagement.Application.SalesOffice.Commands.UpdateSalesOffice
         public string? RegionTerritory { get; set; }
         public string? Address { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

@@ -172,7 +172,7 @@ namespace UserManagement.Presentation.Validation.Unit
                     .EmailAddress() 
                     .WithMessage($"{nameof(UnitContactsDto.Email)} {rule.Error}");
                      break;
-                     case "PinCode":
+                     case "Pincode":
                         RuleFor(x => x.UpdateUnitDto.UnitAddressDto.PinCode.ToString()) 
                             .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern)) 
                             .WithMessage($"{nameof(UnitAddressDto.PinCode)} {rule.Error}");

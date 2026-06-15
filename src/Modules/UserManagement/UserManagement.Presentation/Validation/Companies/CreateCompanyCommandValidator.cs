@@ -51,26 +51,41 @@ namespace UserManagement.Presentation.Validation.Companies
                         .NotEmpty()
                         .WithMessage($"{nameof(CreateCompanyCommand.Company.Website)} {rule.Error}");
 
+                        // Nested objects must be present. Guards against an NRE (HTTP 500) when
+                        // the request omits them (e.g. { "company": {} }); a missing object → 400.
+                        RuleFor(x => x.Company.CompanyAddress)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress)} {rule.Error}");
+                        RuleFor(x => x.Company.CompanyContact)
+                            .NotNull()
+                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact)} {rule.Error}");
+
                         RuleFor(x => x.Company.CompanyAddress.AddressLine1)
                         .NotEmpty()
-                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.AddressLine1)} {rule.Error}");
+                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.AddressLine1)} {rule.Error}")
+                        .When(x => x.Company.CompanyAddress != null);
 
                         RuleFor(x => x.Company.CompanyAddress.PinCode)
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.AddressLine2)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.AddressLine2)} {rule.Error}")
+                            .When(x => x.Company.CompanyAddress != null);
 
                         RuleFor(x => x.Company.CompanyContact.Name)
                      .NotEmpty()
-                     .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Name)} {rule.Error}");
+                     .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Name)} {rule.Error}")
+                     .When(x => x.Company.CompanyContact != null);
                         RuleFor(x => x.Company.CompanyContact.Designation)
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Designation)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Designation)} {rule.Error}")
+                            .When(x => x.Company.CompanyContact != null);
                         RuleFor(x => x.Company.CompanyContact.Email)
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Email)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Email)} {rule.Error}")
+                            .When(x => x.Company.CompanyContact != null);
                         RuleFor(x => x.Company.CompanyContact.Phone)
                             .NotEmpty()
-                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Phone)} {rule.Error}");
+                            .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Phone)} {rule.Error}")
+                            .When(x => x.Company.CompanyContact != null);
                         RuleFor(x => x.Company.PanNumber)
                         .NotEmpty()
                         .WithMessage($"{nameof(CreateCompanyCommand.Company.PanNumber)} {rule.Error}");
@@ -98,15 +113,18 @@ namespace UserManagement.Presentation.Validation.Companies
 
                         RuleFor(x => x.Company.CompanyAddress.CityId)
                   .InclusiveBetween(1, int.MaxValue)
-                  .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.CityId)} {rule.Error}");
+                  .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.CityId)} {rule.Error}")
+                  .When(x => x.Company.CompanyAddress != null);
 
                         RuleFor(x => x.Company.CompanyAddress.StateId)
                         .InclusiveBetween(1, int.MaxValue)
-                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.StateId)} {rule.Error}");
+                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.StateId)} {rule.Error}")
+                        .When(x => x.Company.CompanyAddress != null);
 
                         RuleFor(x => x.Company.CompanyAddress.CountryId)
                         .InclusiveBetween(1, int.MaxValue)
-                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.CountryId)} {rule.Error}");
+                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.CountryId)} {rule.Error}")
+                        .When(x => x.Company.CompanyAddress != null);
                         break;
 
                     case "Website":
@@ -123,29 +141,32 @@ namespace UserManagement.Presentation.Validation.Companies
                     case "Pincode":
                         RuleFor(x => x.Company.CompanyAddress.PinCode)
                         .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.PinCode)} {rule.Error}");
+                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.PinCode)} {rule.Error}")
+                        .When(x => x.Company.CompanyAddress != null);
                         break;
 
                     case "Telephone":
                         RuleFor(x => x.Company.CompanyAddress.AlternatePhone)
                         .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                         .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.AlternatePhone)} {rule.Error}")
-                        .When(x => !string.IsNullOrWhiteSpace(x.Company.CompanyAddress.AlternatePhone));
+                        .When(x => x.Company.CompanyAddress != null && !string.IsNullOrWhiteSpace(x.Company.CompanyAddress.AlternatePhone));
 
                         RuleFor(x => x.Company.CompanyAddress.Phone)
                        .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
                        .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyAddress.Phone)} {rule.Error}")
-                       .When(x => !string.IsNullOrWhiteSpace(x.Company.CompanyAddress.Phone));
+                       .When(x => x.Company.CompanyAddress != null && !string.IsNullOrWhiteSpace(x.Company.CompanyAddress.Phone));
 
                         RuleFor(x => x.Company.CompanyContact.Phone)
                        .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                       .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Phone)} {rule.Error}");
+                       .WithMessage($"{nameof(CreateCompanyCommand.Company.CompanyContact.Phone)} {rule.Error}")
+                       .When(x => x.Company.CompanyContact != null);
                         break;
 
                     case "Email":
                         RuleFor(x => x.Company.CompanyContact.Email)
                         .Matches(new System.Text.RegularExpressions.Regex(rule.Pattern))
-                        .WithMessage("Please enter a valid email address.");
+                        .WithMessage("Please enter a valid email address.")
+                        .When(x => x.Company.CompanyContact != null);
                         break;
                     case "AlreadyExists":
                         RuleFor(x => x.Company.CompanyName)

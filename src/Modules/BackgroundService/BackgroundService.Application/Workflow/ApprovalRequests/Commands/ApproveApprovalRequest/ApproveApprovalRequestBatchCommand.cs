@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.Text.Json;
+using Contracts.Common;
 using Contracts.Dtos.Common;
 using MediatR;
 
 namespace BackgroundService.Application.Workflow.ApprovalRequests.Commands.ApproveApprovalRequest
 {
-    public class ApproveApprovalRequestBatchCommand :  IRequest<ApproveBatchResultDto>
+    public class ApproveApprovalRequestBatchCommand : IRequest<ApproveBatchResultDto>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanApprove;
         public List<ApproveApprovalRequestItemDto> Items { get; set; } = new();
     }
 

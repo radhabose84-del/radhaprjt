@@ -1,7 +1,16 @@
+using UserManagement.Domain.Common;
+using static UserManagement.Domain.Enums.Common.Enums;
+
 namespace UserManagement.Domain.Entities
 {
-    public class RoleMenuPrivileges
+    public class RoleMenuPrivileges : BaseEntity
     {
+        public RoleMenuPrivileges()
+        {
+            IsActive = Status.Active;
+            IsDeleted = IsDelete.NotDeleted;
+        }
+
         public int Id { get; set; }
         public int RoleId { get; set; }
         public int MenuId { get; set; }
@@ -13,6 +22,5 @@ namespace UserManagement.Domain.Entities
         public bool CanApprove { get; set; }
         public UserRole? UserRole { get; set; }
         public Menu? Menu { get; set; }
-        
     }
 }

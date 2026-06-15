@@ -3,7 +3,7 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.ShiftMasterDetails.Commands.UpdateShiftMasterDetail
 {
-    public class UpdateShiftMasterDetailCommand : IRequest<ApiResponseDTO<bool>>
+    public class UpdateShiftMasterDetailCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
         public int Id { get; set; }
         public int ShiftMasterId { get; set; }
@@ -14,5 +14,6 @@ namespace MaintenanceManagement.Application.ShiftMasterDetails.Commands.UpdateSh
         public DateOnly EffectiveDate { get; set; }
         public int ShiftSupervisorId { get; set; }
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

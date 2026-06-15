@@ -1,0 +1,32 @@
+{
+  "Email": {
+    "SmtpServer": "mail.bannarimills.co.in",
+    "SmtpPort": 587,
+    "EnableSsl": true,
+    "FromEmail": "qa-automation@bannarimills.co.in",
+    "FromName": "BSOFT QA Automation",
+    "ToEmails": [
+      "dev@bannarimills.co.in"
+    ],
+    "Username": "YOUR_EMAIL_USERNAME",
+    "Password": "YOUR_EMAIL_PASSWORD"
+  },
+  "Slack": {
+    "WebhookUrl": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+    "Channel": "#qa-notifications",
+    "BotName": "BSOFT QA Bot"
+  },
+  "Jira": {
+    "BaseUrl": "https://bannarimills.atlassian.net",
+    "Email": "YOUR_JIRA_EMAIL@bannarimills.co.in",
+    "ApiToken": "YOUR_JIRA_API_TOKEN",
+    "ProjectKey": "SCRUM",
+    "IssueType": "Bug",
+    "Priority": "High",
+    "Label": "QA-Automation"
+  },
+  "QAServer": {
+    "BaseUrl": "http://198.168.1.130/BsoftErp",
+    "Environment": "QA"
+  }
+}

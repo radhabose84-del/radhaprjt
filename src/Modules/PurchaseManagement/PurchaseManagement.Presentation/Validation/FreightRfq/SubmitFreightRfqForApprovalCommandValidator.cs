@@ -42,9 +42,15 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
                 .WithName("Freight RFQ")
                 .When(x => x.FreightRfqId > 0);
 
-            // R3 / E1 — a selected transporter (belonging to this RFQ) is mandatory.
+            // R3 / E1 — a selected transporter is mandatory. This required check must run even when
+            // SelectedQuotationId == 0, so it is NOT gated on SelectedQuotationId > 0 (a trailing
+            // .When() in FluentValidation applies to the whole RuleFor chain).
             RuleFor(x => x.SelectedQuotationId)
                 .GreaterThan(0).WithMessage("A selected transporter is required before submission.")
+                .When(x => x.FreightRfqId > 0);
+
+            // ...and once a quotation is selected, it must belong to this RFQ.
+            RuleFor(x => x.SelectedQuotationId)
                 .MustAsync(async (cmd, quotationId, ct) =>
                     await _queryRepository.QuotationBelongsToRfqAsync(cmd.FreightRfqId, quotationId))
                 .WithMessage("The selected transporter quotation does not belong to this Freight RFQ.")

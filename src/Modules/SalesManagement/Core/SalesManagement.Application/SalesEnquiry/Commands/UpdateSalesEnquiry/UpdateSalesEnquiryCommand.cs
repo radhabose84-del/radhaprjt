@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace SalesManagement.Application.SalesEnquiry.Commands.UpdateSalesEnquiry
 {
-    public class UpdateSalesEnquiryCommand : IRequest<int>
+    public class UpdateSalesEnquiryCommand : IRequest<int>, IRequirePermission
     {
         public int Id { get; set; }
         public int PartyId { get; set; }
@@ -25,5 +26,6 @@ namespace SalesManagement.Application.SalesEnquiry.Commands.UpdateSalesEnquiry
             public decimal? TargetPrice { get; set; }
             public decimal? Discount { get; set; }
         }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.MovementTypeConfig.Commands.CreateMovementTypeConfig
 {
-    public class CreateMovementTypeConfigCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateMovementTypeConfigCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public string? MovementCode { get; set; }
         public string? MovementDescription { get; set; }
@@ -15,5 +15,6 @@ namespace SalesManagement.Application.MovementTypeConfig.Commands.CreateMovement
         public string? AccountModifier { get; set; }
         public bool BatchRequiredFlag { get; set; }
         public bool NegativeStockAllowed { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

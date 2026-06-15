@@ -1,9 +1,10 @@
 using FAM.Application.Location.Queries.GetLocations;
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.Location.Command.CreateLocation
 {
-    public class CreateLocationCommand : IRequest<LocationDto>
+    public class CreateLocationCommand : IRequest<LocationDto>, IRequirePermission
     {
         public string? Code { get; set; }
         public string? LocationName { get; set; }
@@ -12,5 +13,6 @@ namespace FAM.Application.Location.Command.CreateLocation
         public int UnitId { get; set; }
         public int DepartmentId { get; set; }
 
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

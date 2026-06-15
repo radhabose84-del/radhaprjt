@@ -26,9 +26,10 @@ namespace UserManagement.Infrastructure.Repositories.MiscTypeMaster
                     WHERE M.IsDeleted = 0
                     {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (M.MiscTypeCode LIKE @Search)")}}; 
 
-                    SELECT M.Id, M.MiscTypeCode, M.Description, M.IsActive, M.IsDeleted, M.CreatedBy, 
-                        M.CreatedAt, M.CreatedByName, M.CreatedIP, M.ModifiedBy, M.ModifiedAt, 
-                        M.ModifiedByName, M.ModifiedIP  
+                    SELECT M.Id, M.MiscTypeCode, M.Description, M.IsActive, M.IsDeleted, M.CreatedBy,
+                        CAST(M.CreatedDate AS datetime2) AS CreatedAt, M.CreatedByName, M.CreatedIP,
+                        M.ModifiedBy, CAST(M.ModifiedDate AS datetime2) AS ModifiedAt,
+                        M.ModifiedByName, M.ModifiedIP
                     FROM AppData.MiscTypeMaster M
                     WHERE M.IsDeleted = 0 
                     {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (M.MiscTypeCode LIKE @Search)")}}

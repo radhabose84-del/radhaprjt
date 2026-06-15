@@ -66,6 +66,11 @@ public class GlobalExceptionMiddleware
             _logger.LogWarning("TraceId: {TraceId} | Business rule: {Message}", traceId, ex.Message);
             await HandleException(context, StatusCodes.Status400BadRequest, ex.Message, traceId);
         }
+        catch (ForbiddenException ex)
+        {
+            _logger.LogWarning("TraceId: {TraceId} | Forbidden: {Message}", traceId, ex.Message);
+            await HandleException(context, StatusCodes.Status403Forbidden, ex.Message, traceId);
+        }
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning("TraceId: {TraceId} | Unauthorized: {Message}", traceId, ex.Message);

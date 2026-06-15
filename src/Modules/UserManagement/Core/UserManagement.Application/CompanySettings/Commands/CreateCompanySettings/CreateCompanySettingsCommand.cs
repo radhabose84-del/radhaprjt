@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.CompanySettings.Commands.CreateCompanySettings
 {
-    public class CreateCompanySettingsCommand : IRequest<int>
+    public class CreateCompanySettingsCommand : IRequest<int>, IRequirePermission
     {
         public int CompanyId { get; set; }
         public int PasswordHistoryCount { get; set; }
@@ -19,5 +20,6 @@ namespace UserManagement.Application.CompanySettings.Commands.CreateCompanySetti
         public int Language { get; set; }
         public int TimeZone { get; set; }
         public int FinancialYear { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

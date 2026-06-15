@@ -45,11 +45,12 @@ namespace UserManagement.Application.Units.Queries.GetUnitAutoComplete
 
             var userId = _ipAddressService.GetUserId();
             var result = await _unitRepository.GetUnit(request.SearchPattern,userId,request.CompanyId);
-              if (result is null || !result.Any() || result.Count == 0) 
+              if (result is null || result.Count == 0)
                 {
+                      // No matches is a normal autocomplete outcome → return an empty list (200),
+                      // not a 400.
                       _logger.LogWarning($"No Unit Record {request.SearchPattern} not found in DB.");
-                      throw new ValidationException("Unit not found.");
-                    
+                      return new List<UnitAutoCompleteDTO>();
                 }
 
             var unitDto = _mapper.Map<List<UnitAutoCompleteDTO>>(result);

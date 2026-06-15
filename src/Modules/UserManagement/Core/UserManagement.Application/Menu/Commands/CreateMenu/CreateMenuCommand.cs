@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.Menu.Commands.CreateMenu
 {
-    public class CreateMenuCommand : IRequest<int>
+    public class CreateMenuCommand : IRequest<int>, IRequirePermission
     {
         public string MenuName { get; set; } = default!;
         public int ModuleId { get; set; }
@@ -11,5 +12,6 @@ namespace UserManagement.Application.Menu.Commands.CreateMenu
         public int ParentId { get; set; }
         public int SortOrder { get; set; }
         public string? Type { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

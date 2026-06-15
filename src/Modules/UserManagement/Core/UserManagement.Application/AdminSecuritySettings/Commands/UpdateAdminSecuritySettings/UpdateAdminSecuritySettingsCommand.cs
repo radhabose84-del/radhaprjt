@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.AdminSecuritySettings.Commands.UpdateAdminSecuritySettings
 {
-    public class UpdateAdminSecuritySettingsCommand :  IRequest<int>
+    public class UpdateAdminSecuritySettingsCommand :  IRequest<int>, IRequirePermission
     {
          public int Id { get; set; }
     public int PasswordHistoryCount { get; set; }
@@ -17,5 +18,6 @@ namespace UserManagement.Application.AdminSecuritySettings.Commands.UpdateAdminS
     public int PasswordResetCodeExpiryMinutes { get; set; }
     public byte IsCaptchaEnabledOnLogin { get; set; }
     public byte IsActive {get; set;}
+         public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

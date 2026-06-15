@@ -1,6 +1,7 @@
 using UserManagement.Infrastructure.Data;
 using UserManagement.Application.Common.Interfaces.ICurrency;
 using Microsoft.EntityFrameworkCore;
+using static UserManagement.Domain.Enums.Common.Enums;
 
 namespace UserManagement.Infrastructure.Repositories.Currency
 {
@@ -49,7 +50,10 @@ namespace UserManagement.Infrastructure.Repositories.Currency
 
     public async Task<bool> ExistsByCodeAsync(string code)
     {
-        return await _applicationDbContext.Currency.AnyAsync(c => c.Code == code);
+        // Only active (non-soft-deleted) currencies block a code. A soft-deleted
+        // currency must not permanently reserve its code (CLAUDE.md rule #2).
+        return await _applicationDbContext.Currency
+            .AnyAsync(c => c.Code == code && c.IsDeleted == IsDelete.NotDeleted);
     }
 
     public async Task<int> DeletecurrencyAsync(int Id, UserManagement.Domain.Entities.Currency currency)
@@ -69,7 +73,10 @@ namespace UserManagement.Infrastructure.Repositories.Currency
 
         public async Task<bool> ExistsByNameupdateAsync(string name, int id)
         {
-            return await _applicationDbContext.Currency.AnyAsync(c => c.Name == name && c.Id != id);
+            // Only active (non-soft-deleted) currencies block a name. A soft-deleted
+            // currency must not permanently reserve its name (CLAUDE.md rule #2).
+            return await _applicationDbContext.Currency
+                .AnyAsync(c => c.Name == name && c.Id != id && c.IsDeleted == IsDelete.NotDeleted);
         }
     }
 }

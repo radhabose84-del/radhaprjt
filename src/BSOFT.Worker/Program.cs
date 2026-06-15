@@ -23,6 +23,7 @@ using SalesManagement.Infrastructure;
 using MaintenanceManagement.Infrastructure;
 using FAM.Infrastructure;
 using LogisticsManagement.Infrastructure;
+using GateEntryManagement.Infrastructure;
 
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -82,6 +83,9 @@ builder.Services.AddFinanceInfrastructureServices(builder.Configuration, builder
 builder.Services.AddProductionInfrastructureServices(builder.Configuration, builder.Environment);
 // QC infrastructure supplies IQualityTemplateLookup, consumed by PurchaseManagement's OCREntryQueryRepository.
 builder.Services.AddQCInfrastructureServices(builder.Configuration, builder.Environment);
+// GateEntry infrastructure supplies IVehicleMovementRecordLookup + IGateInwardLookup, consumed by
+// PurchaseManagement's ArrivalQueryRepository (and GRN pending list).
+builder.Services.AddGateEntryInfrastructureServices(builder.Configuration, builder.Environment);
 builder.Services.AddMaintenanceInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddFAMInfrastructure(builder.Configuration, builder.Environment);
 // Business module infrastructure (consumers and their command/query repos)

@@ -1,7 +1,10 @@
 using AutoMapper;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
+using Contracts.Interfaces.Purchase;
 using GateEntryManagement.Application.Common.Interfaces.IGateInward;
+using GateEntryManagement.Application.Common.Interfaces.IMiscMaster;
+using GateEntryManagement.Application.Common.Interfaces.IVehicleMovementRecord;
 using GateEntryManagement.Application.GateInward.Commands.CreateGateInward;
 using GateEntryManagement.Domain.Common;
 using GateEntryManagement.Domain.Entities;
@@ -16,14 +19,20 @@ namespace GateEntryManagement.UnitTests.Application.GateInward.Commands
         private readonly Mock<IGateInwardCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IGateInwardQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IDocumentSequenceLookup> _mockDocSeqLookup = new(MockBehavior.Loose);
+        private readonly Mock<ITransactionTypeLookup> _mockTransactionTypeLookup = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIpService = new(MockBehavior.Loose);
         private readonly Mock<IGateInwardAttachmentFileStorage> _mockStorage = new(MockBehavior.Loose);
+        private readonly Mock<IGateInwardGrnBridge> _mockGrnBridge = new(MockBehavior.Loose);
+        private readonly Mock<IMiscMasterQueryRepository> _mockMiscMasterQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IVehicleMovementRecordCommandRepository> _mockVehicleMovementRepo = new(MockBehavior.Loose);
 
         private CreateGateInwardCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockDocSeqLookup.Object,
-                _mockMediator.Object, _mockMapper.Object, _mockIpService.Object, _mockStorage.Object);
+                _mockTransactionTypeLookup.Object, _mockMediator.Object, _mockMapper.Object,
+                _mockIpService.Object, _mockStorage.Object, _mockGrnBridge.Object,
+                _mockMiscMasterQueryRepo.Object, _mockVehicleMovementRepo.Object);
 
         private void SetupHappyPath()
         {

@@ -4,7 +4,7 @@ using SalesManagement.Application.SalesOrder.Dto;
 
 namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendment
 {
-    public class CreateSalesOrderAmendmentCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateSalesOrderAmendmentCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int SalesOrderHeaderId { get; set; }
         public string? Reason { get; set; }
@@ -38,5 +38,6 @@ namespace SalesManagement.Application.SalesOrder.Commands.CreateSalesOrderAmendm
 
         // Applied discounts snapshot (max 3 — one per SlabType)
         public List<CreateSalesOrderAmendmentDiscountDto>? Discounts { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

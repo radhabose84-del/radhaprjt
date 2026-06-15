@@ -43,13 +43,13 @@ namespace UserManagement.UnitTests.Validators.FinancialYear
         }
 
         [Fact]
-        public async Task Validate_NullStartYear_ThrowsDueToNullToString()
+        public async Task Validate_NullStartYear_FailsValidation()
         {
             var command = ValidCommand();
             command.StartYear = null;
-            // Validator's RuleFor(x => x.StartYear.ToString()) throws NRE when StartYear is null
-            Func<Task> act = async () => await CreateValidator().TestValidateAsync(command);
-            await act.Should().ThrowAsync<NullReferenceException>();
+            // StartYear is now validated via RuleFor(x => x.StartYear) (no NRE on null) → NotEmpty fails.
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldHaveValidationErrorFor(x => x.StartYear);
         }
 
         [Fact]

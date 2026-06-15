@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMaster
 {
-    public class CreateItemPriceMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateItemPriceMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int ItemId { get; set; }
         public int? VariantId { get; set; }
@@ -16,5 +16,6 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.CreateItemPriceMa
         public decimal? CharityValue { get; set; }
         public decimal? HandlingCharges { get; set; }
         public int? StatusId { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

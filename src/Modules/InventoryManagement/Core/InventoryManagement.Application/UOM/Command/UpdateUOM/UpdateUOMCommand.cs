@@ -3,7 +3,7 @@ using MediatR;
 
 namespace InventoryManagement.Application.UOM.Command.UpdateUOM
 {
-    public class UpdateUOMCommand  : IRequest<ApiResponseDTO<bool>>
+    public class UpdateUOMCommand  : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? Code { get; set; }
@@ -12,5 +12,6 @@ namespace InventoryManagement.Application.UOM.Command.UpdateUOM
         public int UOMTypeId { get; set; }
         public byte IsActive { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

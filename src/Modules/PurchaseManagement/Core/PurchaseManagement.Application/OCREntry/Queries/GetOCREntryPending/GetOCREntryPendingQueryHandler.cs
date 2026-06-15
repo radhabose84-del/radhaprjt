@@ -34,7 +34,7 @@ namespace PurchaseManagement.Application.OCREntry.Queries.GetOCREntryPending
 
         public async Task<ApiResponseDTO<List<OCREntryDto>>> Handle(GetOCREntryPendingQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetPendingAsync(request.PageNumber, request.PageSize);
+            var (data, _) = await _queryRepository.GetPendingAsync(request.PageNumber, request.PageSize);
 
             if (data.Count > 0)
             {

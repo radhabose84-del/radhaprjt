@@ -1,9 +1,10 @@
 using FAM.Application.AssetLocation.Queries.GetAssetLocation;
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetLocation.Commands.CreateAssetLocation
 {
-    public class CreateAssetLocationCommand : IRequest<AssetLocationDto>
+    public class CreateAssetLocationCommand : IRequest<AssetLocationDto>, IRequirePermission
     {
      
         public int AssetId { get; set; }
@@ -16,5 +17,6 @@ namespace FAM.Application.AssetLocation.Commands.CreateAssetLocation
         
 
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

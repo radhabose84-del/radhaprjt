@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.StoHeader.Commands.UpdateStoHeader
 {
-    public class UpdateStoHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateStoHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public DateOnly DocumentDate { get; set; }
@@ -17,6 +17,7 @@ namespace SalesManagement.Application.StoHeader.Commands.UpdateStoHeader
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
         public List<UpdateStoDetailDto>? StoDetails { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 
     public class UpdateStoDetailDto

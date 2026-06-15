@@ -25,8 +25,9 @@ namespace UserManagement.Application.Companies.Commands.DeleteCompany
         public async Task<bool> Handle(DeleteCompanyCommand request, CancellationToken cancellationToken)
         {
             var existingCompany = await _companyQueryRepository.GetByIdAsync(request.Id);
+            // Idempotent delete: a missing / already-deleted id is a no-op → controller 200, not 400/500.
             if (existingCompany == null)
-                throw new ValidationException("Invalid CompanyId. Company not found / already deleted.");
+                return false;
 
             var usedByUsers = await _companyQueryRepository.IsCompanyUsedByAnyUserAsync(request.Id);
             if (usedByUsers)
@@ -47,10 +48,9 @@ namespace UserManagement.Application.Companies.Commands.DeleteCompany
                 );
 
                 await _mediator.Publish(domainEvent, cancellationToken);
-                return true;
             }
 
-            throw new Exception("Company not deleted");
+            return result;
         }
     }
 }

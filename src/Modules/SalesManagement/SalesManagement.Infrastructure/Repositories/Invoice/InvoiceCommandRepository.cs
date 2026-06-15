@@ -224,16 +224,19 @@ namespace SalesManagement.Infrastructure.Repositories.Invoice
                     using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
                     try
                     {
-                        // Get UnitId from the invoice record
-                        var unitId = await _dbContext.InvoiceHeader
+                        // Get UnitId from the invoice record — use anonymous type to detect not-found
+                        var invoiceRow = await _dbContext.InvoiceHeader
                             .Where(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted)
-                            .Select(x => x.UnitId)
+                            .Select(x => new { x.UnitId })
                             .FirstOrDefaultAsync(ct);
+
+                        if (invoiceRow == null)
+                            return null; // Invoice not found — no-op
 
                         // Resolve "Invoice" transaction type for the unit
                         var typeId = await _documentSequenceLookup.GetTransactionTypeIdAsync(
                             SalesManagement.Domain.Common.MiscEnumEntity.TransactionTypeInvoice,
-                            SalesManagement.Domain.Common.MiscEnumEntity.ModuleSales, unitId);
+                            SalesManagement.Domain.Common.MiscEnumEntity.ModuleSales, invoiceRow.UnitId);
 
                         if (!typeId.HasValue)
                             throw new ExceptionRules("Transaction Type 'Invoice' not found for Sales module.");

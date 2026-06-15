@@ -72,6 +72,8 @@ namespace UserManagement.Infrastructure.Data
         public DbSet<UserSignature> UserSignature { get; set; }
         public DbSet<Location> Location { get; set; }
         public DbSet<Station> Station { get; set; }
+		public DbSet<AccessPolicy> AccessPolicies { get; set; }
+        public DbSet<RoleAccessPolicy> RoleAccessPolicies { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -128,6 +130,8 @@ namespace UserManagement.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new UserSignatureConfiguration());
             modelBuilder.ApplyConfiguration(new LocationConfiguration());
             modelBuilder.ApplyConfiguration(new StationConfiguration());
+			modelBuilder.ApplyConfiguration(new AccessPolicyConfiguration());
+            modelBuilder.ApplyConfiguration(new RoleAccessPolicyConfiguration());
 
 
 
@@ -186,3 +190,4 @@ namespace UserManagement.Infrastructure.Data
         }
     }
 }
+

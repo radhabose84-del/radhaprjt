@@ -735,13 +735,13 @@ namespace PurchaseManagement.Application.Consumers
                         // Sets FreightRfqStatus = Approved and snapshots the selected transporter/rate/freight.
                         var affected = await _freightRfqCommandRepo.ApproveAsync(rfqId, null);
                         if (affected <= 0)
-                            throw new Exception($"Freight RFQ approval update failed for Id={rfqId}");
+                            throw new InvalidOperationException($"Freight RFQ approval update failed for Id={rfqId}");
                     }
                     else if (status == MiscEnumEntity.Rejected)
                     {
                         var affected = await _freightRfqCommandRepo.RejectAsync(rfqId, null);
                         if (affected <= 0)
-                            throw new Exception($"Freight RFQ rejection update failed for Id={rfqId}");
+                            throw new InvalidOperationException($"Freight RFQ rejection update failed for Id={rfqId}");
                     }
 
                     await PublishCompletedAsync();

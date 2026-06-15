@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace MaintenanceManagement.Application.MachineMaster.Command.CreateMachineMaster
 {
-    public class CreateMachineMasterCommand : IRequest<int>
+    public class CreateMachineMasterCommand : IRequest<int>, IRequirePermission
     {
         public string? MachineCode { get; set; }
         public string? MachineName { get; set; }
@@ -17,5 +18,6 @@ namespace MaintenanceManagement.Application.MachineMaster.Command.CreateMachineM
         public int AssetId { get; set; }
         public int LineNo { get; set; }
         public byte IsProductionMachine { get; set; } 
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

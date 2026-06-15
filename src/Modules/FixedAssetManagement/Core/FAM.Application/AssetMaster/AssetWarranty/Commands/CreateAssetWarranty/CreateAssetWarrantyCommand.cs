@@ -1,9 +1,10 @@
 using FAM.Application.AssetMaster.AssetWarranty.Queries.GetAssetWarranty;
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetWarranty.Commands.CreateAssetWarranty
 {
-    public class CreateAssetWarrantyCommand : IRequest<AssetWarrantyDTO>
+    public class CreateAssetWarrantyCommand : IRequest<AssetWarrantyDTO>, IRequirePermission
     { 
         public int AssetId { get; set; }
         public DateOnly? StartDate { get; set; } 
@@ -28,5 +29,6 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.CreateAssetWarranty
         public string? ServiceClaimProcessDescription { get; set; } 
         public DateOnly? ServiceLastClaimDate { get; set; } 
         public int? ServiceClaimStatus { get; set; } 
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

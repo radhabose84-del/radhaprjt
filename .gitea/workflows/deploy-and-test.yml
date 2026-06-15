@@ -1,0 +1,438 @@
+name: Deploy to QA and Run Tests
+
+on:
+  # MANUAL ONE-CLICK DEPLOY ONLY (no push trigger). When ready to deploy, the designated
+  # developer runs this: Gitea -> Actions -> "Deploy to QA and Run Tests" -> Run workflow
+  # -> branch BSOFTERP_Dev_V0.1. Builds + publishes + deploys to the QA IIS app + runs the
+  # full QA/Functional suite, replacing the manual build/publish/deploy-to-IIS process.
+  workflow_dispatch:
+
+# Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
+# which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
+# same way if the QA test user differs.
+# Only one full deploy at a time — prevents two concurrent runs fighting over the
+# shared DB, the IIS app pool, and the backup/rollback folder.
+concurrency:
+  group: deploy-and-test
+  cancel-in-progress: false   # queue new runs; never abort a deploy mid-flight
+
+env:
+  # Runner and IIS are the same box (130), so localhost is the most reliable target
+  # and avoids any host/IP ambiguity. Change to the server IP if the runner ever moves.
+  QAServer__BaseUrl: http://localhost/BsoftErpDemo
+
+jobs:
+  deploy-and-test:
+    runs-on: [self-hosted, qa-server] # runs on QA server (192.168.1.130)
+
+    steps:
+      # ── Step 1: Get latest code ─────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ── Step 2: (removed) Setup .NET 8 ──────────────────────────────────
+      # The self-hosted QA runner has the .NET 8 SDK pre-installed at
+      # C:\Program Files\dotnet. actions/setup-dotnet was reinstalling 8.0.x into that
+      # same location on every run (as SYSTEM, under act) and producing INCOMPLETE
+      # installs — first an empty SDK 'Sdks' folder, then a Microsoft.NETCore.App.Ref
+      # targeting pack missing its ref DLLs (CS0006). Removing this step so the build
+      # uses the machine's pre-installed, complete SDK. Manage the SDK on the runner
+      # directly; do not re-add this step.
+
+      # ── Step 3: Restore packages ────────────────────────────────────────
+      # Restore only the API project (with its transitive module refs) — the deploy
+      # builds/publishes BSOFT.Api alone. Restoring the whole solution dragged in
+      # BSOFT.Worker, whose Microsoft.NET.Sdk.Worker SDK fails to resolve on this
+      # runner and collapsed the entire static restore graph. The later `dotnet test`
+      # steps restore their own projects (none reference BSOFT.Worker).
+      - name: Restore packages
+        run: dotnet restore src/BSOFT.Api/BSOFT.Api.csproj
+
+      # ── Step 4: Build ───────────────────────────────────────────────────
+      # NOTE: SonarQube analysis intentionally lives in ci-gate.yml (the build+test gate),
+      # NOT here. The gate runs the unit tests with coverage, so it is the only place that can
+      # feed real coverage to Sonar. A Sonar scan here (build only, no tests) reported 0%
+      # coverage and — sharing the same project key 'bsoft' — overwrote the gate's real
+      # numbers. Deploy = deploy; analysis = gate.
+      - name: Build BSOFT.Api
+        run: dotnet build src/BSOFT.Api/BSOFT.Api.csproj -c Release --no-restore
+
+      # ── Step 5: Publish ─────────────────────────────────────────────────
+      - name: Publish BSOFT.Api
+        run: dotnet publish src/BSOFT.Api/BSOFT.Api.csproj -c Release -o publish/api --no-build
+
+      # ── Step 5b: Snapshot the current live deploy (for rollback) ─────────
+      # Mirror the currently-deployed app (incl. its working web.config) to a backup folder so
+      # the "Rollback on failure" step can restore it if this deploy/readiness fails.
+      - name: Backup current deploy
+        shell: powershell
+        run: |
+          if (Test-Path "D:\Publish\BsoftERPDemo\BSOFT.Api.dll") {
+            robocopy "D:\Publish\BsoftERPDemo" "D:\Publish\BsoftERPDemo_backup" /MIR /XF app_offline.htm /NFL /NDL /NJH /NJS | Out-Null
+            if ($LASTEXITCODE -ge 8) { Write-Host "Backup robocopy warning ($LASTEXITCODE)" }
+            $global:LASTEXITCODE = 0
+            Write-Host "Backed up current deploy -> D:\Publish\BsoftERPDemo_backup."
+          } else {
+            Write-Host "No existing deploy to back up (first deploy) - rollback will be a no-op."
+          }
+
+      # ── Step 6: Take the app offline (shared DefaultAppPool — do NOT stop the pool) ──
+      # app_offline.htm makes ASP.NET Core shut down and release file locks for THIS app
+      # only, so the deploy doesn't disturb anything else on DefaultAppPool.
+      - name: Take BsoftErpDemo offline
+        shell: powershell
+        run: |
+          "Deploying - app temporarily offline." | Out-File -FilePath "D:\Publish\BsoftERPDemo\app_offline.htm" -Encoding utf8
+          Start-Sleep -Seconds 3
+          Write-Host "app_offline.htm placed."
+
+      # ── Step 7: Deploy files ────────────────────────────────────────────
+      # /XF keeps the offline marker (so /MIR doesn't delete it) AND the hand-tuned web.config
+      # (which carries the per-app env vars: ASPNETCORE_ENVIRONMENT=qa, DATABASE_SERVER/USERID/
+      # PASSWORD). dotnet publish emits a default web.config with NO env vars, so without this
+      # exclusion /MIR would overwrite the live web.config and the app fails to start (500.30).
+      - name: Deploy to D:\Publish\BsoftERPDemo
+        shell: powershell
+        run: |
+          robocopy publish\api D:\Publish\BsoftERPDemo /MIR /XF app_offline.htm web.config /NFL /NDL /NJH /NJS
+          if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" } else { $global:LASTEXITCODE = 0 }
+          Write-Host "Files deployed."
+
+      # ── Step 7b: Generate web.config from secrets (no more manual edits) ─
+      # publish emits a default web.config WITHOUT the env vars the app needs (ASPNETCORE_ENVIRONMENT
+      # selects appsettings.QA.json; DATABASE_SERVER/USERID/PASSWORD feed the {SERVER}/{USER_ID}/
+      # {ENC_PASSWORD} connection-string substitution). We write it here from Gitea secrets so it is
+      # never hand-edited and is reproduced on a fresh server. If the secrets are unset, the existing
+      # web.config (preserved by /XF above) is left untouched, so nothing breaks.
+      - name: Configure web.config (runtime env vars)
+        shell: powershell
+        env:
+          DB_SERVER: ${{ secrets.DATABASE_SERVER }}
+          DB_USER: ${{ secrets.DATABASE_USERID }}
+          DB_PASS: ${{ secrets.DATABASE_PASSWORD }}
+        run: |
+          if (-not $env:DB_SERVER -or -not $env:DB_USER -or -not $env:DB_PASS) {
+            Write-Host "DB secrets not set - keeping existing web.config (preserved by /XF). Set DATABASE_SERVER / DATABASE_USERID / DATABASE_PASSWORD secrets to fully automate."
+          } else {
+            $s = [System.Security.SecurityElement]::Escape($env:DB_SERVER)
+            $u = [System.Security.SecurityElement]::Escape($env:DB_USER)
+            $p = [System.Security.SecurityElement]::Escape($env:DB_PASS)
+            $lines = @(
+              '<?xml version="1.0" encoding="utf-8"?>',
+              '<configuration>',
+              '  <location path="." inheritInChildApplications="false">',
+              '    <system.webServer>',
+              '      <handlers>',
+              '        <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />',
+              '      </handlers>',
+              '      <aspNetCore processPath="dotnet" arguments=".\BSOFT.Api.dll" stdoutLogEnabled="false" stdoutLogFile=".\logs\stdout" hostingModel="inprocess">',
+              '        <environmentVariables>',
+              '          <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="qa" />',
+              "          <environmentVariable name=""DATABASE_SERVER"" value=""$s"" />",
+              "          <environmentVariable name=""DATABASE_USERID"" value=""$u"" />",
+              "          <environmentVariable name=""DATABASE_PASSWORD"" value=""$p"" />",
+              '        </environmentVariables>',
+              '      </aspNetCore>',
+              '    </system.webServer>',
+              '  </location>',
+              '</configuration>'
+            )
+            Set-Content -Path "D:\Publish\BsoftERPDemo\web.config" -Value ($lines -join "`r`n") -Encoding utf8
+            Write-Host "web.config generated from secrets."
+          }
+
+      # ── Step 8: Bring the app back online ───────────────────────────────
+      - name: Bring BsoftErpDemo online
+        shell: powershell
+        run: |
+          Remove-Item "D:\Publish\BsoftERPDemo\app_offline.htm" -ErrorAction SilentlyContinue
+          Write-Host "app_offline.htm removed - app restarting on next request."
+
+      # ── Step 9: Wait for app to be ready ────────────────────────────────
+      - name: Wait for QA server to be ready
+        shell: powershell
+        run: |
+          # The in-process app does a heavy cold start after the recycle (JIT + DI for 10+ modules,
+          # DB connections, Hangfire, MassTransit), which can take well over a minute on this shared
+          # box. Give it up to ~30s + 12x10s = ~2.5 min, with a bounded per-attempt timeout so a
+          # mid-startup hang doesn't stall the loop.
+          Write-Host "Waiting 30 seconds for IIS to recycle + app cold-start..."
+          Start-Sleep -Seconds 30
+          $ready = $false
+          for ($i = 1; $i -le 12; $i++) {
+            try {
+              Invoke-RestMethod "$env:QAServer__BaseUrl/api/auth/deactivate-user-sessionByUsername" `
+                -Method Post -ContentType "application/json" `
+                -Body '{"username":"testsales","password":"Test@1234"}' `
+                -TimeoutSec 15 -ErrorAction Stop | Out-Null
+              $ready = $true
+              Write-Host "QA server is ready."
+              break
+            } catch {
+              Write-Host "Attempt $i/12 - app still warming up, waiting 10s..."
+              Start-Sleep -Seconds 10
+            }
+          }
+          if (-not $ready) { throw "QA server not responding after deployment." }
+
+      # ── Step 9b: Rollback if the DEPLOY/READINESS failed ────────────────
+      # if: failure() here fires only when a step BEFORE it failed (build/test gates, deploy,
+      # web.config, online, or readiness). It is positioned BEFORE the test steps, so a later
+      # TEST failure does NOT trigger a rollback (the deploy is fine; the tests just found bugs).
+      - name: Rollback on deploy/readiness failure
+        if: failure()
+        shell: powershell
+        run: |
+          if (Test-Path "D:\Publish\BsoftERPDemo_backup\BSOFT.Api.dll") {
+            Write-Host "Deploy/readiness FAILED - rolling back to the previous version..."
+            "Rolling back." | Out-File -FilePath "D:\Publish\BsoftERPDemo\app_offline.htm" -Encoding utf8
+            Start-Sleep -Seconds 3
+            robocopy "D:\Publish\BsoftERPDemo_backup" "D:\Publish\BsoftERPDemo" /MIR /XF app_offline.htm /NFL /NDL /NJH /NJS | Out-Null
+            $global:LASTEXITCODE = 0
+            Remove-Item "D:\Publish\BsoftERPDemo\app_offline.htm" -ErrorAction SilentlyContinue
+            Write-Host "Rollback complete - previous version restored and back online."
+          } else {
+            Write-Host "No backup found - nothing to roll back to (likely the first deploy)."
+          }
+
+      # ── Step 10: SMOKE GATE (fail fast) ─────────────────────────────────
+      # If the deployed app can't serve the critical read paths, stop here — no point
+      # running the full suite against a broken deploy. A failing step fails the job.
+      - name: Smoke gate
+        shell: powershell
+        run: |
+          dotnet test src/tests/UserManagement.QATests/UserManagement.QATests.csproj `
+            --filter "Layer=Smoke" `
+            --logger "trx;LogFileName=smoke.trx" `
+            --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 10a: Module SMOKE slice (BLOCKING) ─────────────────────────
+      # FAM + Maintenance smoke (Layer=Smoke). Live-reconciled to green (FAM 24/24,
+      # Maintenance smoke green), so this is now a blocking fail-fast gate like Step 10.
+      # The full CRUD/Functional suites (Steps 12a/12b) stay non-blocking until they
+      # prove stable across a few CI runs, then promote them too.
+      - name: Module smoke (FAM + Maintenance)
+        if: success()
+        shell: powershell
+        run: |
+          dotnet test src/tests/FixedAssetManagement.QATests/FixedAssetManagement.QATests.csproj `
+            --filter "Layer=Smoke" `
+            --logger "trx;LogFileName=fam-smoke.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+          dotnet test src/tests/MaintenanceManagement.QATests/MaintenanceManagement.QATests.csproj `
+            --filter "Layer=Smoke" `
+            --logger "trx;LogFileName=maintenance-smoke.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 11: Full QA suite (CRUD + Security + Async) ────────────────
+      - name: Run QA suite
+        if: success()
+        shell: powershell
+        run: |
+          dotnet test src/tests/UserManagement.QATests/UserManagement.QATests.csproj `
+            --logger "html;LogFileName=qa-report.html" `
+            --logger "trx;LogFileName=qa.trx" `
+            --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 12: Functional workflow tests ──────────────────────────────
+      - name: Run Functional tests
+        if: success()
+        shell: powershell
+        run: |
+          dotnet test src/tests/UserManagement.FunctionalTests/UserManagement.FunctionalTests.csproj `
+            --logger "html;LogFileName=functional-report.html" `
+            --logger "trx;LogFileName=functional.trx" `
+            --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 12a: FAM + Maintenance QA suites (RECONCILING — non-blocking) ──
+      # These suites are authored from the source contract but not yet live-reconciled,
+      # so they run with continue-on-error to REPORT results (TRX → Slack/JIRA) without
+      # failing the job. FK happy-paths use best-effort seed ids and will need tuning on
+      # first live run. Once a suite is green, move its line into Step 11 (blocking).
+      - name: Run module QA suites (reconciling)
+        if: success()
+        continue-on-error: true
+        shell: powershell
+        run: |
+          dotnet test src/tests/FixedAssetManagement.QATests/FixedAssetManagement.QATests.csproj `
+            --logger "trx;LogFileName=fam-qa.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+          dotnet test src/tests/MaintenanceManagement.QATests/MaintenanceManagement.QATests.csproj `
+            --logger "trx;LogFileName=maintenance-qa.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 12b: FAM + Maintenance Functional workflows (RECONCILING — non-blocking) ──
+      # Skip-documented steps (blocked on seeded data) report as skipped, not failed.
+      - name: Run module Functional tests (reconciling)
+        if: success()
+        continue-on-error: true
+        shell: powershell
+        run: |
+          dotnet test src/tests/FixedAssetManagement.FunctionalTests/FixedAssetManagement.FunctionalTests.csproj `
+            --logger "trx;LogFileName=fam-functional.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+          dotnet test src/tests/MaintenanceManagement.FunctionalTests/MaintenanceManagement.FunctionalTests.csproj `
+            --logger "trx;LogFileName=maintenance-functional.trx" --logger "console;verbosity=normal" `
+            --results-directory qa-reports
+
+      # ── Step 13: Upload all reports (always) ────────────────────────────
+      # Re-enabled: Gitea's ROOT_URL (app.ini) is now http://192.168.1.126:3000/ (was
+      # localhost:3000, which the runner on 130 couldn't reach -> ECONNREFUSED). continue-on-error
+      # keeps a transient artifact-service hiccup from failing the job; the TESTS decide green/red.
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        continue-on-error: true
+        with:
+          # Versioned by run number + commit SHA so each run's reports are uniquely traceable.
+          name: QA-Reports-r${{ github.run_number }}-${{ github.sha }}
+          path: qa-reports/
+
+      # ── Step 14: Notify Slack on EVERY run (pass or fail) ───────────────
+      # Runs always(): posts a green check on success, a red X + failed-test list on failure.
+      # Test counts/names come from the .trx files. (JIRA below stays failure-only.)
+      - name: Notify Slack (pass or fail)
+        if: always()
+        shell: powershell
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set - skipping."; exit 0 }
+
+          $failed = @(); $total = 0; $pass = 0; $fail = 0
+          Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+              [xml]$trx = Get-Content $_.FullName
+              $c = $trx.TestRun.ResultSummary.Counters
+              if ($c) { $total += [int]$c.total; $pass += [int]$c.passed; $fail += [int]$c.failed }
+              $trx.TestRun.Results.UnitTestResult |
+                Where-Object { $_.outcome -eq 'Failed' } |
+                ForEach-Object { $failed += $_.testName }
+            } catch { Write-Host "Could not parse $($_.Name): $_" }
+          }
+
+          $branch = "${{ github.ref_name }}"
+          $sha    = "${{ github.sha }}".Substring(0,8)
+
+          if ($env:JOB_STATUS -eq 'success') {
+            $text = ":white_check_mark: *QA pipeline passed* on ``$branch`` ($sha)`n" +
+                    "Passed: $pass  Failed: $fail  Total: $total"
+          } else {
+            $lines = ($failed | Select-Object -First 20 | ForEach-Object { "- $_" }) -join "`n"
+            if ($failed.Count -gt 20) { $lines += "`n...and $($failed.Count - 20) more" }
+            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
+                    "Passed: $pass  Failed: $fail  Total: $total`n" +
+                    "*Failed tests:*`n$lines"
+          }
+
+          $payload = @{ text = $text } | ConvertTo-Json -Depth 4
+          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -ContentType 'application/json' -Body $payload
+          Write-Host "Slack notified ($($env:JOB_STATUS))."
+
+      # ── Step 15: Create or update JIRA bug on failure ───────────────────
+      # For each failed test: dedup-search JIRA for an open bug with the same label +
+      # summary; comment if found, else create a new Bug. Non-secret shape (BaseUrl,
+      # ProjectKey, Label) is read from src/tests/qa-config.example.json; credentials come
+      # from the JIRA_EMAIL / JIRA_API_TOKEN secrets. Skips gracefully if they're unset.
+      - name: Create or update JIRA bug on failure
+        if: failure()
+        shell: powershell
+        env:
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          if (-not $env:JIRA_EMAIL -or -not $env:JIRA_API_TOKEN) {
+            Write-Host "JIRA_EMAIL / JIRA_API_TOKEN secrets not set - skipping JIRA."; exit 0
+          }
+
+          # Non-secret config from the documented qa-config shape (with safe fallbacks).
+          $jira = $null
+          if (Test-Path "src/tests/qa-config.example.json") {
+            try { $jira = (Get-Content "src/tests/qa-config.example.json" -Raw | ConvertFrom-Json).Jira } catch {}
+          }
+          $baseUrl    = if ($jira -and $jira.BaseUrl)    { $jira.BaseUrl }    else { "https://bannarimills.atlassian.net" }
+          $projectKey = if ($jira -and $jira.ProjectKey) { $jira.ProjectKey } else { "SCRUM" }
+          $label      = if ($jira -and $jira.Label)      { $jira.Label }      else { "QA-Automation" }
+          $issueType  = if ($jira -and $jira.IssueType)  { $jira.IssueType }  else { "Bug" }
+          $priority   = if ($jira -and $jira.Priority)   { $jira.Priority }   else { "High" }
+
+          # Collect failed tests from every .trx.
+          $failed = @()
+          Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+              [xml]$trx = Get-Content $_.FullName
+              $trx.TestRun.Results.UnitTestResult |
+                Where-Object { $_.outcome -eq 'Failed' } |
+                ForEach-Object {
+                  $msg = ""
+                  try { $msg = $_.Output.ErrorInfo.Message } catch {}
+                  $failed += [pscustomobject]@{ Name = $_.testName; Error = $msg }
+                }
+            } catch { Write-Host "Could not parse $($_.Name): $_" }
+          }
+          $failed = $failed | Sort-Object Name -Unique
+          if ($failed.Count -eq 0) { Write-Host "No failed tests parsed - nothing to file."; exit 0 }
+
+          $cap = 25
+          if ($failed.Count -gt $cap) {
+            Write-Host "Capping JIRA filing at $cap of $($failed.Count) failures."
+            $failed = $failed | Select-Object -First $cap
+          }
+
+          $auth    = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("$($env:JIRA_EMAIL):$($env:JIRA_API_TOKEN)"))
+          $headers = @{ Authorization = "Basic $auth" }
+          $branch  = "${{ github.ref_name }}"
+          $sha     = "${{ github.sha }}".Substring(0,8)
+          $runUrl  = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          foreach ($t in $failed) {
+            $short = ($t.Name -split '\.')[-1]
+            $summary = "[QA] $short failing"
+            $err = "$($t.Error)"
+            if ([string]::IsNullOrWhiteSpace($err)) { $err = "(no error message captured in TRX)" }
+            if ($err.Length -gt 2000) { $err = $err.Substring(0,2000) + " ..." }
+
+            # Build JSON-escaped string fragments (ConvertTo-Json quotes + escapes safely).
+            $summaryJson = $summary | ConvertTo-Json
+            $metaJson    = "Test: $($t.Name)  |  Branch: $branch  |  Commit: $sha  |  CI: $runUrl" | ConvertTo-Json
+            $errJson     = $err | ConvertTo-Json
+
+            # Description as ADF (Atlassian Document Format). Jira Cloud stores description as ADF;
+            # a plain-string description via the v2 API comes through BLANK, so we post ADF via v3.
+            $descAdf = '{"type":"doc","version":1,"content":[' +
+              '{"type":"paragraph","content":[{"type":"text","text":' + $metaJson + '}]},' +
+              '{"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":' + $errJson + '}]}' +
+              ']}'
+
+            # Dedup: an OPEN bug with the same label + summary already exists?
+            $jql = "project = $projectKey AND labels = `"$label`" AND summary ~ `"$short`" AND statusCategory != Done"
+            $existingKey = $null
+            try {
+              $searchBody = @{ jql = $jql; maxResults = 1; fields = @("key") } | ConvertTo-Json
+              $res = Invoke-RestMethod -Uri "$baseUrl/rest/api/2/search" -Method Post -Headers $headers -ContentType 'application/json' -Body $searchBody
+              if ($res.issues.Count -gt 0) { $existingKey = $res.issues[0].key }
+            } catch { Write-Host "JIRA search failed for $short : $_" }
+
+            if ($existingKey) {
+              $cmtJson = "Still failing on $branch ($sha). CI run: $runUrl" | ConvertTo-Json
+              $commentBody = '{"body":{"type":"doc","version":1,"content":[' +
+                '{"type":"paragraph","content":[{"type":"text","text":' + $cmtJson + '}]},' +
+                '{"type":"codeBlock","attrs":{"language":"text"},"content":[{"type":"text","text":' + $errJson + '}]}' +
+                ']}}'
+              try {
+                Invoke-RestMethod -Uri "$baseUrl/rest/api/3/issue/$existingKey/comment" -Method Post -Headers $headers -ContentType 'application/json' -Body $commentBody | Out-Null
+                Write-Host "Commented on existing $existingKey for $short."
+              } catch { Write-Host "JIRA comment failed for $existingKey : $_" }
+            } else {
+              $createBody = '{"fields":{"project":{"key":"' + $projectKey + '"},"summary":' + $summaryJson +
+                ',"description":' + $descAdf + ',"issuetype":{"name":"' + $issueType + '"},"priority":{"name":"' + $priority + '"},"labels":["' + $label + '"]}}'
+              try {
+                $created = Invoke-RestMethod -Uri "$baseUrl/rest/api/3/issue" -Method Post -Headers $headers -ContentType 'application/json' -Body $createBody
+                Write-Host "Created $($created.key) for $short."
+              } catch { Write-Host "JIRA create failed for $short : $_" }
+            }
+          }

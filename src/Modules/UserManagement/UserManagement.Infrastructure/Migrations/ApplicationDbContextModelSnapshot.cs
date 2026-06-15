@@ -22,6 +22,80 @@ namespace UserManagement.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("UserManagement.Domain.Entities.AccessPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<int>("CreatedBy")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("PolicyCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("PolicyName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PolicyCode")
+                        .IsUnique();
+
+                    b.ToTable("AccessPolicy", "AppSecurity");
+                });
+
             modelBuilder.Entity("UserManagement.Domain.Entities.AdminSecuritySettings", b =>
                 {
                     b.Property<int>("Id")
@@ -1618,6 +1692,33 @@ namespace UserManagement.Infrastructure.Migrations
                     b.ToTable("PasswordLog", "AppSecurity");
                 });
 
+            modelBuilder.Entity("UserManagement.Domain.Entities.RoleAccessPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccessPolicyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ValueId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("AccessPolicyId", "RoleId", "ValueId")
+                        .IsUnique();
+
+                    b.ToTable("RoleAccessPolicy", "AppSecurity");
+                });
+
             modelBuilder.Entity("UserManagement.Domain.Entities.RoleChild", b =>
                 {
                     b.Property<int>("Id")
@@ -1721,8 +1822,50 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Property<bool>("CanView")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<int>("CreatedBy")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
                     b.Property<int>("MenuId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ModifiedAt");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("ModifiedIP");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
@@ -2987,6 +3130,25 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UserManagement.Domain.Entities.RoleAccessPolicy", b =>
+                {
+                    b.HasOne("UserManagement.Domain.Entities.AccessPolicy", "AccessPolicy")
+                        .WithMany("RoleAccessPolicies")
+                        .HasForeignKey("AccessPolicyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UserManagement.Domain.Entities.UserRole", "UserRole")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AccessPolicy");
+
+                    b.Navigation("UserRole");
+                });
+
             modelBuilder.Entity("UserManagement.Domain.Entities.RoleChild", b =>
                 {
                     b.HasOne("UserManagement.Domain.Entities.Menu", "Menu")
@@ -3282,6 +3444,11 @@ namespace UserManagement.Infrastructure.Migrations
                     b.Navigation("Unit");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UserManagement.Domain.Entities.AccessPolicy", b =>
+                {
+                    b.Navigation("RoleAccessPolicies");
                 });
 
             modelBuilder.Entity("UserManagement.Domain.Entities.Company", b =>

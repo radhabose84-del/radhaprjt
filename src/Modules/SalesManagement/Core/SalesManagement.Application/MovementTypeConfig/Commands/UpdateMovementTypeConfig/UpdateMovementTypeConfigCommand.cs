@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.MovementTypeConfig.Commands.UpdateMovementTypeConfig
 {
-    public class UpdateMovementTypeConfigCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateMovementTypeConfigCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? MovementDescription { get; set; }
@@ -16,5 +16,6 @@ namespace SalesManagement.Application.MovementTypeConfig.Commands.UpdateMovement
         public bool BatchRequiredFlag { get; set; }
         public bool NegativeStockAllowed { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

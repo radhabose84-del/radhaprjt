@@ -1,9 +1,10 @@
 using ProjectManagement.Application.ProjectWorkBreakdownStructure.Queries.Dtos;
 using MediatR;
+using Contracts.Common;
 
 namespace ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.UpdateProjectWorkBreakdownStructureCommand
 {
-    public class UpdateProjectWorkBreakdownStructureCommand : IRequest<ProjectWorkBreakdownStructureDto>
+    public class UpdateProjectWorkBreakdownStructureCommand : IRequest<ProjectWorkBreakdownStructureDto>, IRequirePermission
     {
          public int Id { get; set; }                 // WBS Id (mandatory)
 
@@ -29,5 +30,6 @@ namespace ProjectManagement.Application.ProjectWorkBreakdownStructure.Command.Up
         // These will normally be inherited from Project, but kept for DTO mapping
         public int UnitId { get; set; }
         public int BudgetYearId { get; set; }
+         public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

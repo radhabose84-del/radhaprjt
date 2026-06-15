@@ -2276,6 +2276,59 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 
 ---
 
+## 🌐 QA Tests (Live-Server / API)
+
+QA tests exercise the **deployed, running API** end-to-end over HTTP (real auth, real DB) — the layer **above** Integration in the test pyramid. They prove each entity's controller contract (CRUD + validation + auth) against a live server.
+
+### Project & location
+```
+src/tests/{Module}.QATests/
+```
+**Canonical templates (study these):** `UserManagement.QATests`, `FixedAssetManagement.QATests`, `MaintenanceManagement.QATests`.
+
+### Mandatory conventions
+1. **Reference `Shared.QAInfrastructure`** — use the shared `QAServerFixture` (one `testsales` login, run-unique `EntityCode`), `QaHttpClientFactory`, `QAHelper`, `PriorityOrderer` / `TestPriorityAttribute`. Do NOT re-implement these per module.
+2. **Serialize collections** — `[assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]` in `AssemblyInfo.cs` (the single `testsales` session is single-session-per-user).
+3. **One test class per entity** — `Tests/{Entity}/{Entity}QATests.cs`, `[Collection]` + `[TestCaseOrderer(PriorityOrderer)]`, steps ordered with `[TestPriority]`; cross-step ids in `_f.CreatedId` / `static` fields.
+4. **Cover per entity:** Create (happy + capture id) · no-auth 401 · empty-body 400 · required/format/maxlength/duplicate negatives · FK validation · GetAll · GetById · AutoComplete · Update (Edit) · **Deactivate = Update with `IsActive=0`** (not a delete) · Delete (soft) · already-deleted.
+5. **Smoke tag (see below)** — tag the GetAll happy-path `[Trait("Layer","Smoke")]`.
+6. **One `Security/AuthBypassQATests.cs` per module** — `[Trait("Layer","Security")]` (no/empty/garbage/tampered JWT → 401).
+7. **`appsettings.QA.json`** copied to output (`<None Update CopyToOutputDirectory>`); BaseUrl/creds overridable by env (`QAServer__BaseUrl`, …).
+8. **Run-unique data** — names/codes/sortOrder derived from `EntityCode` (e.g. `QAHelper.RunUniqueInt`) so the suite is **re-runnable without a DB reset**.
+9. **FK ids resolved at runtime** — never hard-code id `1`; resolve a real parent via `QAHelper.FirstIdAsync` (create one if none). The QA clone has no guaranteed seed ids.
+
+### 💨 Smoke is a TRAIT, not a project
+Smoke = the **GetAll happy-path per entity**, tagged `[Trait("Layer","Smoke")]` inside the QATest class. It proves login → auth → DB → read works. CI runs the slice with `--filter "Layer=Smoke"` as the fail-fast **deploy gate**. There is **no** separate `*.SmokeTests` project.
+
+### Authoring flow (live reconciliation)
+Author from the source contract → build **0/0** → run against the live QA clone → reconcile assertions to real behavior (status codes, no-match → 400/404, backend NRE/500s documented with `// BUG (live):` + tolerant assert). First authored draft is expected to need a reconciliation pass — this is normal.
+
+---
+
+## 🧭 Functional Tests (Workflow / Story)
+
+Functional tests verify **multi-step business workflows / acceptance criteria** that cross entities — the **top** of the pyramid. They prove the *story*, not individual endpoints (which QA covers).
+
+### Project & location
+```
+src/tests/{Module}.FunctionalTests/
+```
+**Canonical templates:** `UserManagement.FunctionalTests`, `FixedAssetManagement.FunctionalTests`, `MaintenanceManagement.FunctionalTests`.
+
+### Mandatory conventions
+1. **Story-Catalogue is the REVIEW GATE** — `Stories/Story-Catalogue.md` lists each story with a user-story statement + an AC table tagged ✅ [implementable] / ⚠️ [verify live] / 🚫 [blocked — needs seeded data]. **Write/approve the catalogue before trusting test code.**
+2. **One class per story** — `Workflows/US_{MOD}{NN}_{Slug}_Tests.cs`, carrying `[Trait("Story","US-…")]`, `[Trait("Module","…")]`, `[Trait("Owner","…")]` so CI routes failures and you can run a slice: `dotnet test --filter "Story=US-…"`.
+3. **Ordered steps** via `[TestPriority]` + `PriorityOrderer` over one `QAServerFixture`; cross-step ids in `static` fields; teardown leaf-first.
+4. **Assert the business meaning, not just 200** — e.g. for a *Deactivate* story: after `IsActive=0`, the record is **gone from `/by-name` autocomplete** but **still in GetAll** (`IsDeleted=0`).
+5. **Blocked steps → `[Fact(Skip="needs seeded data: …")]`** with a precise reason (never a silent gap); un-skip during live reconciliation.
+
+### Example mapping (master entity story, e.g. "Create / Edit / Deactivate")
+- Create → QA `Create` happy + Functional Step 1
+- Edit → QA `Update` happy + Functional Edit step
+- Deactivate → QA `Update IsActive=0` + Functional Deactivate step **+ verify excluded from active autocomplete**
+
+---
+
 ## 📚 Documentation & References
 
 ### Key Documents
@@ -2373,12 +2426,19 @@ mockCompanyLookup.Setup(c => c.GetAllCompanyAsync())
 
 ---
 
-### PHASE 5 — Final Verification
-- [ ] Build solution (0 warnings, 0 errors)
-- [ ] Test all CRUD endpoints via Swagger/Postman
-- [ ] Verify audit logs in MongoDB
-- [ ] Verify soft delete behavior
-- [ ] Verify validation rules (uniqueness, FK existence)
+### PHASE 5 — Tests (full pyramid) & Final Verification
+- [ ] **Unit tests** — handlers, validators, entity, controller (`{Module}.UnitTests`)
+- [ ] **Integration tests** — command + query repos (`{Module}.IntegrationTests`)
+- [ ] **QA tests** — `{Module}.QATests/Tests/{Entity}/{Entity}QATests.cs`: full CRUD + negatives, GetAll tagged `[Trait("Layer","Smoke")]`; module `AuthBypassQATests`
+- [ ] **Functional story** — add the story to `{Module}.FunctionalTests/Stories/Story-Catalogue.md` (🔐 review gate), then `Workflows/US_{MOD}{NN}_{Slug}_Tests.cs` (blocked steps `[Fact(Skip)]`)
+- [ ] Build solution (0 warnings, 0 errors); all suites build 0/0
+- [ ] **Live reconciliation** — run QA + Functional against the QA clone; reconcile to green (document real backend defects with `// BUG (live):` + tolerant asserts)
+- [ ] **Wire into pipeline** — add the module's QA + Functional to `deploy-and-test.yml` (non-blocking first; promote the smoke slice to the blocking gate once green)
+- [ ] Verify audit logs in MongoDB · soft-delete behavior · validation rules
+
+> **Recommended sequence for a new story (e.g. `US-GL02-01 GL Account Master — Create/Edit/Deactivate`):**
+> Story-Catalogue entry (🔐 approve) → Unit + Integration → QA suite (CRUD + Smoke tag) → Functional story → build 0/0 → live-reconcile green → wire pipeline.
+> See the **🌐 QA Tests** and **🧭 Functional Tests** sections for the full conventions; `UserManagement` / `FixedAssetManagement` / `MaintenanceManagement` are the reference suites.
 
 ---
 
@@ -3767,23 +3827,28 @@ This rule has **three parts** — all are mandatory.
 | Add/change AutoMapper profile | ✅ Update handler unit tests |
 | Bug fix | ✅ Regression test that fails before fix and passes after |
 
-**Test Locations (mandatory):**
+**The full test pyramid is mandatory** — not just unit + integration. A new entity/story is **not done** until all applicable layers exist and pass:
 
-| Test Type | Location |
-|---|---|
-| Unit tests | `src/tests/{Module}.UnitTests/` |
-| Integration tests | `src/tests/{Module}.IntegrationTests/` |
+| Layer | Location | Required for |
+|---|---|---|
+| Unit tests | `src/tests/{Module}.UnitTests/` | every entity (handlers, validators, entity, controller) |
+| Integration tests | `src/tests/{Module}.IntegrationTests/` | every entity (command + query repos) |
+| **QA tests (live-server)** | `src/tests/{Module}.QATests/` | every entity — full CRUD + the **Smoke** trait on GetAll |
+| **Functional tests (workflow/story)** | `src/tests/{Module}.FunctionalTests/` | every business story (e.g. `US-…`), gated by the Story-Catalogue |
 
-If the test project does not exist, **create it first** using the patterns in the **Unit Testing** and **Integration Testing** sections of this file.
+If a test project does not exist, **create it first** using the **Unit Testing**, **Integration Testing**, **🌐 QA Tests**, and **🧭 Functional Tests** sections of this file.
 
-**Definition of "Done":**
-- [ ] Production code (in dev/feature branch — never production) written/modified
-- [ ] Unit tests pass: `dotnet test src/tests/{Module}.UnitTests`
-- [ ] Integration tests pass: `dotnet test src/tests/{Module}.IntegrationTests`
+**Definition of "Done" (new entity / story):**
+- [ ] Production code (dev/feature branch — never production) written/modified
+- [ ] **Unit** tests pass: `dotnet test src/tests/{Module}.UnitTests`
+- [ ] **Integration** tests pass: `dotnet test src/tests/{Module}.IntegrationTests`
+- [ ] **QA** suite authored (CRUD + `Layer=Smoke` tag) and reconciled green against the live QA clone
+- [ ] **Functional** story authored against an approved Story-Catalogue entry (blocked steps `[Fact(Skip)]`), reconciled green
+- [ ] New QA/Functional projects **wired into the pipeline** (smoke gate + non-blocking full suites, per `deploy-and-test.yml`)
 - [ ] Solution builds with `0 Warning(s), 0 Error(s)`
 
 > ❌ DO NOT split production code and tests across separate commits — they belong in the same change set.
-> ❌ DO NOT mark any task complete if either test type is missing or failing.
+> ❌ DO NOT mark any task complete if **any applicable test layer** (unit / integration / QA / functional) is missing or failing.
 
 ---
 

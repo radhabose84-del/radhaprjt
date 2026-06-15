@@ -24,8 +24,9 @@ namespace UserManagement.Infrastructure.Repositories.MiscMaster
                 WHERE M.IsDeleted = 0
                 {{(string.IsNullOrEmpty(SearchTerm) ? "" : "AND (M.Code LIKE @Search)")}}; 
 
-                SELECT M.Id, M.MiscTypeId, M.Code, M.Description, M.SortOrder, M.IsActive, M.IsDeleted, 
-                    M.CreatedBy, M.CreatedAt, M.CreatedByName, M.CreatedIP, M.ModifiedBy, M.ModifiedAt, 
+                SELECT M.Id, M.MiscTypeId, M.Code, M.Description, M.SortOrder, M.IsActive, M.IsDeleted,
+                    M.CreatedBy, CAST(M.CreatedDate AS datetime2) AS CreatedAt, M.CreatedByName, M.CreatedIP,
+                    M.ModifiedBy, CAST(M.ModifiedDate AS datetime2) AS ModifiedAt,
                     M.ModifiedByName, M.ModifiedIP
                 FROM AppData.MiscMaster M
                 WHERE M.IsDeleted = 0 

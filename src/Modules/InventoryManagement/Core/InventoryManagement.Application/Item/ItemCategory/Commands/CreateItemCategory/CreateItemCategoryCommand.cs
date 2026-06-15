@@ -1,9 +1,10 @@
 using InventoryManagement.Application.Item.ItemCategory.Commands.Shared;
 using MediatR;
+using Contracts.Common;
 
 namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemCategory
 {
-    public class CreateItemCategoryCommand : IRequest<int>
+    public class CreateItemCategoryCommand : IRequest<int>, IRequirePermission
     {
         public int ItemGroupId { get; set; }
         public string? ItemCategoryName { get; set; }
@@ -15,5 +16,6 @@ namespace InventoryManagement.Application.Item.ItemCategory.Commands.CreateItemC
         public int? EmergencyActionId { get; set; }
         public List<int> ModuleIds { get; set; } = new();
         public List<SampleQuantityItem> SampleQuantities { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

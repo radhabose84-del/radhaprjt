@@ -1,5 +1,4 @@
 using AutoMapper;
-using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UserManagement.Application.Common.Interfaces.ICurrency;
@@ -52,7 +51,7 @@ namespace UserManagement.UnitTests.Application.Currency.Queries
         }
 
         [Fact]
-        public async Task Handle_NoResults_ThrowsValidationException()
+        public async Task Handle_NoResults_ReturnsEmptyList()
         {
             // Arrange
             var emptyList = new List<UserManagement.Domain.Entities.Currency>();
@@ -64,13 +63,12 @@ namespace UserManagement.UnitTests.Application.Currency.Queries
             var sut = CreateSut();
 
             // Act
-            Func<Task> act = async () => await sut.Handle(
+            var result = await sut.Handle(
                 new GetCurrencyAutocompleteQuery { SearchPattern = "NONEXISTENT" },
                 CancellationToken.None);
 
             // Assert
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*No currency found*");
+            result.Should().BeEmpty();
         }
 
         [Fact]

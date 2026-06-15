@@ -1,9 +1,10 @@
 using FAM.Application.AssetMaster.AssetInsurance.Queries.GetAssetInsurance;
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetInsurance.Commands.CreateAssetInsurance
 {
-    public class CreateAssetInsuranceCommand : IRequest<GetAssetInsuranceDto>
+    public class CreateAssetInsuranceCommand : IRequest<GetAssetInsuranceDto>, IRequirePermission
     {        
         public int  AssetId { get; set; }       
         public string? PolicyNo { get; set; }       
@@ -16,5 +17,6 @@ namespace FAM.Application.AssetMaster.AssetInsurance.Commands.CreateAssetInsuran
         public DateOnly RenewedDate { get; set; }
         public byte IsActive { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

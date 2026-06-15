@@ -22,6 +22,9 @@ namespace UserManagement.Application.Divisions.Queries.GetDivisionById
         {
             
         var result = await _divisionRepository.GetByIdAsync(request.Id);
+        if (result == null)
+            return null;
+
         var division = _mapper.Map<DivisionDTO>(result);
 
           //Domain Event

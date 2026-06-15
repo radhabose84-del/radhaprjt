@@ -3,7 +3,7 @@ using MediatR;
 
 namespace InventoryManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeMaster
 {
-    public class UpdateMiscTypeMasterCommand : IRequest<ApiResponseDTO<bool>>
+    public class UpdateMiscTypeMasterCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
 
         public int Id { get; set; }
@@ -11,6 +11,7 @@ namespace InventoryManagement.Application.MiscTypeMaster.Command.UpdateMiscTypeM
         public string? Description { get; set; }
         public byte IsActive { get; set; }
 
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 
 }

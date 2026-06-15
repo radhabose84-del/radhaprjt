@@ -33,11 +33,11 @@ namespace UserManagement.Application.Units.Queries.GetUnitByUserId
         { 
             //var userId = _ipAddressService.GetUserId();
             var result = await _unitRepository.GetUnitByUserId(request.UserId,request.CompanyId);
-              if (result is null || !result.Any() || result.Count == 0) 
+              if (result is null || result.Count == 0)
                 {
+                      // No units for this user is a normal outcome → return an empty list (200), not 400.
                       _logger.LogWarning($"No Unit Record found in DB.");
-                      throw new ValidationException("Unit not found.");
-                    
+                      return new List<UnitAutoCompleteDTO>();
                 }
 
             var unitDto = _mapper.Map<List<UnitAutoCompleteDTO>>(result);

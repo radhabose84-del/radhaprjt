@@ -50,7 +50,7 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseIndent.Commands
 
             _mockCommandRepo
                 .Setup(r => r.UpdateAsync(It.IsAny<IndentHeader>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(header);
 
             _mockUnitOfWork
                 .Setup(u => u.BeginTransactionAsync(It.IsAny<CancellationToken>()))

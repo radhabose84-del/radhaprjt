@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.PasswordComplexityRule.Commands.UpdatePasswordComplexityRule
 {
-    public class UpdatePasswordComplexityRuleCommand : IRequest<bool>
+    public class UpdatePasswordComplexityRuleCommand : IRequest<bool>, IRequirePermission
     {
         
         public int Id { get; set; }
@@ -12,5 +13,6 @@ namespace UserManagement.Application.PasswordComplexityRule.Commands.UpdatePassw
         public byte IsActive { get; set; }
 
 
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

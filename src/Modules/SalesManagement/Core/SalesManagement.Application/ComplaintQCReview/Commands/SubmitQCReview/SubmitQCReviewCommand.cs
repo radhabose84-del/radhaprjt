@@ -4,8 +4,9 @@ using SalesManagement.Application.ComplaintQCReview.Dto;
 
 namespace SalesManagement.Application.ComplaintQCReview.Commands.SubmitQCReview
 {
-    public class SubmitQCReviewCommand : IRequest<ApiResponseDTO<int>>
+    public class SubmitQCReviewCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
         public int ComplaintHeaderId { get; set; }
         public int PhysicalVerificationId { get; set; }
         public int? ComplaintStatusId { get; set; }

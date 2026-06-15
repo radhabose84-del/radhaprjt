@@ -3,7 +3,7 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.ShiftMasterDetails.Commands.CreateShiftMasterDetail
 {
-    public class CreateShiftMasterDetailCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateShiftMasterDetailCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int ShiftMasterId { get; set; }
         public int UnitId { get; set; }
@@ -13,5 +13,6 @@ namespace MaintenanceManagement.Application.ShiftMasterDetails.Commands.CreateSh
         public DateOnly EffectiveDate { get; set; }
         public int ShiftSupervisorId { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

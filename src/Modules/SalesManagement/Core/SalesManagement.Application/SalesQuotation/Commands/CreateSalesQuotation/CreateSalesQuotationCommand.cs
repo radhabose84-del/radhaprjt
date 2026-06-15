@@ -1,9 +1,10 @@
 using MediatR;
 using SalesManagement.Application.SalesQuotation.Dto;
+using Contracts.Common;
 
 namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotation
 {
-    public class CreateSalesQuotationCommand : IRequest<int>
+    public class CreateSalesQuotationCommand : IRequest<int>, IRequirePermission
     {
         public int CustomerId { get; set; }
         public DateOnly QuotationDate { get; set; }
@@ -22,5 +23,6 @@ namespace SalesManagement.Application.SalesQuotation.Commands.CreateSalesQuotati
         public decimal GrandTotal { get; set; }
         public int? StatusId { get; set; }
         public List<CreateSalesQuotationDetailDto>? SalesQuotationDetails { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

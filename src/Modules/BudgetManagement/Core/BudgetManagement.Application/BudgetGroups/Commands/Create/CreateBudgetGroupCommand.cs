@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace BudgetManagement.Application.BudgetGroups.Commands.CreateBudgetGroup
 {
-    public class CreateBudgetGroupCommand : IRequest<int>
+    public class CreateBudgetGroupCommand : IRequest<int>, IRequirePermission
     {
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
@@ -19,5 +20,6 @@ namespace BudgetManagement.Application.BudgetGroups.Commands.CreateBudgetGroup
         public bool EmergencyPoApplicable { get; set; } = false;
         public bool IsParent { get; set; }
         public bool IsActive { get; set; } = true;
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }
