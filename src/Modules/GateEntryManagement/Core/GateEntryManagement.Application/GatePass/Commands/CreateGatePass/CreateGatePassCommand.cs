@@ -4,7 +4,7 @@ using MediatR;
 
 namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
 {
-    public class CreateGatePassCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateGatePassCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly GatePassDate { get; set; }
         public int VehicleMovementRecordId { get; set; }
@@ -27,5 +27,6 @@ namespace GateEntryManagement.Application.GatePass.Commands.CreateGatePass
         public string? Remarks { get; set; }
 
         public List<CreateGatePassDetailDto>? GatePassDetails { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

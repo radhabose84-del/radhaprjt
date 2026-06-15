@@ -2,6 +2,7 @@ using Contracts.Dtos.Lookups.Inventory;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Inventory;
 using Contracts.Interfaces.Lookups.Purchase;
+using Contracts.Interfaces.Updates.Purchase;
 using QCManagement.Application.Common.Interfaces.IQcInspection;
 using QCManagement.Application.QcInspection.Commands.CreateQcInspection;
 using QCManagement.Domain.Entities;
@@ -15,12 +16,13 @@ namespace QCManagement.UnitTests.Application.QcInspection.Commands
         private readonly Mock<IQcInspectionQueryRepository> _qry = new(MockBehavior.Strict);
         private readonly Mock<IGrnLookup> _grn = new(MockBehavior.Strict);
         private readonly Mock<IArrivalLookup> _arrival = new(MockBehavior.Strict);
+        private readonly Mock<IArrivalQcUpdate> _arrivalQcUpdate = new(MockBehavior.Loose);
         private readonly Mock<IItemLookup> _item = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mediator = new(MockBehavior.Strict);
         private readonly Mock<IIPAddressService> _ip = new(MockBehavior.Loose);
 
         private CreateQcInspectionCommandHandler CreateSut() =>
-            new(_cmd.Object, _qry.Object, _grn.Object, _arrival.Object, _item.Object, _mediator.Object, _ip.Object);
+            new(_cmd.Object, _qry.Object, _grn.Object, _arrival.Object, _arrivalQcUpdate.Object, _item.Object, _mediator.Object, _ip.Object);
 
         private void SetupHappyPath(int newId = 88)
         {
@@ -115,6 +117,8 @@ namespace QCManagement.UnitTests.Application.QcInspection.Commands
                 .Callback<QcInspectionHdr>(e => captured = e)
                 .ReturnsAsync(88);
             _qry.Setup(q => q.GetByIdAsync(88)).ReturnsAsync(QcInspectionBuilders.ValidDto(88));
+            // Arrival source marks the source ArrivalHeader as QC 'PENDING' after the inspection is created.
+            _qry.Setup(q => q.GetQcStatusIdByCodeAsync("PENDING")).ReturnsAsync(10);
             _mediator.Setup(m => m.Publish(It.IsAny<AuditLogsDomainEvent>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 

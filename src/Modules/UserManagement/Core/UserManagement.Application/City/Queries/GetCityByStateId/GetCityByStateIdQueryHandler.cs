@@ -21,13 +21,11 @@ namespace UserManagement.Application.City.Queries.GetCityByStateId
 
         public async Task<List<CityDto>> Handle(GetCityByStateIdQuery request, CancellationToken cancellationToken)
         {            
-            var result = await _cityRepository.GetCityByStateIdAsync(request.Id);               
+            var result = await _cityRepository.GetCityByStateIdAsync(request.Id);
             if (result is null || !result.Any())
-            {                
-                throw new ValidationException("No States found matching the search pattern.");
-            
-            }                        
-             var cityDto = _mapper.Map<List<CityDto>>(result); 
+                return new List<CityDto>();
+
+            var cityDto = _mapper.Map<List<CityDto>>(result);
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetCityByStateId",

@@ -33,12 +33,11 @@ namespace PurchaseManagement.IntegrationTests.Repositories.GRN.GRNEntry
 
         public GRNEntryCommandRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
-        private readonly Mock<IDocumentSequenceLookup> _docSeqMock = new(MockBehavior.Loose);
-
         private GRNEntryCommandRepository CreateRepo(ApplicationDbContext ctx)
         {
             var conn = new SqlConnection(_fixture.ConnectionString);
-            return new GRNEntryCommandRepository(ctx, _fixture.IpMock.Object, conn, _docSeqMock.Object);
+            var docSeqLookup = new Mock<IDocumentSequenceLookup>(MockBehavior.Loose).Object;
+            return new GRNEntryCommandRepository(ctx, _fixture.IpMock.Object, conn, docSeqLookup);
         }
 
         [Fact]

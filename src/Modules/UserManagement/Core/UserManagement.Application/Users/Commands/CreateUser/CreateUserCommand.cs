@@ -4,7 +4,7 @@ using MediatR;
 
 namespace UserManagement.Application.Users.Commands.CreateUser
 {
-    public class CreateUserCommand : IRequest<ApiResponseDTO<UserDto>>
+    public class CreateUserCommand : IRequest<ApiResponseDTO<UserDto>>, IRequirePermission
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
@@ -22,5 +22,6 @@ namespace UserManagement.Application.Users.Commands.CreateUser
         public List<UserRoleAllocationDTO> userRoleAllocations { get; set; } = new();
         public List<UserUnitDTO> userUnits { get; set; } = new();
         public List<UserDepartmentDTO> userDepartments { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

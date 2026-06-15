@@ -81,13 +81,18 @@ namespace UserManagement.Presentation.Controllers
 
         var result = await Mediator.Send(new GetCurrencyByIdQuery { CurrencyId = id });
 
-              
-              return Ok(new
-             {
-                 message = "Currency Listed Successfully",
-                 statusCode = StatusCodes.Status200OK,
-                 data = result
-             }); 
+        if (result == null)
+        {
+            _logger.LogWarning($"CurrencyId {id} not found.");
+            return NotFound(new { StatusCode = StatusCodes.Status404NotFound, message = $"Currency ID {id} not found." });
+        }
+
+        return Ok(new
+        {
+            message = "Currency Listed Successfully",
+            statusCode = StatusCodes.Status200OK,
+            data = result
+        });
         
         
    

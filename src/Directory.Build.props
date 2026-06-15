@@ -13,6 +13,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     -->
     <!-- Suppress EF Core migration class naming warnings (auto-generated) -->
-    <NoWarn>$(NoWarn);CS8981</NoWarn>
+    <!-- Suppress AutoMapper 12.x NuGet vulnerability advisory (NU1903) — tracked for upgrade to v13 -->
+    <NoWarn>$(NoWarn);CS8981;NU1903</NoWarn>
   </PropertyGroup>
 </Project>

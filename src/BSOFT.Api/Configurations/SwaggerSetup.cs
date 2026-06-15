@@ -1,8 +1,21 @@
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace BSOFT.Api.Configurations
 {
+    /// <summary>
+    /// Removes the read-only RequiredPermission property (from IRequirePermission)
+    /// from all Swagger request body schemas — it is a computed constant, not user input.
+    /// </summary>
+    internal sealed class HideRequiredPermissionFilter : ISchemaFilter
+    {
+        public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+        {
+            schema.Properties?.Remove("requiredPermission");
+        }
+    }
+
     public static class SwaggerSetup
     {
         // ✅ Default module docs
@@ -53,6 +66,9 @@ namespace BSOFT.Api.Configurations
                 // Fix schema ID conflicts for duplicate type names
                 options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
 
+                // Hide the read-only RequiredPermission property (IRequirePermission) from all request bodies
+                options.SchemaFilter<HideRequiredPermissionFilter>();
+
                 // JWT Bearer auth
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -64,6 +80,18 @@ namespace BSOFT.Api.Configurations
                     Description = "Enter 'Bearer' followed by your token."
                 });
 
+                // X-Menu-Id header for permission testing
+                // Set this to the menuId of the screen you are testing.
+                // Leave empty (or 0) to bypass the permission check (backward compatible).
+                options.AddSecurityDefinition("X-Menu-Id", new OpenApiSecurityScheme
+                {
+                    Name = "X-Menu-Id",
+                    Type = SecuritySchemeType.ApiKey,
+                    In = ParameterLocation.Header,
+                    Description = "Menu ID for permission checks (from AppSecurity.Menu table). " +
+                                  "Leave blank or 0 to bypass — only commands with IRequirePermission are checked."
+                });
+
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -73,6 +101,17 @@ namespace BSOFT.Api.Configurations
                             {
                                 Type = ReferenceType.SecurityScheme,
                                 Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    },
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "X-Menu-Id"
                             }
                         },
                         Array.Empty<string>()

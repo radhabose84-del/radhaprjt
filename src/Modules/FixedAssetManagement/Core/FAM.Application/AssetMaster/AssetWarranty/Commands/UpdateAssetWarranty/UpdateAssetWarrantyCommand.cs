@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UpdateAssetWarranty
 {
-    public class UpdateAssetWarrantyCommand : IRequest<bool>
+    public class UpdateAssetWarrantyCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }      
         public int AssetId { get; set; }
@@ -28,5 +29,6 @@ namespace FAM.Application.AssetMaster.AssetWarranty.Commands.UpdateAssetWarranty
         public DateOnly? ServiceLastClaimDate { get; set; } 
         public int? ServiceClaimStatus { get; set; } 
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

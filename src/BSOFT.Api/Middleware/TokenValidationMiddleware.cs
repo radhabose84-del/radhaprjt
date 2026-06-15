@@ -108,8 +108,7 @@ public class TokenValidationMiddleware
             // D6 — use constants
             context.Items[ContextKeys.UserId]   = principal.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            context.Items[ContextKeys.UserName] = principal.Claims
-                .FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Name)?.Value;
+            context.Items[ContextKeys.UserName] = principal.Identity?.Name;
 
             context.User = principal;
 

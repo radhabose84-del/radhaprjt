@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.DispatchAddressMaster.Commands.UpdateDispatchAddressMaster
 {
-    public class UpdateDispatchAddressMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateDispatchAddressMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? DispatchAddressName { get; set; }
@@ -21,5 +21,6 @@ namespace SalesManagement.Application.DispatchAddressMaster.Commands.UpdateDispa
         public decimal? Longitude { get; set; }
         public int FreightId { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

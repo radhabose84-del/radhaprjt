@@ -51,5 +51,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Shared.Infrastructure.UnitTests" />
+    <InternalsVisibleTo Include="UserManagement.IntegrationTests" />
   </ItemGroup>
 </Project>

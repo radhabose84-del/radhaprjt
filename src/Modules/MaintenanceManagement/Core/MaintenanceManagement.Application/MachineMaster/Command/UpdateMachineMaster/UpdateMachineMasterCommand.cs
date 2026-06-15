@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace MaintenanceManagement.Application.MachineMaster.Command.UpdateMachineMaster
 {
-    public class UpdateMachineMasterCommand : IRequest<bool>
+    public class UpdateMachineMasterCommand : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }
         public string? MachineCode { get; set; }
@@ -20,5 +21,6 @@ namespace MaintenanceManagement.Application.MachineMaster.Command.UpdateMachineM
         public byte IsActive { get; set; }
         public byte IsProductionMachine { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

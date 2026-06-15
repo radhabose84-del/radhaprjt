@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.DiscountMaster.Commands.CreateDiscountMaster
 {
-    public class CreateDiscountMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateDiscountMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public string? DiscountName { get; set; }
         public int TriggerEventId { get; set; }
@@ -24,6 +24,7 @@ namespace SalesManagement.Application.DiscountMaster.Commands.CreateDiscountMast
         public List<DiscountSlabItem>? Slabs { get; set; }
         public List<int>? SalesGroupIds { get; set; }
         public List<int>? PaymentTermIds { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
     public class DiscountSlabItem

@@ -22,6 +22,7 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
             {
                 VehicleMovementRecordId = 1,
                 PartyId = 1099,
+                ReceivingWarehouseId = 1,
                 ReceivingTypeId = 9, // Vehicle
                 CourierNumber = null,
                 UnitId = 1,
@@ -32,7 +33,8 @@ namespace GateEntryManagement.UnitTests.Validators.GateInward
                 Remarks = "Test remarks",
                 GateInwardDetails = new List<CreateGateInwardDetailDto>
                 {
-                    new() { ReferenceDocTypeId = 1, ReferenceDocNo = "DOC001", PartyName = "Test Party" }
+                    // PO-backed line: ReferenceDocNo present → PoId and DcQuantity are required (> 0).
+                    new() { ReferenceDocTypeId = 1, ReferenceDocNo = "DOC001", PartyName = "Test Party", PoId = 1, DcQuantity = 5 }
                 }
             };
 

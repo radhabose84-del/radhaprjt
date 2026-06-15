@@ -24,10 +24,8 @@ namespace UserManagement.Application.City.Queries.GetCityAutoComplete
         {             
             var result = await _cityRepository.GetByCityNameAsync(request.SearchPattern ?? string.Empty);
             if (result is null || result.Count is 0)
-            {
-                throw new ValidationException("No Cities found matching the search pattern.");
-               
-            }
+                return new List<CityAutoCompleteDTO>();
+
             var cityDto = _mapper.Map<List<CityAutoCompleteDTO>>(result);
             //Domain Event
             var domainEvent = new AuditLogsDomainEvent(

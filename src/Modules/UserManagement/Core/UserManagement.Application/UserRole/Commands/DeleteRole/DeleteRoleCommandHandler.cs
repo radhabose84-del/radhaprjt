@@ -43,8 +43,9 @@ namespace UserManagement.Application.UserRole.Commands.DeleteRole
 
             if (userrole <= 0)
             {
-                _logger.LogWarning($"Failed to delete UserRole   with ID {request.Id}.");
-                throw new Exception("Failed to delete UserRole");
+                // Idempotent delete: a missing / already-deleted id is a no-op → controller 200, not a 500.
+                _logger.LogWarning($"UserRole with ID {request.Id} not found / already deleted.");
+                return userrole;
             }
 
             // Soft-delete all associated RoleItemGroupMappings

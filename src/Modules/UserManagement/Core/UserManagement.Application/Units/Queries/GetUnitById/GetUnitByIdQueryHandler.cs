@@ -38,9 +38,10 @@ namespace UserManagement.Application.Units.Queries.GetUnitById
 
               if (units is null)
                 {
+                    // Not found is a normal read outcome → return null so the controller responds
+                    // 200 with data:null, matching the other GetById handlers (not a 400).
                     _logger.LogWarning($"No Unit Record {request.Id} not found in DB.");
-                    throw new ValidationException("Unit not found.");
-
+                    return null;
                 }
 
             var unitList = _mapper.Map<GetUnitsByIdDto>(units);

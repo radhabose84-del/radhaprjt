@@ -3,7 +3,7 @@ using MediatR;
 
 namespace InventoryManagement.Application.HSNMaster.Command.CreateHSNMaster
 {
-    public class CreateHSNMasterCommand  : IRequest<ApiResponseDTO<int>>
+    public class CreateHSNMasterCommand  : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int TypeId { get; set; }
         public string HSNCode { get; set; } = string.Empty;
@@ -13,5 +13,6 @@ namespace InventoryManagement.Application.HSNMaster.Command.CreateHSNMaster
         public decimal IGSTPercentage { get; set; }
         public DateTimeOffset ValidFrom { get; set; }
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

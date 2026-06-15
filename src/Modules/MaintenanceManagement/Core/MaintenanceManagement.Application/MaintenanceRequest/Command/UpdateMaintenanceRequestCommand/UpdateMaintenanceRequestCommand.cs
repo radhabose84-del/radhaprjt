@@ -3,7 +3,7 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMaintenanceRequestCommand
 {
-    public class UpdateMaintenanceRequestCommand   :  IRequest<ApiResponseDTO<bool>>
+    public class UpdateMaintenanceRequestCommand   :  IRequest<ApiResponseDTO<bool>>, IRequirePermission
     { 
        public int Id { get; set; }
        public int RequestTypeId  { get; set; }       
@@ -26,5 +26,6 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.UpdateMai
        public string? Remarks { get; set; }
        public int RequestStatusId { get; set; }
         
+       public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

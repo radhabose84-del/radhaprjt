@@ -3,7 +3,7 @@ using MediatR;
 
 namespace GateEntryManagement.Application.VehicleMovementRecord.Commands.UpdateVehicleMovementRecord
 {
-    public class UpdateVehicleMovementRecordCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateVehicleMovementRecordCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
 
@@ -22,5 +22,6 @@ namespace GateEntryManagement.Application.VehicleMovementRecord.Commands.UpdateV
         // Additional
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

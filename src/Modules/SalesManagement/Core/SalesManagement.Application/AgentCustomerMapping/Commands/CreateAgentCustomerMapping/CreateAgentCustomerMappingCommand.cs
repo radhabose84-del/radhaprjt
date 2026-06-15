@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.AgentCustomerMapping.Commands.CreateAgentCustomerMapping
 {
-    public class CreateAgentCustomerMappingCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateAgentCustomerMappingCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int CustomerId { get; set; }
         public int AgentId { get; set; }
@@ -13,5 +13,6 @@ namespace SalesManagement.Application.AgentCustomerMapping.Commands.CreateAgentC
         public DateTime? EffectiveTo { get; set; }
         public bool IsDefaultAgent { get; set; }
         public string? Remarks { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

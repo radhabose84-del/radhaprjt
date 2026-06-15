@@ -24,20 +24,21 @@ namespace UserManagement.Application.MiscMaster.Queries.GetMiscMasterById
         {
                   
             var result = await _miscMasterQueryRepository.GetByIdAsync(request.Id);
-          
-           
+
+            if (result == null)
+                return null;
+
             var misctypemaster = _mapper.Map<GetMiscMasterDto>(result);
 
-            //Domain Event
-                    var domainEvent = new AuditLogsDomainEvent(
-                        actionDetail: "GetById",
-                        actionCode: "",        
-                        actionName: "",
-                        details: $"MiscTypeMaster details {misctypemaster.Id} was fetched.",
-                        module:"MiscTypeMaster"
-                    );
-                    await _mediator.Publish(domainEvent, cancellationToken);
-            return  misctypemaster;
+            var domainEvent = new AuditLogsDomainEvent(
+                actionDetail: "GetById",
+                actionCode: "",
+                actionName: "",
+                details: $"MiscMaster details {misctypemaster.Id} was fetched.",
+                module: "MiscMaster"
+            );
+            await _mediator.Publish(domainEvent, cancellationToken);
+            return misctypemaster;
         }
         
     }

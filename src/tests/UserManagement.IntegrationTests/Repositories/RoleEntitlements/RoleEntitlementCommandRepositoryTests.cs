@@ -10,6 +10,7 @@ using UserManagement.Infrastructure.Repositories.RoleEntitlements;
 using UserManagement.Infrastructure.Repositories.UserRoles;
 using UserManagement.IntegrationTests.Common;
 using Xunit;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace UserManagement.IntegrationTests.Repositories.RoleEntitlements
 {
@@ -46,7 +47,10 @@ namespace UserManagement.IntegrationTests.Repositories.RoleEntitlements
         }
 
         private RoleEntitlementCommandRepository CreateRepository(ApplicationDbContext ctx)
-            => new RoleEntitlementCommandRepository(ctx);
+        {
+            var permMock = new Mock<IPermissionService>(MockBehavior.Loose);
+            return new RoleEntitlementCommandRepository(ctx, permMock.Object);
+        }
 
         private async Task<int> EnsureRoleAsync(ApplicationDbContext ctx, string roleName = "TestRole_RE")
         {
@@ -127,7 +131,8 @@ namespace UserManagement.IntegrationTests.Repositories.RoleEntitlements
 
             // Save again — should replace, not duplicate
             await using var ctx2 = CreateDbContext();
-            var repo2 = new RoleEntitlementCommandRepository(ctx2);
+            var permMock2 = new Mock<IPermissionService>(MockBehavior.Loose);
+            var repo2 = new RoleEntitlementCommandRepository(ctx2, permMock2.Object);
             var newModules = new List<RoleModule>
             {
                 new RoleModule { RoleId = roleId, ModuleId = moduleId }

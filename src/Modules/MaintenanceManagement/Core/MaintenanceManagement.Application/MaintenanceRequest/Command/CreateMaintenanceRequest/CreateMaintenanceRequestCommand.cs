@@ -3,7 +3,7 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMaintenanceRequest
 {
-    public class CreateMaintenanceRequestCommand  : IRequest<ApiResponseDTO<int>>
+    public class CreateMaintenanceRequestCommand  : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
       
        public int RequestTypeId  { get; set; }       
@@ -26,5 +26,6 @@ namespace MaintenanceManagement.Application.MaintenanceRequest.Command.CreateMai
        public string? Remarks { get; set; }
 
         
+       public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

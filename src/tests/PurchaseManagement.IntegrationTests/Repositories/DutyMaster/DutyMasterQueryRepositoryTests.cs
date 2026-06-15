@@ -15,8 +15,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
     public sealed class DutyMasterQueryRepositoryTests
     {
         private readonly DbFixture _fixture;
-
-        private readonly Mock<IDocumentSequenceLookup> _docSeqMock = new(MockBehavior.Loose);
+        private readonly Mock<IDocumentSequenceLookup> _mockDocSeq = new(MockBehavior.Loose);
 
         public DutyMasterQueryRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
@@ -24,7 +23,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             new(ctx, new SqlConnection(_fixture.ConnectionString));
 
         private DutyMasterCommandRepository CreateCommandRepo(ApplicationDbContext ctx) =>
-            new(ctx, _fixture.IpMock.Object, _docSeqMock.Object);
+            new(ctx, _fixture.IpMock.Object, _mockDocSeq.Object);
 
         private static PurchaseManagement.Domain.Entities.DutyMaster BuildEntity(
             int dutyCategoryId,
@@ -79,7 +78,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             string tariffNumber = "84.71")
         {
             return await CreateCommandRepo(ctx).CreateAsync(
-                BuildEntity(miscId, miscId, dutyCode, tariffNumber), 0, CancellationToken.None);
+                BuildEntity(miscId, miscId, dutyCode, tariffNumber), 1, CancellationToken.None);
         }
 
         // --- GET ALL ---
@@ -207,7 +206,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
             await using var ctx = _fixture.CreateFreshDbContext();
             var (_, miscId) = await SeedPrerequisitesAsync(ctx);
             var entity = BuildEntity(miscId, miscId, "DUT-020", "91.01");
-            await CreateCommandRepo(ctx).CreateAsync(entity, 0, CancellationToken.None);
+            await CreateCommandRepo(ctx).CreateAsync(entity, 1, CancellationToken.None);
 
             var exists = await CreateQueryRepo(ctx).ExistsAsync(
                 "DUT-020", "91.01", entity.EffectiveFrom, CancellationToken.None);
@@ -271,6 +270,5 @@ namespace PurchaseManagement.IntegrationTests.Repositories.DutyMaster
 
             results.Should().BeEmpty();
         }
-
     }
 }

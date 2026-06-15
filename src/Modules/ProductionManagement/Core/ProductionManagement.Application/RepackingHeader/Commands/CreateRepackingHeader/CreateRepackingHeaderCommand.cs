@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ProductionManagement.Application.RepackingHeader.Commands.CreateRepackingHeader
 {
-    public class CreateRepackingHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateRepackingHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public DateOnly RepackDate { get; set; }
 
@@ -38,6 +38,7 @@ namespace ProductionManagement.Application.RepackingHeader.Commands.CreateRepack
 
         // Details
         public List<CreateRepackingDetailItem> Details { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
     public class CreateRepackingDetailItem

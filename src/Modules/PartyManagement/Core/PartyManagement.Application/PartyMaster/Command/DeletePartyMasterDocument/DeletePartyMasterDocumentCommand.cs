@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace PartyManagement.Application.PartyMaster.Command.DeletePartyMasterDocument
 {
-    public class DeletePartyMasterDocumentCommand : IRequest<bool>
+    public class DeletePartyMasterDocumentCommand : IRequest<bool>, IRequirePermission
     {
         //Local Folder Delete
         public string? partydocumentPath { get; set; }
@@ -11,5 +12,6 @@ namespace PartyManagement.Application.PartyMaster.Command.DeletePartyMasterDocum
         public int Id { get; set; }
         public int PartyId { get; set; }
         public string? FileName { get; set; }  
+        public PermissionType RequiredPermission => PermissionType.CanDelete;
     }
 }

@@ -48,12 +48,11 @@ namespace UserManagement.Presentation.Validation.Currency
                             .WithMessage($"{nameof(UpdateCurrencyCommand.Name)} {rule.Error}")
                             .When(x => !string.IsNullOrWhiteSpace(x.Name));
                             break;
-                    // case "MinLength":
-                    //     // Apply MinLength validation
-                    //     RuleFor(x => x.Code)
-                    //         .MinimumLength(currencyNameMinLength) // Dynamic value from MaxLengthProvider
-                    //         .WithMessage($"{nameof(UpdateCurrencyCommand.Code)} {rule.Error} {currencyNameMinLength}");
-                    //         break;
+                    case "ByteValue":
+                        RuleFor(x => x.IsActive)
+                            .InclusiveBetween((byte)0, (byte)1)
+                            .WithMessage($"{nameof(UpdateCurrencyCommand.IsActive)} {rule.Error}");
+                        break;
                     default:
                         // Handle unknown rule (log or throw)
                         Log.Information($"Warning: Unknown rule '{rule.Rule}' encountered.");

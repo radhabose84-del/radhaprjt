@@ -4,8 +4,9 @@ using MediatR;
 
 namespace FinanceManagement.Application.EInvoiceHeader.Commands.GenerateIrn
 {
-    public class GenerateIrnCommand : IRequest<ApiResponseDTO<NicIrnResultDto>>
+    public class GenerateIrnCommand : IRequest<ApiResponseDTO<NicIrnResultDto>>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
         public int EInvoiceHeaderId { get; set; }
 
         // ── Optional e-Waybill transport details (Case 1: IRN + EWB together) ──

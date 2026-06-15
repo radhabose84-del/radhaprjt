@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace WarehouseManagement.Application.RackMaster.Command.CreateRackMaster
 {
-    public class CreateRackMasterCommand :   IRequest<int>
+    public class CreateRackMasterCommand :   IRequest<int>, IRequirePermission
     {
         
         public int WarehouseId { get; set; }         
@@ -18,5 +19,6 @@ namespace WarehouseManagement.Application.RackMaster.Command.CreateRackMaster
         public int? DimensionUOMId { get; set; }
         
         
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

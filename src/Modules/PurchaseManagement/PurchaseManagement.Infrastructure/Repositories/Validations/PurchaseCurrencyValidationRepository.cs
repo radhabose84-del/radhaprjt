@@ -17,8 +17,6 @@ internal sealed class PurchaseCurrencyValidationRepository : IPurchaseCurrencyVa
             SELECT CASE WHEN
                 EXISTS (SELECT 1 FROM [Purchase].[PurchaseOrderHeader] WHERE CurrencyId = @Id AND IsDeleted = 0)
                 OR
-                EXISTS (SELECT 1 FROM [Purchase].[ImportPOHeader]       WHERE CurrencyId = @Id AND IsDeleted = 0)
-                OR
                 EXISTS (SELECT 1 FROM [Purchase].[PriceMasterDetail]    WHERE CurrencyId = @Id AND IsDeleted = 0)
                 OR
                 EXISTS (SELECT 1 FROM [Purchase].[QuotationDetail]      WHERE CurrencyId = @Id AND IsDeleted = 0)

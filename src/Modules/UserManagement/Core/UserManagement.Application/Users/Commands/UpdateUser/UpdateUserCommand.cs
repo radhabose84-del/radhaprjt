@@ -5,7 +5,7 @@ using MediatR;
 
 namespace UserManagement.Application.Users.Commands.UpdateUser
 {
-    public class UpdateUserCommand : IRequest<ApiResponseDTO<bool>>
+    public class UpdateUserCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
     public int UserId { get; set; }
     public string? FirstName { get; set; }
@@ -25,5 +25,6 @@ namespace UserManagement.Application.Users.Commands.UpdateUser
     public List<UserUnitDTO>? userUnits { get; set; }
     public List<UserDepartmentDTO>? userDepartments { get; set; } 
 
+    public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

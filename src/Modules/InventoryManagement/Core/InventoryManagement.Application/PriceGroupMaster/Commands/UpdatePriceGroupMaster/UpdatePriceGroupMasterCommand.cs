@@ -3,7 +3,7 @@ using MediatR;
 
 namespace InventoryManagement.Application.PriceGroupMaster.Commands.UpdatePriceGroupMaster
 {
-    public class UpdatePriceGroupMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdatePriceGroupMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string PriceGroupName { get; set; } = string.Empty;
@@ -11,5 +11,6 @@ namespace InventoryManagement.Application.PriceGroupMaster.Commands.UpdatePriceG
         public DateTimeOffset EffectiveFrom { get; set; }
         public DateTimeOffset? EffectiveTo { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

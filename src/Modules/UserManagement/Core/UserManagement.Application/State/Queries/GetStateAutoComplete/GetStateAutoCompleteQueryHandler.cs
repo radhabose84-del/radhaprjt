@@ -23,8 +23,8 @@ namespace UserManagement.Application.State.Queries.GetStateAutoComplete
             var result = await _stateRepository.GetByStateNameAsync(request.SearchPattern ?? string.Empty);
             if (result is null || result.Count is 0)
             {
-                throw new ValidationException("No States found matching the search pattern.");
-               
+                // No matches is a normal autocomplete outcome → return an empty list (200), not 400.
+                return new List<StateAutoCompleteDTO>();
             }
             var stateDto = _mapper.Map<List<StateAutoCompleteDTO>>(result);
             //Domain Event

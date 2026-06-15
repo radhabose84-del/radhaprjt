@@ -4,9 +4,10 @@ using MediatR;
 
 namespace UserManagement.Application.MiscTypeMaster.Command.DeleteMiscTypeMaster
 {
-    public class DeleteMiscTypeMasterCommand : IRequest<ApiResponseDTO<GetMiscTypeMasterDto>>
+    public class DeleteMiscTypeMasterCommand : IRequest<ApiResponseDTO<GetMiscTypeMasterDto>>, IRequirePermission
     {
           public int Id { get; set; }
         
+          public PermissionType RequiredPermission => PermissionType.CanDelete;
     }
 }

@@ -1,9 +1,10 @@
     using BackgroundService.Application.Notification.NotificationHierarchyAndEventRule.DTOs;
     using MediatR;
+using Contracts.Common;
 
     namespace BackgroundService.Application.Notification.NotificationHierarchyAndEventRule.Commands.UpdateNotificationEventRule
     {
-        public class UpdateNotificationHierarchyAndEventRuleCommand : IRequest<bool>
+        public class UpdateNotificationHierarchyAndEventRuleCommand : IRequest<bool>, IRequirePermission
         {
             // NotificationLevelHierarchy
             public int NotificationLevelHierarchyId { get; set; }
@@ -15,5 +16,6 @@
             public byte IsActive { get; set; }
 
         public List<NotificationEventRuleDto> NotificationEventRules { get; set; } = new();
+            public PermissionType RequiredPermission => PermissionType.CanUpdate;
         }
     }

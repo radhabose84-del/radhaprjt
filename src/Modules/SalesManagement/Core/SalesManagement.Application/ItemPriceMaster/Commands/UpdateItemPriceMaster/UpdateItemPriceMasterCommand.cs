@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.ItemPriceMaster.Commands.UpdateItemPriceMaster
 {
-    public class UpdateItemPriceMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateItemPriceMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int ItemId { get; set; }
@@ -18,5 +18,6 @@ namespace SalesManagement.Application.ItemPriceMaster.Commands.UpdateItemPriceMa
         public decimal? HandlingCharges { get; set; }
         public int? StatusId { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

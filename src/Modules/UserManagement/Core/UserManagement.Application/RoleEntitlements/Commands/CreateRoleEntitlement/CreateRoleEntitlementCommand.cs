@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitlement
 {
-    public class CreateRoleEntitlementCommand : IRequest<bool>
+    public class CreateRoleEntitlementCommand : IRequest<bool>, IRequirePermission
     {
         
          public int RoleId { get; set; }
@@ -12,6 +13,7 @@ namespace UserManagement.Application.RoleEntitlements.Commands.CreateRoleEntitle
      public IList<RoleMenuPrivilegesDTO>? RoleMenuPrivileges { get; set; }
         
 
+         public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 
 }

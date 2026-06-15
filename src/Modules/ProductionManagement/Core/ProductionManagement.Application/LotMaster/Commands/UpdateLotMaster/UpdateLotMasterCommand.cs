@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ProductionManagement.Application.LotMaster.Commands.UpdateLotMaster
 {
-    public class UpdateLotMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateLotMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int? VariantId { get; set; }
@@ -13,5 +13,6 @@ namespace ProductionManagement.Application.LotMaster.Commands.UpdateLotMaster
         public string? ProductionOrderRef { get; set; }
         public string? Remarks { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

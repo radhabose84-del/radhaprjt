@@ -117,6 +117,14 @@ namespace UserManagement.Infrastructure.Repositories.Currency
         }
 
         /// <inheritdoc />
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string sql = "SELECT COUNT(1) FROM AppData.Currency WHERE Id = @Id AND IsDeleted = 0";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
+        }
+
+        /// <inheritdoc />
         public async Task<bool> SoftDeleteValidationAsync(int id)
         {
             // Same-module: check if any non-deleted CompanySetting references this currency

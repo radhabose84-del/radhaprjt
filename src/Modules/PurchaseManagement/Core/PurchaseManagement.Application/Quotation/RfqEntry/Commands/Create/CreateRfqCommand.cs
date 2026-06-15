@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
 {
-    public class CreateRfqCommand : IRequest<int>
+    public class CreateRfqCommand : IRequest<int>, IRequirePermission
     {
         public int InitiationTypeId { get; set; }
         public int? IndentId { get; set; }
@@ -11,6 +12,7 @@ namespace PurchaseManagement.Application.Quotation.RfqEntry.Commands.Create
         public List<RfqItemCreateDto> Items { get; set; } = new();
         public List<RfqSupplierCreateDto> Suppliers { get; set; } = new();
         public List<RfqAttachmentStageRef> Attachments { get; set; } = new();
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
     public class RfqItemCreateDto
     {

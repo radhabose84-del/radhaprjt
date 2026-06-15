@@ -3,7 +3,7 @@ using MediatR;
 
 namespace SalesManagement.Application.DispatchAddressMaster.Commands.CreateDispatchAddressMaster
 {
-    public class CreateDispatchAddressMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateDispatchAddressMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public string? DispatchAddressName { get; set; }
         public string? AddressLine1 { get; set; }
@@ -19,5 +19,6 @@ namespace SalesManagement.Application.DispatchAddressMaster.Commands.CreateDispa
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public int FreightId { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

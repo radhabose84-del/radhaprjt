@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ProductionManagement.Application.PackType.Commands.UpdatePackType
 {
-    public class UpdatePackTypeCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdatePackTypeCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public string? PackTypeName { get; set; }
@@ -13,5 +13,6 @@ namespace ProductionManagement.Application.PackType.Commands.UpdatePackType
         public int? PackMaterialId { get; set; }
         public bool ProductionAllowed { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

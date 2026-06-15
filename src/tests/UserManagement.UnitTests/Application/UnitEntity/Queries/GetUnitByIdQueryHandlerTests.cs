@@ -8,7 +8,6 @@ using UserManagement.Application.Units.Queries.GetUnits;
 using UserManagement.Application.Common.Interfaces.IUnit;
 using UserManagement.Domain.Events;
 using UserManagement.UnitTests.TestData;
-using FluentValidation;
 
 namespace UserManagement.UnitTests.Application.UnitEntity.Queries
 {
@@ -51,18 +50,18 @@ namespace UserManagement.UnitTests.Application.UnitEntity.Queries
         }
 
         [Fact]
-        public async Task Handle_NotFound_ThrowsValidationException()
+        public async Task Handle_NotFound_ReturnsNull()
         {
             _mockQueryRepo
                 .Setup(r => r.GetByIdAsync(999))
                 .ReturnsAsync((GetUnitsByIdDto?)null);
 
-            Func<Task> act = async () => await CreateSut().Handle(
+            // Not found is a normal read outcome → returns null (controller responds 200/data:null).
+            var result = await CreateSut().Handle(
                 new GetUnitByIdQuery { Id = 999 },
                 CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*not found*");
+            result.Should().BeNull();
         }
 
         [Fact]

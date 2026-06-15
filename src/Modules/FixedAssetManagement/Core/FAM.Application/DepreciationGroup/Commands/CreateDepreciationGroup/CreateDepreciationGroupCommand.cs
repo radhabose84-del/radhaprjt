@@ -1,9 +1,10 @@
 using FAM.Application.DepreciationGroup.Queries.GetDepreciationGroup;
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.DepreciationGroup.Commands.CreateDepreciationGroup
 {
-    public class CreateDepreciationGroupCommand : IRequest<DepreciationGroupDTO> 
+    public class CreateDepreciationGroupCommand : IRequest<DepreciationGroupDTO>, IRequirePermission 
     {        
         public string? Code { get; set; }
         public string? DepreciationGroupName { get; set; } 
@@ -12,5 +13,6 @@ namespace FAM.Application.DepreciationGroup.Commands.CreateDepreciationGroup
         public int DepreciationMethod { get; set; }
         public int UsefulLife { get; set; }
         public int ResidualValue { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

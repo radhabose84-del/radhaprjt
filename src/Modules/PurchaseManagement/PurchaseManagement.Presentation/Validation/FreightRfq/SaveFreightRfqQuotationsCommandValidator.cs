@@ -55,7 +55,7 @@ namespace PurchaseManagement.Presentation.Validation.FreightRfq
                 row.RuleFor(q => q.TransporterId)
                     .GreaterThan(0).WithMessage("Transporter is required.")
                     .MustAsync(async (transporterId, ct) =>
-                        await _transporterLookup.GetActiveTransporterByIdAsync(transporterId) != null)
+                        await _transporterLookup.GetActiveTransporterByIdAsync(transporterId, ct) != null)
                     .WithMessage("Transporter is inactive or does not exist.")
                     .When(q => q.TransporterId > 0);
 

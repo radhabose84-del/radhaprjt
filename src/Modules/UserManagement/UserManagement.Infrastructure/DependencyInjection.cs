@@ -51,6 +51,8 @@ using UserManagement.Infrastructure.Repositories.UserFavoriteMenu;
 using UserManagement.Application.Common.Interfaces.IUserSignature;
 using UserManagement.Infrastructure.Repositories.UserSignature;
 using UserManagement.Infrastructure.Services;
+using UserManagement.Application.Common.Interfaces.IAccessPolicy;
+using UserManagement.Infrastructure.Repositories.AccessPolicy;
 
 using UserManagement.Application.Common.Interfaces.IAdminSecuritySettings;
 using UserManagement.Application.Common.Interfaces.ICity;
@@ -396,6 +398,10 @@ namespace UserManagement.Infrastructure
             services.AddScoped<IUserSignatureCommandRepository, UserSignatureCommandRepository>();
             services.AddScoped<IUserSignatureQueryRepository, UserSignatureQueryRepository>();
             services.AddScoped<IUserSignatureFileStorage, UserSignatureFileStorage>();
+
+            services.AddScoped<IAccessPolicyCommandRepository, AccessPolicyCommandRepository>();
+            services.AddScoped<IAccessPolicyQueryRepository, AccessPolicyQueryRepository>();
+            services.AddScoped<Contracts.Interfaces.IAccessPolicyQueryRepository, AccessPolicyEvaluationRepository>();
 
             // --------------------------
             // Services

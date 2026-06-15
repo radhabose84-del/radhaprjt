@@ -3,7 +3,7 @@ using MediatR;
 
 namespace ProductionManagement.Application.CountMaster.Commands.UpdateCountMaster
 {
-    public class UpdateCountMasterCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateCountMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public decimal CountValue { get; set; }
@@ -13,5 +13,6 @@ namespace ProductionManagement.Application.CountMaster.Commands.UpdateCountMaste
         public string? CountDescription { get; set; }
         public int UOMId { get; set; }
         public int IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

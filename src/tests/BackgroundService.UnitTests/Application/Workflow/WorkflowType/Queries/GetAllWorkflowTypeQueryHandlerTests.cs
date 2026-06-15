@@ -2,7 +2,6 @@ using AutoMapper;
 using BackgroundService.Application.Notification.Common.Interfaces;
 using BackgroundService.Application.Workflow.Common.Interfaces.IWorkflowType;
 using BackgroundService.Application.Workflow.WorkflowTypes.Queries.GetAllWorkflowType;
-using Contracts.Interfaces;
 
 namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
 {
@@ -11,10 +10,10 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
         private readonly Mock<IWorkflowTypeQuery> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
         private readonly Mock<ILookupRepository> _mockLookupRepo = new(MockBehavior.Loose);
-        private readonly Mock<IIPAddressService> _mockIpAddressService = new(MockBehavior.Loose);
+        private readonly Mock<Contracts.Interfaces.IIPAddressService> _mockIpService = new(MockBehavior.Loose);
 
         private GetAllWorkflowTypeQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMapper.Object, _mockLookupRepo.Object, _mockIpAddressService.Object);
+            new(_mockQueryRepo.Object, _mockMapper.Object, _mockLookupRepo.Object, _mockIpService.Object);
 
         private void SetupHappyPath(int count = 1)
         {
@@ -33,6 +32,13 @@ namespace BackgroundService.UnitTests.Application.Workflow.WorkflowType.Queries
             _mockMapper
                 .Setup(m => m.Map<List<WorkflowTypeDto>>(It.IsAny<List<BackgroundService.Domain.Entities.Workflow.WorkflowType>>()))
                 .Returns(dtos);
+
+            _mockIpService.Setup(s => s.GetUserId()).Returns(1);
+
+            // MenuId on entities defaults to 0 — include 0 so they pass the access filter
+            _mockLookupRepo
+                .Setup(r => r.GetUserAccessibleMenuIdsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new HashSet<int> { 0, 100 });
 
             _mockLookupRepo
                 .Setup(r => r.GetMenuNamesAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))

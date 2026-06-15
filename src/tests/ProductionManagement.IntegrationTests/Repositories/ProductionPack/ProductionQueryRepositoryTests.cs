@@ -94,11 +94,7 @@ namespace ProductionManagement.IntegrationTests.Repositories.ProductionPack
                         StartPackNo = startPackNo,
                         EndPackNo = endPackNo,
                         TotalBags = 0,
-                        TotalNetWeight = 0m,
-                        OpeningLooseKgs = 0m,
-                        TotalProductionKgs = 0m,
-                        ProductionKgs = 0m,
-                        LooseConeKgs = 0m
+                        TotalNetWeight = 0m
                     }
                 }
             };

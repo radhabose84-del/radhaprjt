@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetPurchase.Commands.UpdateAssetPurchaseDetails
 {
-    public class UpdateAssetPurchaseDetailCommand :IRequest<int>
+    public class UpdateAssetPurchaseDetailCommand :IRequest<int>, IRequirePermission
     {
         public int Id { get; set; }
         public string? BudgetType { get; set; }
@@ -29,5 +30,6 @@ namespace FAM.Application.AssetMaster.AssetPurchase.Commands.UpdateAssetPurchase
         public string? PjDocSr { get; set;}
         public int PjDocNo { get; set; }
         public DateTimeOffset? CapitalizationDate { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

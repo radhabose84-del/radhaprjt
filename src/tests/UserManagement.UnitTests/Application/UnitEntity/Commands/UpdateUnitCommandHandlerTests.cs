@@ -66,7 +66,7 @@ namespace UserManagement.UnitTests.Application.UnitEntity.Commands
         }
 
         [Fact]
-        public async Task Handle_UnitNotFound_ThrowsValidationException()
+        public async Task Handle_UnitNotFound_ReturnsZero()
         {
             var command = UnitEntityBuilders.ValidUpdateCommand(id: 999);
 
@@ -74,10 +74,10 @@ namespace UserManagement.UnitTests.Application.UnitEntity.Commands
                 .Setup(r => r.GetByIdAsync(999))
                 .ReturnsAsync((GetUnitsByIdDto?)null);
 
-            Func<Task> act = async () => await CreateSut().Handle(command, CancellationToken.None);
+            // Idempotent update: a missing id is a no-op (returns 0), not a thrown exception.
+            var result = await CreateSut().Handle(command, CancellationToken.None);
 
-            await act.Should().ThrowAsync<ValidationException>()
-                .WithMessage("*not found*");
+            result.Should().Be(0);
         }
 
         [Fact]

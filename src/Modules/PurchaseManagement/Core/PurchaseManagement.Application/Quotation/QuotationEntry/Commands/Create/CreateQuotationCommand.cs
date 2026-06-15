@@ -1,4 +1,5 @@
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
+using Contracts.Common;
 using MediatR;
 
 namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Create;
@@ -19,4 +20,7 @@ public record CreateQuotationCommand(
     decimal TaxableTotal,
     decimal GrandTotal,
     IReadOnlyList<QuotationDetailDto> Lines
-) : IRequest<int>;
+) : IRequest<int>, IRequirePermission
+{
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
+}

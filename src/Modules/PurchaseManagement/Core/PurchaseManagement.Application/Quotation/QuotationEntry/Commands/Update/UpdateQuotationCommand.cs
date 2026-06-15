@@ -1,4 +1,5 @@
 using PurchaseManagement.Application.Quotations.QuotationEntry.DTOs;
+using Contracts.Common;
 using MediatR;
 
 namespace PurchaseManagement.Application.Quotations.QuotationEntry.Commands.Update;
@@ -21,4 +22,7 @@ public record UpdateQuotationCommand(
     string QuotationImage,
     IReadOnlyList<QuotationDetailDto> Lines,
     int  IsActive    
-) : IRequest<Unit>;
+) : IRequest<Unit>, IRequirePermission
+{
+    public PermissionType RequiredPermission => PermissionType.CanUpdate;
+}

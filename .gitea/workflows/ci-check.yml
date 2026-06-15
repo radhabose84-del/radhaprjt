@@ -1,0 +1,31 @@
+name: CI Check (no deploy)
+
+# Plumbing-only validation: runner picks up the job, checkout works, .NET SDK is
+# present, the solution restores and BSOFT.Api builds. NO IIS, NO deploy, NO live
+# tests. Already verified — DISABLED so it doesn't run alongside deploy-and-test.
+# Re-enable by adding a real branch under `branches:` (or delete this file).
+on:
+  push:
+    branches:
+      - _ci_check_disabled
+
+jobs:
+  ci-check:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Environment info
+        shell: powershell
+        run: |
+          dotnet --info
+          Write-Host "=== workspace (top level) ==="
+          Get-ChildItem | Select-Object Name -First 20
+
+      - name: Restore
+        run: dotnet restore BSOFT.sln
+
+      - name: Build BSOFT.Api
+        run: dotnet build src/BSOFT.Api/BSOFT.Api.csproj -c Release --no-restore

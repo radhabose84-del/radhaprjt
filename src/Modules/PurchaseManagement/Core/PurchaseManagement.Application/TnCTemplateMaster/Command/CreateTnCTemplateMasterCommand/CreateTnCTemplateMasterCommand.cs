@@ -1,9 +1,10 @@
 using PurchaseManagement.Application.TnCTemplateMaster.Command;
 using MediatR;
+using Contracts.Common;
 
 namespace PurchaseManagement.Application.TnCTemplateMaster.Command.CreateTnCTemplateMasterCommand
 {
-    public class CreateTnCTemplateMasterCommand  : IRequest<int>
+    public class CreateTnCTemplateMasterCommand  : IRequest<int>, IRequirePermission
     {
        // public string? TemplateCode { get; set; }
         public string TemplateName { get; set; } = null!;
@@ -13,5 +14,6 @@ namespace PurchaseManagement.Application.TnCTemplateMaster.Command.CreateTnCTemp
         public List<TncApplicabilityRequestDto>? Applicabilities { get; set; }
         
        
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

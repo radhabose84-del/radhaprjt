@@ -38,7 +38,8 @@ namespace PurchaseManagement.UnitTests.Application.PurchaseOrder.Local.Commands
                 _mockRepo.Object, _mockMapper.Object, _mockIp.Object, _mockTz.Object,
                 _mockLogger.Object, _mockOutbox.Object, _mockPoDocs.Object,
                 _mockUnitLookup.Object, _mockCompanyLookup.Object, _mockBudgetLookup.Object,
-                _mockFyLookup.Object, _mockAppDataMisc.Object, _mockDocSequence.Object, _mockMisc.Object);
+                _mockFyLookup.Object, _mockAppDataMisc.Object, _mockDocSequence.Object,
+                _mockMisc.Object);
 
         [Fact]
         public async Task Handle_NullData_ReturnsFailure()

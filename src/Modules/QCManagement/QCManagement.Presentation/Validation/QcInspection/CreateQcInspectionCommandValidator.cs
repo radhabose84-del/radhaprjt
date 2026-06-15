@@ -49,7 +49,8 @@ namespace QCManagement.Presentation.Validation.QcInspection
                 {
                     var itemId = await SourceItemIdAsync(cmd, ct);
                     if (itemId == null) return false;
-                    var item = (await itemLookup.GetByIdsAsync(new[] { itemId.Value }, ct)).FirstOrDefault();
+                    var items = await itemLookup.GetByIdsAsync(new[] { itemId.Value }, ct);
+                    var item = items.Count > 0 ? items[0] : null;
                     return item != null && item.InspectionRequired;
                 })
                 .WithMessage("QC is not required for this item.")

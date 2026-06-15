@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.Manufacture.Commands.UpdateManufacture
 {
-    public class UpdateManufactureCommand  : IRequest<bool>
+    public class UpdateManufactureCommand  : IRequest<bool>, IRequirePermission
     {
         public int Id { get; set; }       
         public string? Code { get; set; }        
@@ -18,5 +19,6 @@ namespace FAM.Application.Manufacture.Commands.UpdateManufacture
         public string? PhoneNumber { get; set; }        
         public string? Email { get; set; }  
         public byte IsActive { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

@@ -17,6 +17,9 @@ namespace QCManagement.IntegrationTests.Repositories.QualitySpecification
     {
         private readonly DbFixture _fixture;
 
+        // QcTypeId FK target — seeded by SeedDependenciesAsync, consumed by SeedSpecAsync.
+        private int _qcTypeId;
+
         public QualitySpecificationQueryRepositoryTests(DbFixture fixture)
         {
             _fixture = fixture;
@@ -73,6 +76,8 @@ namespace QCManagement.IntegrationTests.Repositories.QualitySpecification
                 new Domain.Entities.MiscTypeMaster { MiscTypeCode = "QP_SEVERITY", Description = "Severity", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
             var actionType = await new MiscTypeMasterCommandRepository(ctx).CreateAsync(
                 new Domain.Entities.MiscTypeMaster { MiscTypeCode = "QP_FAILURE_ACTION", Description = "Failure Action", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
+            var qcType = await new MiscTypeMasterCommandRepository(ctx).CreateAsync(
+                new Domain.Entities.MiscTypeMaster { MiscTypeCode = "QP_QC_TYPE", Description = "QC Type", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
 
             var miscRepo = new MiscMasterCommandRepository(ctx);
             var groupId = await miscRepo.CreateAsync(
@@ -87,6 +92,8 @@ namespace QCManagement.IntegrationTests.Repositories.QualitySpecification
                 new Domain.Entities.MiscMaster { MiscTypeId = severityType, Code = "CRT", Description = "Critical", SortOrder = 1, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
             var failureActionId = await miscRepo.CreateAsync(
                 new Domain.Entities.MiscMaster { MiscTypeId = actionType, Code = "REJECT", Description = "Reject", SortOrder = 1, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
+            _qcTypeId = await miscRepo.CreateAsync(
+                new Domain.Entities.MiscMaster { MiscTypeId = qcType, Code = "INPROCESS", Description = "In Process", SortOrder = 1, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
 
             var qpId = await new QualityParameterCommandRepository(ctx).CreateAsync(
                 new Domain.Entities.QualityParameter
@@ -137,6 +144,7 @@ namespace QCManagement.IntegrationTests.Repositories.QualitySpecification
                     SpecificationCode = code,
                     SpecificationName = name,
                     QualityTemplateId = templateId,
+                    QcTypeId = _qcTypeId,
                     ApplicableLevelId = applicableLevelId,
                     ItemCategoryId = itemCategoryId,
                     ItemId = itemId,

@@ -4,8 +4,9 @@ using MediatR;
 
 namespace FinanceManagement.Application.EInvoiceHeader.Commands.GenerateEwb
 {
-    public class GenerateEwbCommand : IRequest<ApiResponseDTO<NicEwbResultDto>>
+    public class GenerateEwbCommand : IRequest<ApiResponseDTO<NicEwbResultDto>>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
         public int EInvoiceHeaderId { get; set; }
         public string? TransporterId { get; set; }
         public string? TransporterName { get; set; }

@@ -3,8 +3,9 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.PreventiveSchedulers.Commands.MachineWiseFrequencyUpdate
 {
-    public class MachineWiseFrequencyUpdateCommand : IRequest<ApiResponseDTO<bool>>
+    public class MachineWiseFrequencyUpdateCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
         public int Id { get; set; }
         public int FrequencyInterval { get; set; }
         public byte IsActive { get; set; }

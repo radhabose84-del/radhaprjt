@@ -1,9 +1,10 @@
 using FAM.Application.Manufacture.Queries.GetManufacture;
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.Manufacture.Commands.CreateManufacture
 {
-    public class CreateManufactureCommand : IRequest<ManufactureDTO>
+    public class CreateManufactureCommand : IRequest<ManufactureDTO>, IRequirePermission
     {
         public string? Code { get; set; }        
         public string? ManufactureName { get; set; }                
@@ -17,5 +18,6 @@ namespace FAM.Application.Manufacture.Commands.CreateManufacture
         public string? PersonName { get; set; }        
         public string? PhoneNumber { get; set; }        
         public string? Email { get; set; }   
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

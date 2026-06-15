@@ -4,7 +4,7 @@ using SalesManagement.Application.Invoice.Dto;
 
 namespace SalesManagement.Application.Invoice.Commands.UpdateInvoice
 {
-    public class UpdateInvoiceCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateInvoiceCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public DateOnly InvoiceDate { get; set; }
@@ -41,5 +41,6 @@ namespace SalesManagement.Application.Invoice.Commands.UpdateInvoice
         public int IsActive { get; set; }
 
         public List<UpdateInvoiceDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

@@ -1,11 +1,10 @@
 using AutoMapper;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using MediatR;
 using PurchaseManagement.Application.Common.Interfaces.IDutyMaster;
-using PurchaseManagement.Application.DutyMaster;
 using PurchaseManagement.Application.Purchase.DutyMaster.Create;
 using PurchaseManagement.UnitTests.TestData;
-using Contracts.Interfaces;
 
 namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
 {
@@ -18,17 +17,18 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
 
         private CreateDutyMasterCommandHandler CreateSut() =>
-            new(_mockWriteRepo.Object, _mockMapper.Object, _mockMediator.Object, _mockDocSeq.Object, _mockIp.Object);
+            new(_mockWriteRepo.Object, _mockMapper.Object, _mockMediator.Object,
+                _mockDocSeq.Object, _mockIp.Object);
 
-        private void SetupHappyPath(int newId = 1, string generatedCode = "DC001")
+        private void SetupHappyPath(int newId = 1)
         {
-            _mockIp.Setup(i => i.GetUnitId()).Returns(1);
+            _mockIp.Setup(s => s.GetUnitId()).Returns(1);
             _mockDocSeq
                 .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
-                .ReturnsAsync(1);
+                .ReturnsAsync(7);
             _mockDocSeq
                 .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
-                .ReturnsAsync(new List<string> { generatedCode });
+                .ReturnsAsync((IReadOnlyList<string>)new List<string> { "DC001" });
             _mockMapper
                 .Setup(m => m.Map<PurchaseManagement.Domain.Entities.DutyMaster>(It.IsAny<object>()))
                 .Returns(DutyMasterBuilders.ValidEntity(newId));
@@ -94,13 +94,13 @@ namespace PurchaseManagement.UnitTests.Application.DutyMaster.Commands
         public async Task Handle_ValidCommand_SetsDutyCodeOnEntity()
         {
             PurchaseManagement.Domain.Entities.DutyMaster? capturedEntity = null;
-            _mockIp.Setup(i => i.GetUnitId()).Returns(1);
+            _mockIp.Setup(s => s.GetUnitId()).Returns(1);
             _mockDocSeq
                 .Setup(d => d.GetTransactionTypeIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
-                .ReturnsAsync(1);
+                .ReturnsAsync(7);
             _mockDocSeq
                 .Setup(d => d.GenerateDocumentNumber(It.IsAny<int>()))
-                .ReturnsAsync(new List<string> { "DC-GENERATED" });
+                .ReturnsAsync((IReadOnlyList<string>)new List<string> { "DC-GENERATED" });
             _mockMapper
                 .Setup(m => m.Map<PurchaseManagement.Domain.Entities.DutyMaster>(It.IsAny<object>()))
                 .Returns(new PurchaseManagement.Domain.Entities.DutyMaster { TariffNumber = "1234.56.78" });

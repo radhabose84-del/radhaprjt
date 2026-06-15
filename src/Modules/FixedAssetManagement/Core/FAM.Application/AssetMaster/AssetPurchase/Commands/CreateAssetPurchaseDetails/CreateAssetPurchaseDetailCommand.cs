@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace FAM.Application.AssetMaster.AssetPurchase.Commands.CreateAssetPurchaseDetails
 {
-    public class CreateAssetPurchaseDetailCommand :IRequest<int>
+    public class CreateAssetPurchaseDetailCommand :IRequest<int>, IRequirePermission
     {
         public string? BudgetType { get; set; }
         public string? OldUnitId { get; set; }
@@ -31,5 +32,6 @@ namespace FAM.Application.AssetMaster.AssetPurchase.Commands.CreateAssetPurchase
         public int AssetId { get; set; }        
         public int AssetSourceId { get; set; }   
         public DateTimeOffset? CapitalizationDate { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

@@ -120,7 +120,7 @@ namespace PurchaseManagement.UnitTests.Validators.OCREntry
             command.ModeOfTransportId = 999;
 
             var result = await CreateValidator().TestValidateAsync(command);
-            result.ShouldHaveValidationErrorFor(x => x.ModeOfTransportId);
+            result.ShouldHaveValidationErrorFor("ModeOfTransportId.Value");
         }
 
         [Fact]
@@ -134,7 +134,7 @@ namespace PurchaseManagement.UnitTests.Validators.OCREntry
             command.QualityTemplateId = 999;
 
             var result = await CreateValidator().TestValidateAsync(command);
-            result.ShouldHaveValidationErrorFor(x => x.QualityTemplateId);
+            result.ShouldHaveValidationErrorFor("QualityTemplateId.Value");
         }
 
         [Fact]

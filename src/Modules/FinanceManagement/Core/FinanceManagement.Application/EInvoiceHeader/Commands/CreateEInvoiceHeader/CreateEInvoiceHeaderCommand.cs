@@ -4,7 +4,7 @@ using MediatR;
 
 namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHeader
 {
-    public class CreateEInvoiceHeaderCommand : IRequest<ApiResponseDTO<int>>
+    public class CreateEInvoiceHeaderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int UnitId { get; set; }
         public string? DocType { get; set; }
@@ -36,5 +36,6 @@ namespace FinanceManagement.Application.EInvoiceHeader.Commands.CreateEInvoiceHe
         public string? Remarks { get; set; }
         public int? StatusId { get; set; }
         public List<CreateEInvoiceDetailDto>? Details { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

@@ -39,9 +39,9 @@ namespace UserManagement.Application.Units.Commands.UpdateUnit
             var existingUnit = await _iunitQueryRepository.GetByIdAsync(request.UpdateUnitDto.Id);
             if (existingUnit is null )
             {
+                // Idempotent update: a missing / already-deleted id is a no-op → controller 200, not 400.
                 _logger.LogWarning($"Unit ID {request.UpdateUnitDto.Id} not found.");
-                throw new ValidationException("Unit Id not found / Unit is deleted.");
-                
+                return 0;
             }
 
             // Check if unit name already exists for another ID

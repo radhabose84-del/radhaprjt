@@ -4,7 +4,7 @@ using SalesManagement.Application.SalesOrder.Dto;
 
 namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
 {
-    public class UpdateSalesOrderCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateSalesOrderCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int IsActive { get; set; }
@@ -78,5 +78,6 @@ namespace SalesManagement.Application.SalesOrder.Commands.UpdateSalesOrder
 
         // Applied discounts (max 3 — one per SlabType)
         public List<UpdateSalesOrderDiscountDto>? Discounts { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

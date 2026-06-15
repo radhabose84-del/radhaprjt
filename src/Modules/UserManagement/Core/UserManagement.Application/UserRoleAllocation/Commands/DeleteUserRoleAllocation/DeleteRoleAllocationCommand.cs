@@ -1,8 +1,9 @@
 using MediatR;
+using Contracts.Common;
 
 namespace UserManagement.Application.DeleteUserRoleAllocation.Commands.DeleteUserRoleAllocation
 {
-    public class DeleteRoleAllocationCommand : IRequest<int>
+    public class DeleteRoleAllocationCommand : IRequest<int>, IRequirePermission
     {    
         public int RoleAllocationId { get; set; }
 
@@ -10,5 +11,6 @@ namespace UserManagement.Application.DeleteUserRoleAllocation.Commands.DeleteUse
         {
             RoleAllocationId = roleAllocationId;
         }
+        public PermissionType RequiredPermission => PermissionType.CanDelete;
     }
 }

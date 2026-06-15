@@ -4,7 +4,7 @@ using SalesManagement.Application.ComplaintQCReview.Dto;
 
 namespace SalesManagement.Application.ComplaintQCReview.Commands.UpdateQCReview
 {
-    public class UpdateQCReviewCommand : IRequest<ApiResponseDTO<int>>
+    public class UpdateQCReviewCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
         public int PhysicalVerificationId { get; set; }
@@ -17,5 +17,6 @@ namespace SalesManagement.Application.ComplaintQCReview.Commands.UpdateQCReview
         public string? Comments { get; set; }
         public int IsActive { get; set; }
         public List<SubmitAssignmentDto>? Assignments { get; set; }
+        public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

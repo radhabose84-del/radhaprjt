@@ -22,23 +22,21 @@ namespace UserManagement.Application.Divisions.Commands.DeleteDivision
             var division  = _imapper.Map<Division>(request);
             var divisionresult = await _divisionRepository.DeleteAsync(request.Id, division);
 
+            // Idempotent delete: only audit when a row was actually soft-deleted.
+            // A no-op (already deleted / non-existent id) returns false → controller 200, not a 500.
+            if (divisionresult)
+            {
+                var domainEvent = new AuditLogsDomainEvent(
+                    actionDetail: "Delete",
+                    actionCode: division.Id.ToString(),
+                    actionName: division.Id.ToString(),
+                    details: $"Division '{division.Id}' was deleted.",
+                    module:"Division"
+                );
+                await _mediator.Publish(domainEvent, cancellationToken);
+            }
 
-                  //Domain Event  
-                    var domainEvent = new AuditLogsDomainEvent(
-                        actionDetail: "Delete",
-                        actionCode: division.Id.ToString(),
-                        actionName: division.Id.ToString(),
-                        details: $"Division '{division.Id}' was deleted.",
-                        module:"Division"
-                    );               
-                    await _mediator.Publish(domainEvent, cancellationToken);  
-
-                 if(divisionresult)
-                {
-                    return divisionresult;
-                }
-            throw new Exception("Division not deleted.");
-                
+            return divisionresult;
         }
     }
 }

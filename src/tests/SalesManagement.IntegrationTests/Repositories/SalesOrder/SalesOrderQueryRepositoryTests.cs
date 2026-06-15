@@ -91,6 +91,8 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrder
             var accessFilter = new Mock<IMarketingOfficerAccessFilter>(MockBehavior.Loose);
             accessFilter.Setup(a => a.ShouldApplyFilterAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
+            var yarnType = new Mock<IYarnTypeLookup>(MockBehavior.Loose);
+
             var division = new Mock<IDivisionLookup>(MockBehavior.Loose);
 
             return new SalesOrderQueryRepository(
@@ -98,7 +100,7 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrder
                 unit.Object, party.Object, paymentTerm.Object,
                 item.Object, hsn.Object, uom.Object,
                 ip.Object, company.Object, packType.Object,
-                txnType.Object, accessFilter.Object, division.Object);
+                yarnType.Object, txnType.Object, accessFilter.Object, division.Object);
         }
 
         // ── Seed helpers ──────────────────────────────────────────────

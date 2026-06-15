@@ -1,9 +1,10 @@
 
 using MediatR;
+using Contracts.Common;
 
 namespace BudgetManagement.Application.BudgetRequest.Commands.Create;
 
-public class CreateBudgetRequestCommand : IRequest<int>
+public class CreateBudgetRequestCommand : IRequest<int>, IRequirePermission
 {
     public int UnitId { get; set; }
     public int CurrencyId { get; set; }
@@ -19,5 +20,6 @@ public class CreateBudgetRequestCommand : IRequest<int>
     public string? Remarks { get; set; }
     public string? ImagePath { get; set; } 
     public int FinancialYearId { get; set; } = 0;   
+    public PermissionType RequiredPermission => PermissionType.CanAdd;
 }
 
