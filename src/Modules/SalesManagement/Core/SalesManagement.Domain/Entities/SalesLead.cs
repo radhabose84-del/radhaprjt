@@ -30,10 +30,20 @@ namespace SalesManagement.Domain.Entities
         public int MarketingOfficerId { get; set; }     // same-module FK → Sales.MarketingOfficer
         public DateTimeOffset InteractionDate { get; set; }
 
+        // Closure (Close Lead) — a lead is "closed" when ClosureTypeId is set
+        public int? ClosureTypeId { get; set; }          // same-module FK → Sales.MiscMaster (Won/Lost/Not Interested/Duplicate/Invalid Lead)
+        public int? ClosureReasonId { get; set; }        // same-module FK → Sales.MiscMaster (null for Won)
+        public int? ConvertWonLeadToId { get; set; }     // same-module FK → Sales.MiscMaster (Enquiry/Quotation/Sales Order; only for Won)
+        public string? ClosureRemarks { get; set; }
+        public DateTimeOffset? ClosureDate { get; set; }
+
         // Same-module navigation properties
         public SalesContact? Contact { get; set; }
         public MiscMaster? LeadSource { get; set; }
         public MarketingOfficer? MarketingOfficer { get; set; }
+        public MiscMaster? ClosureType { get; set; }
+        public MiscMaster? ClosureReason { get; set; }
+        public MiscMaster? ConvertWonLeadTo { get; set; }
         public ICollection<SalesEnquiryHeader>? SalesEnquiryHeaders { get; set; }
     }
 }

@@ -327,5 +327,112 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesLead
             result.UomCode.Should().Be("KGS");
             result.UomName.Should().Be("Kilograms");
         }
+
+        private async Task<int> EnsureMiscMasterAsync(string description)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var existing = await ctx.MiscMaster.FirstOrDefaultAsync(x => x.Description == description);
+            if (existing != null) return existing.Id;
+
+            var type = await ctx.MiscTypeMaster.FirstOrDefaultAsync(x => x.MiscTypeCode == "SLQ_CLOSURE");
+            if (type == null)
+            {
+                type = new SalesManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "SLQ_CLOSURE", Description = "Lead Closure",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(type);
+                await ctx.SaveChangesAsync();
+            }
+
+            var mm = new SalesManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = type.Id, Code = description, Description = description,
+                SortOrder = 1, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(mm);
+            await ctx.SaveChangesAsync();
+            return mm.Id;
+        }
+
+        [Fact]
+        public async Task MiscMasterExistsAsync_Should_Return_True_For_Active()
+        {
+            var id = await EnsureMiscMasterAsync("SLQ_Active_Misc");
+
+            var result = await CreateRepo().MiscMasterExistsAsync(id);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task MiscMasterExistsAsync_Should_Return_False_For_Unknown()
+        {
+            var result = await CreateRepo().MiscMasterExistsAsync(9999999);
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsWonClosureTypeAsync_Should_Return_True_For_Won()
+        {
+            var wonId = await EnsureMiscMasterAsync("Won");
+
+            var result = await CreateRepo().IsWonClosureTypeAsync(wonId);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsWonClosureTypeAsync_Should_Return_False_For_NonWon()
+        {
+            var lostId = await EnsureMiscMasterAsync("Lost");
+
+            var result = await CreateRepo().IsWonClosureTypeAsync(lostId);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task IsClosedAsync_Should_Return_True_When_Closed()
+        {
+            await ClearAsync();
+            var moId = await EnsureMarketingOfficerAsync();
+            var typeId = await EnsureMiscMasterAsync("SLQ_Closed_Type");
+
+            int leadId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var l = new SalesManagement.Domain.Entities.SalesLead
+                {
+                    ProspectCompanyName = "SLQ_CLOSED",
+                    ContactName = "C", MobileNumber = "9777777777", EmailId = "e@y.com",
+                    MarketingOfficerId = moId,
+                    InteractionDate = DateTimeOffset.UtcNow,
+                    ClosureTypeId = typeId,
+                    ClosureRemarks = "Closed",
+                    ClosureDate = DateTimeOffset.UtcNow,
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.SalesLead.AddAsync(l);
+                await ctx.SaveChangesAsync();
+                leadId = l.Id;
+            }
+
+            var result = await CreateRepo().IsClosedAsync(leadId);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task IsClosedAsync_Should_Return_False_When_Open()
+        {
+            await ClearAsync();
+            var id = await SeedAsync("SLQ_OPEN");
+
+            var result = await CreateRepo().IsClosedAsync(id);
+
+            result.Should().BeFalse();
+        }
     }
 }

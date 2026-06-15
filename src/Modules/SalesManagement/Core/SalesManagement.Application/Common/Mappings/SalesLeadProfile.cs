@@ -1,4 +1,5 @@
 using AutoMapper;
+using SalesManagement.Application.SalesLead.Commands.CloseSalesLead;
 using SalesManagement.Application.SalesLead.Commands.CreateSalesLead;
 using SalesManagement.Application.SalesLead.Commands.UpdateSalesLead;
 using SalesManagement.Application.SalesLead.Dto;
@@ -25,6 +26,9 @@ namespace SalesManagement.Application.Common.Mappings
             CreateMap<UpdateSalesLeadCommand, Domain.Entities.SalesLead>()
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>
                     src.IsActive == 1 ? Status.Active : Status.Inactive));
+
+            // Close — maps Id + closure fields only; ClosureDate is set server-side in the handler
+            CreateMap<CloseSalesLeadCommand, Domain.Entities.SalesLead>();
         }
     }
 }

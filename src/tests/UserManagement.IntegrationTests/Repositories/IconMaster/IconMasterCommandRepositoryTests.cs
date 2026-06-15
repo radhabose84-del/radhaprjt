@@ -143,6 +143,67 @@ namespace UserManagement.IntegrationTests.Repositories.IconMaster
             exists.Should().BeTrue();
         }
 
+        [Fact]
+        public async Task ExistsByKeywordAsync_Should_Return_False_After_SoftDelete()
+        {
+            await using var ctx = CreateDbContext();
+            await ClearTableAsync(ctx);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("settings"));
+            ctx.ChangeTracker.Clear();
+
+            var deleteModel = new Domain.Entities.IconMaster { IsDeleted = Enums.IsDelete.Deleted };
+            await CreateRepository(ctx).DeleteIconMasterAsync(id, deleteModel);
+            ctx.ChangeTracker.Clear();
+
+            var exists = await CreateRepository(ctx).ExistsByKeywordAsync("settings");
+
+            exists.Should().BeFalse(); // soft-deleted keyword no longer reserved
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Allow_Reusing_SoftDeleted_Keyword()
+        {
+            await using var ctx = CreateDbContext();
+            await ClearTableAsync(ctx);
+
+            var firstId = await CreateRepository(ctx).CreateAsync(BuildEntity("settings", "SlSettings", "sl"));
+            ctx.ChangeTracker.Clear();
+
+            var deleteModel = new Domain.Entities.IconMaster { IsDeleted = Enums.IsDelete.Deleted };
+            await CreateRepository(ctx).DeleteIconMasterAsync(firstId, deleteModel);
+            ctx.ChangeTracker.Clear();
+
+            // Re-create the same keyword — allowed because the old row is soft-deleted (filtered unique index)
+            var secondId = await CreateRepository(ctx).CreateAsync(BuildEntity("settings", "MdSettings", "md"));
+
+            secondId.Should().BeGreaterThan(0);
+            secondId.Should().NotBe(firstId);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Not_Change_IsActive()
+        {
+            await using var ctx = CreateDbContext();
+            await ClearTableAsync(ctx);
+            var id = await CreateRepository(ctx).CreateAsync(BuildEntity("settings"));
+            ctx.ChangeTracker.Clear();
+
+            // entity passed to update has IsActive defaulted (0/Inactive); repo must ignore it
+            var update = new Domain.Entities.IconMaster
+            {
+                IconName = "MdSettings",
+                IconLibrary = "md",
+                Size = 20,
+                Style = null
+            };
+            await CreateRepository(ctx).UpdateAsync(id, update);
+            ctx.ChangeTracker.Clear();
+
+            var updated = await ctx.IconMasters.FirstOrDefaultAsync(x => x.Id == id);
+            updated!.IsActive.Should().Be(Enums.Status.Active); // unchanged by the edit
+            updated.IconName.Should().Be("MdSettings");
+        }
+
         // --- UPDATE ---
 
         [Fact]
