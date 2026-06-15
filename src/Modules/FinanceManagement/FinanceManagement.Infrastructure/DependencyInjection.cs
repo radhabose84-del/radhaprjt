@@ -26,6 +26,8 @@ using FinanceManagement.Infrastructure.Repositories.Lookups.Finance;
 using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscMaster;
+using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
+using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
 using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -125,6 +127,10 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
             services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
+
+            // Schedule III line-item & sub-total configuration (US-GL02-03A)
+            services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
+            services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
 
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();

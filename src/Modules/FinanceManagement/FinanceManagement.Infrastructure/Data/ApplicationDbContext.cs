@@ -31,6 +31,13 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
 
+        // Schedule III line-item & sub-total configuration (US-GL02-03A)
+        public DbSet<ScheduleIIIStructure> ScheduleIIIStructure => Set<ScheduleIIIStructure>();
+        public DbSet<ScheduleIIISection> ScheduleIIISection => Set<ScheduleIIISection>();
+        public DbSet<ScheduleIIILineItem> ScheduleIIILineItem => Set<ScheduleIIILineItem>();
+        public DbSet<ScheduleIIISubTotal> ScheduleIIISubTotal => Set<ScheduleIIISubTotal>();
+        public DbSet<ScheduleIIISubTotalFormula> ScheduleIIISubTotalFormula => Set<ScheduleIIISubTotalFormula>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
