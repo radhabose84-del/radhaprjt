@@ -11,19 +11,18 @@ namespace FinanceManagement.Application.Common.Mappings
         public ScheduleIIIProfile()
         {
             CreateMap<CreateLineItemCommand, Domain.Entities.ScheduleIIILineItem>()
-                .ForMember(dest => dest.IsActive,  opt => opt.MapFrom(src => Status.Active))
-                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => IsDelete.NotDeleted));
+                .ForMember(d => d.IsActive,  o => o.MapFrom(s => Status.Active))
+                .ForMember(d => d.IsDeleted, o => o.MapFrom(s => IsDelete.NotDeleted));
 
             CreateMap<UpdateLineItemCommand, Domain.Entities.ScheduleIIILineItem>()
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src =>
-                    src.IsActive == 1 ? Status.Active : Status.Inactive));
+                .ForMember(d => d.IsActive, o => o.MapFrom(s => s.IsActive == 1 ? Status.Active : Status.Inactive));
 
             CreateMap<CreateSubTotalCommand, Domain.Entities.ScheduleIIISubTotal>()
-                .ForMember(dest => dest.IsActive,          opt => opt.MapFrom(src => Status.Active))
-                .ForMember(dest => dest.IsDeleted,         opt => opt.MapFrom(src => IsDelete.NotDeleted))
-                .ForMember(dest => dest.IsSystemDefined,   opt => opt.MapFrom(src => false))
-                .ForMember(dest => dest.FormulaExpression, opt => opt.MapFrom(src => string.Empty))
-                .ForMember(dest => dest.Formulas,          opt => opt.Ignore());
+                .ForMember(d => d.IsActive,          o => o.MapFrom(s => Status.Active))
+                .ForMember(d => d.IsDeleted,         o => o.MapFrom(s => IsDelete.NotDeleted))
+                .ForMember(d => d.IsSystemDefined,   o => o.MapFrom(s => false))
+                .ForMember(d => d.FormulaExpression, o => o.MapFrom(s => string.Empty))
+                .ForMember(d => d.Formulas,          o => o.Ignore());
         }
     }
 }

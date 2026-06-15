@@ -14,5 +14,6 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
         public bool IsActive { get; set; }
 
         public List<ScheduleIIISectionDto> Sections { get; set; } = new();
+        public List<ScheduleIIISubTotalDto> SubTotals { get; set; } = new();
     }
 }
