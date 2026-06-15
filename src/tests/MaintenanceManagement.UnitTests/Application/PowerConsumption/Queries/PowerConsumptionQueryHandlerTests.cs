@@ -59,6 +59,20 @@ namespace MaintenanceManagement.UnitTests.Application.PowerConsumption.Queries
 
             } catch { /* handler threw due to loose mock — expected */ }
         }
+
+        [Fact]
+        public async Task Handle_FeederNotFound_ReturnsNull_DoesNotThrow()
+        {
+            // Repo returns null (feeder missing / out of unit scope) → handler returns null,
+            // and the repo no longer throws (regression test for the GetOpeningReaderValue 500).
+            _mockQueryRepo.Setup(r => r.GetOpeningReaderValueById(99))
+                .ReturnsAsync((GetClosingReaderValueDto?)null);
+
+            var result = await CreateSut().Handle(
+                new GetClosingReaderValueByIdQuery { FeederId = 99 }, CancellationToken.None);
+
+            result.Should().BeNull();
+        }
     }
 
     public sealed class GetFeederSubFeederByIdQueryHandlerTests

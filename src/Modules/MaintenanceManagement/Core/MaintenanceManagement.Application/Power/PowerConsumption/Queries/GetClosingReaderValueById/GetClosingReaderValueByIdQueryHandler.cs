@@ -5,7 +5,7 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetClosingReaderValueById
 {
-    public class GetClosingReaderValueByIdQueryHandler : IRequestHandler<GetClosingReaderValueByIdQuery, GetClosingReaderValueDto>
+    public class GetClosingReaderValueByIdQueryHandler : IRequestHandler<GetClosingReaderValueByIdQuery, GetClosingReaderValueDto?>
     {
         private readonly IPowerConsumptionQueryRepository _powerConsumptionQueryRepository;
         private readonly IMapper _mapper;
@@ -18,7 +18,7 @@ namespace MaintenanceManagement.Application.Power.PowerConsumption.Queries.GetCl
             _mediator = mediator;
         }
 
-        public async Task<GetClosingReaderValueDto> Handle(GetClosingReaderValueByIdQuery request, CancellationToken cancellationToken)
+        public async Task<GetClosingReaderValueDto?> Handle(GetClosingReaderValueByIdQuery request, CancellationToken cancellationToken)
         {
              var result = await _powerConsumptionQueryRepository.GetOpeningReaderValueById(request.FeederId);
 

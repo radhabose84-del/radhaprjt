@@ -38,7 +38,7 @@ namespace QCManagement.IntegrationTests.Repositories.MiscTypeMaster
             };
 
         private async Task ClearTableAsync() =>
-            await _fixture.ClearTablesAsync("QC.QualitySpecificationParameter", "QC.QualitySpecification", "QC.QualityTemplateParameter", "QC.QualityTemplate", "QC.QualityParameter", "QC.MiscMaster", "QC.MiscTypeMaster");
+            await _fixture.ClearTablesAsync("QC.QcInspectionDtl", "QC.QcInspectionHdr", "QC.QualitySpecificationParameter", "QC.QualitySpecification", "QC.QualityTemplateParameter", "QC.QualityTemplate", "QC.QualityParameter", "QC.MiscMaster", "QC.MiscTypeMaster");
 
         private async Task<int> SeedEntityAsync(Domain.Entities.MiscTypeMaster entity)
         {

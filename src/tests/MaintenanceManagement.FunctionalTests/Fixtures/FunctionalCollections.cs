@@ -26,3 +26,15 @@ public sealed class SparesRequisitionCollection : ICollectionFixture<QAServerFix
 
 [CollectionDefinition("US-MNT-08-PowerConsumption")]
 public sealed class PowerConsumptionCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-MNT-09-MiscMasterSetup")]
+public sealed class MiscMasterSetupCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-MNT-10-ShiftMasterSetup")]
+public sealed class ShiftMasterSetupCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-MNT-11-DashboardReporting")]
+public sealed class DashboardReportingCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-MNT-12-AuditLog")]
+public sealed class AuditLogCollection : ICollectionFixture<QAServerFixture> { }

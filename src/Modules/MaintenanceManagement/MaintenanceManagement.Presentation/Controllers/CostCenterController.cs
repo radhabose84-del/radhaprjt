@@ -61,6 +61,9 @@ namespace MaintenanceManagement.Presentation.Controllers
         {
             var costcenter = await Mediator.Send(new GetCostCenterByIdQuery() { Id = id });
 
+            if (costcenter == null)
+                return NotFound(new { StatusCode = StatusCodes.Status404NotFound, message = $"CostCenter ID {id} not found.", errors = "" });
+
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = costcenter, message = costcenter });
 
         }
