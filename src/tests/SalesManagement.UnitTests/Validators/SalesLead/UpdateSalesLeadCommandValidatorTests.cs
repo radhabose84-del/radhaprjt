@@ -27,6 +27,7 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
         private void SetupAllAsyncMocks(int id = 1, string mobile = "9876543210", int officerId = 1)
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(id)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.IsClosedAsync(It.IsAny<int>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsForProspectAsync(mobile!, It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsInSalesContactAsync(mobile!)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(officerId)).ReturnsAsync(true);
@@ -59,6 +60,7 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
         public async Task NotFound_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.IsClosedAsync(It.IsAny<int>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsForProspectAsync("9876543210", It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsInSalesContactAsync("9876543210")).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(1)).ReturnsAsync(true);
@@ -94,6 +96,7 @@ namespace SalesManagement.UnitTests.Validators.SalesLead
         public async Task MarketingOfficerNotFound_FailsValidation()
         {
             _mockQueryRepo.Setup(r => r.NotFoundAsync(1)).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.IsClosedAsync(It.IsAny<int>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsForProspectAsync("9876543210", It.IsAny<int?>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MobileNumberExistsInSalesContactAsync("9876543210")).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.MarketingOfficerExistsAsync(1)).ReturnsAsync(false);
