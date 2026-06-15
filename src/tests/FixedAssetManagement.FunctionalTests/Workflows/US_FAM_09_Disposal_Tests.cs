@@ -25,12 +25,12 @@ public sealed class US_FAM_09_Disposal_Tests
         ((int)resp.StatusCode).Should().BeOneOf(200, 404);
     }
 
-    [Fact(Skip = "Needs US-FAM-04/05: an asset with a purchase (AssetId + AssetPurchaseId)."), TestPriority(2)]
+    [Fact(Skip = "Blocked (environment): AssetDisposal requires a real un-disposed AssetPurchaseId. An asset is now creatable (US-FAM-04) but the AssetPurchase is GRN-driven and blocked for testsales (no OldUnitId GRN scope, see US-FAM-05)."), TestPriority(2)]
     public Task Step2_AssetWithPurchaseExists() => Task.CompletedTask;
 
-    [Fact(Skip = "Needs asset + purchase ids: create an AssetDisposal (date, type, reason, amount)."), TestPriority(3)]
+    [Fact(Skip = "Needs a real AssetId + un-disposed AssetPurchaseId (blocked by Step2 — GRN/OldUnitId)."), TestPriority(3)]
     public Task Step3_CreateDisposal() => Task.CompletedTask;
 
-    [Fact(Skip = "Needs a posted disposal: the disposed asset is reflected as disposed."), TestPriority(4)]
+    [Fact(Skip = "Needs a posted disposal (blocked by Step3)."), TestPriority(4)]
     public Task Step4_AssetReflectedDisposed() => Task.CompletedTask;
 }
