@@ -178,10 +178,26 @@ namespace UserManagement.IntegrationTests.Repositories.IconMaster
         }
 
         [Fact]
-        public async Task GetByKeywordAsync_Should_Exclude_Inactive()
+        public async Task GetByKeywordAsync_Should_Include_Inactive()
         {
+            // Admin page does not manage active/inactive — by-name returns all non-deleted rows
             await ClearTableAsync();
             await SeedAsync("settings", "SlSettings", "sl", 18, "{\"a\":1}", Enums.Status.Inactive);
+
+            var results = await CreateQueryRepo().GetByKeywordAsync("settings");
+
+            results.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task GetByKeywordAsync_Should_Exclude_SoftDeleted()
+        {
+            await ClearTableAsync();
+            var id = await SeedAsync("settings", "SlSettings", "sl");
+
+            await using var ctx = CreateDbContext();
+            var deleteModel = new Domain.Entities.IconMaster { IsDeleted = Enums.IsDelete.Deleted };
+            await new IconMasterCommandRepository(ctx).DeleteIconMasterAsync(id, deleteModel);
 
             var results = await CreateQueryRepo().GetByKeywordAsync("settings");
 

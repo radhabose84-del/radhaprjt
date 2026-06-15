@@ -49,12 +49,6 @@ namespace UserManagement.Presentation.Validation.IconMaster
                             .WithMessage($"{nameof(UpdateIconMasterCommand.Size)} {rule.Error}");
                         break;
 
-                    case "ByteValue":
-                        RuleFor(x => x.IsActive)
-                            .InclusiveBetween((byte)0, (byte)1)
-                            .WithMessage($"{nameof(UpdateIconMasterCommand.IsActive)} {rule.Error}");
-                        break;
-
                     default:
                         Log.Information($"Warning: Unknown rule '{rule.Rule}' encountered.");
                         break;

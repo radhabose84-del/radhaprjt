@@ -23,10 +23,14 @@ namespace FinanceManagement.Infrastructure.Data
 
         public DbSet<TransactionTypeMaster> TransactionTypeMaster => Set<TransactionTypeMaster>();
         public DbSet<DocumentSequence> DocumentSequence => Set<DocumentSequence>();
+        public DbSet<AccountGroup> AccountGroup => Set<AccountGroup>();
         public DbSet<EInvoiceHeader> EInvoiceHeader => Set<EInvoiceHeader>();
         public DbSet<EInvoiceDetail> EInvoiceDetail => Set<EInvoiceDetail>();
         public DbSet<EWaybillHeader> EWaybillHeader => Set<EWaybillHeader>();
         public DbSet<EWaybillDetail> EWaybillDetail => Set<EWaybillDetail>();
+        public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
+        public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
+        public DbSet<AccountTypeMaster> AccountTypeMaster => Set<AccountTypeMaster>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

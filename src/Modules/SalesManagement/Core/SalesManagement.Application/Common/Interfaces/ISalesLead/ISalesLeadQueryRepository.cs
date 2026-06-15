@@ -18,5 +18,8 @@ namespace SalesManagement.Application.Common.Interfaces.ISalesLead
         Task<bool> MarketingOfficerExistsAsync(int marketingOfficerId);
         Task<bool> MobileNumberExistsInSalesContactAsync(string mobileNumber);
         Task<int> GetPrimaryContactTypeIdAsync();
+        Task<bool> IsClosedAsync(int id);
+        Task<bool> IsWonClosureTypeAsync(int closureTypeId);
+        Task<bool> MiscMasterExistsAsync(int id);
     }
 }
