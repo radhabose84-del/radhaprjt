@@ -11,6 +11,8 @@ using FinanceManagement.Application.Common.Interfaces.IDocumentSequence;
 using FinanceManagement.Application.Common.Interfaces.IEInvoiceHeader;
 using FinanceManagement.Application.Common.Interfaces.IEWaybillHeader;
 using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
+using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
+using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
 using FinanceManagement.Infrastructure.Repositories.AuditLog;
@@ -20,6 +22,8 @@ using FinanceManagement.Infrastructure.Repositories.EInvoiceHeader;
 using FinanceManagement.Infrastructure.Repositories.EWaybillHeader;
 using FinanceManagement.Infrastructure.Repositories.Lookups.Finance;
 using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
+using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
+using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -110,6 +114,12 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IEWaybillHeaderCommandRepository, EWaybillHeaderCommandRepository>();
             services.AddScoped<IEWaybillHeaderQueryRepository, EWaybillHeaderQueryRepository>();
+
+            services.AddScoped<IMiscTypeMasterCommandRepository, MiscTypeMasterCommandRepository>();
+            services.AddScoped<IMiscTypeMasterQueryRepository, MiscTypeMasterQueryRepository>();
+
+            services.AddScoped<IMiscMasterCommandRepository, MiscMasterCommandRepository>();
+            services.AddScoped<IMiscMasterQueryRepository, MiscMasterQueryRepository>();
 
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
