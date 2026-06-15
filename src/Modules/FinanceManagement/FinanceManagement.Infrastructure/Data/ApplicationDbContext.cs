@@ -30,6 +30,7 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<EWaybillDetail> EWaybillDetail => Set<EWaybillDetail>();
         public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
+        public DbSet<AccountTypeMaster> AccountTypeMaster => Set<AccountTypeMaster>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
