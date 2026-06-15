@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SalesManagement.Application.SalesLead.Commands.CreateSalesLead;
 using SalesManagement.Application.SalesLead.Commands.UpdateSalesLead;
+using SalesManagement.Application.SalesLead.Commands.CloseSalesLead;
 using SalesManagement.Application.SalesLead.Commands.DeleteSalesLead;
 using SalesManagement.Application.SalesLead.Queries.GetAllSalesLead;
 using SalesManagement.Application.SalesLead.Queries.GetSalesLeadById;
@@ -78,6 +79,20 @@ namespace SalesManagement.Presentation.Controllers
 
         [HttpPut]
         public async Task<IActionResult> UpdateSalesLead([FromBody] UpdateSalesLeadCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        [HttpPut("close")]
+        public async Task<IActionResult> CloseSalesLead([FromBody] CloseSalesLeadCommand command)
         {
             var result = await Mediator.Send(command);
 

@@ -76,7 +76,7 @@ namespace UserManagement.Infrastructure.Repositories.IconMaster
             const string query = @"
                 SELECT Id, Keyword, IconName, IconLibrary, Size, Style
                 FROM AppData.IconMaster
-                WHERE IsDeleted = 0 AND IsActive = 1
+                WHERE IsDeleted = 0
                   AND (Keyword LIKE @SearchPattern OR IconName LIKE @SearchPattern)
                 ORDER BY Keyword ASC";
 

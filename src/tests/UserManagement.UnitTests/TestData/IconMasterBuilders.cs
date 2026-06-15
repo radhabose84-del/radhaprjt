@@ -31,15 +31,13 @@ namespace UserManagement.UnitTests.TestData
             int id = 1,
             string iconName = "MdSettings",
             string iconLibrary = "md",
-            int size = 20,
-            byte isActive = 1) =>
+            int size = 20) =>
             new UpdateIconMasterCommand
             {
                 Id = id,
                 IconName = iconName,
                 IconLibrary = iconLibrary,
                 Size = size,
-                IsActive = isActive,
                 Style = SampleStyle()
             };
 

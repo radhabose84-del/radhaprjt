@@ -1,6 +1,7 @@
 using Contracts.Common;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using SalesManagement.Application.SalesLead.Commands.CloseSalesLead;
 using SalesManagement.Application.SalesLead.Commands.CreateSalesLead;
 using SalesManagement.Application.SalesLead.Commands.DeleteSalesLead;
 using SalesManagement.Application.SalesLead.Commands.UpdateSalesLead;
@@ -106,6 +107,32 @@ public sealed class SalesLeadControllerTests
         var result = await CreateSut().UpdateSalesLead(new UpdateSalesLeadCommand());
 
         result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task Close_ReturnsOkResult()
+    {
+        _mockMediator
+            .Setup(m => m.Send(It.IsAny<CloseSalesLeadCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 1 });
+
+        var result = await CreateSut().CloseSalesLead(new CloseSalesLeadCommand());
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task Close_CallsMediatorSend_Once()
+    {
+        _mockMediator
+            .Setup(m => m.Send(It.IsAny<CloseSalesLeadCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Data = 1 });
+
+        await CreateSut().CloseSalesLead(new CloseSalesLeadCommand());
+
+        _mockMediator.Verify(
+            m => m.Send(It.IsAny<CloseSalesLeadCommand>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

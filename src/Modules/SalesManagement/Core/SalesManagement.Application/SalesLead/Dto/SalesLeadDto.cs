@@ -42,6 +42,20 @@ namespace SalesManagement.Application.SalesLead.Dto
         public bool IsEditable { get; set; }           // false when enquiry exists against this lead
         public string? EnquiryNo { get; set; }         // populated via OUTER APPLY → SalesEnquiryHeader
 
+        // Age — days since the lead was created (display only)
+        public int? DaysFromCreation { get; set; }
+
+        // Closure (Close Lead) — a lead is "closed" when ClosureTypeId is set
+        public bool IsClosed { get; set; }
+        public int? ClosureTypeId { get; set; }
+        public string? ClosureTypeName { get; set; }        // populated via SQL JOIN → MiscMaster
+        public int? ClosureReasonId { get; set; }
+        public string? ClosureReasonName { get; set; }      // populated via SQL JOIN → MiscMaster
+        public int? ConvertWonLeadToId { get; set; }
+        public string? ConvertWonLeadToName { get; set; }   // populated via SQL JOIN → MiscMaster
+        public string? ClosureRemarks { get; set; }
+        public DateTimeOffset? ClosureDate { get; set; }
+
         // Status
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

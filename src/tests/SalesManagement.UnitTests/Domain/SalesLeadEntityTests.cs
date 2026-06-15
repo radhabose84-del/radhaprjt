@@ -101,6 +101,38 @@ public class SalesLeadEntityTests
     }
 
     [Fact]
+    public void SalesLead_ClosureProperties_ShouldBeAssignable()
+    {
+        var closureDate = DateTimeOffset.UtcNow;
+        var entity = new SalesLead
+        {
+            ClosureTypeId = 1,
+            ClosureReasonId = 5,
+            ConvertWonLeadToId = 9,
+            ClosureRemarks = "Customer confirmed order",
+            ClosureDate = closureDate
+        };
+
+        entity.ClosureTypeId.Should().Be(1);
+        entity.ClosureReasonId.Should().Be(5);
+        entity.ConvertWonLeadToId.Should().Be(9);
+        entity.ClosureRemarks.Should().Be("Customer confirmed order");
+        entity.ClosureDate.Should().Be(closureDate);
+    }
+
+    [Fact]
+    public void SalesLead_ClosureProperties_ShouldDefaultToNull()
+    {
+        var entity = new SalesLead();
+
+        entity.ClosureTypeId.Should().BeNull();
+        entity.ClosureReasonId.Should().BeNull();
+        entity.ConvertWonLeadToId.Should().BeNull();
+        entity.ClosureRemarks.Should().BeNull();
+        entity.ClosureDate.Should().BeNull();
+    }
+
+    [Fact]
     public void SalesLead_NavigationProperties_ShouldBeAssignable()
     {
         var entity = new SalesLead

@@ -6,6 +6,7 @@ using Dapper;
 using SalesManagement.Application.Common.Interfaces;
 using SalesManagement.Application.Common.Interfaces.ISalesLead;
 using SalesManagement.Application.SalesLead.Dto;
+using SalesManagement.Domain.Common;
 
 namespace SalesManagement.Infrastructure.Repositories.SalesLead
 {
@@ -72,6 +73,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                     sl.MarketingOfficerId,
                     mo.EmployeeName AS MarketingOfficerName,
                     sl.InteractionDate,
+                    DATEDIFF(DAY, sl.CreatedDate, SYSDATETIMEOFFSET()) AS DaysFromCreation,
+                    CASE WHEN sl.ClosureTypeId IS NULL THEN CAST(0 AS BIT) ELSE CAST(1 AS BIT) END AS IsClosed,
+                    sl.ClosureTypeId, ct.Description AS ClosureTypeName,
+                    sl.ClosureReasonId, cr.Description AS ClosureReasonName,
+                    sl.ConvertWonLeadToId, cwt.Description AS ConvertWonLeadToName,
+                    sl.ClosureRemarks, sl.ClosureDate,
                     CASE WHEN enq.EnquiryNo IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsEditable,
                     enq.EnquiryNo,
                     sl.IsActive, sl.IsDeleted,
@@ -81,6 +88,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 LEFT JOIN Sales.SalesContact sc ON sl.ContactId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON sl.LeadSourceId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON sl.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ct ON sl.ClosureTypeId = ct.Id AND ct.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cr ON sl.ClosureReasonId = cr.Id AND cr.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cwt ON sl.ConvertWonLeadToId = cwt.Id AND cwt.IsDeleted = 0
                 OUTER APPLY (
                     SELECT TOP 1 seh.EnquiryNo
                     FROM Sales.SalesEnquiryHeader seh
@@ -195,6 +205,12 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                     sl.MarketingOfficerId,
                     mo.EmployeeName AS MarketingOfficerName,
                     sl.InteractionDate,
+                    DATEDIFF(DAY, sl.CreatedDate, SYSDATETIMEOFFSET()) AS DaysFromCreation,
+                    CASE WHEN sl.ClosureTypeId IS NULL THEN CAST(0 AS BIT) ELSE CAST(1 AS BIT) END AS IsClosed,
+                    sl.ClosureTypeId, ct.Description AS ClosureTypeName,
+                    sl.ClosureReasonId, cr.Description AS ClosureReasonName,
+                    sl.ConvertWonLeadToId, cwt.Description AS ConvertWonLeadToName,
+                    sl.ClosureRemarks, sl.ClosureDate,
                     sl.IsActive, sl.IsDeleted,
                     sl.CreatedBy, sl.CreatedDate, sl.CreatedByName, sl.CreatedIP,
                     sl.ModifiedBy, sl.ModifiedDate, sl.ModifiedByName, sl.ModifiedIP
@@ -202,6 +218,9 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 LEFT JOIN Sales.SalesContact sc ON sl.ContactId = sc.Id AND sc.IsDeleted = 0
                 LEFT JOIN Sales.MiscMaster mm ON sl.LeadSourceId = mm.Id AND mm.IsDeleted = 0
                 LEFT JOIN Sales.MarketingOfficer mo ON sl.MarketingOfficerId = mo.Id AND mo.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster ct ON sl.ClosureTypeId = ct.Id AND ct.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cr ON sl.ClosureReasonId = cr.Id AND cr.IsDeleted = 0
+                LEFT JOIN Sales.MiscMaster cwt ON sl.ConvertWonLeadToId = cwt.Id AND cwt.IsDeleted = 0
                 WHERE sl.Id = @Id AND sl.IsDeleted = 0
                 {moFilter}";
 
@@ -389,6 +408,40 @@ namespace SalesManagement.Infrastructure.Repositories.SalesLead
                 ORDER BY mm.SortOrder ASC";
 
             return await _dbConnection.ExecuteScalarAsync<int>(sql);
+        }
+
+        public async Task<bool> IsClosedAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.SalesLead
+                WHERE Id = @Id AND ClosureTypeId IS NOT NULL AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> IsWonClosureTypeAsync(int closureTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.MiscMaster
+                WHERE Id = @Id AND Description = @Won AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql,
+                new { Id = closureTypeId, Won = MiscEnumEntity.LeadClosureTypeWon });
+            return count > 0;
+        }
+
+        public async Task<bool> MiscMasterExistsAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Sales.MiscMaster
+                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count > 0;
         }
     }
 }
