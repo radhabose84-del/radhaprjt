@@ -1,4 +1,5 @@
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
+using FinanceManagement.Application.ScheduleIII.Dto;
 using FinanceManagement.Domain.Entities;
 using FinanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -150,6 +151,196 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             _applicationDbContext.ScheduleIIIStructure.Update(structure);
             await _applicationDbContext.SaveChangesAsync();
             return true;
+        }
+
+        // ── Composite aggregate (all five tables in one call) ────────────────
+
+        public async Task<int> CreateAggregateAsync(ScheduleIIIInput input)
+        {
+            var structure = new ScheduleIIIStructure
+            {
+                CompanyId = input.CompanyId,
+                DivisionId = input.DivisionId,
+                StructureStatusId = input.StructureStatusId,
+                TextileSplitEnabled = input.TextileSplitEnabled == 1,
+                VersionNo = input.VersionNo <= 0 ? 1 : input.VersionNo
+            };
+            await _applicationDbContext.ScheduleIIIStructure.AddAsync(structure);
+            await _applicationDbContext.SaveChangesAsync();
+
+            await PersistChildrenAsync(structure.Id, input);
+            return structure.Id;
+        }
+
+        public async Task<int> UpdateAggregateAsync(ScheduleIIIInput input)
+        {
+            var structure = await _applicationDbContext.ScheduleIIIStructure
+                .FirstOrDefaultAsync(x => x.Id == input.Id && x.IsDeleted == IsDelete.NotDeleted);
+
+            if (structure == null)
+                return 0;
+
+            // CompanyId/DivisionId are immutable.
+            structure.StructureStatusId = input.StructureStatusId;
+            structure.TextileSplitEnabled = input.TextileSplitEnabled == 1;
+            structure.VersionNo = input.VersionNo <= 0 ? structure.VersionNo : input.VersionNo;
+            structure.IsActive = input.IsActive == 1 ? Status.Active : Status.Inactive;
+            _applicationDbContext.ScheduleIIIStructure.Update(structure);
+            await _applicationDbContext.SaveChangesAsync();
+
+            // Replace-children semantics: physically delete the existing tree, re-insert from the payload.
+            await HardDeleteChildrenAsync(input.Id);
+            await PersistChildrenAsync(input.Id, input);
+            return structure.Id;
+        }
+
+        private async Task PersistChildrenAsync(int structureId, ScheduleIIIInput input)
+        {
+            var lineByCode = new Dictionary<string, ScheduleIIILineItem>(StringComparer.OrdinalIgnoreCase);
+
+            // Sections + line items
+            foreach (var secIn in input.Sections)
+            {
+                var section = new ScheduleIIISection
+                {
+                    StructureId = structureId,
+                    SectionName = secIn.SectionName,
+                    StatementTypeId = secIn.StatementTypeId,
+                    NatureId = secIn.NatureId,
+                    DisplayOrder = secIn.DisplayOrder
+                };
+                await _applicationDbContext.ScheduleIIISection.AddAsync(section);
+                await _applicationDbContext.SaveChangesAsync();
+
+                foreach (var lineIn in secIn.LineItems)
+                {
+                    var line = new ScheduleIIILineItem
+                    {
+                        StructureId = structureId,
+                        SectionId = section.Id,
+                        LineCode = lineIn.LineCode,
+                        LineName = lineIn.LineName,
+                        SubClassification = lineIn.SubClassification,
+                        NoteReference = lineIn.NoteReference,
+                        DisplayOrder = lineIn.DisplayOrder,
+                        IsSplitLine = lineIn.IsSplitLine == 1
+                    };
+                    await _applicationDbContext.ScheduleIIILineItem.AddAsync(line);
+                    await _applicationDbContext.SaveChangesAsync();
+
+                    if (!string.IsNullOrWhiteSpace(line.LineCode))
+                        lineByCode[line.LineCode!] = line;
+                }
+            }
+
+            // Resolve parent/child links by LineCode.
+            foreach (var secIn in input.Sections)
+            {
+                foreach (var lineIn in secIn.LineItems)
+                {
+                    if (!string.IsNullOrWhiteSpace(lineIn.ParentLineCode)
+                        && !string.IsNullOrWhiteSpace(lineIn.LineCode)
+                        && lineByCode.TryGetValue(lineIn.LineCode!, out var child)
+                        && lineByCode.TryGetValue(lineIn.ParentLineCode!, out var parent))
+                    {
+                        child.ParentLineId = parent.Id;
+                        _applicationDbContext.ScheduleIIILineItem.Update(child);
+                    }
+                }
+            }
+            await _applicationDbContext.SaveChangesAsync();
+
+            // Sub-totals
+            var subTotalByName = new Dictionary<string, ScheduleIIISubTotal>(StringComparer.OrdinalIgnoreCase);
+            foreach (var subIn in input.SubTotals)
+            {
+                var sub = new ScheduleIIISubTotal
+                {
+                    StructureId = structureId,
+                    SubTotalName = subIn.SubTotalName,
+                    FormulaExpression = string.Empty,
+                    IncludeOtherIncome = subIn.IncludeOtherIncome == 1,
+                    IsSystemDefined = false,
+                    DisplayOrder = subIn.DisplayOrder
+                };
+                await _applicationDbContext.ScheduleIIISubTotal.AddAsync(sub);
+                await _applicationDbContext.SaveChangesAsync();
+
+                if (!string.IsNullOrWhiteSpace(sub.SubTotalName))
+                    subTotalByName[sub.SubTotalName!] = sub;
+            }
+
+            // Formulas (operands resolved by code: LineCode for lines, SubTotalName for sub-totals)
+            var subTotalOperandTypeId = await ResolveMiscIdAsync("S3_OPERAND_TYPE", "SUBTOTAL");
+            foreach (var subIn in input.SubTotals)
+            {
+                if (string.IsNullOrWhiteSpace(subIn.SubTotalName)
+                    || !subTotalByName.TryGetValue(subIn.SubTotalName!, out var sub))
+                    continue;
+
+                var formulas = new List<ScheduleIIISubTotalFormula>();
+                foreach (var fIn in subIn.Formulas)
+                {
+                    var operandRefId = 0;
+                    if (fIn.OperandTypeId == subTotalOperandTypeId)
+                    {
+                        if (!string.IsNullOrWhiteSpace(fIn.OperandCode) && subTotalByName.TryGetValue(fIn.OperandCode!, out var refSub))
+                            operandRefId = refSub.Id;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(fIn.OperandCode) && lineByCode.TryGetValue(fIn.OperandCode!, out var refLine))
+                    {
+                        operandRefId = refLine.Id;
+                    }
+
+                    formulas.Add(new ScheduleIIISubTotalFormula
+                    {
+                        SubTotalId = sub.Id,
+                        OperandTypeId = fIn.OperandTypeId,
+                        OperandRefId = operandRefId,
+                        OperatorId = fIn.OperatorId,
+                        DisplayOrder = fIn.DisplayOrder
+                    });
+                }
+
+                await _applicationDbContext.ScheduleIIISubTotalFormula.AddRangeAsync(formulas);
+                await _applicationDbContext.SaveChangesAsync();
+
+                sub.FormulaExpression = await BuildExpressionAsync(formulas);
+                _applicationDbContext.ScheduleIIISubTotal.Update(sub);
+            }
+            await _applicationDbContext.SaveChangesAsync();
+        }
+
+        // Physically removes the structure's children (FK-safe order: formulas -> sub-totals -> line items -> sections).
+        private async Task HardDeleteChildrenAsync(int structureId)
+        {
+            // 1) Formulas + sub-totals
+            var subIds = await _applicationDbContext.ScheduleIIISubTotal
+                .Where(x => x.StructureId == structureId).Select(x => x.Id).ToListAsync();
+
+            var formulas = await _applicationDbContext.ScheduleIIISubTotalFormula
+                .Where(f => subIds.Contains(f.SubTotalId)).ToListAsync();
+            _applicationDbContext.ScheduleIIISubTotalFormula.RemoveRange(formulas);
+
+            var subs = await _applicationDbContext.ScheduleIIISubTotal
+                .Where(x => x.StructureId == structureId).ToListAsync();
+            _applicationDbContext.ScheduleIIISubTotal.RemoveRange(subs);
+            await _applicationDbContext.SaveChangesAsync();
+
+            // 2) Line items — null self-references first so the Restrict parent FK doesn't block deletes.
+            var lines = await _applicationDbContext.ScheduleIIILineItem
+                .Where(x => x.StructureId == structureId).ToListAsync();
+            foreach (var l in lines) l.ParentLineId = null;
+            await _applicationDbContext.SaveChangesAsync();
+
+            _applicationDbContext.ScheduleIIILineItem.RemoveRange(lines);
+            await _applicationDbContext.SaveChangesAsync();
+
+            // 3) Sections (after their line items)
+            var sections = await _applicationDbContext.ScheduleIIISection
+                .Where(x => x.StructureId == structureId).ToListAsync();
+            _applicationDbContext.ScheduleIIISection.RemoveRange(sections);
+            await _applicationDbContext.SaveChangesAsync();
         }
 
         // Rebuilds the cached display string (e.g. "Gross Profit + Other Income - Operating Expenses").

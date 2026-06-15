@@ -31,7 +31,7 @@ using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
 
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
-using FinanceManagement.Infrastructure.Repositories.ScheduleIII;using FinanceManagement.Infrastructure.Services;
+using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
 using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
