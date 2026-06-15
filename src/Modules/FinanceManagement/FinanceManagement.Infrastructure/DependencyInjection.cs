@@ -15,6 +15,7 @@ using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
+using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
 using FinanceManagement.Infrastructure.Repositories.AuditLog;
@@ -28,6 +29,7 @@ using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
+using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
 using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
@@ -131,12 +133,16 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IAccountTypeMasterCommandRepository, AccountTypeMasterCommandRepository>();
             services.AddScoped<IAccountTypeMasterQueryRepository, AccountTypeMasterQueryRepository>();
 
+            services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
+            services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
+
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
             services.AddScoped<ITransactionTypeLookup, TransactionTypeLookupRepository>();
             services.AddScoped<IEInvoiceLookup, EInvoiceLookupRepository>();
             services.AddScoped<IEWaybillLookup, EWaybillLookupRepository>();
             services.AddScoped<IAccountTypeMasterLookup, AccountTypeMasterLookupRepository>();
+            services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically
