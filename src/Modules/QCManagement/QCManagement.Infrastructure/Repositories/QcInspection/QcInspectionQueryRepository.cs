@@ -16,6 +16,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
         private readonly IItemLookup _itemLookup;
         private readonly ISupplierLookup _supplierLookup;
         private readonly IInventoryCategoryLookup _categoryLookup;
+        private readonly IOcrQualityParameterLookup _ocrQualityParameterLookup;
 
         public QcInspectionQueryRepository(
             IDbConnection dbConnection,
@@ -23,7 +24,8 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             IArrivalLookup arrivalLookup,
             IItemLookup itemLookup,
             ISupplierLookup supplierLookup,
-            IInventoryCategoryLookup categoryLookup)
+            IInventoryCategoryLookup categoryLookup,
+            IOcrQualityParameterLookup ocrQualityParameterLookup)
         {
             _dbConnection = dbConnection;
             _grnLookup = grnLookup;
@@ -31,6 +33,7 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             _itemLookup = itemLookup;
             _supplierLookup = supplierLookup;
             _categoryLookup = categoryLookup;
+            _ocrQualityParameterLookup = ocrQualityParameterLookup;
         }
 
         public async Task<IReadOnlyList<QcInspectionSummaryDto>> GetInspectionSummariesBySourceAsync(int sourceTypeId, IEnumerable<int> sourceDetailIds)
@@ -98,13 +101,18 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                 WHERE d.QcInspectionHdrId = @Id AND d.IsDeleted = 0
                 ORDER BY d.SortOrder ASC, d.Id ASC;";
 
-            using var multi = await _dbConnection.QueryMultipleAsync(sql, new { Id = id });
+            QcInspectionDto? dto;
+            List<dynamic> rows;
+            // Scope the GridReader so the connection is free for the QualityParameter enrichment query below.
+            using (var multi = await _dbConnection.QueryMultipleAsync(sql, new { Id = id }))
+            {
+                dto = await multi.ReadFirstOrDefaultAsync<QcInspectionDto>();
+                if (dto == null)
+                    return null;
 
-            var dto = await multi.ReadFirstOrDefaultAsync<QcInspectionDto>();
-            if (dto == null)
-                return null;
+                rows = (await multi.ReadAsync<dynamic>()).ToList();
+            }
 
-            var rows = (await multi.ReadAsync<dynamic>()).ToList();
             dto.Parameters = rows.Select(r => new QcInspectionParameterResultDto
             {
                 Id = (int)r.Id,
@@ -147,6 +155,26 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
                     dto.SupplierId = arrival.SupplierId;
                     dto.ItemId = arrival.ItemId;
                 }
+
+                // OCR cotton-quality parameters captured on the OCR behind this Arrival
+                // (ArrivalHeader → RawMaterialPOHeader → OCREntry → OCRQualityParameter),
+                // enriched with the QC.QualityParameter master (code / name / data type).
+                dto.OcrQualityParameters = await BuildOcrParametersAsync(dto.SourceHeaderId);
+
+                // Surface the OCR-entered value inline on each inspection parameter row,
+                // matched by QualityParameterId (= OCRQualityParameter.ParamId).
+                if (dto.OcrQualityParameters.Count > 0)
+                {
+                    var ocrValueByParam = dto.OcrQualityParameters
+                        .GroupBy(o => o.QualityParameterId)
+                        .ToDictionary(g => g.Key, g => g.First().Value);
+
+                    foreach (var p in dto.Parameters)
+                    {
+                        if (ocrValueByParam.TryGetValue(p.QualityParameterId, out var ocrValue))
+                            p.OcrValue = ocrValue;
+                    }
+                }
             }
             else
             {
@@ -185,6 +213,47 @@ namespace QCManagement.Infrastructure.Repositories.QcInspection
             }
 
             return dto;
+        }
+
+        // Resolves the OCR quality-parameter values for an Arrival and enriches each with the
+        // QC.QualityParameter master (same-module). ParamId → QualityParameter.Id.
+        private async Task<List<QcOcrQualityParameterDto>> BuildOcrParametersAsync(int arrivalHeaderId)
+        {
+            var ocrParams = await _ocrQualityParameterLookup.GetByArrivalHeaderIdAsync(arrivalHeaderId);
+            if (ocrParams.Count == 0)
+                return new List<QcOcrQualityParameterDto>();
+
+            var paramIds = ocrParams.Select(p => p.ParamId).Distinct().ToList();
+
+            const string sql = @"
+                SELECT Id, ParameterCode, ParameterName, DataTypeId
+                FROM QC.QualityParameter
+                WHERE Id IN @Ids AND IsDeleted = 0";
+
+            var masters = (await _dbConnection.QueryAsync<QualityParameterMasterRow>(sql, new { Ids = paramIds }))
+                .ToDictionary(m => m.Id);
+
+            return ocrParams.Select(p =>
+            {
+                masters.TryGetValue(p.ParamId, out var m);
+                return new QcOcrQualityParameterDto
+                {
+                    QualityParameterId = p.ParamId,
+                    ParameterCode = m?.ParameterCode,
+                    ParameterName = m?.ParameterName,
+                    DataTypeId = m?.DataTypeId ?? 0,
+                    Value = p.Value
+                };
+            }).ToList();
+        }
+
+        // Minimal projection of QC.QualityParameter used to enrich OCR quality parameters.
+        private sealed class QualityParameterMasterRow
+        {
+            public int Id { get; set; }
+            public string? ParameterCode { get; set; }
+            public string? ParameterName { get; set; }
+            public int DataTypeId { get; set; }
         }
 
         public async Task<bool> NotFoundAsync(int id)

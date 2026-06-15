@@ -305,6 +305,9 @@ namespace PurchaseManagement.Infrastructure
             services.AddScoped<IArrivalLookup, ArrivalLookupRepository>();
             services.AddScoped<IArrivalQcUpdate, ArrivalQcUpdateRepository>();
 
+            // QC inspection cross-module read — OCR quality parameters behind an Arrival
+            services.AddScoped<IOcrQualityParameterLookup, OcrQualityParameterLookupRepository>();
+
             services.AddScoped<IPoMethodLookup, PoMethodLookup>();
             services.AddScoped<IPODocumentQueryRepository, PODocumentQueryRepository>();
 

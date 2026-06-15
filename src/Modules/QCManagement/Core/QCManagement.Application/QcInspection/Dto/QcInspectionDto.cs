@@ -52,6 +52,11 @@ namespace QCManagement.Application.QcInspection.Dto
 
         public List<QcInspectionParameterResultDto> Parameters { get; set; } = new();
 
+        // OCR cotton-quality parameters captured on the OCR behind the source Arrival, enriched
+        // with the QualityParameter master (code/name/data type). The entered Value is free text.
+        // Populated only for ARRIVAL-sourced inspections; empty otherwise.
+        public List<QcOcrQualityParameterDto> OcrQualityParameters { get; set; } = new();
+
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }
         public string? CreatedByName { get; set; }
@@ -88,5 +93,22 @@ namespace QCManagement.Application.QcInspection.Dto
         public string? ActualValue { get; set; }
         public string? InspectionResult { get; set; }
         public string? Remarks { get; set; }
+
+        // Free-text value entered for this parameter on the source OCR (matched by QualityParameterId
+        // = OCRQualityParameter.ParamId). Null when there is no OCR or no matching OCR parameter.
+        public string? OcrValue { get; set; }
+    }
+
+    /// <summary>
+    /// A cotton-quality parameter captured on the OCR behind the source Arrival, enriched with
+    /// the QC.QualityParameter master. <see cref="Value"/> is the free-text value entered on the OCR.
+    /// </summary>
+    public class QcOcrQualityParameterDto
+    {
+        public int QualityParameterId { get; set; }   // = OCRQualityParameter.ParamId
+        public string? ParameterCode { get; set; }
+        public string? ParameterName { get; set; }
+        public int DataTypeId { get; set; }
+        public string? Value { get; set; }
     }
 }
