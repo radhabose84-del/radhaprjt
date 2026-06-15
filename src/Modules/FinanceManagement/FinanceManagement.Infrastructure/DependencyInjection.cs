@@ -28,7 +28,9 @@ using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
-using FinanceManagement.Infrastructure.Services;
+
+using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
+using FinanceManagement.Infrastructure.Repositories.ScheduleIII;using FinanceManagement.Infrastructure.Services;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Shared.Infrastructure.Resilience;
@@ -137,6 +139,8 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IEInvoiceLookup, EInvoiceLookupRepository>();
             services.AddScoped<IEWaybillLookup, EWaybillLookupRepository>();
             services.AddScoped<IAccountTypeMasterLookup, AccountTypeMasterLookupRepository>();
+           services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
+            services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically
