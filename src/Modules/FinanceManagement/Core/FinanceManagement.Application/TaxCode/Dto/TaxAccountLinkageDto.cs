@@ -13,14 +13,18 @@ namespace FinanceManagement.Application.TaxCode.Dto
         public string? AccountCode { get; set; }          // same-module join (GlAccountMaster)
         public string? AccountName { get; set; }
 
-        public bool IsActivated { get; set; }
-        public string? ApprovalStatus { get; set; }
+        public int? ControlAccountId { get; set; }
+        public string? ControlAccountName { get; set; }     // same-module join (MiscMaster)
+
+        public int StatusId { get; set; }
+        public string? Status { get; set; }                 // MiscMaster code (join): PENDING/APPROVED/REJECTED
 
         public DateOnly EffectiveFrom { get; set; }
         public DateOnly? EffectiveTo { get; set; }
 
+        public string? ChangeReason { get; set; }           // justification for a PENDING change request
+
         public bool IsActive { get; set; }
-        public bool IsDeleted { get; set; }
 
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }

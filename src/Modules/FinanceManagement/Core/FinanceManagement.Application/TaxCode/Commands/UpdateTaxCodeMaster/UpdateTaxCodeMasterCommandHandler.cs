@@ -28,6 +28,19 @@ namespace FinanceManagement.Application.TaxCode.Commands.UpdateTaxCodeMaster
 
             var updatedId = await _commandRepository.UpdateTaxCodeAsync(entity);
 
+            // Merged rate-version flow: a supplied rate creates a new effective-dated version
+            // (closes the prior open one). Never updated in place (AC3-A).
+            if (request.RatePercent.HasValue && request.RateEffectiveFrom.HasValue)
+            {
+                await _commandRepository.CreateRateVersionAsync(new Domain.Entities.TaxCodeRateVersion
+                {
+                    TaxCodeId = request.Id,
+                    RatePercent = request.RatePercent.Value,
+                    EffectiveFrom = request.RateEffectiveFrom.Value,
+                    ChangeReason = request.RateChangeReason
+                });
+            }
+
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
                 actionCode: "TAX_CODE_MASTER_UPDATE",

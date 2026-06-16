@@ -15,11 +15,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 v => v ? Status.Active : Status.Inactive
             );
 
-            var isDeleteConverter = new ValueConverter<IsDelete, bool>(
-                v => v == IsDelete.Deleted,
-                v => v ? IsDelete.Deleted : IsDelete.NotDeleted
-            );
-
             builder.ToTable("TaxCodeRateVersion", "Finance", t =>
             {
                 t.HasCheckConstraint("CK_TCRV_Rate",
@@ -29,6 +24,9 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             });
 
             builder.HasKey(t => t.Id);
+
+            // No soft delete on this entity — versions are closed via EffectiveTo, never deleted.
+            builder.Ignore(b => b.IsDeleted);
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
@@ -54,10 +52,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnName("IsActive").HasColumnType("bit")
                 .HasConversion(statusConverter).IsRequired();
 
-            builder.Property(b => b.IsDeleted)
-                .HasColumnName("IsDeleted").HasColumnType("bit")
-                .HasConversion(isDeleteConverter).IsRequired();
-
             builder.Property(t => t.CreatedBy).HasColumnName("CreatedBy").HasColumnType("int");
             builder.Property(t => t.CreatedDate).HasColumnName("CreatedDate");
             builder.Property(t => t.CreatedByName).HasColumnName("CreatedByName").HasColumnType("varchar(100)");
@@ -74,7 +68,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             // Exactly one OPEN version per code => "prior retained, new applies forward"
             builder.HasIndex(t => t.TaxCodeId)
                 .IsUnique()
-                .HasFilter("[EffectiveTo] IS NULL AND [IsDeleted] = 0")
+                .HasFilter("[EffectiveTo] IS NULL")
                 .HasDatabaseName("UX_TaxCodeRateVersion_OpenPerCode");
 
             builder.HasIndex(t => new { t.TaxCodeId, t.EffectiveFrom })

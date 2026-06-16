@@ -1,5 +1,6 @@
 using AutoMapper;
 using Contracts.Common;
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.ITaxCode;
 using FinanceManagement.Application.TaxCode.Dto;
 using FinanceManagement.Domain.Events;
@@ -10,19 +11,24 @@ namespace FinanceManagement.Application.TaxCode.Queries.GetAllTaxAccountLinkage
     public class GetAllTaxAccountLinkageQueryHandler : IRequestHandler<GetAllTaxAccountLinkageQuery, ApiResponseDTO<List<TaxAccountLinkageDto>>>
     {
         private readonly ITaxCodeQueryRepository _queryRepository;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
 
-        public GetAllTaxAccountLinkageQueryHandler(ITaxCodeQueryRepository queryRepository, IMapper mapper, IMediator mediator)
+        public GetAllTaxAccountLinkageQueryHandler(ITaxCodeQueryRepository queryRepository, IIPAddressService ipAddressService, IMapper mapper, IMediator mediator)
         {
             _queryRepository = queryRepository;
+            _ipAddressService = ipAddressService;
             _mapper = mapper;
             _mediator = mediator;
         }
 
         public async Task<ApiResponseDTO<List<TaxAccountLinkageDto>>> Handle(GetAllTaxAccountLinkageQuery request, CancellationToken cancellationToken)
         {
-            var (data, totalCount) = await _queryRepository.GetAllLinkagesAsync(request.PageNumber, request.PageSize, request.SearchTerm, request.CompanyId);
+            var companyId = _ipAddressService.GetCompanyId()
+                ?? throw new ExceptionRules("No active company in session.");
+
+            var (data, totalCount) = await _queryRepository.GetAllLinkagesAsync(request.PageNumber, request.PageSize, request.SearchTerm, companyId, request.StatusId);
 
             var dtos = _mapper.Map<List<TaxAccountLinkageDto>>(data);
 

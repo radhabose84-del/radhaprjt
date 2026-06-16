@@ -1,4 +1,5 @@
 using Contracts.Common;
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.ITaxCode;
 using FinanceManagement.Domain.Events;
 using MediatR;
@@ -9,29 +10,42 @@ namespace FinanceManagement.Application.TaxCode.Commands.SubmitLinkageChangeRequ
     public class SubmitLinkageChangeRequestCommandHandler : IRequestHandler<SubmitLinkageChangeRequestCommand, ApiResponseDTO<int>>
     {
         private readonly ITaxCodeCommandRepository _commandRepository;
+        private readonly ITaxCodeQueryRepository _queryRepository;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
 
         public SubmitLinkageChangeRequestCommandHandler(
             ITaxCodeCommandRepository commandRepository,
+            ITaxCodeQueryRepository queryRepository,
+            IIPAddressService ipAddressService,
             IMediator mediator)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(SubmitLinkageChangeRequestCommand request, CancellationToken cancellationToken)
         {
-            // Create a new PENDING linkage row for the requested code change.
+            var companyId = _ipAddressService.GetCompanyId()
+                ?? throw new ExceptionRules("No active company in session.");
+
+            // Modifying TaxCodeId/ControlAccountId for a GL account goes to approval (PENDING).
+            var pendingStatusId = await _queryRepository.GetMiscIdAsync("ApprovalStatus", "PENDING")
+                ?? throw new ExceptionRules("ApprovalStatus 'PENDING' is not configured in MiscMaster.");
+
+            // Create a new PENDING linkage row for the requested change.
             var entity = new Domain.Entities.TaxAccountLinkage
             {
-                CompanyId = request.CompanyId,
+                CompanyId = companyId,
                 TaxCodeId = request.NewTaxCodeId,
                 GlAccountId = request.GlAccountId,
-                ApprovalStatus = "PENDING",
-                IsActivated = false,
+                ControlAccountId = request.NewControlAccountId,
+                StatusId = pendingStatusId,
                 EffectiveFrom = request.EffectiveFrom,
-                IsActive = Status.Active,
-                IsDeleted = IsDelete.NotDeleted
+                ChangeReason = request.Reason,
+                IsActive = Status.Inactive   // not active until approved (then /activate flips it + closes the prior row)
             };
 
             var newId = await _commandRepository.CreateLinkageAsync(entity);

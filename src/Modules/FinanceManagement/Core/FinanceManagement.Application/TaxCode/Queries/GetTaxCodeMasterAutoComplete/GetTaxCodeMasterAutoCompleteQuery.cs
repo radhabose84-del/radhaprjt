@@ -3,6 +3,6 @@ using MediatR;
 
 namespace FinanceManagement.Application.TaxCode.Queries.GetTaxCodeMasterAutoComplete
 {
-    public sealed record GetTaxCodeMasterAutoCompleteQuery(string Term, int? CompanyId, string? TaxType)
+    public sealed record GetTaxCodeMasterAutoCompleteQuery(string Term, string? TaxType)
         : IRequest<IReadOnlyList<TaxCodeMasterLookupDto>>;
 }

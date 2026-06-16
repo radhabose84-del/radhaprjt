@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.ITaxCode;
 using FinanceManagement.Application.TaxCode.Commands.CreateTaxCodeMaster;
 using FinanceManagement.Presentation.Validation.Common;
@@ -10,12 +11,15 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly ITaxCodeQueryRepository _queryRepository;
+        private readonly IIPAddressService _ipAddressService;
 
         public CreateTaxCodeMasterCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            ITaxCodeQueryRepository queryRepository)
+            ITaxCodeQueryRepository queryRepository,
+            IIPAddressService ipAddressService)
         {
             _queryRepository = queryRepository;
+            _ipAddressService = ipAddressService;
 
             var maxLengthTaxCode = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.TaxCodeMaster>("TaxCode") ?? 20;
             var maxLengthTaxName = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.TaxCodeMaster>("TaxName") ?? 150;
@@ -31,10 +35,6 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.CompanyId)
-                            .GreaterThan(0)
-                            .WithMessage($"{nameof(CreateTaxCodeMasterCommand.CompanyId)} {rule.Error}");
-
                         RuleFor(x => x.TaxCode)
                             .NotNull().WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxCode)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxCode)} {rule.Error}");
@@ -43,9 +43,8 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                             .NotNull().WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxName)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxName)} {rule.Error}");
 
-                        RuleFor(x => x.TaxType)
-                            .NotNull().WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxType)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxType)} {rule.Error}");
+                        RuleFor(x => x.TaxTypeId)
+                            .GreaterThan(0).WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxTypeId)} {rule.Error}");
                         break;
 
                     case "TaxCodePattern":
@@ -66,6 +65,21 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                         break;
 
                     case "FKColumnDelete":
+                        RuleFor(x => x.TaxTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.TaxTypeExistsAsync(id))
+                            .WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxTypeId)} {rule.Error}")
+                            .When(x => x.TaxTypeId > 0);
+
+                        RuleFor(x => x.TaxComponentId)
+                            .MustAsync(async (id, ct) => await _queryRepository.TaxComponentExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxComponentId)} {rule.Error}")
+                            .When(x => x.TaxComponentId.HasValue && x.TaxComponentId.Value > 0);
+
+                        RuleFor(x => x.DirectionId)
+                            .MustAsync(async (id, ct) => await _queryRepository.DirectionExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateTaxCodeMasterCommand.DirectionId)} {rule.Error}")
+                            .When(x => x.DirectionId.HasValue && x.DirectionId.Value > 0);
+
                         RuleFor(x => x.ParentTaxCodeId)
                             .MustAsync(async (parentId, ct) => await _queryRepository.TaxCodeExistsAsync(parentId!.Value))
                             .WithMessage($"{nameof(CreateTaxCodeMasterCommand.ParentTaxCodeId)} {rule.Error}")
@@ -74,10 +88,10 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
 
                     case "AlreadyExists":
                         RuleFor(x => x.TaxCode)
-                            .MustAsync(async (command, taxCode, ct) =>
-                                !await _queryRepository.TaxCodeAlreadyExistsAsync(taxCode!, command.CompanyId))
+                            .MustAsync(async (taxCode, ct) =>
+                                !await _queryRepository.TaxCodeAlreadyExistsAsync(taxCode!, _ipAddressService.GetCompanyId() ?? 0))
                             .WithMessage($"{nameof(CreateTaxCodeMasterCommand.TaxCode)} {rule.Error}")
-                            .When(x => !string.IsNullOrWhiteSpace(x.TaxCode) && x.CompanyId > 0);
+                            .When(x => !string.IsNullOrWhiteSpace(x.TaxCode));
                         break;
 
                     default:
@@ -85,30 +99,51 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                 }
             }
 
-            // Business rules (AC2-A / AC4-A / component-code link).
-            RuleFor(x => x.Direction)
-                .NotEmpty()
+            // Business rules (AC2-A / AC4-A / component-code link) — resolve the MiscMaster code
+            // for the selected TaxTypeId / TaxComponentId to branch.
+            RuleFor(x => x.DirectionId)
+                .MustAsync(async (cmd, dirId, ct) =>
+                {
+                    var type = await _queryRepository.GetMiscCodeAsync(cmd.TaxTypeId);
+                    var needsDirection = type is "GST_IN" or "GST_OUT" or "IGST";
+                    return !needsDirection || (dirId.HasValue && dirId.Value > 0);
+                })
                 .WithMessage("Direction is required for GST/IGST codes.")
-                .When(x => x.TaxType == "GST_IN" || x.TaxType == "GST_OUT" || x.TaxType == "IGST");
+                .When(x => x.TaxTypeId > 0);
 
             RuleFor(x => x.StatutorySection)
-                .NotEmpty()
+                .MustAsync(async (cmd, section, ct) =>
+                {
+                    var type = await _queryRepository.GetMiscCodeAsync(cmd.TaxTypeId);
+                    return type != "TDS" || !string.IsNullOrWhiteSpace(section);
+                })
                 .WithMessage("Statutory section is required for TDS codes.")
-                .When(x => x.TaxType == "TDS");
+                .When(x => x.TaxTypeId > 0);
 
             RuleFor(x => x.RatePercent)
-                .GreaterThan(0)
+                .MustAsync(async (cmd, rate, ct) =>
+                {
+                    var type = await _queryRepository.GetMiscCodeAsync(cmd.TaxTypeId);
+                    var needsRate = type is "GST_IN" or "GST_OUT" or "IGST" or "CUSTOMS";
+                    return !needsRate || rate > 0;
+                })
                 .WithMessage("Rate is required for GST/IGST/customs codes.")
-                .When(x => x.TaxType == "GST_IN" || x.TaxType == "GST_OUT" || x.TaxType == "IGST" || x.TaxType == "CUSTOMS");
+                .When(x => x.TaxTypeId > 0);
 
             RuleFor(x => x.RatePercent)
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("Rate cannot be negative.");
 
             RuleFor(x => x.ParentTaxCodeId)
-                .NotNull()
+                .MustAsync(async (cmd, parentId, ct) =>
+                {
+                    if (!cmd.TaxComponentId.HasValue) return true;
+                    var component = await _queryRepository.GetMiscCodeAsync(cmd.TaxComponentId.Value);
+                    var isComponentChild = component is "CGST" or "SGST" or "IGST" or "CESS";
+                    return !isComponentChild || (parentId.HasValue && parentId.Value > 0);
+                })
                 .WithMessage("Component children must reference a parent code.")
-                .When(x => x.TaxComponent == "CGST" || x.TaxComponent == "SGST" || x.TaxComponent == "IGST" || x.TaxComponent == "CESS");
+                .When(x => x.TaxComponentId.HasValue);
         }
     }
 }

@@ -9,6 +9,6 @@ namespace FinanceManagement.Application.TaxCode.Queries.GetAllTaxAccountLinkage
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
-        public int? CompanyId { get; set; }
+        public int? StatusId { get; set; }      // optional filter -> MiscMaster (ApprovalStatus) id
     }
 }

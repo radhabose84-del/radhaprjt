@@ -25,15 +25,15 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
         public async Task<int> UpdateTaxCodeAsync(Domain.Entities.TaxCodeMaster entity)
         {
             var existing = await _applicationDbContext.TaxCodeMaster
-                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
+                .FirstOrDefaultAsync(x => x.Id == entity.Id);
 
             if (existing == null)
                 return 0;
 
-            // TaxCode and TaxType are immutable.
+            // TaxCode and TaxTypeId are immutable.
             existing.TaxName = entity.TaxName;
-            existing.TaxComponent = entity.TaxComponent;
-            existing.Direction = entity.Direction;
+            existing.TaxComponentId = entity.TaxComponentId;
+            existing.DirectionId = entity.DirectionId;
             existing.StatutorySection = entity.StatutorySection;
             existing.ThresholdAmount = entity.ThresholdAmount;
             existing.ThresholdAggregate = entity.ThresholdAggregate;
@@ -48,25 +48,11 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
             return existing.Id;
         }
 
-        public async Task<bool> SoftDeleteTaxCodeAsync(int id, CancellationToken ct)
-        {
-            var existing = await _applicationDbContext.TaxCodeMaster
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (existing == null)
-                return false;
-
-            existing.IsDeleted = IsDelete.Deleted;
-            _applicationDbContext.TaxCodeMaster.Update(existing);
-            await _applicationDbContext.SaveChangesAsync(ct);
-            return true;
-        }
-
         // Closes the prior open version and inserts a new one with the next VersionNo (AC3-A).
         public async Task<int> CreateRateVersionAsync(Domain.Entities.TaxCodeRateVersion entity)
         {
             var existingVersions = await _applicationDbContext.TaxCodeRateVersion
-                .Where(v => v.TaxCodeId == entity.TaxCodeId && v.IsDeleted == IsDelete.NotDeleted)
+                .Where(v => v.TaxCodeId == entity.TaxCodeId)
                 .ToListAsync();
 
             var openVersion = existingVersions.FirstOrDefault(v => v.EffectiveTo == null);
@@ -91,74 +77,36 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
             return entity.Id;
         }
 
-        public async Task<bool> ActivateLinkageAsync(int id, CancellationToken ct)
+        // Approval-complete: activate the PENDING row (IsActive=Active + APPROVED) and close the
+        // prior active row for the same GL account (IsActive=Inactive + EffectiveTo) so there is
+        // always exactly one active linkage per account. The closed row's change is captured by ActivityLog.
+        public async Task<bool> ActivateLinkageAsync(int id, int approvedStatusId, CancellationToken ct)
         {
-            var existing = await _applicationDbContext.TaxAccountLinkage
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+            var target = await _applicationDbContext.TaxAccountLinkage
+                .FirstOrDefaultAsync(x => x.Id == id, ct);
 
-            if (existing == null)
+            if (target == null)
                 return false;
 
-            existing.IsActivated = true;
-            existing.ApprovalStatus = "APPROVED";
-            _applicationDbContext.TaxAccountLinkage.Update(existing);
-            await _applicationDbContext.SaveChangesAsync(ct);
-            return true;
-        }
+            var prior = await _applicationDbContext.TaxAccountLinkage
+                .Where(x => x.Id != target.Id
+                    && x.CompanyId == target.CompanyId
+                    && x.GlAccountId == target.GlAccountId
+                    && x.IsActive == Status.Active
+                    && x.EffectiveTo == null)
+                .ToListAsync(ct);
 
-        public async Task<bool> SoftDeleteLinkageAsync(int id, CancellationToken ct)
-        {
-            var existing = await _applicationDbContext.TaxAccountLinkage
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+            foreach (var row in prior)
+            {
+                row.IsActive = Status.Inactive;
+                row.EffectiveTo = target.EffectiveFrom.AddDays(-1);
+                _applicationDbContext.TaxAccountLinkage.Update(row);
+            }
 
-            if (existing == null)
-                return false;
+            target.IsActive = Status.Active;
+            target.StatusId = approvedStatusId;
+            _applicationDbContext.TaxAccountLinkage.Update(target);
 
-            existing.IsDeleted = IsDelete.Deleted;
-            _applicationDbContext.TaxAccountLinkage.Update(existing);
-            await _applicationDbContext.SaveChangesAsync(ct);
-            return true;
-        }
-
-        // ─── GSTR Section Mapping ──────────────────────────────────────────
-        public async Task<int> CreateGstrMappingAsync(Domain.Entities.GstrSectionMapping entity)
-        {
-            await _applicationDbContext.GstrSectionMapping.AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
-            return entity.Id;
-        }
-
-        public async Task<int> UpdateGstrMappingAsync(Domain.Entities.GstrSectionMapping entity)
-        {
-            var existing = await _applicationDbContext.GstrSectionMapping
-                .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
-
-            if (existing == null)
-                return 0;
-
-            existing.GstrType = entity.GstrType;
-            existing.SectionCode = entity.SectionCode;
-            existing.SectionName = entity.SectionName;
-            existing.AccountRangeFrom = entity.AccountRangeFrom;
-            existing.AccountRangeTo = entity.AccountRangeTo;
-            existing.TolerancePercent = entity.TolerancePercent;
-            existing.IsActive = entity.IsActive;
-
-            _applicationDbContext.GstrSectionMapping.Update(existing);
-            await _applicationDbContext.SaveChangesAsync();
-            return existing.Id;
-        }
-
-        public async Task<bool> SoftDeleteGstrMappingAsync(int id, CancellationToken ct)
-        {
-            var existing = await _applicationDbContext.GstrSectionMapping
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
-
-            if (existing == null)
-                return false;
-
-            existing.IsDeleted = IsDelete.Deleted;
-            _applicationDbContext.GstrSectionMapping.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }

@@ -27,6 +27,7 @@ namespace FinanceManagement.Application.TaxCode.Queries.GetTaxCodeMasterById
                 return null;
 
             var dto = _mapper.Map<TaxCodeMasterDto>(result);
+            dto.RateVersions = result.RateVersions;   // carry merged rate history through the mapping
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetById",

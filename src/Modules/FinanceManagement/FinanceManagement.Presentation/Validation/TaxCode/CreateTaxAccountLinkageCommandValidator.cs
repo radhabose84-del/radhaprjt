@@ -24,8 +24,6 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.CompanyId)
-                            .GreaterThan(0).WithMessage($"{nameof(CreateTaxAccountLinkageCommand.CompanyId)} {rule.Error}");
                         RuleFor(x => x.TaxCodeId)
                             .GreaterThan(0).WithMessage($"{nameof(CreateTaxAccountLinkageCommand.TaxCodeId)} {rule.Error}");
                         RuleFor(x => x.GlAccountId)
@@ -42,6 +40,11 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                             .MustAsync(async (id, ct) => await _queryRepository.GlAccountExistsAsync(id))
                             .WithMessage($"{nameof(CreateTaxAccountLinkageCommand.GlAccountId)} {rule.Error}")
                             .When(x => x.GlAccountId > 0);
+
+                        RuleFor(x => x.ControlAccountId)
+                            .MustAsync(async (id, ct) => await _queryRepository.ControlAccountExistsAsync(id!.Value))
+                            .WithMessage($"{nameof(CreateTaxAccountLinkageCommand.ControlAccountId)} {rule.Error}")
+                            .When(x => x.ControlAccountId.HasValue && x.ControlAccountId.Value > 0);
                         break;
 
                     default:

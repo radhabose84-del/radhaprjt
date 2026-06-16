@@ -24,8 +24,6 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.CompanyId)
-                            .GreaterThan(0).WithMessage($"{nameof(SubmitLinkageChangeRequestCommand.CompanyId)} {rule.Error}");
                         RuleFor(x => x.GlAccountId)
                             .GreaterThan(0).WithMessage($"{nameof(SubmitLinkageChangeRequestCommand.GlAccountId)} {rule.Error}");
                         RuleFor(x => x.NewTaxCodeId)

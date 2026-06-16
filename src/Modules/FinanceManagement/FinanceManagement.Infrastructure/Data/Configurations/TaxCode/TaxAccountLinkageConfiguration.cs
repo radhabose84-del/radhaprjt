@@ -15,20 +15,16 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 v => v ? Status.Active : Status.Inactive
             );
 
-            var isDeleteConverter = new ValueConverter<IsDelete, bool>(
-                v => v == IsDelete.Deleted,
-                v => v ? IsDelete.Deleted : IsDelete.NotDeleted
-            );
-
             builder.ToTable("TaxAccountLinkage", "Finance", t =>
             {
-                t.HasCheckConstraint("CK_TAL_Status",
-                    "[ApprovalStatus] IN ('PENDING','APPROVED','REJECTED')");
                 t.HasCheckConstraint("CK_TAL_Dates",
                     "[EffectiveTo] IS NULL OR [EffectiveTo] > [EffectiveFrom]");
             });
 
             builder.HasKey(t => t.Id);
+
+            // No soft delete on this entity — "remove" = IsActive = Inactive.
+            builder.Ignore(b => b.IsDeleted);
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
@@ -41,13 +37,11 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.GlAccountId)
                 .HasColumnName("GlAccountId").HasColumnType("int").IsRequired();
 
-            builder.Property(t => t.IsActivated)
-                .HasColumnName("IsActivated").HasColumnType("bit")
-                .HasDefaultValue(false).IsRequired();
+            builder.Property(t => t.ControlAccountId)
+                .HasColumnName("ControlAccountId").HasColumnType("int").IsRequired(false);
 
-            builder.Property(t => t.ApprovalStatus)
-                .HasColumnName("ApprovalStatus").HasColumnType("varchar(15)")
-                .HasDefaultValue("PENDING").IsRequired();
+            builder.Property(t => t.StatusId)
+                .HasColumnName("StatusId").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.EffectiveFrom)
                 .HasColumnName("EffectiveFrom").HasColumnType("date").IsRequired();
@@ -55,13 +49,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.EffectiveTo)
                 .HasColumnName("EffectiveTo").HasColumnType("date").IsRequired(false);
 
+            builder.Property(t => t.ChangeReason)
+                .HasColumnName("ChangeReason").HasColumnType("varchar(500)").IsRequired(false);
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive").HasColumnType("bit")
                 .HasConversion(statusConverter).IsRequired();
-
-            builder.Property(b => b.IsDeleted)
-                .HasColumnName("IsDeleted").HasColumnType("bit")
-                .HasConversion(isDeleteConverter).IsRequired();
 
             builder.Property(t => t.CreatedBy).HasColumnName("CreatedBy").HasColumnType("int");
             builder.Property(t => t.CreatedDate).HasColumnName("CreatedDate");
@@ -72,14 +65,17 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            // One live tax code per GL account
+            // One ACTIVE linkage per GL account — filtered on the static IsActive bit
+            // (StatusId is a dynamic MiscMaster id and cannot be used in a filtered index).
             builder.HasIndex(t => new { t.CompanyId, t.GlAccountId })
                 .IsUnique()
-                .HasFilter("[EffectiveTo] IS NULL AND [ApprovalStatus] = 'APPROVED' AND [IsDeleted] = 0")
+                .HasFilter("[EffectiveTo] IS NULL AND [IsActive] = 1")
                 .HasDatabaseName("UX_TaxAccountLinkage_ActivePerAccount");
 
             builder.HasIndex(t => t.TaxCodeId).HasDatabaseName("IX_TaxAccountLinkage_TaxCodeId");
             builder.HasIndex(t => t.GlAccountId).HasDatabaseName("IX_TaxAccountLinkage_GlAccountId");
+            builder.HasIndex(t => t.ControlAccountId).HasDatabaseName("IX_TaxAccountLinkage_ControlAccountId");
+            builder.HasIndex(t => t.StatusId).HasDatabaseName("IX_TaxAccountLinkage_StatusId");
 
             builder.HasOne(t => t.TaxCode)
                 .WithMany(c => c.Linkages)
@@ -90,6 +86,18 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.GlAccount)
                 .WithMany()
                 .HasForeignKey(t => t.GlAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Control account type -> Finance.MiscMaster, nullable
+            builder.HasOne(t => t.ControlAccount)
+                .WithMany()
+                .HasForeignKey(t => t.ControlAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Approval status -> Finance.MiscMaster (ApprovalStatus)
+            builder.HasOne(t => t.StatusMaster)
+                .WithMany()
+                .HasForeignKey(t => t.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

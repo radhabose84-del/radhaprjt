@@ -1,23 +1,16 @@
 namespace FinanceManagement.Application.Common.Interfaces.ITaxCode
 {
     // Consolidated command repository for the Tax Code feature
-    // (TaxCodeMaster + TaxCodeRateVersion + TaxAccountLinkage + GstrSectionMapping).
+    // (TaxCodeMaster + TaxCodeRateVersion + TaxAccountLinkage).
     public interface ITaxCodeCommandRepository
     {
-        // --- Tax Code Master (US-GL02-05A) ---
+        // --- Tax Code Master (US-GL02-05A) — no delete; "remove" = Update IsActive=0 ---
         Task<int> CreateTaxCodeAsync(Domain.Entities.TaxCodeMaster entity);
         Task<int> UpdateTaxCodeAsync(Domain.Entities.TaxCodeMaster entity);
-        Task<bool> SoftDeleteTaxCodeAsync(int id, CancellationToken ct);
         Task<int> CreateRateVersionAsync(Domain.Entities.TaxCodeRateVersion entity);
 
-        // --- Tax Account Linkage (US-GL02-05B) ---
+        // --- Tax Account Linkage (US-GL02-05B) — no delete; updates insert a new row ---
         Task<int> CreateLinkageAsync(Domain.Entities.TaxAccountLinkage entity);
-        Task<bool> ActivateLinkageAsync(int id, CancellationToken ct);
-        Task<bool> SoftDeleteLinkageAsync(int id, CancellationToken ct);
-
-        // --- GSTR Section Mapping (US-GL02-05B AC3) ---
-        Task<int> CreateGstrMappingAsync(Domain.Entities.GstrSectionMapping entity);
-        Task<int> UpdateGstrMappingAsync(Domain.Entities.GstrSectionMapping entity);
-        Task<bool> SoftDeleteGstrMappingAsync(int id, CancellationToken ct);
+        Task<bool> ActivateLinkageAsync(int id, int approvedStatusId, CancellationToken ct);
     }
 }

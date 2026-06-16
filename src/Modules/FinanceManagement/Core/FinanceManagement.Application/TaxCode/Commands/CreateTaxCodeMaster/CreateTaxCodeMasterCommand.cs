@@ -5,13 +5,12 @@ namespace FinanceManagement.Application.TaxCode.Commands.CreateTaxCodeMaster
 {
     public class CreateTaxCodeMasterCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
-        public int CompanyId { get; set; }
         public string? TaxCode { get; set; }            // GST-OUT-5 (immutable after create)
         public string? TaxName { get; set; }
-        public string? TaxType { get; set; }            // GST_IN / GST_OUT / IGST / TDS / CUSTOMS
-        public string? TaxComponent { get; set; }       // COMBINED / CGST / SGST / IGST / CESS / NA
+        public int TaxTypeId { get; set; }              // FK -> MiscMaster (TAX TYPE)
+        public int? TaxComponentId { get; set; }        // FK -> MiscMaster (TAX COMPONENT)
         public int? ParentTaxCodeId { get; set; }
-        public string? Direction { get; set; }
+        public int? DirectionId { get; set; }           // FK -> MiscMaster (TAX DIRECTION)
         public string? StatutorySection { get; set; }
         public decimal? ThresholdAmount { get; set; }
         public decimal? ThresholdAggregate { get; set; }

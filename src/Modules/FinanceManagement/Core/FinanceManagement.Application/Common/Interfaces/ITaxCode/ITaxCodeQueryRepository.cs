@@ -10,25 +10,26 @@ namespace FinanceManagement.Application.Common.Interfaces.ITaxCode
         Task<TaxCodeMasterDto?> GetTaxCodeByIdAsync(int id);
         Task<IReadOnlyList<TaxCodeMasterLookupDto>> TaxCodeAutocompleteAsync(string term, int? companyId, string? taxType, CancellationToken ct);
         Task<List<TaxCodeRateVersionDto>> GetRateVersionsAsync(int taxCodeId);
-        Task<TaxCodeMasterDto?> GetEffectiveAsync(string code, int? companyId, DateOnly asOf);
         Task<bool> TaxCodeAlreadyExistsAsync(string taxCode, int companyId, int? id = null);
         Task<bool> TaxCodeNotFoundAsync(int id);
         Task<bool> TaxCodeExistsAsync(int id);
-        Task<bool> TaxCodeLinkedAsync(int id);            // blocks delete when linked to GL accounts (AC5-A)
+
+        // MiscMaster lookups for TaxType / TaxComponent / Direction
+        Task<string?> GetMiscCodeAsync(int miscMasterId); // normalised code for business-rule branching
+        Task<bool> TaxTypeExistsAsync(int id);
+        Task<bool> TaxComponentExistsAsync(int id);
+        Task<bool> DirectionExistsAsync(int id);
 
         // --- Tax Account Linkage ---
-        Task<(List<TaxAccountLinkageDto>, int)> GetAllLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId);
+        Task<(List<TaxAccountLinkageDto>, int)> GetAllLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, int? statusId);
         Task<TaxAccountLinkageDto?> GetLinkageByIdAsync(int id);
         Task<TaxAccountLinkageDto?> GetLinkageByAccountAsync(int glAccountId);
-        Task<List<TaxAccountLinkageDto>> GetLinkageChangeAuditAsync(string? status, int? companyId);
         Task<bool> GlAccountExistsAsync(int glAccountId);
+        Task<bool> ControlAccountExistsAsync(int id);     // FK -> MiscMaster (control account type)
         Task<bool> LinkageNotFoundAsync(int id);
         Task<bool> LinkageHasGlMappingAsync(int id);      // AC2-B activation guard
 
-        // --- GSTR Section Mapping ---
-        Task<(List<GstrSectionMappingDto>, int)> GetAllGstrMappingsAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId);
-        Task<GstrSectionMappingDto?> GetGstrMappingByIdAsync(int id);
-        Task<bool> GstrMappingAlreadyExistsAsync(int companyId, string gstrType, string sectionCode, int? id = null);
-        Task<bool> GstrMappingNotFoundAsync(int id);
+        // Resolve a MiscMaster value id by misc-type code + value code (separator-insensitive on type).
+        Task<int?> GetMiscIdAsync(string miscTypeCode, string valueCode);
     }
 }

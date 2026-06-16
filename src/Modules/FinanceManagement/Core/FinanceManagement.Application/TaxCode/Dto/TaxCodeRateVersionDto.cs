@@ -11,7 +11,6 @@ namespace FinanceManagement.Application.TaxCode.Dto
         public string? ChangeReason { get; set; }
 
         public bool IsActive { get; set; }
-        public bool IsDeleted { get; set; }
 
         public int CreatedBy { get; set; }
         public DateTimeOffset? CreatedDate { get; set; }

@@ -8,19 +8,26 @@ namespace FinanceManagement.Application.TaxCode.Commands.ActivateTaxAccountLinka
     public class ActivateTaxAccountLinkageCommandHandler : IRequestHandler<ActivateTaxAccountLinkageCommand, ApiResponseDTO<int>>
     {
         private readonly ITaxCodeCommandRepository _commandRepository;
+        private readonly ITaxCodeQueryRepository _queryRepository;
         private readonly IMediator _mediator;
 
         public ActivateTaxAccountLinkageCommandHandler(
             ITaxCodeCommandRepository commandRepository,
+            ITaxCodeQueryRepository queryRepository,
             IMediator mediator)
         {
             _commandRepository = commandRepository;
+            _queryRepository = queryRepository;
             _mediator = mediator;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(ActivateTaxAccountLinkageCommand request, CancellationToken cancellationToken)
         {
-            await _commandRepository.ActivateLinkageAsync(request.Id, cancellationToken);
+            // Approval-complete: flip the PENDING row to APPROVED + activated.
+            var approvedStatusId = await _queryRepository.GetMiscIdAsync("ApprovalStatus", "APPROVED")
+                ?? throw new ExceptionRules("ApprovalStatus 'APPROVED' is not configured in MiscMaster.");
+
+            await _commandRepository.ActivateLinkageAsync(request.Id, approvedStatusId, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Activate",

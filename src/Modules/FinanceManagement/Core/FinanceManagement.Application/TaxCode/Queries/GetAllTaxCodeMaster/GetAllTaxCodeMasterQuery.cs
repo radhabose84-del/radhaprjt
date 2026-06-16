@@ -9,7 +9,6 @@ namespace FinanceManagement.Application.TaxCode.Queries.GetAllTaxCodeMaster
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? SearchTerm { get; set; }
-        public int? CompanyId { get; set; }
         public string? TaxType { get; set; }
     }
 }

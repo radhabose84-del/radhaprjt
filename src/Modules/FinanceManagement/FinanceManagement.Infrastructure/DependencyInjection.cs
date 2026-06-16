@@ -166,6 +166,7 @@ namespace FinanceManagement.Infrastructure
            services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
             services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
+            services.AddScoped<ITaxCodeLookup, TaxCodeLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically

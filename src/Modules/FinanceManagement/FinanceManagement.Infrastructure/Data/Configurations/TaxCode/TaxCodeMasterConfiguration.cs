@@ -15,29 +15,19 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 v => v ? Status.Active : Status.Inactive
             );
 
-            var isDeleteConverter = new ValueConverter<IsDelete, bool>(
-                v => v == IsDelete.Deleted,
-                v => v ? IsDelete.Deleted : IsDelete.NotDeleted
-            );
-
+            // TaxType / TaxComponent / Direction are now MiscMaster-backed FKs (no string CHECK enums).
             builder.ToTable("TaxCodeMaster", "Finance", t =>
             {
-                t.HasCheckConstraint("CK_TCM_TaxType",
-                    "[TaxType] IN ('GST_IN','GST_OUT','IGST','TDS','CUSTOMS')");
-                t.HasCheckConstraint("CK_TCM_Component",
-                    "[TaxComponent] IN ('COMBINED','CGST','SGST','IGST','CESS','NA')");
-                t.HasCheckConstraint("CK_TCM_Direction",
-                    "[Direction] IS NULL OR [Direction] IN ('INPUT','OUTPUT')");
                 t.HasCheckConstraint("CK_TCM_Threshold",
                     "[ThresholdAmount] IS NULL OR [ThresholdAmount] >= 0");
                 t.HasCheckConstraint("CK_TCM_ThresholdAgg",
                     "[ThresholdAggregate] IS NULL OR [ThresholdAggregate] >= 0");
-                t.HasCheckConstraint("CK_TCM_ParentLink",
-                    "([TaxComponent] IN ('CGST','SGST','IGST','CESS') AND [ParentTaxCodeId] IS NOT NULL) "
-                    + "OR ([TaxComponent] IN ('COMBINED','NA') AND [ParentTaxCodeId] IS NULL)");
             });
 
             builder.HasKey(t => t.Id);
+
+            // No soft delete on this entity — "remove" = IsActive = Inactive.
+            builder.Ignore(b => b.IsDeleted);
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
@@ -50,18 +40,17 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.TaxName)
                 .HasColumnName("TaxName").HasColumnType("varchar(150)").IsRequired();
 
-            builder.Property(t => t.TaxType)
-                .HasColumnName("TaxType").HasColumnType("varchar(15)").IsRequired();
+            builder.Property(t => t.TaxTypeId)
+                .HasColumnName("TaxTypeId").HasColumnType("int").IsRequired();
 
-            builder.Property(t => t.TaxComponent)
-                .HasColumnName("TaxComponent").HasColumnType("varchar(10)")
-                .HasDefaultValue("COMBINED").IsRequired();
+            builder.Property(t => t.TaxComponentId)
+                .HasColumnName("TaxComponentId").HasColumnType("int").IsRequired(false);
+
+            builder.Property(t => t.DirectionId)
+                .HasColumnName("DirectionId").HasColumnType("int").IsRequired(false);
 
             builder.Property(t => t.ParentTaxCodeId)
                 .HasColumnName("ParentTaxCodeId").HasColumnType("int").IsRequired(false);
-
-            builder.Property(t => t.Direction)
-                .HasColumnName("Direction").HasColumnType("varchar(10)").IsRequired(false);
 
             builder.Property(t => t.StatutorySection)
                 .HasColumnName("StatutorySection").HasColumnType("varchar(20)").IsRequired(false);
@@ -91,10 +80,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnName("IsActive").HasColumnType("bit")
                 .HasConversion(statusConverter).IsRequired();
 
-            builder.Property(b => b.IsDeleted)
-                .HasColumnName("IsDeleted").HasColumnType("bit")
-                .HasConversion(isDeleteConverter).IsRequired();
-
             builder.Property(t => t.CreatedBy).HasColumnName("CreatedBy").HasColumnType("int");
             builder.Property(t => t.CreatedDate).HasColumnName("CreatedDate");
             builder.Property(t => t.CreatedByName).HasColumnName("CreatedByName").HasColumnType("varchar(100)");
@@ -106,16 +91,33 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => new { t.CompanyId, t.TaxCode })
                 .IsUnique()
-                .HasFilter("[IsDeleted] = 0")
                 .HasDatabaseName("UX_TaxCodeMaster_Company_Code");
             builder.HasIndex(t => t.CompanyId).HasDatabaseName("IX_TaxCodeMaster_CompanyId");
-            builder.HasIndex(t => t.TaxType).HasDatabaseName("IX_TaxCodeMaster_TaxType");
+            builder.HasIndex(t => t.TaxTypeId).HasDatabaseName("IX_TaxCodeMaster_TaxTypeId");
+            builder.HasIndex(t => t.TaxComponentId).HasDatabaseName("IX_TaxCodeMaster_TaxComponentId");
+            builder.HasIndex(t => t.DirectionId).HasDatabaseName("IX_TaxCodeMaster_DirectionId");
             builder.HasIndex(t => t.ParentTaxCodeId).HasDatabaseName("IX_TaxCodeMaster_ParentTaxCodeId");
 
             // Self-referencing parent/child (combined header -> CGST/SGST component children)
             builder.HasOne(t => t.ParentTaxCode)
                 .WithMany(p => p.ComponentCodes)
                 .HasForeignKey(t => t.ParentTaxCodeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // MiscMaster lookups (TAX TYPE / TAX COMPONENT / TAX DIRECTION)
+            builder.HasOne(t => t.TaxTypeMaster)
+                .WithMany()
+                .HasForeignKey(t => t.TaxTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.TaxComponentMaster)
+                .WithMany()
+                .HasForeignKey(t => t.TaxComponentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(t => t.DirectionMaster)
+                .WithMany()
+                .HasForeignKey(t => t.DirectionId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
