@@ -1,4 +1,5 @@
 using Contracts.Commands.Budget;
+using Contracts.Commands.Finance;
 using Contracts.Commands.Inventory;
 using Contracts.Commands.Party;
 using Contracts.Commands.Project;
@@ -69,6 +70,11 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
         "QC Review",
         "Resolution",
         "Sales Order Amendment","Sales Quotation","Sales Quotation Amendment"
+    };
+
+    private static readonly HashSet<string> FinanceTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Account Group Hierarchy"
     };
 
     private readonly IInboxRepository _inbox;
@@ -182,6 +188,20 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
                 Status = msg.Status,
                 LineStatus = msg.LineStatus,
                 DynamicFields = msg.DynamicFields,
+                ModifiedBy = msg.ModifiedBy,
+                ModifiedByName = msg.ModifiedByName,
+                ModifiedIP = msg.ModifiedIP
+            });
+        }
+
+        if (FinanceTypes.Contains(msg.ModuleTypeName))
+        {
+            await context.Publish(new UpdateApprovedRejectedFinanceCommand
+            {
+                CorrelationId = msg.CorrelationId,
+                ModuleTransactionId = msg.ModuleTransactionId,
+                ModuleTypeName = msg.ModuleTypeName,
+                Status = msg.Status,
                 ModifiedBy = msg.ModifiedBy,
                 ModifiedByName = msg.ModifiedByName,
                 ModifiedIP = msg.ModifiedIP

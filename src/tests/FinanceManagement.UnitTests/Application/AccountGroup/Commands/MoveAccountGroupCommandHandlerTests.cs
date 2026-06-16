@@ -1,47 +1,68 @@
+using Contracts.Commands.Workflow;
 using FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
+using FinanceManagement.Application.Common.Interfaces.IOutbox;
 
 namespace FinanceManagement.UnitTests.Application.AccountGroup.Commands
 {
     public sealed class MoveAccountGroupCommandHandlerTests
     {
-        private readonly Mock<IAccountGroupCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IAccountGroupChangeRequestRepository> _mockChangeRequestRepo = new(MockBehavior.Strict);
+        private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private MoveAccountGroupCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object);
+            new(_mockChangeRequestRepo.Object, _mockOutbox.Object, _mockMediator.Object);
 
         private static MoveAccountGroupCommand ValidCommand() =>
             new() { Id = 10, NewParentAccountGroupId = 5, Justification = "Restructure for FY2026 reporting", ApproverId = 99 };
 
-        private void SetupHappyPath(int movedId = 10)
+        private void SetupHappyPath()
         {
-            _mockCommandRepo
-                .Setup(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync(movedId);
+            _mockChangeRequestRepo
+                .Setup(r => r.AddWithoutSaveAsync(It.IsAny<FinanceManagement.Domain.Entities.AccountGroupChangeRequest>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            _mockChangeRequestRepo
+                .Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_ReturnsSuccess()
+        public async Task Handle_ValidCommand_ReturnsSubmittedForApproval()
         {
             SetupHappyPath();
             var result = await CreateSut().Handle(ValidCommand(), CancellationToken.None);
 
             result.IsSuccess.Should().BeTrue();
-            result.Message.Should().Contain("move processed");
+            result.Message.Should().Contain("submitted");
+            result.Data.Should().Be(10);
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_CallsMoveWithCorrectArguments()
+        public async Task Handle_ValidCommand_PersistsPendingRequestAndSavesOnce()
         {
             SetupHappyPath();
             await CreateSut().Handle(ValidCommand(), CancellationToken.None);
 
-            _mockCommandRepo.Verify(r => r.MoveAsync(10, 5), Times.Once);
+            _mockChangeRequestRepo.Verify(
+                r => r.AddWithoutSaveAsync(It.IsAny<FinanceManagement.Domain.Entities.AccountGroupChangeRequest>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+            _mockChangeRequestRepo.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_PublishesMoveAuditEvent()
+        public async Task Handle_ValidCommand_SchedulesApprovalRequestOnOutbox()
+        {
+            SetupHappyPath();
+            await CreateSut().Handle(ValidCommand(), CancellationToken.None);
+
+            _mockOutbox.Verify(
+                o => o.ScheduleWithoutSaveAsync(It.IsAny<CreateApprovalRequestCommand>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_ValidCommand_PublishesMoveRequestedAuditEvent()
         {
             SetupHappyPath();
             await CreateSut().Handle(ValidCommand(), CancellationToken.None);
@@ -50,7 +71,7 @@ namespace FinanceManagement.UnitTests.Application.AccountGroup.Commands
                 m => m.Publish(
                     It.Is<AuditLogsDomainEvent>(e =>
                         e.ActionDetail == "Move" &&
-                        e.ActionCode == "ACCOUNT_GROUP_MOVE"),
+                        e.ActionCode == "ACCOUNT_GROUP_MOVE_REQUESTED"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }

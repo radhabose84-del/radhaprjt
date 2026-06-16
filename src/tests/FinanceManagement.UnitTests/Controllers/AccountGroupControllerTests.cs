@@ -8,6 +8,7 @@ using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupTree;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupById;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupAutoComplete;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupParents;
+using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupLeaves;
 using FinanceManagement.Application.AccountGroup.Dto;
 
 namespace FinanceManagement.UnitTests.Controllers
@@ -67,6 +68,18 @@ namespace FinanceManagement.UnitTests.Controllers
                 .ReturnsAsync((IReadOnlyList<AccountGroupLookupDto>)new List<AccountGroupLookupDto>());
 
             var result = await CreateSut().GetAccountGroupParentsAsync(2, null);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task LeafGroups_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetAccountGroupLeavesQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<AccountGroupLookupDto>)new List<AccountGroupLookupDto>());
+
+            var result = await CreateSut().GetAccountGroupLeavesAsync(1, 3);
 
             result.Should().BeOfType<OkObjectResult>();
         }

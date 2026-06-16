@@ -43,6 +43,7 @@
     <ProjectReference Include="..\..\..\Modules\UserManagement\Core\UserManagement.Application\UserManagement.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\ProjectManagement\Core\ProjectManagement.Application\ProjectManagement.Application.csproj" />
 <ProjectReference Include="..\..\..\Modules\SalesManagement\Core\SalesManagement.Application\SalesManagement.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\FinanceManagement\Core\FinanceManagement.Application\FinanceManagement.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
