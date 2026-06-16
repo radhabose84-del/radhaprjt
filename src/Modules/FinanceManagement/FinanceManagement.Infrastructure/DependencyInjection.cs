@@ -16,6 +16,7 @@ using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
 using FinanceManagement.Infrastructure.Repositories.AuditLog;
@@ -34,7 +35,9 @@ using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
 using FinanceManagement.Infrastructure.Logging;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
+using FinanceManagement.Infrastructure.Repositories.Outbox;
 using FinanceManagement.Infrastructure.Services;
+using FinanceManagement.Infrastructure.Services.Outbox;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Shared.Infrastructure.Resilience;
@@ -124,6 +127,11 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IAccountGroupCommandRepository, AccountGroupCommandRepository>();
             services.AddScoped<IAccountGroupQueryRepository, AccountGroupQueryRepository>();
+            services.AddScoped<IAccountGroupChangeRequestRepository, AccountGroupChangeRequestRepository>();
+
+            // Transactional outbox (workflow events → bus)
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
             services.AddScoped<IEInvoiceHeaderCommandRepository, EInvoiceHeaderCommandRepository>();
             services.AddScoped<IEInvoiceHeaderQueryRepository, EInvoiceHeaderQueryRepository>();

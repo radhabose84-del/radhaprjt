@@ -23,6 +23,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
             public int Id { get; set; }
             public int CompanyId { get; set; }
             public int? AccountTypeId { get; set; }
+            public int? ScheduleIIILineItemId { get; set; }
             public string? GroupCode { get; set; }
             public string? GroupName { get; set; }
             public int? ParentAccountGroupId { get; set; }
@@ -35,7 +36,8 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
         public async Task<List<AccountGroupTreeDto>> GetTreeAsync(int? companyId)
         {
             const string sql = @"
-                SELECT ag.Id, ag.CompanyId, ag.AccountTypeId, ag.GroupCode, ag.GroupName, ag.ParentAccountGroupId,
+                SELECT ag.Id, ag.CompanyId, ag.AccountTypeId, ag.ScheduleIIILineItemId,
+                       ag.GroupCode, ag.GroupName, ag.ParentAccountGroupId,
                        ag.Level, ag.SortOrder, ag.IsActive, ag.IsLeaf
                 FROM [Finance].[AccountGroup] ag
                 WHERE ag.IsDeleted = 0
@@ -57,7 +59,8 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
                     Level = r.Level,
                     SortOrder = r.SortOrder,
                     IsActive = r.IsActive,
-                    IsLeaf = r.IsLeaf
+                    IsLeaf = r.IsLeaf,
+                    ScheduleIIILineItemId = r.ScheduleIIILineItemId
                 });
 
             var roots = new List<AccountGroupTreeDto>();
@@ -85,6 +88,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
         {
             const string sql = @"
                 SELECT ag.Id, ag.CompanyId, ag.AccountTypeId, at.AccountTypeName,
+                       ag.ScheduleIIILineItemId, sli.LineName AS ScheduleIIILineName,
                        ag.GroupCode, ag.GroupName, ag.ParentAccountGroupId,
                        ag.Level, ag.SortOrder, ag.IsLeaf,
                        p.GroupName AS ParentGroupName,
@@ -96,6 +100,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
                 FROM [Finance].[AccountGroup] ag
                 LEFT JOIN [Finance].[AccountGroup] p ON ag.ParentAccountGroupId = p.Id AND p.IsDeleted = 0
                 LEFT JOIN [Finance].[AccountTypeMaster] at ON ag.AccountTypeId = at.Id AND at.IsDeleted = 0
+                LEFT JOIN [Finance].[ScheduleIIILineItem] sli ON ag.ScheduleIIILineItemId = sli.Id AND sli.IsDeleted = 0
                 WHERE ag.IsDeleted = 0 AND ag.Id = @Id";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<AccountGroupDetailDto>(sql, new { Id = id });
@@ -137,6 +142,34 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
                 ORDER BY ag.SortOrder, ag.GroupCode";
 
             var result = await _dbConnection.QueryAsync<AccountGroupLookupDto>(sql, new { Level = level, CompanyId = companyId });
+            return result.ToList();
+        }
+
+        public async Task<IReadOnlyList<AccountGroupLookupDto>> GetLeafGroupsAsync(int? companyId, int? accountTypeId)
+        {
+            // Propagate each root's AccountTypeId down its subtree, then return only the active
+            // leaves — optionally scoped to a company and to a single account-type branch.
+            const string sql = @"
+                WITH Tree AS (
+                    SELECT r.Id, r.ParentAccountGroupId, r.AccountTypeId AS RootAccountTypeId,
+                           r.IsLeaf, r.IsActive, r.CompanyId, r.GroupCode, r.GroupName, r.Level
+                    FROM [Finance].[AccountGroup] r
+                    WHERE r.ParentAccountGroupId IS NULL AND r.IsDeleted = 0
+                    UNION ALL
+                    SELECT c.Id, c.ParentAccountGroupId, t.RootAccountTypeId,
+                           c.IsLeaf, c.IsActive, c.CompanyId, c.GroupCode, c.GroupName, c.Level
+                    FROM [Finance].[AccountGroup] c
+                    INNER JOIN Tree t ON c.ParentAccountGroupId = t.Id
+                    WHERE c.IsDeleted = 0
+                )
+                SELECT Id, GroupCode, GroupName, Level
+                FROM Tree
+                WHERE IsLeaf = 1 AND IsActive = 1
+                  AND (@CompanyId IS NULL OR CompanyId = @CompanyId)
+                  AND (@AccountTypeId IS NULL OR RootAccountTypeId = @AccountTypeId)
+                ORDER BY GroupCode";
+
+            var result = await _dbConnection.QueryAsync<AccountGroupLookupDto>(sql, new { CompanyId = companyId, AccountTypeId = accountTypeId });
             return result.ToList();
         }
 

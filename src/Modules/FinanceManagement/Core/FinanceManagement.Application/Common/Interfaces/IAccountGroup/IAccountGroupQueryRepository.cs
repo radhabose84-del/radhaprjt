@@ -16,6 +16,10 @@ namespace FinanceManagement.Application.Common.Interfaces.IAccountGroup
         // optionally scoped to a company.
         Task<IReadOnlyList<AccountGroupLookupDto>> GetParentsByLevelAsync(int level, int? companyId);
 
+        // Assignable leaf groups for the GL-account "Account Group" picker — active leaves only,
+        // optionally scoped to a company and to an account-type branch (L1 ancestor's AccountTypeId).
+        Task<IReadOnlyList<AccountGroupLookupDto>> GetLeafGroupsAsync(int? companyId, int? accountTypeId);
+
         Task<bool> AlreadyExistsAsync(string groupCode, int? id = null);
         Task<bool> NotFoundAsync(int id);
         Task<bool> ParentExistsAsync(int parentId);
