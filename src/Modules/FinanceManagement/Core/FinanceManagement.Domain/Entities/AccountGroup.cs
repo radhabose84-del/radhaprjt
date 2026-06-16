@@ -4,21 +4,18 @@ namespace FinanceManagement.Domain.Entities
 {
     public class AccountGroup : BaseEntity
     {
-        // Textile default hierarchy depth (Segment → Group → Sub-group → Account).
-        // Accounts attach only at the leaf level (Level == DefaultMaxDepth).
-        public const int DefaultMaxDepth = 4;
-
-        // Interim Level 1 whitelist. TODO: replace with the AccountTypeMaster reference
-        // table when that feature is built; validators currently read this list.
-        public static readonly IReadOnlyCollection<string> Level1GroupNames = new[]
-        {
-            "Assets", "Liabilities", "Equity", "Revenue", "Expenses"
-        };
+        // Maximum hierarchy depth. Groups may nest up to 6 levels; creating a child below
+        // a Level 6 node is blocked. Accounts attach at the leaf (a node with no children).
+        public const int DefaultMaxDepth = 6;
 
         public int CompanyId { get; set; }
 
         public string GroupCode { get; set; } = null!;
         public string GroupName { get; set; } = null!;
+
+        // Statutory head — set only on Level 1 groups (NULL below). FK to Finance.AccountTypeMaster.
+        public int? AccountTypeId { get; set; }
+        public AccountTypeMaster? AccountType { get; set; }
 
         // Self-referencing parent (NULL = Level 1 root). Enforces the single-parent rule structurally.
         public int? ParentAccountGroupId { get; set; }

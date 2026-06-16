@@ -73,16 +73,27 @@ namespace FinanceManagement.UnitTests.Domain
         }
 
         [Fact]
-        public void AccountGroup_DefaultMaxDepth_ShouldBeFour()
+        public void AccountGroup_DefaultMaxDepth_ShouldBeSix()
         {
-            AccountGroup.DefaultMaxDepth.Should().Be(4);
+            AccountGroup.DefaultMaxDepth.Should().Be(6);
         }
 
         [Fact]
-        public void AccountGroup_Level1GroupNames_ShouldContainStatutoryHeads()
+        public void AccountGroup_AccountType_ShouldBeAssignable()
         {
-            AccountGroup.Level1GroupNames.Should()
-                .BeEquivalentTo(new[] { "Assets", "Liabilities", "Equity", "Revenue", "Expenses" });
+            var type = new AccountTypeMaster { Id = 3, AccountTypeName = "Assets" };
+            var entity = new AccountGroup { AccountTypeId = 3, AccountType = type };
+
+            entity.AccountTypeId.Should().Be(3);
+            entity.AccountType.Should().NotBeNull();
+            entity.AccountType!.AccountTypeName.Should().Be("Assets");
+        }
+
+        [Fact]
+        public void AccountGroup_AccountTypeId_ShouldAcceptNullBelowLevel1()
+        {
+            var entity = new AccountGroup { AccountTypeId = null };
+            entity.AccountTypeId.Should().BeNull();
         }
     }
 }

@@ -59,18 +59,8 @@ namespace FinanceManagement.Presentation.Validation.AccountGroup
                 }
             }
 
-            // Renaming a Level 1 group must keep it within the statutory heads.
-            // TODO: source this from AccountTypeMaster when that feature is built.
-            RuleFor(x => x.GroupName)
-                .MustAsync(async (cmd, name, ct) =>
-                {
-                    var level = await _queryRepository.GetLevelAsync(cmd.Id);
-                    if (level != 1) return true;
-                    return Domain.Entities.AccountGroup.Level1GroupNames
-                        .Any(n => string.Equals(n, name, StringComparison.OrdinalIgnoreCase));
-                })
-                .WithMessage("Level 1 groups must be one of: Assets, Liabilities, Equity, Revenue, Expenses.")
-                .When(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.GroupName));
+            // Note: the Level 1 statutory head is the immutable AccountTypeId FK set at create
+            // time, so no GroupName whitelist is needed here — rename is free text.
         }
     }
 }
