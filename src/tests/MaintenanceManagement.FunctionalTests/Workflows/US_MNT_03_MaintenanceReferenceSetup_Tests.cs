@@ -82,9 +82,10 @@ public sealed class US_MNT_03_MaintenanceReferenceSetup_Tests
     [Fact, TestPriority(5)]
     public async Task Step5_AllReadableById()
     {
-        // CostCenter/WorkCenter GetById have live read-path defects (NRE/not-found) — accept those;
-        // Category/Type GetById work normally.
-        ((int)(await _f.Client.GetAsync($"{CostCenterRoute}/{_costCenterId}")).StatusCode).Should().BeOneOf(200, 500);
+        // CostCenter GetById now returns 200 when found, or 404 when not found / outside the caller's
+        // unit scope (the NullReferenceException 500 was fixed — handler null-guard + controller 404).
+        // WorkCenter GetById still has its own read-path quirk (no NRE). Category/Type work normally.
+        ((int)(await _f.Client.GetAsync($"{CostCenterRoute}/{_costCenterId}")).StatusCode).Should().BeOneOf(200, 404);
         ((int)(await _f.Client.GetAsync($"{WorkCenterRoute}/{_workCenterId}")).StatusCode).Should().BeOneOf(200, 400, 404);
         await QAHelper.AssertOkAsync(await _f.Client.GetAsync($"{CategoryRoute}/{_categoryId}"));
         await QAHelper.AssertOkAsync(await _f.Client.GetAsync($"{TypeRoute}/{_typeId}"));

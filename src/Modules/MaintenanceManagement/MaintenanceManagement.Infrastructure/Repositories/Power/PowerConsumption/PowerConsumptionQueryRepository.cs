@@ -99,9 +99,8 @@ namespace MaintenanceManagement.Infrastructure.Repositories.Power.PowerConsumpti
 
                 var result = await _dbConnection.QueryFirstOrDefaultAsync<GetClosingReaderValueDto>(query, new { FeederId = feederId, UnitId = UnitId });
 
-            if (result == null)
-                throw new Exception($"Feeder with ID {feederId} not found.");
-
+            // Not found (or outside the caller's unit scope) → return null so the controller maps it
+            // to 404 instead of throwing (was surfacing as an unhandled 500).
             return result;
         }
 

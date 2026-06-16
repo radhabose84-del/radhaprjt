@@ -9,5 +9,8 @@ namespace FinanceManagement.Domain.Entities
         public string? StartCode { get; set; }
         public int AccountCodeLength { get; set; }
         public int SortOrder { get; set; }
+
+        // Reverse navigation
+        public ICollection<GlAccountMaster>? GlAccountMasters { get; set; }
     }
 }

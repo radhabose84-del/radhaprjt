@@ -31,5 +31,8 @@ namespace FinanceManagement.Domain.Entities
         // Same-module self navigation
         public AccountGroup? ParentAccountGroup { get; set; }
         public ICollection<AccountGroup>? Children { get; set; }
+
+        // Reverse navigation
+        public ICollection<GlAccountMaster>? GlAccountMasters { get; set; }
     }
 }

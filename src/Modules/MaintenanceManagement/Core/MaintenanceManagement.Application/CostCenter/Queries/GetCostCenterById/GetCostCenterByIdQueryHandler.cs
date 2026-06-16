@@ -7,7 +7,7 @@ using MediatR;
 
 namespace MaintenanceManagement.Application.CostCenter.Queries.GetCostCenterById
 {
-    public class GetCostCenterByIdQueryHandler : IRequestHandler<GetCostCenterByIdQuery, CostCenterDto>
+    public class GetCostCenterByIdQueryHandler : IRequestHandler<GetCostCenterByIdQuery, CostCenterDto?>
     {
 
         private readonly ICostCenterQueryRepository _iCostCenterQueryRepository;
@@ -31,10 +31,15 @@ namespace MaintenanceManagement.Application.CostCenter.Queries.GetCostCenterById
             _unitLookup = unitLookup;
         }
 
-        public async Task<CostCenterDto> Handle(GetCostCenterByIdQuery request, CancellationToken cancellationToken)
+        public async Task<CostCenterDto?> Handle(GetCostCenterByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _iCostCenterQueryRepository.GetByIdAsync(request.Id);
-           
+
+            // Not found (or out of the caller's unit scope) → return null so the controller maps it to 404
+            // instead of dereferencing a null DTO (was throwing NullReferenceException → 500).
+            if (result == null)
+                return null;
+
             var costCenter = _mapper.Map<CostCenterDto>(result);
 
 

@@ -31,6 +31,17 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<MiscTypeMaster> MiscTypeMaster => Set<MiscTypeMaster>();
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
         public DbSet<AccountTypeMaster> AccountTypeMaster => Set<AccountTypeMaster>();
+        public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
+
+        // Schedule III line-item & sub-total configuration (US-GL02-03A)
+        public DbSet<ScheduleIIIStructure> ScheduleIIIStructure => Set<ScheduleIIIStructure>();
+        public DbSet<ScheduleIIISection> ScheduleIIISection => Set<ScheduleIIISection>();
+        public DbSet<ScheduleIIILineItem> ScheduleIIILineItem => Set<ScheduleIIILineItem>();
+        public DbSet<ScheduleIIISubTotal> ScheduleIIISubTotal => Set<ScheduleIIISubTotal>();
+        public DbSet<ScheduleIIISubTotalFormula> ScheduleIIISubTotalFormula => Set<ScheduleIIISubTotalFormula>();
+
+        // Property-level change trail (IActivityTracked entities)
+        public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

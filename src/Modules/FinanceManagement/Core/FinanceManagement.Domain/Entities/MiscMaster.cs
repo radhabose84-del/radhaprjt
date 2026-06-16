@@ -11,5 +11,9 @@ namespace FinanceManagement.Domain.Entities
 
         // Same-module FK navigation
         public MiscTypeMaster? MiscTypeMaster { get; set; }
+
+        // Reverse navigation — GlAccountMaster uses MiscMaster twice (NormalBalance + SubLedgerType)
+        public ICollection<GlAccountMaster>? GlAccountsAsNormalBalance { get; set; }
+        public ICollection<GlAccountMaster>? GlAccountsAsSubLedgerType { get; set; }
     }
 }

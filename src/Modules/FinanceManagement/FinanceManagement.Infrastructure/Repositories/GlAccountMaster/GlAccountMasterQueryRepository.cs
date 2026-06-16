@@ -1,0 +1,251 @@
+using System.Data;
+using Contracts.Interfaces.Lookups.Users;
+using Dapper;
+using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.GlAccountMaster.Dto;
+
+namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
+{
+    public class GlAccountMasterQueryRepository : IGlAccountMasterQueryRepository
+    {
+        private readonly IDbConnection _dbConnection;
+        private readonly ICompanyLookup _companyLookup;
+
+        public GlAccountMasterQueryRepository(IDbConnection dbConnection, ICompanyLookup companyLookup)
+        {
+            _dbConnection = dbConnection;
+            _companyLookup = companyLookup;
+        }
+
+        private const string BaseSelect = @"
+            am.Id, am.CompanyId,
+            am.AccountTypeId, atype.AccountTypeName, atype.StartCode, atype.AccountCodeLength,
+            am.AccountGroupId, ag.GroupCode AS AccountGroupCode, ag.GroupName AS AccountGroupName,
+            am.AccountCode, am.AccountName, am.Description,
+            am.NormalBalanceId, nb.Code AS NormalBalanceCode, nb.Description AS NormalBalanceName,
+            am.CurrencyTypeId,
+            am.SubLedgerTypeId, slt.Code AS SubLedgerTypeCode, slt.Description AS SubLedgerTypeName,
+            am.IsCostCentreMandatory, am.IsTaxRelevant, am.IsInterCompany, am.IsReconciliationRequired,
+            am.IsActive, am.IsDeleted,
+            am.CreatedBy, am.CreatedDate, am.CreatedByName, am.CreatedIP,
+            am.ModifiedBy, am.ModifiedDate, am.ModifiedByName, am.ModifiedIP
+        ";
+
+        private const string BaseFromAndJoins = @"
+            FROM Finance.GlAccountMaster am
+            LEFT JOIN Finance.AccountTypeMaster atype ON am.AccountTypeId = atype.Id AND atype.IsDeleted = 0
+            LEFT JOIN Finance.AccountGroup       ag    ON am.AccountGroupId = ag.Id AND ag.IsDeleted = 0
+            LEFT JOIN Finance.MiscMaster         nb    ON am.NormalBalanceId = nb.Id AND nb.IsDeleted = 0
+            LEFT JOIN Finance.MiscMaster         slt   ON am.SubLedgerTypeId = slt.Id AND slt.IsDeleted = 0
+        ";
+
+        public async Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null)
+        {
+            var whereClause = "am.IsDeleted = 0 AND am.CompanyId = @CompanyId";
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                whereClause += " AND (am.AccountCode LIKE @Search OR am.AccountName LIKE @Search)";
+            if (accountTypeId.HasValue && accountTypeId.Value > 0)
+                whereClause += " AND am.AccountTypeId = @AccountTypeId";
+            if (accountGroupId.HasValue && accountGroupId.Value > 0)
+                whereClause += " AND am.AccountGroupId = @AccountGroupId";
+
+            var query = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Finance.GlAccountMaster am
+                WHERE {whereClause};
+
+                SELECT {BaseSelect}
+                {BaseFromAndJoins}
+                WHERE {whereClause}
+                ORDER BY am.AccountCode ASC, am.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            ";
+
+            var parameters = new
+            {
+                Search = $"%{searchTerm}%",
+                CompanyId = companyId,
+                AccountTypeId = accountTypeId,
+                AccountGroupId = accountGroupId,
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<GlAccountMasterDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+
+            if (list.Count > 0)
+            {
+                var companies = await _companyLookup.GetAllCompanyAsync();
+                var companyDict = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+                foreach (var item in list)
+                {
+                    item.CompanyName = companyDict.TryGetValue(item.CompanyId, out var name) ? name : null;
+                }
+            }
+
+            return (list, totalCount);
+        }
+
+        public async Task<GlAccountMasterDto?> GetByIdAsync(int id)
+        {
+            var sql = $@"
+                SELECT {BaseSelect}
+                {BaseFromAndJoins}
+                WHERE am.Id = @Id AND am.IsDeleted = 0";
+
+            var dto = await _dbConnection.QueryFirstOrDefaultAsync<GlAccountMasterDto>(sql, new { Id = id });
+
+            if (dto != null)
+            {
+                var companies = await _companyLookup.GetAllCompanyAsync();
+                var company = companies.FirstOrDefault(c => c.CompanyId == dto.CompanyId);
+                dto.CompanyName = company?.CompanyName;
+            }
+
+            return dto;
+        }
+
+        public async Task<IReadOnlyList<GlAccountMasterLookupDto>> AutocompleteAsync(string term, int companyId, string? accountTypeCode, CancellationToken ct)
+        {
+            var whereClause = "am.IsDeleted = 0 AND am.IsActive = 1 AND am.CompanyId = @CompanyId";
+            if (!string.IsNullOrWhiteSpace(term))
+                whereClause += " AND (am.AccountCode LIKE @Term OR am.AccountName LIKE @Term)";
+
+            string joinTypeClause = string.Empty;
+            if (!string.IsNullOrWhiteSpace(accountTypeCode))
+            {
+                joinTypeClause = " AND atype.AccountTypeName = @AccountTypeCode";
+            }
+
+            var sql = $@"
+                SELECT am.Id, am.CompanyId, am.AccountTypeId,
+                       am.AccountCode, am.AccountName,
+                       nb.Code AS NormalBalanceCode
+                FROM Finance.GlAccountMaster am
+                LEFT JOIN Finance.AccountTypeMaster atype ON am.AccountTypeId = atype.Id AND atype.IsDeleted = 0{joinTypeClause}
+                LEFT JOIN Finance.MiscMaster nb ON am.NormalBalanceId = nb.Id AND nb.IsDeleted = 0
+                WHERE {whereClause}
+                ORDER BY am.AccountCode ASC";
+
+            var result = await _dbConnection.QueryAsync<GlAccountMasterLookupDto>(
+                new CommandDefinition(sql, new { Term = $"%{term}%", CompanyId = companyId, AccountTypeCode = accountTypeCode }, cancellationToken: ct));
+            return result.ToList();
+        }
+
+        public async Task<bool> AlreadyExistsByCodeAsync(string accountCode, int companyId, int? id = null)
+        {
+            var sql = @"
+                SELECT COUNT(1)
+                FROM Finance.GlAccountMaster
+                WHERE AccountCode = @AccountCode AND CompanyId = @CompanyId AND IsDeleted = 0";
+
+            if (id.HasValue && id.Value > 0)
+                sql += " AND Id != @Id";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { AccountCode = accountCode.Trim(), CompanyId = companyId, Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> AlreadyExistsByNameAsync(string accountName, int companyId, int? id = null)
+        {
+            var sql = @"
+                SELECT COUNT(1)
+                FROM Finance.GlAccountMaster
+                WHERE AccountName = @AccountName AND CompanyId = @CompanyId AND IsDeleted = 0";
+
+            if (id.HasValue && id.Value > 0)
+                sql += " AND Id != @Id";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { AccountName = accountName.Trim(), CompanyId = companyId, Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> NotFoundAsync(int id)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.GlAccountMaster
+                WHERE Id = @Id AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
+        }
+
+        public async Task<bool> AccountTypeExistsForCompanyAsync(int accountTypeId, int companyId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.AccountTypeMaster
+                WHERE Id = @Id AND CompanyId = @CompanyId AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = accountTypeId, CompanyId = companyId });
+            return count > 0;
+        }
+
+        public async Task<bool> AccountGroupExistsForCompanyAsync(int accountGroupId, int companyId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.AccountGroup
+                WHERE Id = @Id AND CompanyId = @CompanyId AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = accountGroupId, CompanyId = companyId });
+            return count > 0;
+        }
+
+        public async Task<bool> NormalBalanceExistsAsync(int normalBalanceId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.MiscMaster mm
+                INNER JOIN Finance.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id AND mtm.IsDeleted = 0
+                WHERE mm.Id = @Id AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                  AND mtm.MiscTypeCode = 'NB'";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = normalBalanceId });
+            return count > 0;
+        }
+
+        public async Task<bool> SubLedgerTypeExistsAsync(int subLedgerTypeId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.MiscMaster mm
+                INNER JOIN Finance.MiscTypeMaster mtm ON mm.MiscTypeId = mtm.Id AND mtm.IsDeleted = 0
+                WHERE mm.Id = @Id AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                  AND mtm.MiscTypeCode = 'SLTYPE'";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = subLedgerTypeId });
+            return count > 0;
+        }
+
+        public async Task<(int AccountCodeLength, string? StartCode, string? AccountTypeName)?> GetAccountTypeFormatAsync(int accountTypeId)
+        {
+            const string sql = @"
+                SELECT AccountCodeLength, StartCode, AccountTypeName
+                FROM Finance.AccountTypeMaster
+                WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0";
+
+            var row = await _dbConnection.QueryFirstOrDefaultAsync<AccountTypeFormatRow>(sql, new { Id = accountTypeId });
+            if (row == null) return null;
+            return (row.AccountCodeLength, row.StartCode, row.AccountTypeName);
+        }
+
+        // Posting-guard stubs reserved for later (JournalEntry / open period not yet built).
+        public Task<bool> SoftDeleteValidationAsync(int id) => Task.FromResult(false);
+
+        public Task<bool> IsGlAccountLinkedAsync(int id) => Task.FromResult(false);
+
+        private sealed class AccountTypeFormatRow
+        {
+            public int AccountCodeLength { get; set; }
+            public string? StartCode { get; set; }
+            public string? AccountTypeName { get; set; }
+        }
+    }
+}

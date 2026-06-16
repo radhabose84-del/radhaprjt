@@ -132,7 +132,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
                 {DisableSalesFKs}
                 INSERT INTO Sales.SalesOrderHeader
                     (SalesOrderNo, OrderDate, SalesGroupId, SalesSegmentId, EnquiryType, UnitId, PartyId,
-                     PaymentTypeId, FreightTypeId, CountListId, TotalBags, TotalWeightKgs, TotalDiscountPerKg,
+                     PaymentTypeId, FreightTypeId, TotalBags, TotalWeightKgs, TotalDiscountPerKg,
                      ItemValue, TotalFreight, TaxableAmount, GSTPercentage, TotalGST, TotalWithGST,
                      TCSPercentage, TotalTCS, FinalAmount, IsActive, IsDeleted, CreatedBy,
                      AgentId, StatusId, SalesOrderTypeId, OrderUnitId, SubAgentId, RevisionNumber, SplitFlag,
@@ -140,7 +140,7 @@ namespace SalesManagement.IntegrationTests.Repositories.Complaint
                      CommissionValue, TotalDiscountValue)
                 VALUES
                     (@No, GETDATE(), 1, 1, 30, 1, 100,
-                     1, 1, 1, 0, 0, 0,
+                     1, 1, 0, 0, 0,
                      0, 0, 0, 0, 0, 0,
                      0, 0, 0, 1, 0, 1,
                      @Agent, 1, 1, 1, 0, 0, 1,

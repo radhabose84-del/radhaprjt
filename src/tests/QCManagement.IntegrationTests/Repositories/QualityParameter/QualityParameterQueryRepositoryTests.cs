@@ -28,7 +28,7 @@ namespace QCManagement.IntegrationTests.Repositories.QualityParameter
             => new QualityParameterCommandRepository(ctx);
 
         private async Task ClearAllAsync() =>
-            await _fixture.ClearTablesAsync("QC.QualitySpecificationParameter", "QC.QualitySpecification", "QC.QualityTemplateParameter", "QC.QualityTemplate", "QC.QualityParameter", "QC.MiscMaster", "QC.MiscTypeMaster");
+            await _fixture.ClearTablesAsync("QC.QcInspectionDtl", "QC.QcInspectionHdr", "QC.QualitySpecificationParameter", "QC.QualitySpecification", "QC.QualityTemplateParameter", "QC.QualityTemplate", "QC.QualityParameter", "QC.MiscMaster", "QC.MiscTypeMaster");
 
         private async Task<(int groupId, int dataTypeId, int validationTypeId, int otherDataTypeId)> SeedDependenciesAsync()
         {
