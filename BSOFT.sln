@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -323,6 +323,24 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Application", "src\Modules\WarehouseManagement\Core\WarehouseManagement.Application\WarehouseManagement.Application.csproj", "{8145FE5E-2239-8C9A-D912-0A326A7D92E8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.Domain", "src\Modules\WarehouseManagement\Core\WarehouseManagement.Domain\WarehouseManagement.Domain.csproj", "{B8DD7462-A020-A40C-C942-1D4B4506294C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesManagement.FunctionalTests", "src\tests\SalesManagement.FunctionalTests\SalesManagement.FunctionalTests.csproj", "{05D41B02-95D4-42F2-8133-51A261F17B7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogisticsManagement.QATests", "src\tests\LogisticsManagement.QATests\LogisticsManagement.QATests.csproj", "{BD0A0CF9-B443-4F42-AA47-9929292359D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogisticsManagement.FunctionalTests", "src\tests\LogisticsManagement.FunctionalTests\LogisticsManagement.FunctionalTests.csproj", "{BEC06FAF-4BCA-4203-8055-62C6DD711ABB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.QATests", "src\tests\WarehouseManagement.QATests\WarehouseManagement.QATests.csproj", "{EAEC5120-4F0A-4EB8-81A2-9687EC95C3F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarehouseManagement.FunctionalTests", "src\tests\WarehouseManagement.FunctionalTests\WarehouseManagement.FunctionalTests.csproj", "{CD64BD7A-981E-406A-8954-0F184537B17D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.QATests", "src\tests\ProjectManagement.QATests\ProjectManagement.QATests.csproj", "{9A8FD39D-E474-4B9D-9806-A8133D58B248}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagement.FunctionalTests", "src\tests\ProjectManagement.FunctionalTests\ProjectManagement.FunctionalTests.csproj", "{1516E256-E74F-4B35-9B89-4C656C706177}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GateEntryManagement.QATests", "src\tests\GateEntryManagement.QATests\GateEntryManagement.QATests.csproj", "{066D9E13-4394-4831-BC4F-871B73BA60F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GateEntryManagement.FunctionalTests", "src\tests\GateEntryManagement.FunctionalTests\GateEntryManagement.FunctionalTests.csproj", "{6089D1A9-AF55-49AF-940C-184DD93CF6CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -834,6 +852,42 @@ Global
 		{B8DD7462-A020-A40C-C942-1D4B4506294C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8DD7462-A020-A40C-C942-1D4B4506294C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8DD7462-A020-A40C-C942-1D4B4506294C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05D41B02-95D4-42F2-8133-51A261F17B7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05D41B02-95D4-42F2-8133-51A261F17B7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05D41B02-95D4-42F2-8133-51A261F17B7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05D41B02-95D4-42F2-8133-51A261F17B7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD0A0CF9-B443-4F42-AA47-9929292359D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD0A0CF9-B443-4F42-AA47-9929292359D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD0A0CF9-B443-4F42-AA47-9929292359D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD0A0CF9-B443-4F42-AA47-9929292359D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEC06FAF-4BCA-4203-8055-62C6DD711ABB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEC06FAF-4BCA-4203-8055-62C6DD711ABB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEC06FAF-4BCA-4203-8055-62C6DD711ABB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEC06FAF-4BCA-4203-8055-62C6DD711ABB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAEC5120-4F0A-4EB8-81A2-9687EC95C3F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAEC5120-4F0A-4EB8-81A2-9687EC95C3F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAEC5120-4F0A-4EB8-81A2-9687EC95C3F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAEC5120-4F0A-4EB8-81A2-9687EC95C3F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD64BD7A-981E-406A-8954-0F184537B17D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD64BD7A-981E-406A-8954-0F184537B17D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD64BD7A-981E-406A-8954-0F184537B17D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD64BD7A-981E-406A-8954-0F184537B17D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A8FD39D-E474-4B9D-9806-A8133D58B248}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A8FD39D-E474-4B9D-9806-A8133D58B248}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A8FD39D-E474-4B9D-9806-A8133D58B248}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A8FD39D-E474-4B9D-9806-A8133D58B248}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1516E256-E74F-4B35-9B89-4C656C706177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1516E256-E74F-4B35-9B89-4C656C706177}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1516E256-E74F-4B35-9B89-4C656C706177}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1516E256-E74F-4B35-9B89-4C656C706177}.Release|Any CPU.Build.0 = Release|Any CPU
+		{066D9E13-4394-4831-BC4F-871B73BA60F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{066D9E13-4394-4831-BC4F-871B73BA60F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{066D9E13-4394-4831-BC4F-871B73BA60F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{066D9E13-4394-4831-BC4F-871B73BA60F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6089D1A9-AF55-49AF-940C-184DD93CF6CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6089D1A9-AF55-49AF-940C-184DD93CF6CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6089D1A9-AF55-49AF-940C-184DD93CF6CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6089D1A9-AF55-49AF-940C-184DD93CF6CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -999,6 +1053,15 @@ Global
 		{BCDAB3F7-FF2F-224A-C0BA-DBE448094C4D} = {8275B70E-9165-B08D-1622-E183AFF24075}
 		{8145FE5E-2239-8C9A-D912-0A326A7D92E8} = {BCDAB3F7-FF2F-224A-C0BA-DBE448094C4D}
 		{B8DD7462-A020-A40C-C942-1D4B4506294C} = {BCDAB3F7-FF2F-224A-C0BA-DBE448094C4D}
+		{05D41B02-95D4-42F2-8133-51A261F17B7E} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{BD0A0CF9-B443-4F42-AA47-9929292359D0} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{BEC06FAF-4BCA-4203-8055-62C6DD711ABB} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{EAEC5120-4F0A-4EB8-81A2-9687EC95C3F4} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{CD64BD7A-981E-406A-8954-0F184537B17D} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{9A8FD39D-E474-4B9D-9806-A8133D58B248} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{1516E256-E74F-4B35-9B89-4C656C706177} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{066D9E13-4394-4831-BC4F-871B73BA60F0} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
+		{6089D1A9-AF55-49AF-940C-184DD93CF6CF} = {CEA09484-30F6-4D44-02F6-822E06DBC57C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7C253B88-913D-41A5-9A82-AD94D3F60135}

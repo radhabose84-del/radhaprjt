@@ -10,3 +10,15 @@ public sealed class OrgSetupCollection : ICollectionFixture<QAServerFixture> { }
 
 [CollectionDefinition("US-UM-02-AccessControl")]
 public sealed class AccessControlCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-UM-03-NavigationRbac")]
+public sealed class NavigationRbacCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-UM-04-ReferenceMasters")]
+public sealed class ReferenceMastersCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-UM-05-SecurityPolicy")]
+public sealed class SecurityPolicyCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-UM-06-UserOnboarding")]
+public sealed class UserOnboardingCollection : ICollectionFixture<QAServerFixture> { }

@@ -69,8 +69,12 @@ namespace LogisticsManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            // Composite unique index on (FreightModeId, RateMethodId)
-            builder.HasIndex(t => new { t.FreightModeId, t.RateMethodId }).IsUnique();
+            // Composite unique index on (FreightModeId, RateMethodId, ModuleId),
+            // filtered on IsDeleted = 0 so soft-deleted rows don't block re-inserting
+            // the same combination. Matches CompositeKeyExistsAsync in the query repository.
+            builder.HasIndex(t => new { t.FreightModeId, t.RateMethodId, t.ModuleId })
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
             builder.HasIndex(t => t.FreightModeId);
             builder.HasIndex(t => t.RateMethodId);
 
