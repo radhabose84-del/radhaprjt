@@ -37,7 +37,7 @@ public sealed class US_FAM_02_ReferenceMasters_Tests
     {
         var resp = await _f.Client.PostAsJsonAsync(LocationRoute, new
         {
-            code = Code(), locationName = "QA FAM Location", description = "US-FAM-02",
+            code = Code(), locationName = $"QA FAM Loc {_f.EntityCode[..6]}", description = "US-FAM-02",
             sortOrder = 1, unitId = Seed, departmentId = Seed
         });
         await QAHelper.AssertOkAsync(resp);
@@ -52,7 +52,7 @@ public sealed class US_FAM_02_ReferenceMasters_Tests
         _locationId.Should().BeGreaterThan(0, "Step1 must have created the location");
         var resp = await _f.Client.PostAsJsonAsync(SubLocationRoute, new
         {
-            code = Code(), subLocationName = "QA FAM SubLocation", description = "US-FAM-02",
+            code = Code(), subLocationName = $"QA FAM SubLoc {_f.EntityCode[..6]}", description = "US-FAM-02",
             unitId = Seed, departmentId = Seed, locationId = _locationId
         });
         await QAHelper.AssertOkAsync(resp);
@@ -66,7 +66,7 @@ public sealed class US_FAM_02_ReferenceMasters_Tests
     {
         var resp = await _f.Client.PostAsJsonAsync(UomRoute, new
         {
-            code = Code(), uomName = "QA Unit", sortOrder = 1, uomTypeId = Seed
+            code = Code(), uomName = $"QA Unit {_f.EntityCode[..6]}", sortOrder = 1, uomTypeId = Seed
         });
         await QAHelper.AssertOkAsync(resp);
         _uomId = (await QAHelper.ParseAsync(resp)).RootElement.CreatedId();
@@ -81,7 +81,7 @@ public sealed class US_FAM_02_ReferenceMasters_Tests
         var manuType = await QAHelper.FirstIdAsync(_f.Client, $"{ManufactureRoute}/ManufactureType");
         var resp = await _f.Client.PostAsJsonAsync(ManufactureRoute, new
         {
-            code = Code(), manufactureName = "QA Manufacturer", manufactureType = manuType > 0 ? manuType : Seed,
+            code = Code(), manufactureName = $"QA Mfr {_f.EntityCode[..6]}", manufactureType = manuType > 0 ? manuType : Seed,
             countryId = Seed, stateId = Seed, cityId,
             addressLine1 = "QA Street", addressLine2 = "QA Area", pinCode = "600001",
             personName = "QA Person", phoneNumber = "9876543210", email = "qa@example.com"

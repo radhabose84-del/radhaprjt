@@ -31,7 +31,9 @@ public sealed class UOMQATests
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
             code = NewCode(),
-            uomName = "QA Unit",
+            // Run-unique name — UOMName is the uniqueness key (UOMCommandRepository), so a fixed
+            // "QA Unit" collides with prior runs' / seed rows. Keeps the create reset-independent.
+            uomName = $"QA Unit {_f.EntityCode[..6]}",
             sortOrder = 1,
             uomTypeId = ValidUomTypeId
         });
