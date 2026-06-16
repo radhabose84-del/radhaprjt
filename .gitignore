@@ -5,6 +5,7 @@
 src/tests/qa-config.local.json
 qa-reports/
 run-qa.ps1
+qa-seed.ps1
 
 # User-specific files
 *.rsuser

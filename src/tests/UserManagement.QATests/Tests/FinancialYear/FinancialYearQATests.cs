@@ -11,12 +11,18 @@ public sealed class FinancialYearQATests
     //   StartYear  : 4-digit year string
     //   StartDate  : must equal April 1 of StartYear
     //   EndDate    : must equal March 31 of (StartYear+1)  (StartDate + 1yr - 1day)
-    // Use a far-future year to avoid colliding with real data.
-    private const int    FyStartYear = 2090;
-    private static string StartYearStr => FyStartYear.ToString();
-    private static string StartDateStr => $"{FyStartYear}-04-01T00:00:00";
-    private static string EndDateStr   => $"{FyStartYear + 1}-03-31T00:00:00";
-    private static string FinYearName  => $"FY{FyStartYear}-{(FyStartYear + 1) % 100}";
+    // BUG (test, reconciled 2026-06-16): the persisted "happy path" FY (TC001 → TC037)
+    // was created with a FIXED year (2090), and the Create handler rejects duplicate
+    // StartDate+EndDate ranges with 400 "FinancialYear with start year already exists.".
+    // A leftover ACTIVE FY2090 from a prior run (the clone is not always reset) made TC001
+    // 400 and cascaded "not found" into every id-dependent step. Fixed by deriving the
+    // year run-uniquely from the fixture EntityCode → a far-future year (2100-2199) that
+    // is unique per run and clear of real data (~2020-2030).
+    private int FyStartYear => 2100 + (QAHelper.RunUniqueInt(_f.EntityCode) % 100);
+    private string StartYearStr => FyStartYear.ToString();
+    private string StartDateStr => $"{FyStartYear}-04-01T00:00:00";
+    private string EndDateStr   => $"{FyStartYear + 1}-03-31T00:00:00";
+    private string FinYearName  => $"FY{FyStartYear}-{(FyStartYear + 1) % 100}";
 
     public FinancialYearQATests(QAServerFixture fixture) => _f = fixture;
 
