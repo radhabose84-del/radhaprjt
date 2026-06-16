@@ -11,6 +11,9 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync(int structureId);
         Task<ScheduleIIILineItemDto?> GetLineItemByIdAsync(int id);
 
+        // Activity log (Finance.ActivityLog) — Update/Delete change trail
+        Task<(List<ActivityLogDto>, int)> GetActivityLogAsync(string? entityName, int? entityId, int pageNumber, int pageSize);
+
         // Existence / validation
         Task<bool> LineItemNotFoundAsync(int id);
         Task<bool> SubTotalNotFoundAsync(int id);

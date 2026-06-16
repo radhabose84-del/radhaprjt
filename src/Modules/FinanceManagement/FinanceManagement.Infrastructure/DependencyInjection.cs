@@ -33,6 +33,8 @@ using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
 
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
+using FinanceManagement.Application.Common.Interfaces.ITaxCode;
+using FinanceManagement.Infrastructure.Repositories.TaxCode;
 using FinanceManagement.Infrastructure.Logging;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
 using FinanceManagement.Infrastructure.Repositories.Outbox;
@@ -151,6 +153,10 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
 
+            // Tax Code feature (US-GL02-05A / 05B) — consolidated command + query repos
+            services.AddScoped<ITaxCodeCommandRepository, TaxCodeCommandRepository>();
+            services.AddScoped<ITaxCodeQueryRepository, TaxCodeQueryRepository>();
+
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
             services.AddScoped<ITransactionTypeLookup, TransactionTypeLookupRepository>();
@@ -160,6 +166,7 @@ namespace FinanceManagement.Infrastructure
            services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
             services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
+            services.AddScoped<ITaxCodeLookup, TaxCodeLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically

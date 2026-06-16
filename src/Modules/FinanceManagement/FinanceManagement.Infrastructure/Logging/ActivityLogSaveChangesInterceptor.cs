@@ -56,10 +56,10 @@ namespace FinanceManagement.Infrastructure.Logging
             var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tz);
 
             // Snapshot the tracked entries before adding any logs (avoids "collection modified").
+            // Insert is intentionally NOT logged — only Update/Delete.
             var tracked = db.ChangeTracker.Entries()
                 .Where(e => e.Entity is IActivityTracked &&
-                            (e.State == EntityState.Added ||
-                             e.State == EntityState.Modified ||
+                            (e.State == EntityState.Modified ||
                              e.State == EntityState.Deleted))
                 .ToList();
 
@@ -70,12 +70,6 @@ namespace FinanceManagement.Infrastructure.Logging
                 var clrType = entry.Metadata.ClrType;
                 var (keyName, keyValue, keyAsInt) = GetPrimaryKey(entry);
                 var entityId = keyAsInt ?? (entry.Entity as BaseEntity)?.Id ?? 0;
-
-                if (entry.State == EntityState.Added)
-                {
-                    logs.Add(NewLog(clrType.Name, entityId, "Insert", "*", null, $"Inserted {keyName}={keyValue}", now, keyValue));
-                    continue;
-                }
 
                 if (entry.State == EntityState.Deleted)
                 {
