@@ -60,22 +60,14 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
             result.ShouldHaveValidationErrorFor(x => x.Id);
         }
 
+        // Level 1 rename is free text now — the statutory head is the immutable AccountTypeId FK,
+        // not the GroupName — so no whitelist applies on update.
         [Fact]
-        public async Task Validate_Level1RenameToInvalidName_Fails()
+        public async Task Validate_Level1Rename_Passes()
         {
             SetupHappyPath(level: 1);
             var command = ValidCommand();
-            command.GroupName = "Sundry";
-            var result = await CreateValidator().TestValidateAsync(command);
-            result.ShouldHaveValidationErrorFor(x => x.GroupName);
-        }
-
-        [Fact]
-        public async Task Validate_Level1RenameToValidName_Passes()
-        {
-            SetupHappyPath(level: 1);
-            var command = ValidCommand();
-            command.GroupName = "Assets";
+            command.GroupName = "Current & Other Assets";
             var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldNotHaveAnyValidationErrors();
         }

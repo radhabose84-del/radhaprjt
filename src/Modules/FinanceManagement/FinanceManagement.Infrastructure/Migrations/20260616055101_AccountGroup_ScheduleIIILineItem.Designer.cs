@@ -4,6 +4,7 @@ using FinanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616055101_AccountGroup_ScheduleIIILineItem")]
+    partial class AccountGroup_ScheduleIIILineItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,84 +128,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("ScheduleIIILineItemId");
 
                     b.ToTable("AccountGroup", "Finance");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.AccountGroupChangeRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountGroupId")
-                        .HasColumnType("int")
-                        .HasColumnName("AccountGroupId");
-
-                    b.Property<int>("ApproverId")
-                        .HasColumnType("int")
-                        .HasColumnName("ApproverId");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<string>("Justification")
-                        .IsRequired()
-                        .HasColumnType("varchar(1000)")
-                        .HasColumnName("Justification");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("NewParentAccountGroupId")
-                        .HasColumnType("int")
-                        .HasColumnName("NewParentAccountGroupId");
-
-                    b.Property<string>("RequestStatus")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("Status");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountGroupId", "RequestStatus");
-
-                    b.ToTable("AccountGroupChangeRequest", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.AccountTypeMaster", b =>
@@ -1203,75 +1128,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("MiscTypeMaster", "Finance");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.Outbox.OutboxMessage", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<Guid>("CorrelationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EventData")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("LastError")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<int>("MaxRetries")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModuleName")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasDefaultValue("FinanceManagement");
-
-                    b.Property<DateTimeOffset?>("NextRetryAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset?>("PublishedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CorrelationId")
-                        .HasDatabaseName("IX_Finance_OutboxMessages_CorrelationId");
-
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("IX_Finance_OutboxMessages_CreatedAt");
-
-                    b.HasIndex("Status", "NextRetryAt")
-                        .HasDatabaseName("IX_Finance_OutboxMessages_Status_NextRetryAt")
-                        .HasFilter("[Status] = 0");
-
-                    b.ToTable("OutboxMessages", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIILineItem", b =>

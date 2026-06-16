@@ -44,6 +44,14 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(150)")
                 .IsRequired();
 
+            builder.Property(t => t.AccountTypeId)
+                .HasColumnName("AccountTypeId")
+                .HasColumnType("int");
+
+            builder.Property(t => t.ScheduleIIILineItemId)
+                .HasColumnName("ScheduleIIILineItemId")
+                .HasColumnType("int");
+
             builder.Property(t => t.ParentAccountGroupId)
                 .HasColumnName("ParentAccountGroupId")
                 .HasColumnType("int");
@@ -91,12 +99,28 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.ParentAccountGroupId);
             builder.HasIndex(t => t.Level);
             builder.HasIndex(t => t.CompanyId);
+            builder.HasIndex(t => t.AccountTypeId);
+            builder.HasIndex(t => t.ScheduleIIILineItemId);
 
             // Self-referencing single-parent FK (same-module). Restrict prevents deleting a
             // parent that still has children at the database level.
             builder.HasOne(t => t.ParentAccountGroup)
                 .WithMany(p => p.Children)
                 .HasForeignKey(t => t.ParentAccountGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Statutory head FK (same-module → Finance.AccountTypeMaster). Level 1 only; Restrict
+            // so an account type cannot be deleted while a Level 1 group references it.
+            builder.HasOne(t => t.AccountType)
+                .WithMany()
+                .HasForeignKey(t => t.AccountTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Schedule III line mapping FK (same-module → Finance.ScheduleIIILineItem). Nullable;
+            // Restrict so a statutory line in use cannot be deleted.
+            builder.HasOne(t => t.ScheduleIIILineItem)
+                .WithMany()
+                .HasForeignKey(t => t.ScheduleIIILineItemId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

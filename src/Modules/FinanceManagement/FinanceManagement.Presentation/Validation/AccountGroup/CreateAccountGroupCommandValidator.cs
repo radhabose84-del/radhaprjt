@@ -1,6 +1,7 @@
 using FluentValidation;
 using FinanceManagement.Application.AccountGroup.Commands.CreateAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
+using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
 using FinanceManagement.Presentation.Validation.Common;
 using Shared.Validation.Common;
 
@@ -10,12 +11,15 @@ namespace FinanceManagement.Presentation.Validation.AccountGroup
     {
         private readonly List<ValidationRule> _validationRules;
         private readonly IAccountGroupQueryRepository _queryRepository;
+        private readonly IAccountTypeMasterQueryRepository _accountTypeRepository;
 
         public CreateAccountGroupCommandValidator(
             MaxLengthProvider maxLengthProvider,
-            IAccountGroupQueryRepository queryRepository)
+            IAccountGroupQueryRepository queryRepository,
+            IAccountTypeMasterQueryRepository accountTypeRepository)
         {
             _queryRepository = queryRepository;
+            _accountTypeRepository = accountTypeRepository;
 
             var maxLengthCode = maxLengthProvider.GetMaxLength<Domain.Entities.AccountGroup>("GroupCode") ?? 50;
             var maxLengthName = maxLengthProvider.GetMaxLength<Domain.Entities.AccountGroup>("GroupName") ?? 150;
@@ -69,13 +73,21 @@ namespace FinanceManagement.Presentation.Validation.AccountGroup
                 .GreaterThan(0)
                 .WithMessage("CompanyId is required.");
 
-            // Level 1 (no parent) names are restricted to the statutory heads.
-            // TODO: source this from AccountTypeMaster when that feature is built.
-            RuleFor(x => x.GroupName)
-                .Must(name => Domain.Entities.AccountGroup.Level1GroupNames
-                    .Any(n => string.Equals(n, name, StringComparison.OrdinalIgnoreCase)))
-                .WithMessage("Level 1 groups must be one of: Assets, Liabilities, Equity, Revenue, Expenses.")
-                .When(x => !x.ParentAccountGroupId.HasValue && !string.IsNullOrWhiteSpace(x.GroupName));
+            // Level 1 (no parent) must reference a statutory head from AccountTypeMaster.
+            RuleFor(x => x.AccountTypeId)
+                .NotNull().WithMessage("Account Type is required for a Level 1 group.")
+                .When(x => !x.ParentAccountGroupId.HasValue);
+
+            // ...and that head must actually exist (only checked once a value is supplied).
+            RuleFor(x => x.AccountTypeId)
+                .MustAsync(async (accountTypeId, ct) => !await _accountTypeRepository.NotFoundAsync(accountTypeId!.Value))
+                .WithMessage("Selected Account Type does not exist.")
+                .When(x => !x.ParentAccountGroupId.HasValue && x.AccountTypeId.HasValue);
+
+            // Below Level 1, AccountType must not be set (it is carried only by the root head).
+            RuleFor(x => x.AccountTypeId)
+                .Null().WithMessage("Account Type applies only to Level 1 groups.")
+                .When(x => x.ParentAccountGroupId.HasValue);
 
             // Parent must exist and be active.
             RuleFor(x => x.ParentAccountGroupId)
