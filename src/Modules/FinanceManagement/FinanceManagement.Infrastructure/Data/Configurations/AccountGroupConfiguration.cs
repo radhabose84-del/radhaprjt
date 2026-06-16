@@ -44,6 +44,10 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnType("varchar(150)")
                 .IsRequired();
 
+            builder.Property(t => t.AccountTypeId)
+                .HasColumnName("AccountTypeId")
+                .HasColumnType("int");
+
             builder.Property(t => t.ParentAccountGroupId)
                 .HasColumnName("ParentAccountGroupId")
                 .HasColumnType("int");
@@ -91,12 +95,20 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.ParentAccountGroupId);
             builder.HasIndex(t => t.Level);
             builder.HasIndex(t => t.CompanyId);
+            builder.HasIndex(t => t.AccountTypeId);
 
             // Self-referencing single-parent FK (same-module). Restrict prevents deleting a
             // parent that still has children at the database level.
             builder.HasOne(t => t.ParentAccountGroup)
                 .WithMany(p => p.Children)
                 .HasForeignKey(t => t.ParentAccountGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Statutory head FK (same-module → Finance.AccountTypeMaster). Level 1 only; Restrict
+            // so an account type cannot be deleted while a Level 1 group references it.
+            builder.HasOne(t => t.AccountType)
+                .WithMany()
+                .HasForeignKey(t => t.AccountTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
