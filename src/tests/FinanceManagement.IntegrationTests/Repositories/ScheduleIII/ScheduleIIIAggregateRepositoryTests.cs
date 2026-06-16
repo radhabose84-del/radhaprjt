@@ -161,7 +161,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
         }
 
         [Fact]
-        public async Task UpdateAggregate_Replaces_The_Tree()
+        public async Task UpdateAggregate_Upserts_InPlace_And_Does_Not_Delete()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
@@ -169,8 +169,11 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             var structureId = await CreateCommandRepo(ctx).CreateAggregateAsync(BuildInput(m));
             ctx.ChangeTracker.Clear();
 
-            // New, smaller tree: one section + one line, no sub-totals.
-            var updated = new ScheduleIIIInput
+            // Target existing rows by Id to update them in place.
+            var section = await ctx.ScheduleIIISection.FirstAsync(x => x.StructureId == structureId && x.SectionName == "Income");
+            var line = await ctx.ScheduleIIILineItem.FirstAsync(x => x.StructureId == structureId && x.LineCode == "REV");
+
+            var update = new ScheduleIIIInput
             {
                 Id = structureId,
                 CompanyId = 1,
@@ -183,22 +186,64 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
                 {
                     new()
                     {
-                        SectionName = "Current Assets", StatementTypeId = m["BS"], NatureId = m["ASSET"], DisplayOrder = 1,
-                        LineItems = new List<LineItemInput> { new() { LineCode = "INV", LineName = "Inventories", DisplayOrder = 1, IsSplitLine = 0 } }
+                        Id = section.Id,
+                        SectionName = "Income (revised)",
+                        StatementTypeId = m["PL"], NatureId = m["INCOME"], DisplayOrder = 2,
+                        LineItems = new List<LineItemInput>
+                        {
+                            new() { Id = line.Id, LineCode = "REV", LineName = "Revenue (revised)", DisplayOrder = 1, IsSplitLine = 0 }
+                        }
                     }
-                }
+                },
+                SubTotals = new List<SubTotalInput>()   // omitted -> untouched (not deleted)
             };
 
-            await CreateCommandRepo(ctx).UpdateAggregateAsync(updated);
+            await CreateCommandRepo(ctx).UpdateAggregateAsync(update);
             ctx.ChangeTracker.Clear();
 
+            // structure scalars updated
             var structure = await ctx.ScheduleIIIStructure.FirstAsync(x => x.Id == structureId);
             structure.TextileSplitEnabled.Should().BeTrue();
             structure.VersionNo.Should().Be(2);
 
-            (await ctx.ScheduleIIISection.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(1);
-            (await ctx.ScheduleIIILineItem.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(1);
-            (await ctx.ScheduleIIISubTotal.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(0);
+            // targeted rows updated in place (same Ids)
+            (await ctx.ScheduleIIISection.FirstAsync(x => x.Id == section.Id)).SectionName.Should().Be("Income (revised)");
+            (await ctx.ScheduleIIILineItem.FirstAsync(x => x.Id == line.Id)).LineName.Should().Be("Revenue (revised)");
+
+            // nothing deleted or soft-deleted — counts unchanged from create
+            (await ctx.ScheduleIIISection.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(2);
+            (await ctx.ScheduleIIILineItem.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(4);
+            (await ctx.ScheduleIIISubTotal.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(2);
+        }
+
+        [Fact]
+        public async Task UpdateAggregate_WithoutChildIds_MatchesByNaturalKey_NoDuplicates()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var m = await SeedMiscAsync(ctx);
+            var structureId = await CreateCommandRepo(ctx).CreateAggregateAsync(BuildInput(m));
+            ctx.ChangeTracker.Clear();
+
+            // Re-send the SAME shape (same section names / line codes / sub-total names) with NO child ids,
+            // changing one line's name — must update in place, not duplicate.
+            var update = BuildInput(m);
+            update.Id = structureId;
+            update.Sections.SelectMany(s => s.LineItems).First(l => l.LineCode == "REV").LineName = "Revenue (v2)";
+
+            await CreateCommandRepo(ctx).UpdateAggregateAsync(update);
+            ctx.ChangeTracker.Clear();
+
+            // counts unchanged — no duplicate rows inserted
+            (await ctx.ScheduleIIISection.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(2);
+            (await ctx.ScheduleIIILineItem.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(4);
+            (await ctx.ScheduleIIISubTotal.CountAsync(x => x.StructureId == structureId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(2);
+            var subIds = await ctx.ScheduleIIISubTotal.Where(x => x.StructureId == structureId).Select(x => x.Id).ToListAsync();
+            (await ctx.ScheduleIIISubTotalFormula.CountAsync(f => subIds.Contains(f.SubTotalId) && f.IsDeleted == IsDelete.NotDeleted)).Should().Be(3);
+
+            // the matched line was updated in place (single REV row, new name)
+            (await ctx.ScheduleIIILineItem.CountAsync(x => x.StructureId == structureId && x.LineCode == "REV" && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(1);
+            (await ctx.ScheduleIIILineItem.FirstAsync(x => x.StructureId == structureId && x.LineCode == "REV")).LineName.Should().Be("Revenue (v2)");
         }
     }
 }

@@ -2,6 +2,7 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
 {
     // Composite Create/Update payload — one call inserts/updates Structure + Sections + LineItems
     // + SubTotals + Formulas (all five tables).
+    // Update is in-place: child rows with Id > 0 are UPDATED, Id == 0 (or omitted) are INSERTED. Nothing is deleted.
     public class ScheduleIIIInput
     {
         public int Id { get; set; }                 // structure id (Update only)
@@ -18,6 +19,7 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
 
     public class SectionInput
     {
+        public int Id { get; set; }                   // > 0 = update that row, 0 = insert
         public string? SectionName { get; set; }
         public int StatementTypeId { get; set; }
         public int NatureId { get; set; }
@@ -27,9 +29,10 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
 
     public class LineItemInput
     {
+        public int Id { get; set; }                   // > 0 = update that row, 0 = insert
         public string? LineCode { get; set; }
         public string? LineName { get; set; }
-        public string? ParentLineCode { get; set; }   // resolved to ParentLineId after insert (within the same structure)
+        public string? ParentLineCode { get; set; }   // resolved to ParentLineId after upsert (within the same structure)
         public string? SubClassification { get; set; }
         public string? NoteReference { get; set; }
         public int DisplayOrder { get; set; }
@@ -38,6 +41,7 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
 
     public class SubTotalInput
     {
+        public int Id { get; set; }                   // > 0 = update that row, 0 = insert
         public string? SubTotalName { get; set; }
         public int IncludeOtherIncome { get; set; }   // 0/1
         public int DisplayOrder { get; set; }
@@ -46,6 +50,7 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
 
     public class FormulaInput
     {
+        public int Id { get; set; }                   // > 0 = update that row, 0 = insert
         public int OperandTypeId { get; set; }        // MiscMaster (S3_OPERAND_TYPE): LineItem / SubTotal
         public string? OperandCode { get; set; }      // LineCode (line operand) or SubTotalName (sub-total operand) — resolved to OperandRefId
         public int OperatorId { get; set; }           // MiscMaster (S3_OPERATOR): Plus / Minus
