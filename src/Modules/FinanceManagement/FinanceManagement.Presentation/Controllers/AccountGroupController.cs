@@ -4,6 +4,7 @@ using FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.UpdateAccountGroup;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupAutoComplete;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupById;
+using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupLeaves;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupParents;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupTree;
 using MediatR;
@@ -55,6 +56,18 @@ namespace FinanceManagement.Presentation.Controllers
         public async Task<IActionResult> GetAccountGroupParentsAsync([FromQuery] int level, [FromQuery] int? companyId = null)
         {
             var result = await Mediator.Send(new GetAccountGroupParentsQuery(level, companyId));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Assignable leaf groups for the GL-account "Account Group" picker.
+        [HttpGet("leaf-groups")]
+        public async Task<IActionResult> GetAccountGroupLeavesAsync([FromQuery] int? companyId = null, [FromQuery] int? accountTypeId = null)
+        {
+            var result = await Mediator.Send(new GetAccountGroupLeavesQuery(companyId, accountTypeId));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

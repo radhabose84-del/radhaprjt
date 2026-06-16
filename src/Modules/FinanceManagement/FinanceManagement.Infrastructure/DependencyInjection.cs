@@ -15,6 +15,8 @@ using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
+using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
 using FinanceManagement.Infrastructure.Repositories.AuditLog;
@@ -28,7 +30,14 @@ using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
+
+using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
+using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
+using FinanceManagement.Infrastructure.Logging;
+using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
+using FinanceManagement.Infrastructure.Repositories.Outbox;
 using FinanceManagement.Infrastructure.Services;
+using FinanceManagement.Infrastructure.Services.Outbox;
 using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Users;
 using Shared.Infrastructure.Resilience;
@@ -51,15 +60,18 @@ namespace FinanceManagement.Infrastructure
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found or is empty.");
 
+            // Activity-log interceptor (writes Finance.ActivityLog for IActivityTracked entities)
+            services.AddScoped<ActivityLogSaveChangesInterceptor>();
+
             // Register ApplicationDbContext with SQL Server
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>((sp, options) =>
                 options.UseSqlServer(connectionString, sqlOptions =>
                 {
                     sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorNumbersToAdd: null);
-                }));
+                }).AddInterceptors(sp.GetRequiredService<ActivityLogSaveChangesInterceptor>()));
 
             // Register IDbConnection for Dapper
             services.AddTransient<IDbConnection>(sp => new SqlConnection(connectionString));
@@ -115,6 +127,11 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IAccountGroupCommandRepository, AccountGroupCommandRepository>();
             services.AddScoped<IAccountGroupQueryRepository, AccountGroupQueryRepository>();
+            services.AddScoped<IAccountGroupChangeRequestRepository, AccountGroupChangeRequestRepository>();
+
+            // Transactional outbox (workflow events → bus)
+            services.AddScoped<IOutboxRepository, OutboxRepository>();
+            services.AddScoped<IOutboxEventPublisher, OutboxEventPublisher>();
 
             services.AddScoped<IEInvoiceHeaderCommandRepository, EInvoiceHeaderCommandRepository>();
             services.AddScoped<IEInvoiceHeaderQueryRepository, EInvoiceHeaderQueryRepository>();
@@ -131,12 +148,18 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IAccountTypeMasterCommandRepository, AccountTypeMasterCommandRepository>();
             services.AddScoped<IAccountTypeMasterQueryRepository, AccountTypeMasterQueryRepository>();
 
+            services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
+            services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
+
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
             services.AddScoped<ITransactionTypeLookup, TransactionTypeLookupRepository>();
             services.AddScoped<IEInvoiceLookup, EInvoiceLookupRepository>();
             services.AddScoped<IEWaybillLookup, EWaybillLookupRepository>();
             services.AddScoped<IAccountTypeMasterLookup, AccountTypeMasterLookupRepository>();
+           services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
+            services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
+            services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically
