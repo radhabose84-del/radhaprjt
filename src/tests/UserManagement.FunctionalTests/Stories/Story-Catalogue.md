@@ -97,6 +97,79 @@ and prove the "role linked to mappings/users can't be silently removed" rule.
 
 ---
 
+## US-UM-03 — Navigation & RBAC scaffolding
+
+> **As** an application administrator
+> **I want** to register a Module, add a Menu under it, and wire role entitlements
+> **so that** the navigation tree and role-based access reflect the app structure.
+
+**Workflow under test:** create a Module → create a Menu referencing that module → read the menu
+back; then exercise the role-entitlement / role-allocation surface.
+
+| # | Acceptance criterion | Tag | Notes / source |
+|---|---|---|---|
+| 03.1 | A **Module** is created → returns a new id | ✅ [intended] | `POST /api/Modules` `{moduleName}` |
+| 03.2 | A **Menu** is created referencing `moduleId` (parentId=0 root) → new id | ✅ [intended] | `POST /api/Menu` `{menuName,moduleId,menuUrl,parentId,sortOrder}` |
+| 03.3 | The menu is reachable via `by-name?name=&moduleId=` | ⚠️ [verify] | autocomplete filter semantics |
+| 03.4 | `POST /by-module` / `/by-parent` return the navigation tree for the module | ⚠️ [verify] | `List<int>` body lookups |
+| 03.5 | **RoleEntitlements** create wires modules/menus/privileges to a role | 🚫 [blocked] | nested RBAC DTO needs seeded role/module/menu ids |
+| 03.6 | **UserRoleAllocation** assigns roles to a user (bulk roleIds) | 🚫 [blocked] | needs a seeded user + role ids |
+| 03.7 | Teardown leaf-first (menu → module) | ✅ [intended] | DELETE `/{id}` route binding |
+
+---
+
+## US-UM-04 — Reference master setup
+
+> **As** an administrator
+> **I want** to set up location/station/icon reference masters
+> **so that** other modules can reference them.
+
+**Workflow under test:** create Location, Station, IconMaster; verify read-back, deactivate-excludes-from-autocomplete, and that TimeZones (read-only) is reachable.
+
+| # | Acceptance criterion | Tag | Notes / source |
+|---|---|---|---|
+| 04.1 | A **Location** is created (immutable code) → new id | ✅ [intended] | `POST /api/usermanagement/Location` |
+| 04.2 | A **Station** is created (immutable code) → new id | ✅ [intended] | `POST /api/Station` |
+| 04.3 | An **IconMaster** is created (keyword immutable) → new id | ✅ [intended] | `POST /api/IconMaster` |
+| 04.4 | Each is readable by id | ✅ [intended] | non-company-scoped reads |
+| 04.5 | Deactivating the Location/Station excludes it from `by-name` autocomplete, keeps it in GetAll | ⚠️ [verify] | autocomplete `IsActive=1` filter |
+| 04.6 | **TimeZones** (read-only) list is reachable | ✅ [intended] | `GET /api/TimeZones` |
+| 04.7 | Teardown removes the created masters | ✅ [intended] | DELETE `/{id}` |
+
+---
+
+## US-UM-05 — Security policy configuration
+
+> **As** a security administrator
+> **I want** to define password-complexity, admin-security and company-settings policies
+> **so that** authentication is governed by the configured rules.
+
+| # | Acceptance criterion | Tag | Notes / source |
+|---|---|---|---|
+| 05.1 | A **PasswordComplexityRule** can be created and read back | ✅ [intended] | `POST /api/PasswordComplexityRule` |
+| 05.2 | An **AdminSecuritySettings** record can be created (all int/byte fields) | ⚠️ [verify] | create returns 201 with no id body → singleton-ish; verify behaviour |
+| 05.3 | **CompanySettings** can be created for a company (currency/language/timezone/financialYear FKs) | 🚫 [blocked] | needs a valid FK combo for `testsales` |
+| 05.4 | The current CompanySettings singleton is readable | ✅ [intended] | `GET /api/CompanySettings` |
+| 05.5 | Teardown removes the created policy rows where supported | ⚠️ [verify] | some settings have no delete |
+
+---
+
+## US-UM-06 — User onboarding & access  *(BLOCKED — needs seeded FK chain)*
+
+> **As** an administrator
+> **I want** to create an Entity, onboard a User under it, allocate roles, and drive the password flow
+> **so that** the user can log in with the right access.
+
+| # | Acceptance criterion | Tag | Notes / source |
+|---|---|---|---|
+| 06.1 | An **Entity** is created (entityCode auto-generated) → new id | ✅ [intended] | `POST /api/Entity` |
+| 06.2 | A **User** is created under the entity (5 nested arrays + group/dept FKs) | 🚫 [blocked] | needs seeded userGroup/department/role/unit/division ids |
+| 06.3 | Roles are allocated to the user | 🚫 [blocked] | depends on 06.2 |
+| 06.4 | First-time password set / reset-request / reset flow works | 🚫 [blocked] | depends on a real created user; reset endpoints are `[AllowAnonymous]` (reachability only) |
+| 06.5 | The Entity is readable by id and lists its companies | ✅ [intended] | `GET /api/Entity/{id}`, `/{id}/companies` |
+
+---
+
 ## Proposed test surface once approved (preview — not yet written)
 
 | Story | Test class | Approx. steps | Verifies |

@@ -44,6 +44,11 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<ScheduleIIISubTotal> ScheduleIIISubTotal => Set<ScheduleIIISubTotal>();
         public DbSet<ScheduleIIISubTotalFormula> ScheduleIIISubTotalFormula => Set<ScheduleIIISubTotalFormula>();
 
+        // Tax code catalogue + GL linkage (US-GL02-05A / 05B)
+        public DbSet<TaxCodeMaster> TaxCodeMaster => Set<TaxCodeMaster>();
+        public DbSet<TaxCodeRateVersion> TaxCodeRateVersion => Set<TaxCodeRateVersion>();
+        public DbSet<TaxAccountLinkage> TaxAccountLinkage => Set<TaxAccountLinkage>();
+
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 

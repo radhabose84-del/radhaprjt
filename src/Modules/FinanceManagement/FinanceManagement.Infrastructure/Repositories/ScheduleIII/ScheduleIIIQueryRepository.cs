@@ -108,6 +108,41 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return count == 0;
         }
 
+        public async Task<(List<ActivityLogDto>, int)> GetActivityLogAsync(string? entityName, int? entityId, int pageNumber, int pageSize)
+        {
+            var nameClause = string.IsNullOrWhiteSpace(entityName) ? "" : "AND EntityName = @EntityName";
+            var idClause = entityId.HasValue ? "AND EntityId = @EntityId" : "";
+
+            var query = $$"""
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM [Finance].[ActivityLog]
+                WHERE 1 = 1 {{nameClause}} {{idClause}};
+
+                SELECT Id, EntityName, EntityId, Action, PropertyName, OldValue, NewValue,
+                       CreatedBy, CreatedByName, CreatedIP, CreatedDate, Scope, ScopeKey
+                FROM [Finance].[ActivityLog]
+                WHERE 1 = 1 {{nameClause}} {{idClause}}
+                ORDER BY CreatedDate DESC, Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            """;
+
+            var parameters = new
+            {
+                EntityName = entityName,
+                EntityId = entityId,
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<ActivityLogDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+            return (list, totalCount);
+        }
+
         public async Task<Preview03BDto> Get03BPreviewAsync(int structureId)
         {
             const string sql = @"

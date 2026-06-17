@@ -3787,9 +3787,13 @@ public async Task<bool> SoftDeleteValidationAsync(int id)
 
 ---
 
-### 26. **Mandatory Tests, No Production/Live-DB Changes, New Modules Allowed**
+### 26. **Mandatory Unit, Integration, QA, Functional & Smoke Tests; No Production/Live-DB Changes; New Modules Allowed**
 
 This rule has **three parts** — all are mandatory.
+
+> ⚖️ **All five test layers carry EQUAL weight.** Unit, Integration, QA (live-server), Functional (workflow/story), and the Smoke trait are **peers** — none is optional or secondary. A change is not done until **every applicable layer** exists and passes. QA/Functional are not a "nice-to-have pyramid top" — they are mandatory exactly like Unit and Integration.
+>
+> 🏗️ **If a module is missing its `.QATests` or `.FunctionalTests` project, CREATE it first** — scaffolded from the canonical reference suites (`UserManagement`, `FixedAssetManagement`, `MaintenanceManagement` for both QA and Functional) following the **🌐 QA Tests** and **🧭 Functional Tests** sections — **then proceed** with the entity/story work. Never skip a layer because its project does not yet exist.
 
 ---
 
@@ -3813,21 +3817,21 @@ This rule has **three parts** — all are mandatory.
 
 ---
 
-#### Part B — Mandatory Unit Tests AND Integration Tests for ALL Code Changes
+#### Part B — Mandatory Unit, Integration, QA, Functional AND Smoke Tests for ALL Code Changes
 
-> ❌ **NEVER make any code change or create new code (including new modules) without ALSO adding/updating both unit tests and integration tests.**
+> ❌ **NEVER make any code change or create new code (including new modules) without ALSO adding/updating ALL applicable test layers — Unit, Integration, QA (live-server), Functional (workflow/story), and the Smoke trait. These five are mandatory peers; none may be skipped or deferred.**
 
-| Action | Tests Required |
+| Action | Tests Required (all applicable layers) |
 |---|---|
-| Create new module | ✅ Create `{Module}.UnitTests` + `{Module}.IntegrationTests` projects |
-| Create new entity in existing/new module | ✅ Unit tests + ✅ Integration tests |
-| Add column to existing entity | ✅ Update unit tests (handler + validator + entity) + ✅ Update integration tests (command + query repos) |
-| Modify existing handler/repo/validator/controller | ✅ Update both test types |
-| Modify domain entity | ✅ Update entity unit tests |
-| Add/change AutoMapper profile | ✅ Update handler unit tests |
-| Bug fix | ✅ Regression test that fails before fix and passes after |
+| Create new module | ✅ Create **all four** projects: `{Module}.UnitTests` + `{Module}.IntegrationTests` + `{Module}.QATests` + `{Module}.FunctionalTests` |
+| Create new entity in existing/new module | ✅ Unit + ✅ Integration + ✅ QA (full CRUD + **Smoke** trait on GetAll) + ✅ Functional story |
+| Add column to existing entity | ✅ Update unit (handler + validator + entity) + ✅ Integration (command + query repos) + ✅ QA assertions + ✅ Functional story step |
+| Modify existing handler/repo/validator/controller | ✅ Update unit + integration + QA (re-reconcile) + functional where the behavior is story-visible |
+| Modify domain entity | ✅ Update entity unit tests + integration + QA as affected |
+| Add/change AutoMapper profile | ✅ Update handler unit tests + QA where response shape changes |
+| Bug fix | ✅ Regression test that fails before fix and passes after, at the layer that catches it (unit / integration / QA / functional) |
 
-**The full test pyramid is mandatory** — not just unit + integration. A new entity/story is **not done** until all applicable layers exist and pass:
+**The full test pyramid is mandatory** — Unit, Integration, QA, Functional, and Smoke all carry equal weight. A new entity/story is **not done** until all applicable layers exist and pass:
 
 | Layer | Location | Required for |
 |---|---|---|
@@ -3836,7 +3840,13 @@ This rule has **three parts** — all are mandatory.
 | **QA tests (live-server)** | `src/tests/{Module}.QATests/` | every entity — full CRUD + the **Smoke** trait on GetAll |
 | **Functional tests (workflow/story)** | `src/tests/{Module}.FunctionalTests/` | every business story (e.g. `US-…`), gated by the Story-Catalogue |
 
-If a test project does not exist, **create it first** using the **Unit Testing**, **Integration Testing**, **🌐 QA Tests**, and **🧭 Functional Tests** sections of this file.
+> 🏗️ **If a required test project does not exist, CREATE it first — do not skip the layer.**
+> Scaffold the missing project from the canonical reference suites and the matching section of this file:
+> - `{Module}.UnitTests` / `{Module}.IntegrationTests` → **Unit Testing** / **Integration Testing** sections
+> - `{Module}.QATests` → **🌐 QA Tests** section, modeled on `UserManagement.QATests` / `FixedAssetManagement.QATests` / `MaintenanceManagement.QATests`
+> - `{Module}.FunctionalTests` → **🧭 Functional Tests** section, modeled on `UserManagement.FunctionalTests` / `FixedAssetManagement.FunctionalTests` / `MaintenanceManagement.FunctionalTests`
+>
+> Only after the project exists (referencing `Shared.QAInfrastructure`, serialized collections, `appsettings.QA.json`, etc.) do you author the tests and **proceed** with the work.
 
 **Definition of "Done" (new entity / story):**
 - [ ] Production code (dev/feature branch — never production) written/modified
@@ -3858,10 +3868,12 @@ New modules **CAN** be created in BSOFT. When creating a new module:
 
 1. Follow the **Standard Module Structure** at the top of this file
 2. Register the module via the **New Module Registration Checklist** ([NewModuleRegistrationChecklist.md](NewModuleRegistrationChecklist.md))
-3. **Create both test projects from day one:**
+3. **Create ALL FOUR test projects from day one** (scaffold each from the canonical reference suites):
    - `src/tests/{NewModule}.UnitTests/{NewModule}.UnitTests.csproj`
    - `src/tests/{NewModule}.IntegrationTests/{NewModule}.IntegrationTests.csproj`
-4. Every entity in the new module must have unit + integration tests before merge
+   - `src/tests/{NewModule}.QATests/{NewModule}.QATests.csproj` (references `Shared.QAInfrastructure`)
+   - `src/tests/{NewModule}.FunctionalTests/{NewModule}.FunctionalTests.csproj` (with `Stories/Story-Catalogue.md`)
+4. Every entity in the new module must have **unit + integration + QA (CRUD + Smoke trait)** coverage, and every business story a **Functional** test, before merge
 
 ---
 

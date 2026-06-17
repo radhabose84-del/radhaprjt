@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  QA run settings — serialize test ASSEMBLIES.
+
+  Why: the QA suites all authenticate as the single `testsales` account, which the
+  server enforces as single-session-per-user. Each QA assembly's fixture calls
+  `deactivate-user-sessionByUsername` + `login` on startup. If two QA assemblies run
+  at once (the default when `dotnet test` runs a solution or multiple projects), they
+  force-deactivate each other's live session, producing:
+    - 401 "Session is invalid or expired" mid-run, and
+    - 400 on the login call itself during the deactivate/login storm.
+
+  MaxCpuCount=1 makes VSTest run one test DLL at a time, so each assembly fully
+  finishes (and releases its testsales session) before the next logs in.
+
+  Usage:
+    dotnet test BSOFT.sln --settings qa.runsettings
+-->
+<RunSettings>
+  <RunConfiguration>
+    <!-- 1 = run test assemblies sequentially (no cross-assembly parallelism). -->
+    <MaxCpuCount>1</MaxCpuCount>
+  </RunConfiguration>
+</RunSettings>

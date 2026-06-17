@@ -51,6 +51,11 @@
         "error": " must be alphanumeric only."
     },
     {
+        "rule": "TaxCodePattern",
+        "pattern": "^[A-Za-z0-9.-]+$",
+        "error": " must be alphanumeric (hyphens and dots allowed)."
+    },
+    {
         "rule": "NameField",
         "pattern": "^[A-Za-z0-9 ]+$",
         "error": " must not contain special characters."

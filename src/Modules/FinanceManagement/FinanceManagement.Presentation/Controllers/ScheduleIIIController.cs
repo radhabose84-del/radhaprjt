@@ -7,6 +7,7 @@ using FinanceManagement.Application.ScheduleIII.Commands.ReorderLineItem;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateLineItem;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal;
+using FinanceManagement.Application.ScheduleIII.Queries.GetActivityLog;
 using FinanceManagement.Application.ScheduleIII.Queries.GetScheduleIIIById;
 using FinanceManagement.Application.ScheduleIII.Queries.Get03BDropdownPreview;
 using FinanceManagement.Application.ScheduleIII.Queries.GetLineItemById;
@@ -44,6 +45,31 @@ namespace FinanceManagement.Presentation.Controllers
         {
             var result = await Mediator.Send(new GetScheduleIIIByIdQuery { Id = structureId });
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        [HttpGet("activity-log")]
+        public async Task<IActionResult> GetActivityLog(
+            [FromQuery] string? entityName = null,
+            [FromQuery] int? entityId = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            var result = await Mediator.Send(new GetActivityLogQuery
+            {
+                EntityName = entityName,
+                EntityId = entityId,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
         }
 
         [HttpGet("structure")]

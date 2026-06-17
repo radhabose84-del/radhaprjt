@@ -28,3 +28,31 @@ need them are 🚫 and `[Fact(Skip=...)]` until seeded.
 > AC3 (division switch) and AC4 (textile split) were de-scoped to **query-only** (toggle state is
 > read from stored data via `GetStructure`/`GetSubTotals`); no dedicated command exists, so they are
 > not separate functional steps.
+
+---
+
+## US-GL02-05A / 05B — Tax Code Catalogue + Tax-Account Linkage
+
+**User story:** As a Tax Lead, I maintain the tax-code catalogue (GST in/out, IGST, TDS, customs)
+with rates, statutory sections and effective-dated versions, and link those codes to GL accounts,
+so the AR / AP / TX modules and the linkage screen draw from one governed, versioned source.
+
+**Pre-condition (seed):** tax codes & GSTR sections are **self-seeding** (create endpoints exist).
+Linkage steps need a real `Finance.GlAccountMaster` Id (FK) — `[Fact(Skip=...)]` until a GL account
+is resolvable in the QA clone.
+
+Base route: `api/finance/TaxCode`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1-A — create → available | Given a new code `GST-OUT-5` is created, When GET `/tax-code/by-name` and `/tax-code/effective`, Then it is returned (available to the linkage screen + AR/AP/TX, no code change). | ✅ implementable |
+| AC3-A — rate change versioned | Given a rate change via POST `/tax-code/{id}/rate-version` with an effective date, When GET `/tax-code/{id}/versions`, Then the prior version is retained and `/tax-code/effective` returns the old rate before the date and the new rate on/after it (never retroactive). | ✅ implementable |
+| AC4-A — reject invalid | Given a GST code with no rate (or a TDS code with no section), When POST `/tax-code`, Then 400 field-level error. | ✅ implementable |
+| Deactivate | Given an active code, When PUT with `isActive=0`, Then it is excluded from `/tax-code/by-name` (autocomplete) but still present in `/tax-code` GetAll (`IsDeleted=0`). | ✅ implementable |
+| AC5-A — delete blocked when linked | Given a code linked to a GL account (05B), When DELETE `/tax-code/{id}`, Then blocked: "Cannot delete — code is linked to [N] GL account(s). Unlink first." | 🚫 needs GL account |
+| AC2-B — activation needs GL | Given a linkage with a GL mapping, When POST `/linkage/{id}/activate`, Then 200; without a GL mapping it is rejected. | 🚫 needs GL account |
+| AC4-B — dual-approval change | Given a linkage change via POST `/linkage/change-request`, When submitted, Then it appears in `/linkage/change-audit` as PENDING and dual approval (FC + Tax Lead) is driven by the BackgroundService Workflow module. | 🚫 needs GL account + workflow |
+
+> Composite GST is modelled as child component codes (CGST/SGST) under a COMBINED header (Tax Lead
+> ruling); TaxCode allows hyphens **and dots** (`^[A-Za-z0-9.-]+$`) so codes like `GST-OUT-CGST-2.5`
+> validate. TDS `StatutorySection` uses legacy 194x placeholders pending the IT Act 2025 clause numbers.
