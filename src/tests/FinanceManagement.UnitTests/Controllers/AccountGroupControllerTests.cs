@@ -4,6 +4,7 @@ using FinanceManagement.Application.AccountGroup.Commands.CreateAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.UpdateAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.DeleteAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup;
+using FinanceManagement.Application.AccountGroup.Commands.MapScheduleIIILine;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupTree;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupById;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupAutoComplete;
@@ -133,6 +134,18 @@ namespace FinanceManagement.UnitTests.Controllers
                 Justification = "Restructure for FY2026 reporting",
                 ApproverId = 99
             });
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task MapScheduleIIILine_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<MapScheduleIIILineCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<int> { IsSuccess = true, Message = "Mapped", Data = 3 });
+
+            var result = await CreateSut().MapScheduleIIILine(new MapScheduleIIILineCommand { AccountGroupId = 3, ScheduleIIILineItemId = 10 });
 
             result.Should().BeOfType<OkObjectResult>();
         }

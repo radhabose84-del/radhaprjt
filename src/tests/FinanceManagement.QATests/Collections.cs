@@ -14,4 +14,7 @@ namespace FinanceManagement.QATests
 
     [CollectionDefinition("SecurityCollection")]
     public sealed class SecurityCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("AccountGroupCollection")]
+    public sealed class AccountGroupCollection : ICollectionFixture<QAServerFixture> { }
 }

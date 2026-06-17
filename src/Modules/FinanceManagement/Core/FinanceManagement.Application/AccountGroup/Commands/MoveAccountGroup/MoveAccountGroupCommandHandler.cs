@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Contracts.Commands.Workflow;
 using Contracts.Common;
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Domain.Common;
@@ -13,15 +14,18 @@ namespace FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup
     {
         private readonly IAccountGroupChangeRequestRepository _changeRequestRepository;
         private readonly IOutboxEventPublisher _outboxEventPublisher;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
 
         public MoveAccountGroupCommandHandler(
             IAccountGroupChangeRequestRepository changeRequestRepository,
             IOutboxEventPublisher outboxEventPublisher,
+            IIPAddressService ipAddressService,
             IMediator mediator)
         {
             _changeRequestRepository = changeRequestRepository;
             _outboxEventPublisher = outboxEventPublisher;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
         }
 
@@ -42,12 +46,23 @@ namespace FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup
             await _changeRequestRepository.AddWithoutSaveAsync(changeRequest, cancellationToken);
 
             var correlationId = Guid.NewGuid();
+
+            // The approval engine is unit-scoped: ApprovalRequest.UnitId is NOT NULL and is taken
+            // from the transaction payload. Stamp the acting user's operating unit (same as PO/Sales).
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            // sp_EvaluateApproval reads the transaction unit from $.Header.UnitId (same shape the
+            // PO/Sales workflows use), so the payload is wrapped in a Header object.
             var payload = JsonSerializer.Serialize(new
             {
-                request.Id,
-                request.NewParentAccountGroupId,
-                request.Justification,
-                request.ApproverId
+                Header = new
+                {
+                    request.Id,
+                    request.NewParentAccountGroupId,
+                    request.Justification,
+                    request.ApproverId,
+                    UnitId = unitId
+                }
             });
 
             // ModuleTypeName MUST equal the Menu name (MenuId 1288) so sp_EvaluateApproval resolves it.
