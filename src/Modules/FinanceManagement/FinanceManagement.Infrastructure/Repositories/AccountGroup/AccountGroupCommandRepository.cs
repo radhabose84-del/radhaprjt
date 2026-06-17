@@ -93,6 +93,20 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
             return node.Id;
         }
 
+        public async Task<int> MapScheduleIIILineAsync(int accountGroupId, int? scheduleIIILineItemId)
+        {
+            var existing = await _dbContext.AccountGroup
+                .FirstOrDefaultAsync(x => x.Id == accountGroupId && x.IsDeleted == BaseEntity.IsDelete.NotDeleted);
+
+            if (existing == null)
+                return 0;
+
+            existing.ScheduleIIILineItemId = scheduleIIILineItemId;
+            _dbContext.AccountGroup.Update(existing);
+            await _dbContext.SaveChangesAsync();
+            return existing.Id;
+        }
+
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
         {
             var existing = await _dbContext.AccountGroup

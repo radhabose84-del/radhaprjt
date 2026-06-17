@@ -99,6 +99,16 @@ namespace FinanceManagement.Presentation.Validation.GlAccountMaster
                             .WithMessage("Account Group not configured for this company.")
                             .When(x => x.AccountGroupId > 0);
 
+                        // AC2 — accounts attach only at a leaf group.
+                        RuleFor(x => x.AccountGroupId)
+                            .MustAsync(async (groupId, ct) =>
+                            {
+                                var companyId = _ipAddressService.GetCompanyId() ?? 0;
+                                return await _queryRepository.AccountGroupIsLeafForCompanyAsync(groupId, companyId);
+                            })
+                            .WithMessage("Accounts attach only at leaf level — select a leaf group.")
+                            .When(x => x.AccountGroupId > 0);
+
                         RuleFor(x => x.NormalBalanceId)
                             .MustAsync(async (nbId, ct) => await _queryRepository.NormalBalanceExistsAsync(nbId))
                             .WithMessage("Invalid Normal Balance.")

@@ -14,6 +14,9 @@ namespace FinanceManagement.Application.Common.Interfaces.IGlAccountMaster
 
         Task<bool> AccountTypeExistsForCompanyAsync(int accountTypeId, int companyId);
         Task<bool> AccountGroupExistsForCompanyAsync(int accountGroupId, int companyId);
+
+        // AC2: a GL account may attach only to a leaf group (IsLeaf = 1) of the same company.
+        Task<bool> AccountGroupIsLeafForCompanyAsync(int accountGroupId, int companyId);
         Task<bool> NormalBalanceExistsAsync(int normalBalanceId);
         Task<bool> SubLedgerTypeExistsAsync(int subLedgerTypeId);
 
