@@ -1,6 +1,7 @@
 using FinanceManagement.Application.TaxCode.Commands.CreateTaxCodeMaster;
 using FinanceManagement.Application.TaxCode.Commands.UpdateTaxCodeMaster;
 using FinanceManagement.Application.TaxCode.Queries.GetAllTaxCodeMaster;
+using FinanceManagement.Application.TaxCode.Queries.GetTaxCodeGlMappingSummary;
 using FinanceManagement.Application.TaxCode.Queries.GetTaxCodeMasterAutoComplete;
 using FinanceManagement.Application.TaxCode.Queries.GetTaxCodeMasterById;
 using MediatR;
@@ -23,6 +24,32 @@ namespace FinanceManagement.Presentation.Controllers
             [FromQuery] string? TaxType = null)
         {
             var result = await Mediator.Send(new GetAllTaxCodeMasterQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm,
+                TaxType = TaxType
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        // Tax Code Registry summary — each tax code + current rate + GL-account mapping count.
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetTaxCodeGlMappingSummaryAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] string? TaxType = null)
+        {
+            var result = await Mediator.Send(new GetTaxCodeGlMappingSummaryQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,

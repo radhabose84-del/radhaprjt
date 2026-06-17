@@ -11,6 +11,7 @@ namespace FinanceManagement.Application.Common.Interfaces.ITaxCode
 
         // --- Tax Account Linkage (US-GL02-05B) — no delete; updates insert a new row ---
         Task<int> CreateLinkageAsync(Domain.Entities.TaxAccountLinkage entity);
-        Task<bool> ActivateLinkageAsync(int id, int approvedStatusId, CancellationToken ct);
+        Task<bool> ActivateLinkageAsync(int id, int approvedStatusId, CancellationToken ct);   // approve: Active + APPROVED, close prior
+        Task<bool> RejectLinkageAsync(int id, int rejectedStatusId, CancellationToken ct);     // reject: StatusId=REJECTED, stays Inactive
     }
 }

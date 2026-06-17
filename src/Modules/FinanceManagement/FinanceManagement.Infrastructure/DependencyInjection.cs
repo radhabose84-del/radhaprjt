@@ -35,6 +35,7 @@ using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
 using FinanceManagement.Application.Common.Interfaces.ITaxCode;
+using FinanceManagement.Application.Common.Interfaces.IGstrSection;
 using FinanceManagement.Infrastructure.Repositories.TaxCode;
 using FinanceManagement.Infrastructure.Logging;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
@@ -161,6 +162,10 @@ namespace FinanceManagement.Infrastructure
             // Tax Code feature (US-GL02-05A / 05B) — consolidated command + query repos
             services.AddScoped<ITaxCodeCommandRepository, TaxCodeCommandRepository>();
             services.AddScoped<ITaxCodeQueryRepository, TaxCodeQueryRepository>();
+
+            // GSTR section master + account-range mapping — consolidated command + query repos
+            services.AddScoped<IGstrSectionCommandRepository, GstrSectionCommandRepository>();
+            services.AddScoped<IGstrSectionQueryRepository, GstrSectionQueryRepository>();
 
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();

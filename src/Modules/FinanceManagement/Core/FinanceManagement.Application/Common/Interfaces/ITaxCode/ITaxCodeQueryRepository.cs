@@ -8,6 +8,7 @@ namespace FinanceManagement.Application.Common.Interfaces.ITaxCode
         // --- Tax Code Master ---
         Task<(List<TaxCodeMasterDto>, int)> GetAllTaxCodesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, string? taxType);
         Task<TaxCodeMasterDto?> GetTaxCodeByIdAsync(int id);
+        Task<(List<TaxCodeGlMappingSummaryDto>, int)> GetTaxCodeGlMappingSummaryAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, string? taxType);
         Task<IReadOnlyList<TaxCodeMasterLookupDto>> TaxCodeAutocompleteAsync(string term, int? companyId, string? taxType, CancellationToken ct);
         Task<List<TaxCodeRateVersionDto>> GetRateVersionsAsync(int taxCodeId);
         Task<bool> TaxCodeAlreadyExistsAsync(string taxCode, int companyId, int? id = null);
@@ -22,6 +23,7 @@ namespace FinanceManagement.Application.Common.Interfaces.ITaxCode
 
         // --- Tax Account Linkage ---
         Task<(List<TaxAccountLinkageDto>, int)> GetAllLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, int? statusId);
+        Task<(List<PendingTaxAccountLinkageDto>, int)> GetPendingLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId);
         Task<TaxAccountLinkageDto?> GetLinkageByIdAsync(int id);
         Task<TaxAccountLinkageDto?> GetLinkageByAccountAsync(int glAccountId);
         Task<bool> GlAccountExistsAsync(int glAccountId);
