@@ -108,6 +108,16 @@ namespace FinanceManagement.Presentation.Validation.GlAccountMaster
                             .MustAsync(async (sltId, ct) => await _queryRepository.SubLedgerTypeExistsAsync(sltId))
                             .WithMessage("Invalid Sub-Ledger Type.")
                             .When(x => x.SubLedgerTypeId > 0);
+
+                        // Currency Type dropdown -> CurrencyForexConfig master (US-GL02-12)
+                        RuleFor(x => x.CurrencyTypeId)
+                            .MustAsync(async (ctId, ct) =>
+                            {
+                                var companyId = _ipAddressService.GetCompanyId() ?? 0;
+                                return await _queryRepository.CurrencyTypeExistsForCompanyAsync(ctId, companyId);
+                            })
+                            .WithMessage("Invalid Currency Type.")
+                            .When(x => x.CurrencyTypeId > 0);
                         break;
 
                     case "AlreadyExists":

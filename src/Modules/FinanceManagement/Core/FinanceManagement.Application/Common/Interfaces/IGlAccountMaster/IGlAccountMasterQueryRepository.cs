@@ -16,6 +16,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IGlAccountMaster
         Task<bool> AccountGroupExistsForCompanyAsync(int accountGroupId, int companyId);
         Task<bool> NormalBalanceExistsAsync(int normalBalanceId);
         Task<bool> SubLedgerTypeExistsAsync(int subLedgerTypeId);
+        Task<bool> CurrencyTypeExistsForCompanyAsync(int currencyTypeId, int companyId);
 
         Task<(int AccountCodeLength, string? StartCode, string? AccountTypeName)?> GetAccountTypeFormatAsync(int accountTypeId);
 
