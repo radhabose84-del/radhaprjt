@@ -1061,6 +1061,166 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("GlAccountMaster", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionAccountLinkage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountRangeFrom")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("AccountRangeFrom");
+
+                    b.Property<string>("AccountRangeTo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("AccountRangeTo");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal?>("DerivedValue")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("DerivedValue");
+
+                    b.Property<decimal>("ExpectedValue")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("ExpectedValue");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SectionMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("SectionMasterId");
+
+                    b.Property<decimal>("TolerancePercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(1m)
+                        .HasColumnName("TolerancePercent");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SectionMasterId")
+                        .HasDatabaseName("IX_GstrSectionAccountLinkage_SectionMasterId");
+
+                    b.ToTable("GstrSectionAccountLinkage", "Finance", t =>
+                        {
+                            t.HasCheckConstraint("CK_GSAL_Tolerance", "[TolerancePercent] >= 0 AND [TolerancePercent] <= 100");
+                        });
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("ReportTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReportTypeId");
+
+                    b.Property<string>("SectionCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("SectionCode");
+
+                    b.Property<string>("SectionName")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("SectionName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportTypeId")
+                        .HasDatabaseName("IX_GstrSectionMaster_ReportTypeId");
+
+                    b.HasIndex("CompanyId", "ReportTypeId", "SectionCode")
+                        .IsUnique()
+                        .HasDatabaseName("UX_GstrSectionMaster_Company_Report_Code")
+                        .HasFilter("[IsActive] = 1");
+
+                    b.ToTable("GstrSectionMaster", "Finance");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -1785,6 +1945,10 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<int?>("OldTaxLinkageId")
+                        .HasColumnType("int")
+                        .HasColumnName("OldTaxLinkageId");
+
                     b.Property<int>("StatusId")
                         .HasColumnType("int")
                         .HasColumnName("StatusId");
@@ -1800,6 +1964,8 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.HasIndex("GlAccountId")
                         .HasDatabaseName("IX_TaxAccountLinkage_GlAccountId");
+
+                    b.HasIndex("OldTaxLinkageId");
 
                     b.HasIndex("StatusId")
                         .HasDatabaseName("IX_TaxAccountLinkage_StatusId");
@@ -2249,6 +2415,28 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("SubLedgerTypeMaster");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionAccountLinkage", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.GstrSectionMaster", "SectionMaster")
+                        .WithMany("AccountLinkages")
+                        .HasForeignKey("SectionMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SectionMaster");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "ReportType")
+                        .WithMany()
+                        .HasForeignKey("ReportTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReportType");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscMaster", b =>
                 {
                     b.HasOne("FinanceManagement.Domain.Entities.MiscTypeMaster", "MiscTypeMaster")
@@ -2375,6 +2563,11 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FinanceManagement.Domain.Entities.TaxAccountLinkage", "OldTaxLinkage")
+                        .WithMany()
+                        .HasForeignKey("OldTaxLinkageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "StatusMaster")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -2390,6 +2583,8 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("ControlAccount");
 
                     b.Navigation("GlAccount");
+
+                    b.Navigation("OldTaxLinkage");
 
                     b.Navigation("StatusMaster");
 
@@ -2461,6 +2656,11 @@ namespace FinanceManagement.Infrastructure.Migrations
             modelBuilder.Entity("FinanceManagement.Domain.Entities.EWaybillHeader", b =>
                 {
                     b.Navigation("EWaybillDetails");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>
+                {
+                    b.Navigation("AccountLinkages");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscMaster", b =>

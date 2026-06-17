@@ -185,10 +185,12 @@ namespace FinanceManagement.IntegrationTests.Repositories.TaxCode
 
             versions.Should().HaveCount(2);
             versions[0].VersionNo.Should().Be(1);
-            versions[0].EffectiveTo.Should().Be(newFrom.AddDays(-1));   // prior version closed
+            versions[0].EffectiveTo.Should().Be(newFrom.AddDays(-1));   // prior version closed by date only
+            versions[0].IsActive.Should().Be(Status.Active);           // prior version stays active (valid till EffectiveTo)
             versions[1].VersionNo.Should().Be(2);
             versions[1].RatePercent.Should().Be(12.0m);
             versions[1].EffectiveTo.Should().BeNull();                  // new version open
+            versions[1].IsActive.Should().Be(Status.Active);           // new version is the current rate
         }
     }
 }

@@ -49,6 +49,10 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<TaxCodeRateVersion> TaxCodeRateVersion => Set<TaxCodeRateVersion>();
         public DbSet<TaxAccountLinkage> TaxAccountLinkage => Set<TaxAccountLinkage>();
 
+        // GSTR-1 / GSTR-3B section master + account-range mapping
+        public DbSet<GstrSectionMaster> GstrSectionMaster => Set<GstrSectionMaster>();
+        public DbSet<GstrSectionAccountLinkage> GstrSectionAccountLinkage => Set<GstrSectionAccountLinkage>();
+
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 

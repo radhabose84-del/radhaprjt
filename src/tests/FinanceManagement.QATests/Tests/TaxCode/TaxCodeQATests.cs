@@ -56,6 +56,28 @@ public sealed class TaxCodeQATests
         doc.RootElement.TryGetProperty("data", out _).Should().BeTrue();
     }
 
+    [Fact, TestPriority(1)]
+    [Trait("Layer", "Smoke")]
+    public async Task TC001b_GetPendingLinkages_HappyPath_Returns200()
+    {
+        var resp = await _f.Client.GetAsync($"{LinkageRoute}/pending?PageNumber=1&PageSize=15");
+
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var doc = await QAHelper.ParseAsync(resp);
+        doc.RootElement.TryGetProperty("data", out _).Should().BeTrue();
+    }
+
+    [Fact, TestPriority(1)]
+    [Trait("Layer", "Smoke")]
+    public async Task TC001c_GetTaxCodeGlMappingSummary_HappyPath_Returns200()
+    {
+        var resp = await _f.Client.GetAsync($"{MasterRoute}/summary?PageNumber=1&PageSize=15");
+
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var doc = await QAHelper.ParseAsync(resp);
+        doc.RootElement.TryGetProperty("data", out _).Should().BeTrue();
+    }
+
     // ── AUTH — protected endpoints reject anonymous requests ──────────────────
 
     [Fact, TestPriority(2)]

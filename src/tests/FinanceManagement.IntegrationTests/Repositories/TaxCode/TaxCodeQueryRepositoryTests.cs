@@ -1,3 +1,4 @@
+using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using FinanceManagement.Infrastructure.Data;
@@ -65,6 +66,33 @@ namespace FinanceManagement.IntegrationTests.Repositories.TaxCode
                 EffectiveFrom = from ?? new DateOnly(2017, 7, 1)
             });
             return id;
+        }
+
+        [Fact]
+        public async Task GetTaxCodeGlMappingSummaryAsync_Should_Count_Linked_GlAccounts()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var mappedId = await SeedTaxCodeAsync("GST-OUT-5", "GST Output 5%", "GST_OUT", 5m);
+            var unmappedId = await SeedTaxCodeAsync("TDS-194C-1", "TDS 194C 1%", "TDS", 1m);
+            var approvedId = await SeedMiscAsync("APPROVAL_STATUS", "APPROVED");
+
+            // Two active linkages (distinct GL accounts) for the first code; FKs bypassed (no GL master needed for the count).
+            await using (var conn = new SqlConnection(_fixture.ConnectionString))
+            {
+                await conn.OpenAsync();
+                await conn.ExecuteAsync(@"
+                    ALTER TABLE Finance.TaxAccountLinkage NOCHECK CONSTRAINT ALL;
+                    INSERT INTO Finance.TaxAccountLinkage (CompanyId, TaxCodeId, GlAccountId, StatusId, EffectiveFrom, IsActive, CreatedBy)
+                    VALUES (1, @Tc, 101, @St, '2026-06-16', 1, 1), (1, @Tc, 102, @St, '2026-06-16', 1, 1);",
+                    new { Tc = mappedId, St = approvedId });
+            }
+
+            var (rows, total) = await CreateQueryRepo().GetTaxCodeGlMappingSummaryAsync(1, 50, null, 1, null);
+
+            total.Should().Be(2);
+            rows.First(r => r.TaxCodeId == mappedId).GlAccountCount.Should().Be(2);
+            rows.First(r => r.TaxCodeId == mappedId).CurrentRatePercent.Should().Be(5m);
+            rows.First(r => r.TaxCodeId == unmappedId).GlAccountCount.Should().Be(0);   // "No GL mapping"
         }
 
         [Fact]

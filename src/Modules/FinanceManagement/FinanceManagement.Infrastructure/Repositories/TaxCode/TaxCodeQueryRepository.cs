@@ -89,6 +89,60 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
             return dto;
         }
 
+        // Tax Code Registry summary — each tax code + current rate + count of distinct GL accounts
+        // currently linked to it (active, open linkages). Backs the "GL MAPPING" column.
+        public async Task<(List<TaxCodeGlMappingSummaryDto>, int)> GetTaxCodeGlMappingSummaryAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, string? taxType)
+        {
+            var whereClause = "1 = 1";
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                whereClause += " AND (tcm.TaxCode LIKE @Search OR tcm.TaxName LIKE @Search)";
+            if (companyId.HasValue && companyId.Value > 0)
+                whereClause += " AND tcm.CompanyId = @CompanyId";
+            if (!string.IsNullOrWhiteSpace(taxType))
+                whereClause += " AND tcm.TaxTypeId IN (SELECT mmf.Id FROM Finance.MiscMaster mmf WHERE UPPER(REPLACE(mmf.Code,' ','_')) = UPPER(@TaxType))";
+
+            var query = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*) FROM Finance.TaxCodeMaster tcm WHERE {whereClause};
+
+                SELECT tcm.Id AS TaxCodeId, tcm.TaxCode, tcm.TaxName,
+                    tcm.TaxTypeId, tt.Code AS TaxType,
+                    v.RatePercent AS CurrentRatePercent,
+                    ISNULL(m.GlAccountCount, 0) AS GlAccountCount,
+                    tcm.IsActive
+                FROM Finance.TaxCodeMaster tcm
+                LEFT JOIN Finance.MiscMaster tt ON tcm.TaxTypeId = tt.Id
+                OUTER APPLY (
+                    SELECT TOP 1 v2.RatePercent
+                    FROM Finance.TaxCodeRateVersion v2
+                    WHERE v2.TaxCodeId = tcm.Id AND v2.EffectiveTo IS NULL
+                    ORDER BY v2.VersionNo DESC) v
+                OUTER APPLY (
+                    SELECT COUNT(DISTINCT tal.GlAccountId) AS GlAccountCount
+                    FROM Finance.TaxAccountLinkage tal
+                    WHERE tal.TaxCodeId = tcm.Id AND tal.IsActive = 1 AND tal.EffectiveTo IS NULL) m
+                WHERE {whereClause}
+                ORDER BY tt.Code ASC, tcm.TaxCode ASC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            ";
+
+            var parameters = new
+            {
+                Search = $"%{searchTerm}%",
+                CompanyId = companyId,
+                TaxType = taxType,
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<TaxCodeGlMappingSummaryDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+            return (list, totalCount);
+        }
+
         public async Task<IReadOnlyList<TaxCodeMasterLookupDto>> TaxCodeAutocompleteAsync(string term, int? companyId, string? taxType, CancellationToken ct)
         {
             var whereClause = "tcm.IsActive = 1";
@@ -248,6 +302,72 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
 
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);
             var list = (await result.ReadAsync<TaxAccountLinkageDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+            return (list, totalCount);
+        }
+
+        // Linkages awaiting dual approval — the "Change Audit / Pending" grid shape.
+        // Old Tax Code = the GL account's current active linkage (IsActive=1, EffectiveTo IS NULL).
+        // Approver 1 (FC) / Approver 2 (Tax) are owned by the Workflow module (AppData.ApprovalRequest);
+        // they are null while pending, matching the "—" shown for pending rows in the UI.
+        public async Task<(List<PendingTaxAccountLinkageDto>, int)> GetPendingLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId)
+        {
+            var whereClause = @"UPPER(REPLACE(REPLACE(mt.MiscTypeCode, ' ', ''), '_', '')) = 'APPROVALSTATUS'
+                AND UPPER(st.Code) = 'PENDING'";
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                whereClause += " AND (tc.TaxCode LIKE @Search OR gl.AccountCode LIKE @Search OR gl.AccountName LIKE @Search)";
+            if (companyId.HasValue && companyId.Value > 0)
+                whereClause += " AND tal.CompanyId = @CompanyId";
+
+            const string columns = @"
+                tal.Id, tal.CompanyId,
+                tal.GlAccountId, gl.AccountCode, gl.AccountName,
+                tal.OldTaxLinkageId,
+                old.TaxCodeId AS OldTaxCodeId, otc.TaxCode AS OldTaxCode,
+                tal.TaxCodeId AS NewTaxCodeId, tc.TaxCode AS NewTaxCode, tc.TaxName AS NewTaxName,
+                old.ControlAccountId AS OldControlAccountId, ocat.Description AS OldControlAccountName,
+                tal.ControlAccountId, cat.Description AS ControlAccountName,
+                tal.ChangeReason,
+                CAST(NULL AS varchar(100)) AS Approver1Name,
+                CAST(NULL AS varchar(100)) AS Approver2Name,
+                tal.EffectiveFrom, tal.StatusId, st.Code AS Status,
+                tal.CreatedDate, tal.CreatedByName";
+
+            const string fromJoins = @"
+                FROM Finance.TaxAccountLinkage tal
+                LEFT JOIN Finance.GlAccountMaster gl ON tal.GlAccountId = gl.Id AND gl.IsDeleted = 0
+                LEFT JOIN Finance.TaxCodeMaster tc ON tal.TaxCodeId = tc.Id
+                LEFT JOIN Finance.MiscMaster cat ON tal.ControlAccountId = cat.Id AND cat.IsDeleted = 0
+                LEFT JOIN Finance.MiscMaster st ON tal.StatusId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Finance.MiscTypeMaster mt ON st.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                -- old details read from the superseded linkage row (self-join)
+                LEFT JOIN Finance.TaxAccountLinkage old ON tal.OldTaxLinkageId = old.Id
+                LEFT JOIN Finance.TaxCodeMaster otc ON old.TaxCodeId = otc.Id
+                LEFT JOIN Finance.MiscMaster ocat ON old.ControlAccountId = ocat.Id AND ocat.IsDeleted = 0";
+
+            var query = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*) {fromJoins} WHERE {whereClause};
+
+                SELECT {columns}
+                {fromJoins}
+                WHERE {whereClause}
+                ORDER BY tal.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            ";
+
+            var parameters = new
+            {
+                Search = $"%{searchTerm}%",
+                CompanyId = companyId,
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<PendingTaxAccountLinkageDto>()).ToList();
             var totalCount = await result.ReadFirstAsync<int>();
             return (list, totalCount);
         }
