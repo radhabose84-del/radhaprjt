@@ -40,6 +40,9 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ControlAccountId)
                 .HasColumnName("ControlAccountId").HasColumnType("int").IsRequired(false);
 
+            builder.Property(t => t.OldTaxLinkageId)
+                .HasColumnName("OldTaxLinkageId").HasColumnType("int").IsRequired(false);
+
             builder.Property(t => t.StatusId)
                 .HasColumnName("StatusId").HasColumnType("int").IsRequired();
 
@@ -98,6 +101,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.StatusMaster)
                 .WithMany()
                 .HasForeignKey(t => t.StatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Superseded prior linkage (self-reference) — old tax code / control account are read from this row.
+            builder.HasOne(t => t.OldTaxLinkage)
+                .WithMany()
+                .HasForeignKey(t => t.OldTaxLinkageId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

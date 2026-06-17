@@ -11,9 +11,13 @@ namespace FinanceManagement.Domain.Entities
     public class TaxAccountLinkage : BaseEntity, IActivityTracked
     {
         public int CompanyId { get; set; }
-        public int TaxCodeId { get; set; }              // same-module FK -> TaxCodeMaster
+        public int TaxCodeId { get; set; }              // same-module FK -> TaxCodeMaster (the NEW/proposed tax code)
         public int GlAccountId { get; set; }            // same-module FK -> GlAccountMaster
-        public int? ControlAccountId { get; set; }      // same-module FK -> MiscMaster (control account type)
+        public int? ControlAccountId { get; set; }      // same-module FK -> MiscMaster (NEW control account type)
+
+        // On a change-request row, points to the prior active linkage being superseded (null on initial
+        // create). Old tax code / control account are read from that row for the Change-Audit "Old" columns.
+        public int? OldTaxLinkageId { get; set; }        // self-FK -> TaxAccountLinkage (the superseded row)
 
         public int StatusId { get; set; }               // FK -> MiscMaster (ApprovalStatus): PENDING/APPROVED/REJECTED
 
@@ -29,5 +33,6 @@ namespace FinanceManagement.Domain.Entities
         public GlAccountMaster? GlAccount { get; set; }
         public MiscMaster? ControlAccount { get; set; }
         public MiscMaster? StatusMaster { get; set; }    // FK nav -> MiscMaster (ApprovalStatus); named to avoid hiding BaseEntity.Status
+        public TaxAccountLinkage? OldTaxLinkage { get; set; }   // self-FK nav -> superseded linkage row
     }
 }

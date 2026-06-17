@@ -1,6 +1,7 @@
 using FinanceManagement.Application.TaxCode.Commands.CreateTaxAccountLinkage;
 using FinanceManagement.Application.TaxCode.Commands.SubmitLinkageChangeRequest;
 using FinanceManagement.Application.TaxCode.Queries.GetAllTaxAccountLinkage;
+using FinanceManagement.Application.TaxCode.Queries.GetPendingTaxAccountLinkage;
 using FinanceManagement.Application.TaxCode.Queries.GetTaxAccountLinkageByAccount;
 using FinanceManagement.Application.TaxCode.Queries.GetTaxAccountLinkageById;
 using MediatR;
@@ -29,6 +30,29 @@ namespace FinanceManagement.Presentation.Controllers
                 PageSize = PageSize,
                 SearchTerm = SearchTerm,
                 StatusId = StatusId
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingLinkagesAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null)
+        {
+            var result = await Mediator.Send(new GetPendingTaxAccountLinkageQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm
             });
 
             return Ok(new

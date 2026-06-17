@@ -173,6 +173,43 @@ namespace FinanceManagement.IntegrationTests.Repositories.TaxCode
         }
 
         [Fact]
+        public async Task RejectLinkageAsync_Should_Set_Rejected_And_StayInactive()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var taxCodeId = await SeedTaxCodeAsync();
+            var glId = await SeedGlAccountAsync();
+            var linkId = await SeedLinkageAsync(taxCodeId, glId, status: "PENDING");
+            var rejectedId = await SeedApprovalStatusAsync("REJECTED");
+
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                await CreateCommandRepo(ctx).RejectLinkageAsync(linkId, rejectedId, CancellationToken.None);
+            }
+
+            await using var verify = _fixture.CreateFreshDbContext();
+            var saved = await verify.TaxAccountLinkage.FirstAsync(x => x.Id == linkId);
+            saved.StatusId.Should().Be(rejectedId);
+            saved.IsActive.Should().Be(Status.Inactive);
+        }
+
+        [Fact]
+        public async Task GetPendingLinkagesAsync_Should_Return_Only_Pending()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var taxCodeId = await SeedTaxCodeAsync();
+            var glId = await SeedGlAccountAsync();
+
+            await SeedLinkageAsync(taxCodeId, glId, status: "PENDING");
+            await SeedLinkageAsync(taxCodeId, glId, status: "APPROVED");
+
+            var (pending, total) = await CreateQueryRepo().GetPendingLinkagesAsync(1, 10, null, 1);
+
+            total.Should().Be(1);
+            pending.Should().HaveCount(1);
+            pending[0].Status.Should().Be("PENDING");
+        }
+
+        [Fact]
         public async Task GlAccountExistsAsync_Should_Return_True_For_Seeded()
         {
             await _fixture.ClearAllTablesAsync();
@@ -184,7 +221,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.TaxCode
         }
 
         [Fact]
-        public async Task ActivateLinkageAsync_Should_Deactivate_Prior_Active_Row()
+        public async Task ActivateLinkageAsync_Should_Close_Prior_By_EffectiveToOnly()
         {
             await _fixture.ClearAllTablesAsync();
             var taxCodeId = await SeedTaxCodeAsync();
@@ -193,8 +230,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.TaxCode
 
             // First active linkage for the account (earlier effective date).
             var firstId = await SeedLinkageAsync(taxCodeId, glId, status: "APPROVED", from: new DateOnly(2026, 1, 1));
-            // A pending change request (new inactive row) for the same account, effective later.
-            var secondId = await SeedLinkageAsync(taxCodeId, glId, status: "PENDING", from: new DateOnly(2026, 6, 1));
+            // A pending change request (new inactive row) for the same account, effective 2026-07-01.
+            var secondId = await SeedLinkageAsync(taxCodeId, glId, status: "PENDING", from: new DateOnly(2026, 7, 1));
 
             await using (var ctx = _fixture.CreateFreshDbContext())
             {
@@ -205,9 +242,11 @@ namespace FinanceManagement.IntegrationTests.Repositories.TaxCode
             var prior = await verify.TaxAccountLinkage.FirstAsync(x => x.Id == firstId);
             var current = await verify.TaxAccountLinkage.FirstAsync(x => x.Id == secondId);
 
-            prior.IsActive.Should().Be(Status.Inactive);     // superseded
-            prior.EffectiveTo.Should().NotBeNull();           // closed
-            current.IsActive.Should().Be(Status.Active);      // new active linkage
+            // Prior row stays ACTIVE (valid until its EffectiveTo) — only the end-date is set.
+            prior.IsActive.Should().Be(Status.Active);
+            prior.EffectiveTo.Should().Be(new DateOnly(2026, 6, 30));   // newFrom - 1
+            current.IsActive.Should().Be(Status.Active);                // new active linkage
+            current.EffectiveTo.Should().BeNull();                      // open
         }
     }
 }

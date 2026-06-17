@@ -1,5 +1,6 @@
 using Contracts.Commands.Finance;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
+using FinanceManagement.Application.Common.Interfaces.ITaxCode;
 using FinanceManagement.Application.Consumers;
 using FinanceManagement.Domain.Common;
 using FinanceManagement.Domain.Entities;
@@ -8,45 +9,56 @@ using Microsoft.Extensions.Logging;
 
 namespace FinanceManagement.UnitTests.Application.Consumers
 {
+    // The Finance ApprovedRejectedConsumer routes by ModuleTypeName:
+    //   • Account Group Hierarchy → re-parent on approval (US-GL02-02)
+    //   • Tax Account Linkage     → activate/reject the pending linkage (US-GL02-05B)
     public sealed class ApprovedRejectedConsumerTests
     {
-        private readonly Mock<IAccountGroupChangeRequestRepository> _mockChangeRequestRepo = new(MockBehavior.Loose);
-        private readonly Mock<IAccountGroupCommandRepository> _mockCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IAccountGroupChangeRequestRepository> _changeRepo = new(MockBehavior.Loose);
+        private readonly Mock<IAccountGroupCommandRepository> _agCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<ITaxCodeCommandRepository> _taxCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<ITaxCodeQueryRepository> _taxQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<ILogger<ApprovedRejectedConsumer>> _logger = new();
+
+        private const int ApprovedStatusId = 48;
+        private const int RejectedStatusId = 50;
+        private const int LinkageId = 21;
 
         private ApprovedRejectedConsumer CreateSut() =>
-            new(_mockChangeRequestRepo.Object, _mockCommandRepo.Object,
-                new Mock<ILogger<ApprovedRejectedConsumer>>().Object);
+            new(_changeRepo.Object, _agCommandRepo.Object, _taxCommandRepo.Object, _taxQueryRepo.Object, _logger.Object);
 
-        private static ConsumeContext<UpdateApprovedRejectedFinanceCommand> Ctx(string moduleTypeName, string status, int moduleTransactionId = 3)
+        private static Mock<ConsumeContext<UpdateApprovedRejectedFinanceCommand>> BuildContext(UpdateApprovedRejectedFinanceCommand msg)
         {
-            var ctx = new Mock<ConsumeContext<UpdateApprovedRejectedFinanceCommand>>();
-            ctx.SetupGet(c => c.Message).Returns(new UpdateApprovedRejectedFinanceCommand
+            var ctx = new Mock<ConsumeContext<UpdateApprovedRejectedFinanceCommand>>(MockBehavior.Loose);
+            ctx.SetupGet(c => c.Message).Returns(msg);
+            ctx.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
+            return ctx;
+        }
+
+        // ── Account Group Move (US-GL02-02) ───────────────────────────────────────
+        private static ConsumeContext<UpdateApprovedRejectedFinanceCommand> AgCtx(string moduleTypeName, string status, int moduleTransactionId = 3) =>
+            BuildContext(new UpdateApprovedRejectedFinanceCommand
             {
                 CorrelationId = Guid.NewGuid(),
                 ModuleTypeName = moduleTypeName,
                 ModuleTransactionId = moduleTransactionId,
                 Status = status
-            });
-            ctx.SetupGet(c => c.CancellationToken).Returns(CancellationToken.None);
-            return ctx.Object;
-        }
+            }).Object;
 
-        private void SetupPendingChangeRequest()
-        {
-            _mockChangeRequestRepo
+        private void SetupPendingChangeRequest() =>
+            _changeRepo
                 .Setup(r => r.GetPendingByAccountGroupAsync(3, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new AccountGroupChangeRequest { Id = 1, AccountGroupId = 3, NewParentAccountGroupId = 5 });
-        }
 
         [Fact]
         public async Task Consume_Approved_AppliesMoveAndMarksApproved()
         {
             SetupPendingChangeRequest();
 
-            await CreateSut().Consume(Ctx(MiscEnumEntity.AccountGroupHierarchy, MiscEnumEntity.Approved));
+            await CreateSut().Consume(AgCtx(MiscEnumEntity.AccountGroupHierarchy, MiscEnumEntity.Approved));
 
-            _mockCommandRepo.Verify(r => r.MoveAsync(3, 5), Times.Once);
-            _mockChangeRequestRepo.Verify(r => r.MarkStatusAsync(1, MiscEnumEntity.Approved, It.IsAny<CancellationToken>()), Times.Once);
+            _agCommandRepo.Verify(r => r.MoveAsync(3, 5), Times.Once);
+            _changeRepo.Verify(r => r.MarkStatusAsync(1, MiscEnumEntity.Approved, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -54,41 +66,80 @@ namespace FinanceManagement.UnitTests.Application.Consumers
         {
             SetupPendingChangeRequest();
 
-            await CreateSut().Consume(Ctx(MiscEnumEntity.AccountGroupHierarchy, MiscEnumEntity.Rejected));
+            await CreateSut().Consume(AgCtx(MiscEnumEntity.AccountGroupHierarchy, MiscEnumEntity.Rejected));
 
-            _mockChangeRequestRepo.Verify(r => r.MarkStatusAsync(1, MiscEnumEntity.Rejected, It.IsAny<CancellationToken>()), Times.Once);
-            _mockCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            _changeRepo.Verify(r => r.MarkStatusAsync(1, MiscEnumEntity.Rejected, It.IsAny<CancellationToken>()), Times.Once);
+            _agCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
         public async Task Consume_OtherModuleType_Ignored()
         {
-            await CreateSut().Consume(Ctx("Purchase Order", MiscEnumEntity.Approved));
+            await CreateSut().Consume(AgCtx("Purchase Order", MiscEnumEntity.Approved));
 
-            _mockChangeRequestRepo.Verify(r => r.GetPendingByAccountGroupAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-            _mockCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            _changeRepo.Verify(r => r.GetPendingByAccountGroupAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+            _agCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
         public async Task Consume_NoPendingChangeRequest_DoesNothing()
         {
-            _mockChangeRequestRepo
+            _changeRepo
                 .Setup(r => r.GetPendingByAccountGroupAsync(3, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((AccountGroupChangeRequest?)null);
 
-            await CreateSut().Consume(Ctx(MiscEnumEntity.AccountGroupHierarchy, MiscEnumEntity.Approved));
+            await CreateSut().Consume(AgCtx(MiscEnumEntity.AccountGroupHierarchy, MiscEnumEntity.Approved));
 
-            _mockCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-            _mockChangeRequestRepo.Verify(r => r.MarkStatusAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _agCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            _changeRepo.Verify(r => r.MarkStatusAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
         public async Task Consume_UnknownStatus_Ignored()
         {
-            await CreateSut().Consume(Ctx(MiscEnumEntity.AccountGroupHierarchy, "Pending"));
+            await CreateSut().Consume(AgCtx(MiscEnumEntity.AccountGroupHierarchy, "Pending"));
 
-            _mockChangeRequestRepo.Verify(r => r.GetPendingByAccountGroupAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-            _mockCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            _changeRepo.Verify(r => r.GetPendingByAccountGroupAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+            _agCommandRepo.Verify(r => r.MoveAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        // ── Tax Account Linkage (US-GL02-05B) ─────────────────────────────────────
+        private static Mock<ConsumeContext<UpdateApprovedRejectedFinanceCommand>> TaxContext(string status) =>
+            BuildContext(new UpdateApprovedRejectedFinanceCommand
+            {
+                CorrelationId = Guid.NewGuid(),
+                ModuleTransactionId = LinkageId,
+                ModuleTypeName = MiscEnumEntity.TaxAccountLinkage,
+                Status = status
+            });
+
+        [Fact]
+        public async Task Consume_TaxLinkageApproved_ActivatesLinkage()
+        {
+            _taxQueryRepo.Setup(r => r.GetMiscIdAsync(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Approved)).ReturnsAsync(ApprovedStatusId);
+            _taxCommandRepo.Setup(r => r.ActivateLinkageAsync(LinkageId, ApprovedStatusId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+            await CreateSut().Consume(TaxContext(MiscEnumEntity.Approved).Object);
+
+            _taxCommandRepo.Verify(r => r.ActivateLinkageAsync(LinkageId, ApprovedStatusId, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Consume_TaxLinkageRejected_RejectsLinkage()
+        {
+            _taxQueryRepo.Setup(r => r.GetMiscIdAsync(MiscEnumEntity.ApprovalStatus, MiscEnumEntity.Rejected)).ReturnsAsync(RejectedStatusId);
+            _taxCommandRepo.Setup(r => r.RejectLinkageAsync(LinkageId, RejectedStatusId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+            await CreateSut().Consume(TaxContext(MiscEnumEntity.Rejected).Object);
+
+            _taxCommandRepo.Verify(r => r.RejectLinkageAsync(LinkageId, RejectedStatusId, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Consume_PendingStatus_DoesNothing()
+        {
+            // Strict tax mocks would throw if any repo were touched.
+            await CreateSut().Consume(TaxContext(MiscEnumEntity.Pending).Object);
         }
     }
 }
