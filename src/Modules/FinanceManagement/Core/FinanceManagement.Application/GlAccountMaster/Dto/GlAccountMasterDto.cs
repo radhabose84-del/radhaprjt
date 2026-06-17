@@ -24,6 +24,8 @@ namespace FinanceManagement.Application.GlAccountMaster.Dto
         public string? NormalBalanceName { get; set; }
 
         public int CurrencyTypeId { get; set; }
+        public string? CurrencyTypeCode { get; set; }
+        public string? CurrencyTypeName { get; set; }
 
         public int SubLedgerTypeId { get; set; }
         public string? SubLedgerTypeCode { get; set; }

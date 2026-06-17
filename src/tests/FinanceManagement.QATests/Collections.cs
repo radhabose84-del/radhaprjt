@@ -6,6 +6,15 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("ScheduleIIICollection")]
     public sealed class ScheduleIIICollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("TaxCodeCollection")]
+    public sealed class TaxCodeCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("CurrencyForexConfigCollection")]
+    public sealed class CurrencyForexConfigCollection : ICollectionFixture<QAServerFixture> { }
+
     [CollectionDefinition("SecurityCollection")]
     public sealed class SecurityCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("AccountGroupCollection")]
+    public sealed class AccountGroupCollection : ICollectionFixture<QAServerFixture> { }
 }

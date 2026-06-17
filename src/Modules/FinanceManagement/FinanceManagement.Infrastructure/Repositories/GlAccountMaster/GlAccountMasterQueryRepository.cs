@@ -23,7 +23,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             am.AccountGroupId, ag.GroupCode AS AccountGroupCode, ag.GroupName AS AccountGroupName,
             am.AccountCode, am.AccountName, am.Description,
             am.NormalBalanceId, nb.Code AS NormalBalanceCode, nb.Description AS NormalBalanceName,
-            am.CurrencyTypeId,
+            am.CurrencyTypeId, cfc.CurrencyTypeCode, cfc.CurrencyTypeName,
             am.SubLedgerTypeId, slt.Code AS SubLedgerTypeCode, slt.Description AS SubLedgerTypeName,
             am.IsCostCentreMandatory, am.IsTaxRelevant, am.IsInterCompany, am.IsReconciliationRequired,
             am.IsActive, am.IsDeleted,
@@ -37,6 +37,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             LEFT JOIN Finance.AccountGroup       ag    ON am.AccountGroupId = ag.Id AND ag.IsDeleted = 0
             LEFT JOIN Finance.MiscMaster         nb    ON am.NormalBalanceId = nb.Id AND nb.IsDeleted = 0
             LEFT JOIN Finance.MiscMaster         slt   ON am.SubLedgerTypeId = slt.Id AND slt.IsDeleted = 0
+            LEFT JOIN Finance.CurrencyForexConfig cfc  ON am.CurrencyTypeId = cfc.Id AND cfc.IsDeleted = 0
         ";
 
         public async Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null)
@@ -114,7 +115,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
         {
             var whereClause = "am.IsDeleted = 0 AND am.IsActive = 1 AND am.CompanyId = @CompanyId";
             if (!string.IsNullOrWhiteSpace(term))
-                whereClause += " AND (am.AccountCode LIKE @Term OR am.AccountName LIKE @Term)";
+                whereClause += " AND (am.AccountCode LIKE @Term OR am.AccountName LIKE @Term OR l3.L3Name LIKE @Term)";
 
             string joinTypeClause = string.Empty;
             if (!string.IsNullOrWhiteSpace(accountTypeCode))
@@ -122,13 +123,25 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
                 joinTypeClause = " AND atype.AccountTypeName = @AccountTypeCode";
             }
 
+            // L3Map: every Level-3 node is its own L3 ancestor; its descendants (L4/L5/L6) inherit it.
             var sql = $@"
+                WITH L3Map AS (
+                    SELECT Id, Id AS L3Id, GroupCode AS L3Code, GroupName AS L3Name
+                    FROM Finance.AccountGroup WHERE [Level] = 3 AND IsDeleted = 0
+                    UNION ALL
+                    SELECT c.Id, m.L3Id, m.L3Code, m.L3Name
+                    FROM Finance.AccountGroup c
+                    JOIN L3Map m ON c.ParentAccountGroupId = m.Id
+                    WHERE c.IsDeleted = 0
+                )
                 SELECT am.Id, am.CompanyId, am.AccountTypeId,
                        am.AccountCode, am.AccountName,
-                       nb.Code AS NormalBalanceCode
+                       nb.Code AS NormalBalanceCode,
+                       l3.L3Id AS L3AccountGroupId, l3.L3Code AS L3GroupCode, l3.L3Name AS L3GroupName
                 FROM Finance.GlAccountMaster am
                 LEFT JOIN Finance.AccountTypeMaster atype ON am.AccountTypeId = atype.Id AND atype.IsDeleted = 0{joinTypeClause}
                 LEFT JOIN Finance.MiscMaster nb ON am.NormalBalanceId = nb.Id AND nb.IsDeleted = 0
+                LEFT JOIN L3Map l3 ON am.AccountGroupId = l3.Id
                 WHERE {whereClause}
                 ORDER BY am.AccountCode ASC";
 
@@ -198,6 +211,18 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             return count > 0;
         }
 
+        public async Task<bool> AccountGroupIsLeafForCompanyAsync(int accountGroupId, int companyId)
+        {
+            // Accounts attach only at a leaf group (no children) of the same company.
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.AccountGroup
+                WHERE Id = @Id AND CompanyId = @CompanyId AND IsLeaf = 1 AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = accountGroupId, CompanyId = companyId });
+            return count > 0;
+        }
+
         public async Task<bool> NormalBalanceExistsAsync(int normalBalanceId)
         {
             const string sql = @"
@@ -221,6 +246,17 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
                   AND mtm.MiscTypeCode = 'SLTYPE'";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = subLedgerTypeId });
+            return count > 0;
+        }
+
+        public async Task<bool> CurrencyTypeExistsForCompanyAsync(int currencyTypeId, int companyId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.CurrencyForexConfig
+                WHERE Id = @Id AND CompanyId = @CompanyId AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = currencyTypeId, CompanyId = companyId });
             return count > 0;
         }
 

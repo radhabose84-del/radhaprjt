@@ -33,6 +33,7 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
         public DbSet<AccountTypeMaster> AccountTypeMaster => Set<AccountTypeMaster>();
         public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
+        public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
         // Transactional outbox (SQL) — drained to the bus by the shared SqlOutboxProcessorJob.
         public DbSet<FinanceManagement.Domain.Entities.Outbox.OutboxMessage> OutboxMessages => Set<FinanceManagement.Domain.Entities.Outbox.OutboxMessage>();
@@ -43,6 +44,15 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<ScheduleIIILineItem> ScheduleIIILineItem => Set<ScheduleIIILineItem>();
         public DbSet<ScheduleIIISubTotal> ScheduleIIISubTotal => Set<ScheduleIIISubTotal>();
         public DbSet<ScheduleIIISubTotalFormula> ScheduleIIISubTotalFormula => Set<ScheduleIIISubTotalFormula>();
+
+        // Tax code catalogue + GL linkage (US-GL02-05A / 05B)
+        public DbSet<TaxCodeMaster> TaxCodeMaster => Set<TaxCodeMaster>();
+        public DbSet<TaxCodeRateVersion> TaxCodeRateVersion => Set<TaxCodeRateVersion>();
+        public DbSet<TaxAccountLinkage> TaxAccountLinkage => Set<TaxAccountLinkage>();
+
+        // GSTR-1 / GSTR-3B section master + account-range mapping
+        public DbSet<GstrSectionMaster> GstrSectionMaster => Set<GstrSectionMaster>();
+        public DbSet<GstrSectionAccountLinkage> GstrSectionAccountLinkage => Set<GstrSectionAccountLinkage>();
 
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();

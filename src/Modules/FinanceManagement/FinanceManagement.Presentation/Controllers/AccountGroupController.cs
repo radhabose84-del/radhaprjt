@@ -1,5 +1,6 @@
 using FinanceManagement.Application.AccountGroup.Commands.CreateAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.DeleteAccountGroup;
+using FinanceManagement.Application.AccountGroup.Commands.MapScheduleIIILine;
 using FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.UpdateAccountGroup;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupAutoComplete;
@@ -103,6 +104,20 @@ namespace FinanceManagement.Presentation.Controllers
 
         [HttpPost("move")]
         public async Task<IActionResult> MoveAccountGroup([FromBody] MoveAccountGroupCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        // FR-003: map (or unmap, with null) an Account Group to a Schedule III statutory line.
+        [HttpPut("schedule-iii-mapping")]
+        public async Task<IActionResult> MapScheduleIIILine([FromBody] MapScheduleIIILineCommand command)
         {
             var result = await Mediator.Send(command);
             return Ok(new

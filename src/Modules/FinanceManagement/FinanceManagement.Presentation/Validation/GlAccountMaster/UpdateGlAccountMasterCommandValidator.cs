@@ -99,6 +99,16 @@ namespace FinanceManagement.Presentation.Validation.GlAccountMaster
                             .WithMessage("Account Group not configured for this company.")
                             .When(x => x.AccountGroupId > 0);
 
+                        // AC2 — accounts attach only at a leaf group.
+                        RuleFor(x => x.AccountGroupId)
+                            .MustAsync(async (groupId, ct) =>
+                            {
+                                var companyId = _ipAddressService.GetCompanyId() ?? 0;
+                                return await _queryRepository.AccountGroupIsLeafForCompanyAsync(groupId, companyId);
+                            })
+                            .WithMessage("Accounts attach only at leaf level — select a leaf group.")
+                            .When(x => x.AccountGroupId > 0);
+
                         RuleFor(x => x.NormalBalanceId)
                             .MustAsync(async (nbId, ct) => await _queryRepository.NormalBalanceExistsAsync(nbId))
                             .WithMessage("Invalid Normal Balance.")
@@ -108,6 +118,16 @@ namespace FinanceManagement.Presentation.Validation.GlAccountMaster
                             .MustAsync(async (sltId, ct) => await _queryRepository.SubLedgerTypeExistsAsync(sltId))
                             .WithMessage("Invalid Sub-Ledger Type.")
                             .When(x => x.SubLedgerTypeId > 0);
+
+                        // Currency Type dropdown -> CurrencyForexConfig master (US-GL02-12)
+                        RuleFor(x => x.CurrencyTypeId)
+                            .MustAsync(async (ctId, ct) =>
+                            {
+                                var companyId = _ipAddressService.GetCompanyId() ?? 0;
+                                return await _queryRepository.CurrencyTypeExistsForCompanyAsync(ctId, companyId);
+                            })
+                            .WithMessage("Invalid Currency Type.")
+                            .When(x => x.CurrencyTypeId > 0);
                         break;
 
                     case "AlreadyExists":

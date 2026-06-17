@@ -349,6 +349,79 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityLog", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CurrencyForexConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("CurrencyTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("CurrencyTypeCode");
+
+                    b.Property<string>("CurrencyTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CurrencyTypeName");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CompanyId", "CurrencyTypeCode")
+                        .IsUnique();
+
+                    b.ToTable("CurrencyForexConfig", "Finance");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.DocumentSequence", b =>
                 {
                     b.Property<int>("Id")
@@ -1048,6 +1121,8 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CurrencyTypeId");
+
                     b.HasIndex("NormalBalanceId");
 
                     b.HasIndex("SubLedgerTypeId");
@@ -1059,6 +1134,166 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("GlAccountMaster", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionAccountLinkage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountRangeFrom")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("AccountRangeFrom");
+
+                    b.Property<string>("AccountRangeTo")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("AccountRangeTo");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<decimal?>("DerivedValue")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("DerivedValue");
+
+                    b.Property<decimal>("ExpectedValue")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("ExpectedValue");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SectionMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("SectionMasterId");
+
+                    b.Property<decimal>("TolerancePercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(1m)
+                        .HasColumnName("TolerancePercent");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SectionMasterId")
+                        .HasDatabaseName("IX_GstrSectionAccountLinkage_SectionMasterId");
+
+                    b.ToTable("GstrSectionAccountLinkage", "Finance", t =>
+                        {
+                            t.HasCheckConstraint("CK_GSAL_Tolerance", "[TolerancePercent] >= 0 AND [TolerancePercent] <= 100");
+                        });
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("ReportTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReportTypeId");
+
+                    b.Property<string>("SectionCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("SectionCode");
+
+                    b.Property<string>("SectionName")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("SectionName");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportTypeId")
+                        .HasDatabaseName("IX_GstrSectionMaster_ReportTypeId");
+
+                    b.HasIndex("CompanyId", "ReportTypeId", "SectionCode")
+                        .IsUnique()
+                        .HasDatabaseName("UX_GstrSectionMaster_Company_Report_Code")
+                        .HasFilter("[IsActive] = 1");
+
+                    b.ToTable("GstrSectionMaster", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscMaster", b =>
@@ -1716,6 +1951,343 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("ScheduleIIISubTotalFormula", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.TaxAccountLinkage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangeReason")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("ChangeReason");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int?>("ControlAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("ControlAccountId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("EffectiveFrom");
+
+                    b.Property<DateOnly?>("EffectiveTo")
+                        .HasColumnType("date")
+                        .HasColumnName("EffectiveTo");
+
+                    b.Property<int>("GlAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("GlAccountId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int?>("OldTaxLinkageId")
+                        .HasColumnType("int")
+                        .HasColumnName("OldTaxLinkageId");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<int>("TaxCodeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TaxCodeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ControlAccountId")
+                        .HasDatabaseName("IX_TaxAccountLinkage_ControlAccountId");
+
+                    b.HasIndex("GlAccountId")
+                        .HasDatabaseName("IX_TaxAccountLinkage_GlAccountId");
+
+                    b.HasIndex("OldTaxLinkageId");
+
+                    b.HasIndex("StatusId")
+                        .HasDatabaseName("IX_TaxAccountLinkage_StatusId");
+
+                    b.HasIndex("TaxCodeId")
+                        .HasDatabaseName("IX_TaxAccountLinkage_TaxCodeId");
+
+                    b.HasIndex("CompanyId", "GlAccountId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TaxAccountLinkage_ActivePerAccount")
+                        .HasFilter("[EffectiveTo] IS NULL AND [IsActive] = 1");
+
+                    b.ToTable("TaxAccountLinkage", "Finance", t =>
+                        {
+                            t.HasCheckConstraint("CK_TAL_Dates", "[EffectiveTo] IS NULL OR [EffectiveTo] > [EffectiveFrom]");
+                        });
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.TaxCodeMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int?>("DirectionId")
+                        .HasColumnType("int")
+                        .HasColumnName("DirectionId");
+
+                    b.Property<string>("HsnSacCode")
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("HsnSacCode");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsEefcRelevant")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsEefcRelevant");
+
+                    b.Property<bool>("IsStatutoryFixed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsStatutoryFixed");
+
+                    b.Property<bool>("IsSystemOnlyPosting")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsSystemOnlyPosting");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int?>("ParentTaxCodeId")
+                        .HasColumnType("int")
+                        .HasColumnName("ParentTaxCodeId");
+
+                    b.Property<string>("StatutorySection")
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("StatutorySection");
+
+                    b.Property<string>("TaxCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("TaxCode");
+
+                    b.Property<int?>("TaxComponentId")
+                        .HasColumnType("int")
+                        .HasColumnName("TaxComponentId");
+
+                    b.Property<string>("TaxName")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("TaxName");
+
+                    b.Property<int>("TaxTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TaxTypeId");
+
+                    b.Property<decimal?>("ThresholdAggregate")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("ThresholdAggregate");
+
+                    b.Property<decimal?>("ThresholdAmount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("ThresholdAmount");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId")
+                        .HasDatabaseName("IX_TaxCodeMaster_CompanyId");
+
+                    b.HasIndex("DirectionId")
+                        .HasDatabaseName("IX_TaxCodeMaster_DirectionId");
+
+                    b.HasIndex("ParentTaxCodeId")
+                        .HasDatabaseName("IX_TaxCodeMaster_ParentTaxCodeId");
+
+                    b.HasIndex("TaxComponentId")
+                        .HasDatabaseName("IX_TaxCodeMaster_TaxComponentId");
+
+                    b.HasIndex("TaxTypeId")
+                        .HasDatabaseName("IX_TaxCodeMaster_TaxTypeId");
+
+                    b.HasIndex("CompanyId", "TaxCode")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TaxCodeMaster_Company_Code");
+
+                    b.ToTable("TaxCodeMaster", "Finance", t =>
+                        {
+                            t.HasCheckConstraint("CK_TCM_Threshold", "[ThresholdAmount] IS NULL OR [ThresholdAmount] >= 0");
+
+                            t.HasCheckConstraint("CK_TCM_ThresholdAgg", "[ThresholdAggregate] IS NULL OR [ThresholdAggregate] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.TaxCodeRateVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangeReason")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("ChangeReason");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<DateOnly>("EffectiveFrom")
+                        .HasColumnType("date")
+                        .HasColumnName("EffectiveFrom");
+
+                    b.Property<DateOnly?>("EffectiveTo")
+                        .HasColumnType("date")
+                        .HasColumnName("EffectiveTo");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<decimal>("RatePercent")
+                        .HasColumnType("decimal(7,4)")
+                        .HasColumnName("RatePercent");
+
+                    b.Property<int>("TaxCodeId")
+                        .HasColumnType("int")
+                        .HasColumnName("TaxCodeId");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("int")
+                        .HasColumnName("VersionNo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaxCodeId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TaxCodeRateVersion_OpenPerCode")
+                        .HasFilter("[EffectiveTo] IS NULL");
+
+                    b.HasIndex("TaxCodeId", "EffectiveFrom")
+                        .HasDatabaseName("IX_TaxCodeRateVersion_Code_From");
+
+                    b.HasIndex("TaxCodeId", "VersionNo")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_TCRV_Version");
+
+                    b.ToTable("TaxCodeRateVersion", "Finance", t =>
+                        {
+                            t.HasCheckConstraint("CK_TCRV_Dates", "[EffectiveTo] IS NULL OR [EffectiveTo] > [EffectiveFrom]");
+
+                            t.HasCheckConstraint("CK_TCRV_Rate", "[RatePercent] >= 0 AND [RatePercent] <= 100");
+                        });
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.TransactionTypeMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -1897,6 +2469,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FinanceManagement.Domain.Entities.CurrencyForexConfig", "CurrencyTypeConfig")
+                        .WithMany()
+                        .HasForeignKey("CurrencyTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "NormalBalanceMaster")
                         .WithMany("GlAccountsAsNormalBalance")
                         .HasForeignKey("NormalBalanceId")
@@ -1913,9 +2491,33 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.Navigation("AccountTypeMaster");
 
+                    b.Navigation("CurrencyTypeConfig");
+
                     b.Navigation("NormalBalanceMaster");
 
                     b.Navigation("SubLedgerTypeMaster");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionAccountLinkage", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.GstrSectionMaster", "SectionMaster")
+                        .WithMany("AccountLinkages")
+                        .HasForeignKey("SectionMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SectionMaster");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "ReportType")
+                        .WithMany()
+                        .HasForeignKey("ReportTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReportType");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscMaster", b =>
@@ -2031,6 +2633,90 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("SubTotal");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.TaxAccountLinkage", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "ControlAccount")
+                        .WithMany()
+                        .HasForeignKey("ControlAccountId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FinanceManagement.Domain.Entities.GlAccountMaster", "GlAccount")
+                        .WithMany()
+                        .HasForeignKey("GlAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FinanceManagement.Domain.Entities.TaxAccountLinkage", "OldTaxLinkage")
+                        .WithMany()
+                        .HasForeignKey("OldTaxLinkageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "StatusMaster")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FinanceManagement.Domain.Entities.TaxCodeMaster", "TaxCode")
+                        .WithMany("Linkages")
+                        .HasForeignKey("TaxCodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ControlAccount");
+
+                    b.Navigation("GlAccount");
+
+                    b.Navigation("OldTaxLinkage");
+
+                    b.Navigation("StatusMaster");
+
+                    b.Navigation("TaxCode");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.TaxCodeMaster", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "DirectionMaster")
+                        .WithMany()
+                        .HasForeignKey("DirectionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FinanceManagement.Domain.Entities.TaxCodeMaster", "ParentTaxCode")
+                        .WithMany("ComponentCodes")
+                        .HasForeignKey("ParentTaxCodeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "TaxComponentMaster")
+                        .WithMany()
+                        .HasForeignKey("TaxComponentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "TaxTypeMaster")
+                        .WithMany()
+                        .HasForeignKey("TaxTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DirectionMaster");
+
+                    b.Navigation("ParentTaxCode");
+
+                    b.Navigation("TaxComponentMaster");
+
+                    b.Navigation("TaxTypeMaster");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.TaxCodeRateVersion", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.TaxCodeMaster", "TaxCode")
+                        .WithMany("RateVersions")
+                        .HasForeignKey("TaxCodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TaxCode");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.AccountGroup", b =>
                 {
                     b.Navigation("Children");
@@ -2053,6 +2739,11 @@ namespace FinanceManagement.Infrastructure.Migrations
             modelBuilder.Entity("FinanceManagement.Domain.Entities.EWaybillHeader", b =>
                 {
                     b.Navigation("EWaybillDetails");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>
+                {
+                    b.Navigation("AccountLinkages");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscMaster", b =>
@@ -2089,6 +2780,15 @@ namespace FinanceManagement.Infrastructure.Migrations
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISubTotal", b =>
                 {
                     b.Navigation("Formulas");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.TaxCodeMaster", b =>
+                {
+                    b.Navigation("ComponentCodes");
+
+                    b.Navigation("Linkages");
+
+                    b.Navigation("RateVersions");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.TransactionTypeMaster", b =>

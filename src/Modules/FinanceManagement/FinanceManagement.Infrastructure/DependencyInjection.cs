@@ -16,6 +16,7 @@ using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
@@ -33,8 +34,12 @@ using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
 
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
+using FinanceManagement.Application.Common.Interfaces.ITaxCode;
+using FinanceManagement.Application.Common.Interfaces.IGstrSection;
+using FinanceManagement.Infrastructure.Repositories.TaxCode;
 using FinanceManagement.Infrastructure.Logging;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
+using FinanceManagement.Infrastructure.Repositories.CurrencyForexConfig;
 using FinanceManagement.Infrastructure.Repositories.Outbox;
 using FinanceManagement.Infrastructure.Services;
 using FinanceManagement.Infrastructure.Services.Outbox;
@@ -151,6 +156,17 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
 
+            services.AddScoped<ICurrencyForexConfigCommandRepository, CurrencyForexConfigCommandRepository>();
+            services.AddScoped<ICurrencyForexConfigQueryRepository, CurrencyForexConfigQueryRepository>();
+
+            // Tax Code feature (US-GL02-05A / 05B) — consolidated command + query repos
+            services.AddScoped<ITaxCodeCommandRepository, TaxCodeCommandRepository>();
+            services.AddScoped<ITaxCodeQueryRepository, TaxCodeQueryRepository>();
+
+            // GSTR section master + account-range mapping — consolidated command + query repos
+            services.AddScoped<IGstrSectionCommandRepository, GstrSectionCommandRepository>();
+            services.AddScoped<IGstrSectionQueryRepository, GstrSectionQueryRepository>();
+
             // ── Lookup repositories (consumed by other modules via Contracts) ──
             services.AddScoped<IDocumentSequenceLookup, DocumentSequenceLookupRepository>();
             services.AddScoped<ITransactionTypeLookup, TransactionTypeLookupRepository>();
@@ -160,6 +176,7 @@ namespace FinanceManagement.Infrastructure
            services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
             services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
+            services.AddScoped<ITaxCodeLookup, TaxCodeLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically
