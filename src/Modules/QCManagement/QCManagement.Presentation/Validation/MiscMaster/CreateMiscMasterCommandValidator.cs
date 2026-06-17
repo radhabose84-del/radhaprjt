@@ -50,7 +50,7 @@ namespace QCManagement.Presentation.Validation.MiscMaster
                             .WithMessage($"{nameof(CreateMiscMasterCommand.Description)} {rule.Error}");
                         break;
 
-                    case "AlphabeticWithSeparators":
+                    case "Alphanumeric":
                         RuleFor(x => x.Code)
                             .Matches(rule.Pattern)
                             .WithMessage($"{nameof(CreateMiscMasterCommand.Code)} {rule.Error}")
