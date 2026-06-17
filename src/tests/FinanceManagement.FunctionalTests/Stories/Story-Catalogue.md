@@ -56,3 +56,33 @@ Base route: `api/finance/TaxCode`.
 > Composite GST is modelled as child component codes (CGST/SGST) under a COMBINED header (Tax Lead
 > ruling); TaxCode allows hyphens **and dots** (`^[A-Za-z0-9.-]+$`) so codes like `GST-OUT-CGST-2.5`
 > validate. TDS `StatutorySection` uses legacy 194x placeholders pending the IT Act 2025 clause numbers.
+
+---
+
+## US-GL02-12 — Account Currency & Forex Configuration
+
+**User story:** As a Finance Controller, I maintain the currency-type master (INR-only / Forex /
+Multi-currency, …) so the GL Account screen's single "Currency Type" dropdown draws from one
+governed list, instead of free-form values, ahead of forex postings and period-end revaluation.
+
+**Pre-condition (seed):** the currency-type master is **self-seeding** (create endpoint exists,
+CompanyId comes from the token). The configuration lifecycle runs live. Enforcement (postings,
+revaluation, EEFC report, currency-type lock) is **GL-04 (Sprint 2)** — those steps are 🚫.
+
+Base route: `api/finance/CurrencyForexConfig`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| Create → available in dropdown | Given a new currency type is created, When GET `/by-name`, Then it is returned (offered to the GL "Currency Type" dropdown, no code change). | ✅ implementable |
+| Edit | Given an existing type, When PUT with a new name, Then GET `/{id}` reflects it (code immutable). | ✅ implementable |
+| Deactivate | Given an active type, When PUT with `isActive=0`, Then it is excluded from `/by-name` (dropdown) but still present in GetAll (`IsDeleted=0`). | ✅ implementable |
+| Delete blocked when linked (Rule 25) | Given a type referenced by a GL account (`GlAccountMaster.CurrencyTypeId`), When DELETE, Then blocked: "linked with other records". | 🚫 needs GL account |
+| AC1 — reject FC posting to INR-only | Given an INR-only account, When a USD posting is attempted, Then rejected. | 🚫 GL-04 |
+| AC2 — permit forex posting | Given a forex export-debtor account, When USD/EUR posting, Then permitted. | 🚫 GL-04 |
+| AC3 — revaluation routing | Given a revaluation-account mapping, When period-end revaluation posts, Then the difference routes to the configured forex gain/loss account. | 🚫 GL-04 |
+| AC4 — EEFC balance report | Given EEFC accounts, When the EEFC balance report runs, Then balances are listed for FEMA. | 🚫 GL-04 |
+| AC5 — lock currency type after posting | Given a type set and the account has postings, When edited, Then currency type is read-only. | 🚫 GL-04 |
+
+> Scope now = the currency-type **master + the GL dropdown wired to it** (`GlAccountMaster.CurrencyTypeId`
+> → FK). EEFC flag, unrealised/realised forex G/L accounts, allowed currency and all enforcement
+> (AC1–AC5) land with the GL-04 posting/revaluation engine.

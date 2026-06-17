@@ -26,5 +26,8 @@ namespace FinanceManagement.Domain.Entities
         public AccountGroup? AccountGroup { get; set; }
         public MiscMaster? NormalBalanceMaster { get; set; }
         public MiscMaster? SubLedgerTypeMaster { get; set; }
+
+        // Currency type dropdown -> CurrencyForexConfig master (US-GL02-12)
+        public CurrencyForexConfig? CurrencyTypeConfig { get; set; }
     }
 }
