@@ -23,7 +23,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             am.AccountGroupId, ag.GroupCode AS AccountGroupCode, ag.GroupName AS AccountGroupName,
             am.AccountCode, am.AccountName, am.Description,
             am.NormalBalanceId, nb.Code AS NormalBalanceCode, nb.Description AS NormalBalanceName,
-            am.CurrencyTypeId,
+            am.CurrencyTypeId, cfc.CurrencyTypeCode, cfc.CurrencyTypeName,
             am.SubLedgerTypeId, slt.Code AS SubLedgerTypeCode, slt.Description AS SubLedgerTypeName,
             am.IsCostCentreMandatory, am.IsTaxRelevant, am.IsInterCompany, am.IsReconciliationRequired,
             am.IsActive, am.IsDeleted,
@@ -37,6 +37,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             LEFT JOIN Finance.AccountGroup       ag    ON am.AccountGroupId = ag.Id AND ag.IsDeleted = 0
             LEFT JOIN Finance.MiscMaster         nb    ON am.NormalBalanceId = nb.Id AND nb.IsDeleted = 0
             LEFT JOIN Finance.MiscMaster         slt   ON am.SubLedgerTypeId = slt.Id AND slt.IsDeleted = 0
+            LEFT JOIN Finance.CurrencyForexConfig cfc  ON am.CurrencyTypeId = cfc.Id AND cfc.IsDeleted = 0
         ";
 
         public async Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null)
@@ -221,6 +222,17 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
                   AND mtm.MiscTypeCode = 'SLTYPE'";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = subLedgerTypeId });
+            return count > 0;
+        }
+
+        public async Task<bool> CurrencyTypeExistsForCompanyAsync(int currencyTypeId, int companyId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Finance.CurrencyForexConfig
+                WHERE Id = @Id AND CompanyId = @CompanyId AND IsActive = 1 AND IsDeleted = 0";
+
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = currencyTypeId, CompanyId = companyId });
             return count > 0;
         }
 

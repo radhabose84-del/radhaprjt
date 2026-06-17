@@ -33,6 +33,7 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
         public DbSet<AccountTypeMaster> AccountTypeMaster => Set<AccountTypeMaster>();
         public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
+        public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
         // Transactional outbox (SQL) — drained to the bus by the shared SqlOutboxProcessorJob.
         public DbSet<FinanceManagement.Domain.Entities.Outbox.OutboxMessage> OutboxMessages => Set<FinanceManagement.Domain.Entities.Outbox.OutboxMessage>();

@@ -144,6 +144,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .WithMany(mm => mm.GlAccountsAsSubLedgerType)
                 .HasForeignKey(t => t.SubLedgerTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Currency type dropdown -> CurrencyForexConfig master (US-GL02-12)
+            builder.HasOne(t => t.CurrencyTypeConfig)
+                .WithMany()
+                .HasForeignKey(t => t.CurrencyTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

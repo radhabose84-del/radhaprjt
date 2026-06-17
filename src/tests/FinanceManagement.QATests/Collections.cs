@@ -9,6 +9,9 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("TaxCodeCollection")]
     public sealed class TaxCodeCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("CurrencyForexConfigCollection")]
+    public sealed class CurrencyForexConfigCollection : ICollectionFixture<QAServerFixture> { }
+
     [CollectionDefinition("SecurityCollection")]
     public sealed class SecurityCollection : ICollectionFixture<QAServerFixture> { }
 }
