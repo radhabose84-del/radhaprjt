@@ -8,4 +8,7 @@ namespace FinanceManagement.FunctionalTests
 
     [CollectionDefinition("US-GL02-05")]
     public sealed class TaxCodeStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL02-12")]
+    public sealed class CurrencyForexConfigStoryCollection : ICollectionFixture<QAServerFixture> { }
 }
