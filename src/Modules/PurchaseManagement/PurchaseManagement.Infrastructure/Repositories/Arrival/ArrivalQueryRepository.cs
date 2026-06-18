@@ -11,6 +11,7 @@ using Contracts.Interfaces.Lookups.Warehouse;
 using Dapper;
 using PurchaseManagement.Application.Arrival.Dto;
 using PurchaseManagement.Application.Common.Interfaces.IArrival;
+using PurchaseManagement.Domain.Common;
 
 namespace PurchaseManagement.Infrastructure.Repositories.Arrival
 {
@@ -361,6 +362,39 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                     BalanceQty = po.Quantity - arrived
                 };
             }).ToList();
+        }
+
+        // Approved Freight RFQ (transporter/party + agreed rate) for a Raw Material PO — prefilled into the
+        // arrival form when the PO is selected. The approved transporter is itself a Party, so it populates
+        // both Transporter and Party on screen. Same-module read (Purchase.FreightRfqHeader). Null when none approved.
+        public async Task<ApprovedFreightDto?> GetApprovedFreightByPoAsync(int rawMaterialPOId)
+        {
+            const string sql = @"
+                SELECT TOP 1
+                    h.Id AS FreightRfqId,
+                    h.FreightRfqNumber,
+                    h.ApprovedTransporterId AS TransporterId,
+                    h.ApprovedRate AS FreightRate
+                FROM Purchase.FreightRfqHeader h
+                INNER JOIN Purchase.MiscMaster s ON s.Id = h.StatusId AND s.IsDeleted = 0
+                WHERE h.PoReferenceId = @POId AND s.Code = @ApprovedCode AND h.IsDeleted = 0
+                ORDER BY h.ModifiedDate DESC, h.Id DESC;";
+
+            var dto = await _conn.QueryFirstOrDefaultAsync<ApprovedFreightDto>(
+                sql, new { POId = rawMaterialPOId, ApprovedCode = MiscEnumEntity.Approved });
+            if (dto == null)
+                return null;
+
+            // The approved transporter is a Party — resolve its name once and surface it under both names.
+            if (dto.TransporterId is > 0)
+            {
+                var transporter = await _transporterLookup.GetActiveTransporterByIdAsync(dto.TransporterId.Value);
+                dto.Transporter = transporter?.TransporterName;
+                dto.PartyId = dto.TransporterId;
+                dto.Party = transporter?.TransporterName;
+            }
+
+            return dto;
         }
 
         private async Task LoadDetailsAsync(List<ArrivalDto> headers)
