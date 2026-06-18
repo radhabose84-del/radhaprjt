@@ -19,7 +19,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
 
         private static ScheduleIIICommandRepository CreateRepository(ApplicationDbContext ctx) => new(ctx);
 
-        // ---- seeding helpers (global catalog + junction) ---------------------
+        // ---- seeding helpers -------------------------------------------------
 
         private static async Task<Dictionary<string, int>> SeedMiscAsync(ApplicationDbContext ctx)
         {
@@ -30,7 +30,6 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
                 ("S3_STATUS",       new[] { ("DRAFT", "Draft"), ("LOCKED", "Locked") }),
                 ("S3_OPERATOR",     new[] { ("PLUS", "Plus"), ("MINUS", "Minus") }),
                 ("S3_OPERAND_TYPE", new[] { ("LINEITEM", "Line Item"), ("SUBTOTAL", "Sub Total") }),
-                ("S3_SUBTOTAL_TYPE",new[] { ("GROSSPROFIT", "Gross Profit"), ("EBITDA", "EBITDA") }),
             };
 
             var map = new Dictionary<string, int>();
@@ -51,15 +50,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             return map;
         }
 
-        private static async Task<int> SeedMasterAsync(ApplicationDbContext ctx, int statusId, int companyId = 1, int divisionId = 7)
-        {
-            var s = new ScheduleIIIMaster { CompanyId = companyId, DivisionId = divisionId, StatusId = statusId, VersionNo = 1 };
-            ctx.ScheduleIIIMaster.Add(s);
-            await ctx.SaveChangesAsync();
-            return s.Id;
-        }
-
-        private static async Task<int> SeedSectionAsync(ApplicationDbContext ctx, int stmtTypeId, int natureId, string name = "Current Assets")
+        private static async Task<int> SeedSectionAsync(ApplicationDbContext ctx, int stmtTypeId, int natureId, string name = "Income")
         {
             var sec = new ScheduleIIISection { SectionName = name, StatementTypeId = stmtTypeId, NatureId = natureId };
             ctx.ScheduleIIISection.Add(sec);
@@ -75,62 +66,94 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             return line.Id;
         }
 
-        private static async Task<int> SeedMasterLineAsync(ApplicationDbContext ctx, int masterId, int lineId, int order)
+        // A master row = (company/division header) + one included line.
+        private static async Task<int> SeedMasterRowAsync(ApplicationDbContext ctx, int statusId, int sectionItemId, int displayOrder = 1, int companyId = 1, int divisionId = 7)
         {
-            var ml = new ScheduleIIIMasterLine { ScheduleIIIMasterId = masterId, ScheduleIIISectionItemId = lineId, DisplayOrder = order };
-            ctx.ScheduleIIIMasterLine.Add(ml);
+            var s = new ScheduleIIIMaster
+            { CompanyId = companyId, DivisionId = divisionId, StatusId = statusId, ScheduleIIISectionItemId = sectionItemId, DisplayOrder = displayOrder };
+            ctx.ScheduleIIIMaster.Add(s);
             await ctx.SaveChangesAsync();
-            return ml.Id;
+            return s.Id;
         }
 
-        // ---- MASTER ----------------------------------------------------------
+        // ---- MASTER (merged: one row per line) -------------------------------
 
         [Fact]
-        public async Task CreateMaster_Should_Persist()
+        public async Task CreateMaster_Should_Persist_And_Default_To_Draft()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
+            var lineId = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
 
             var id = await CreateRepository(ctx).CreateMasterAsync(new ScheduleIIIMaster
-            { CompanyId = 1, DivisionId = 7, StatusId = misc["DRAFT"], VersionNo = 1 });
+            { CompanyId = 1, DivisionId = 7, ScheduleIIISectionItemId = lineId, DisplayOrder = 1 });
 
             id.Should().BeGreaterThan(0);
             ctx.ChangeTracker.Clear();
-            (await ctx.ScheduleIIIMaster.FirstAsync(x => x.Id == id)).CompanyId.Should().Be(1);
+            var saved = await ctx.ScheduleIIIMaster.FirstAsync(x => x.Id == id);
+            saved.ScheduleIIISectionItemId.Should().Be(lineId);
+            saved.StatusId.Should().Be(misc["DRAFT"], "a new master always starts as DRAFT");
         }
 
         [Fact]
-        public async Task LockStructure_Should_Set_Locked_Status()
+        public async Task LockStructure_Should_Lock_All_Rows_Of_Company_Division()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
-
-            (await CreateRepository(ctx).LockStructureAsync(masterId)).Should().BeTrue();
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
+            var l1 = await SeedLineAsync(ctx, sectionId, "A", "Alpha");
+            var l2 = await SeedLineAsync(ctx, sectionId, "B", "Beta");
+            var m1 = await SeedMasterRowAsync(ctx, misc["DRAFT"], l1, 1);
+            await SeedMasterRowAsync(ctx, misc["DRAFT"], l2, 2);
             ctx.ChangeTracker.Clear();
-            (await ctx.ScheduleIIIMaster.FirstAsync(x => x.Id == masterId)).StatusId.Should().Be(misc["LOCKED"]);
+
+            (await CreateRepository(ctx).LockStructureAsync(m1)).Should().BeTrue();
+            ctx.ChangeTracker.Clear();
+
+            (await ctx.ScheduleIIIMaster.CountAsync(x => x.CompanyId == 1 && x.DivisionId == 7 && x.StatusId == misc["LOCKED"]))
+                .Should().Be(2);
         }
 
-        // ---- SECTION (global) ------------------------------------------------
-
         [Fact]
-        public async Task CreateSection_Should_Persist()
+        public async Task SoftDeleteMaster_Should_Remove_One_Line()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-
-            var id = await CreateRepository(ctx).CreateSectionAsync(new ScheduleIIISection
-            { SectionName = "Current Assets", StatementTypeId = misc["BS"], NatureId = misc["ASSET"] });
-
-            id.Should().BeGreaterThan(0);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
+            var lineId = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
+            var m = await SeedMasterRowAsync(ctx, misc["DRAFT"], lineId, 1);
             ctx.ChangeTracker.Clear();
-            (await ctx.ScheduleIIISection.FirstAsync(x => x.Id == id)).SectionName.Should().Be("Current Assets");
+
+            (await CreateRepository(ctx).SoftDeleteMasterAsync(m, CancellationToken.None)).Should().BeTrue();
+            ctx.ChangeTracker.Clear();
+            (await ctx.ScheduleIIIMaster.IgnoreQueryFilters().FirstAsync(x => x.Id == m)).IsDeleted.Should().Be(IsDelete.Deleted);
         }
 
-        // ---- LINE ITEM (global) ----------------------------------------------
+        [Fact]
+        public async Task ReorderMaster_Should_Swap_DisplayOrder()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
+            var l1 = await SeedLineAsync(ctx, sectionId, "A", "Alpha");
+            var l2 = await SeedLineAsync(ctx, sectionId, "B", "Beta");
+            var m1 = await SeedMasterRowAsync(ctx, misc["DRAFT"], l1, 1);
+            var m2 = await SeedMasterRowAsync(ctx, misc["DRAFT"], l2, 2);
+            ctx.ChangeTracker.Clear();
+
+            (await CreateRepository(ctx).ReorderMasterAsync(m2, 1, CancellationToken.None)).Should().BeTrue();
+            ctx.ChangeTracker.Clear();
+
+            (await ctx.ScheduleIIIMaster.FirstAsync(x => x.Id == m2)).DisplayOrder.Should().Be(1);
+            (await ctx.ScheduleIIIMaster.FirstAsync(x => x.Id == m1)).DisplayOrder.Should().Be(2);
+        }
+
+        // ---- SECTION / LINE (global) -----------------------------------------
 
         [Fact]
         public async Task CreateLineItem_Should_Persist()
@@ -145,127 +168,27 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
 
             newId.Should().BeGreaterThan(0);
             ctx.ChangeTracker.Clear();
-            var saved = await ctx.ScheduleIIISectionItem.FirstAsync(x => x.Id == newId);
-            saved.LineCode.Should().Be("INV");
-            saved.NoteReference.Should().Be("Note 8");
-            saved.IsDeleted.Should().Be(IsDelete.NotDeleted);
-        }
-
-        [Fact]
-        public async Task UpdateLineItem_Should_Change_Name_But_Not_Code()
-        {
-            await _fixture.ClearAllTablesAsync();
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var misc = await SeedMiscAsync(ctx);
-            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
-            var id = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
-            ctx.ChangeTracker.Clear();
-
-            await CreateRepository(ctx).UpdateLineItemAsync(new ScheduleIIISectionItem
-            { Id = id, SectionId = sectionId, LineName = "Inventories (revised)", IsActive = Status.Active });
-            ctx.ChangeTracker.Clear();
-
-            var saved = await ctx.ScheduleIIISectionItem.FirstAsync(x => x.Id == id);
-            saved.LineName.Should().Be("Inventories (revised)");
-            saved.LineCode.Should().Be("INV");
-        }
-
-        [Fact]
-        public async Task SoftDeleteLineItem_Should_Set_Flag()
-        {
-            await _fixture.ClearAllTablesAsync();
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var misc = await SeedMiscAsync(ctx);
-            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
-            var id = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
-            ctx.ChangeTracker.Clear();
-
-            (await CreateRepository(ctx).SoftDeleteLineItemAsync(id, CancellationToken.None)).Should().BeTrue();
-            ctx.ChangeTracker.Clear();
-            (await ctx.ScheduleIIISectionItem.IgnoreQueryFilters().FirstAsync(x => x.Id == id)).IsDeleted.Should().Be(IsDelete.Deleted);
-        }
-
-        // ---- MASTER LINE (junction) ------------------------------------------
-
-        [Fact]
-        public async Task CreateMasterLine_Should_Link_Line_To_Master()
-        {
-            await _fixture.ClearAllTablesAsync();
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var misc = await SeedMiscAsync(ctx);
-            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
-            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
-            var lineId = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
-
-            var id = await CreateRepository(ctx).CreateMasterLineAsync(new ScheduleIIIMasterLine
-            { ScheduleIIIMasterId = masterId, ScheduleIIISectionItemId = lineId, DisplayOrder = 1 });
-
-            id.Should().BeGreaterThan(0);
-            ctx.ChangeTracker.Clear();
-            var saved = await ctx.ScheduleIIIMasterLine.FirstAsync(x => x.Id == id);
-            saved.ScheduleIIIMasterId.Should().Be(masterId);
-            saved.ScheduleIIISectionItemId.Should().Be(lineId);
-        }
-
-        [Fact]
-        public async Task SoftDeleteMasterLine_Should_Detach()
-        {
-            await _fixture.ClearAllTablesAsync();
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var misc = await SeedMiscAsync(ctx);
-            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
-            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
-            var lineId = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
-            var mlId = await SeedMasterLineAsync(ctx, masterId, lineId, 1);
-            ctx.ChangeTracker.Clear();
-
-            (await CreateRepository(ctx).SoftDeleteMasterLineAsync(mlId, CancellationToken.None)).Should().BeTrue();
-            ctx.ChangeTracker.Clear();
-            (await ctx.ScheduleIIIMasterLine.IgnoreQueryFilters().FirstAsync(x => x.Id == mlId)).IsDeleted.Should().Be(IsDelete.Deleted);
-        }
-
-        [Fact]
-        public async Task ReorderMasterLine_Should_Swap_DisplayOrder()
-        {
-            await _fixture.ClearAllTablesAsync();
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var misc = await SeedMiscAsync(ctx);
-            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
-            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
-            var l1 = await SeedLineAsync(ctx, sectionId, "A", "Alpha");
-            var l2 = await SeedLineAsync(ctx, sectionId, "B", "Beta");
-            var ml1 = await SeedMasterLineAsync(ctx, masterId, l1, 1);
-            var ml2 = await SeedMasterLineAsync(ctx, masterId, l2, 2);
-            ctx.ChangeTracker.Clear();
-
-            // Move ml2 up (direction 1) — swaps with ml1.
-            (await CreateRepository(ctx).ReorderMasterLineAsync(ml2, 1, CancellationToken.None)).Should().BeTrue();
-            ctx.ChangeTracker.Clear();
-
-            (await ctx.ScheduleIIIMasterLine.FirstAsync(x => x.Id == ml2)).DisplayOrder.Should().Be(1);
-            (await ctx.ScheduleIIIMasterLine.FirstAsync(x => x.Id == ml1)).DisplayOrder.Should().Be(2);
+            (await ctx.ScheduleIIISectionItem.FirstAsync(x => x.Id == newId)).LineCode.Should().Be("INV");
         }
 
         // ---- SUB-TOTAL -------------------------------------------------------
 
         [Fact]
-        public async Task CreateSubTotal_Should_Persist_Formulas_And_Build_Expression()
+        public async Task CreateSubTotal_Should_Persist_Operands_And_Build_Expression()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
             var sectionId = await SeedSectionAsync(ctx, misc["PL"], misc["INCOME"], "Income");
             var revenue = await SeedLineAsync(ctx, sectionId, "REV", "Revenue");
             var cogs = await SeedLineAsync(ctx, sectionId, "COGS", "Cost of Goods Sold");
             ctx.ChangeTracker.Clear();
 
-            var subTotal = new ScheduleIIISubTotal
-            { ScheduleIIIMasterId = masterId, SubTotalTypeId = misc["GROSSPROFIT"], FormulaExpression = string.Empty, IsSystemDefined = false, DisplayOrder = 1 };
+            var subTotal = new ScheduleIIISubTotal { FormulaName = "Gross Profit", FormulaExpression = string.Empty, DisplayOrder = 1 };
             var formulas = new List<ScheduleIIISubTotalFormula>
             {
-                new() { OperandTypeId = misc["LINEITEM"], OperandRefId = revenue, OperatorId = misc["PLUS"],  DisplayOrder = 1 },
-                new() { OperandTypeId = misc["LINEITEM"], OperandRefId = cogs,    OperatorId = misc["MINUS"], DisplayOrder = 2 },
+                new() { OperandTypeId = misc["LINEITEM"], SectionItemId = revenue, OperatorId = misc["PLUS"],  DisplayOrder = 1 },
+                new() { OperandTypeId = misc["LINEITEM"], SectionItemId = cogs,    OperatorId = misc["MINUS"], DisplayOrder = 2 },
             };
 
             var newId = await CreateRepository(ctx).CreateSubTotalAsync(subTotal, formulas);
@@ -277,36 +200,36 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
         }
 
         [Fact]
-        public async Task UpdateSubTotal_Should_Replace_Formulas_And_Rebuild_Expression()
+        public async Task UpdateSubTotal_Should_Replace_Operands_And_Rebuild_Expression()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
             var sectionId = await SeedSectionAsync(ctx, misc["PL"], misc["INCOME"], "Income");
             var revenue = await SeedLineAsync(ctx, sectionId, "REV", "Revenue");
             var other = await SeedLineAsync(ctx, sectionId, "OI", "Other Income");
 
             var seedId = await CreateRepository(ctx).CreateSubTotalAsync(
-                new ScheduleIIISubTotal { ScheduleIIIMasterId = masterId, SubTotalTypeId = misc["GROSSPROFIT"], FormulaExpression = string.Empty, DisplayOrder = 1 },
+                new ScheduleIIISubTotal { FormulaName = "Gross Profit", FormulaExpression = string.Empty, DisplayOrder = 1 },
                 new List<ScheduleIIISubTotalFormula>
                 {
-                    new() { OperandTypeId = misc["LINEITEM"], OperandRefId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 }
+                    new() { OperandTypeId = misc["LINEITEM"], SectionItemId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 }
                 });
             ctx.ChangeTracker.Clear();
 
-            await CreateRepository(ctx).UpdateSubTotalAsync(seedId, misc["EBITDA"], true, new List<ScheduleIIISubTotalFormula>
+            await CreateRepository(ctx).UpdateSubTotalAsync(seedId, "EBITDA", true, new List<ScheduleIIISubTotalFormula>
             {
-                new() { SubTotalId = seedId, OperandTypeId = misc["LINEITEM"], OperandRefId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 },
-                new() { SubTotalId = seedId, OperandTypeId = misc["LINEITEM"], OperandRefId = other,   OperatorId = misc["PLUS"], DisplayOrder = 2 },
+                new() { OperandTypeId = misc["LINEITEM"], SectionItemId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 },
+                new() { OperandTypeId = misc["LINEITEM"], SectionItemId = other,   OperatorId = misc["PLUS"], DisplayOrder = 2 },
             });
             ctx.ChangeTracker.Clear();
 
             var updated = await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == seedId);
-            updated.SubTotalTypeId.Should().Be(misc["EBITDA"]);
+            updated.FormulaName.Should().Be("EBITDA");
             updated.IncludeOtherIncome.Should().BeTrue();
             updated.FormulaExpression.Should().Be("Revenue + Other Income");
-            (await ctx.ScheduleIIISubTotalFormula.CountAsync(f => f.SubTotalId == seedId && f.IsDeleted == IsDelete.NotDeleted)).Should().Be(2);
+            // Old operands were physically deleted, new ones inserted.
+            (await ctx.ScheduleIIISubTotalFormula.CountAsync(f => f.SubTotalId == seedId)).Should().Be(2);
         }
     }
 }

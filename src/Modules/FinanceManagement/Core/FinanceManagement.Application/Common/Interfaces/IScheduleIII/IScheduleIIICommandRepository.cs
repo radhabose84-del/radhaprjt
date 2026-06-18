@@ -20,8 +20,13 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         Task<int> UpdateLineItemAsync(ScheduleIIISectionItem entity);
         Task<bool> SoftDeleteLineItemAsync(int id, CancellationToken ct);
 
-        // Sub-totals (+ formula operands)
+        // Sub-totals (catalog of formulas: Gross Profit / EBITDA / PBT / PAT) — operands persisted together.
+        // Update replaces the operand set (old rows hard-deleted, logged to ActivityLog).
         Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal, List<ScheduleIIISubTotalFormula> formulas);
         Task<int> UpdateSubTotalAsync(int subTotalId, string? formulaName, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas);
+        Task<bool> SoftDeleteSubTotalAsync(int id, CancellationToken ct);
+
+        // Sub-total formula operands (separate ScheduleIIISubTotalFormula API) — physical replace, logged to ActivityLog.
+        Task<int> SaveSubTotalFormulaAsync(int subTotalId, List<ScheduleIIISubTotalFormula> formulas);
     }
 }

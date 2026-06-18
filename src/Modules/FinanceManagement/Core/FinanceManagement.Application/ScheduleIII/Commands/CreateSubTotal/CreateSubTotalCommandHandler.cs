@@ -31,6 +31,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal
             {
                 OperandTypeId = f.OperandTypeId,
                 SectionItemId = f.SectionItemId,
+                OperandSubTotalId = f.OperandSubTotalId,
                 OperatorId = f.OperatorId,
                 DisplayOrder = f.DisplayOrder
             }).ToList();
@@ -40,7 +41,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "S3_SUBTOTAL_CREATE",
-                actionName: request.FormulaName ?? string.Empty,
+                actionName: request.FormulaName,
                 details: $"Schedule III sub-total '{request.FormulaName}' created successfully with Id {newId}.",
                 module: "ScheduleIIISubTotal"
             );

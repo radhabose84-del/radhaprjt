@@ -190,6 +190,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
         // ── Sub-totals (+ formula operands) ──────────────────────────────────
 
+        // Combined create — header + its signed operands (used by the ScheduleIIISubTotal controller).
         public async Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal, List<ScheduleIIISubTotalFormula> formulas)
         {
             subTotal.FormulaExpression = await BuildExpressionAsync(formulas);
@@ -206,6 +207,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return subTotal.Id;
         }
 
+        // Combined update — header + physical replace of the operand set (logged to ActivityLog).
         public async Task<int> UpdateSubTotalAsync(int subTotalId, string? formulaName, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas)
         {
             var existing = await _applicationDbContext.ScheduleIIISubTotal
@@ -214,13 +216,10 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             if (existing == null)
                 return 0;
 
-            existing.FormulaName = formulaName;
+            existing.FormulaName = formulaName ?? string.Empty;
             existing.IncludeOtherIncome = includeOtherIncome;
             existing.FormulaExpression = await BuildExpressionAsync(formulas);
 
-            // Replace the operand set: PHYSICALLY delete the old rows, then insert the new ones.
-            // ScheduleIIISubTotalFormula is IActivityTracked, so the SaveChanges interceptor records each
-            // hard delete as a "Delete" entry in Finance.ActivityLog (with the old operand values).
             var oldFormulas = await _applicationDbContext.ScheduleIIISubTotalFormula
                 .Where(f => f.SubTotalId == subTotalId)
                 .ToListAsync();
@@ -237,7 +236,53 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return existing.Id;
         }
 
-        // Rebuilds the cached display string (e.g. "Gross Profit + Other Income - Operating Expenses").
+        public async Task<bool> SoftDeleteSubTotalAsync(int id, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.ScheduleIIISubTotal
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.IsDeleted = IsDelete.Deleted;
+            _applicationDbContext.ScheduleIIISubTotal.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        // ── Sub-total formula operands (physical replace) ───────────────────
+        public async Task<int> SaveSubTotalFormulaAsync(int subTotalId, List<ScheduleIIISubTotalFormula> formulas)
+        {
+            var existing = await _applicationDbContext.ScheduleIIISubTotal
+                .FirstOrDefaultAsync(x => x.Id == subTotalId && x.IsDeleted == IsDelete.NotDeleted);
+
+            if (existing == null)
+                return 0;
+
+            // Replace the operand set: PHYSICALLY delete the old rows, then insert the new ones.
+            // ScheduleIIISubTotalFormula is IActivityTracked, so the SaveChanges interceptor records each
+            // hard delete as a "Delete" entry in Finance.ActivityLog (with the old operand values).
+            var oldFormulas = await _applicationDbContext.ScheduleIIISubTotalFormula
+                .Where(f => f.SubTotalId == subTotalId)
+                .ToListAsync();
+
+            _applicationDbContext.ScheduleIIISubTotalFormula.RemoveRange(oldFormulas);
+
+            foreach (var f in formulas)
+                f.SubTotalId = subTotalId;
+
+            await _applicationDbContext.ScheduleIIISubTotalFormula.AddRangeAsync(formulas);
+
+            // The header caches the derived display expression.
+            existing.FormulaExpression = await BuildExpressionAsync(formulas);
+            _applicationDbContext.ScheduleIIISubTotal.Update(existing);
+
+            await _applicationDbContext.SaveChangesAsync();
+            return existing.Id;
+        }
+
+        // Rebuilds the cached display string (e.g. "Revenue - Cost of Goods Sold + EBITDA").
+        // An operand is either a line item (SectionItemId) or another sub-total (OperandSubTotalId).
         private async Task<string> BuildExpressionAsync(List<ScheduleIIISubTotalFormula> formulas)
         {
             if (formulas == null || formulas.Count == 0)
@@ -250,12 +295,17 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                 .Where(m => operatorIds.Contains(m.Id))
                 .ToDictionaryAsync(m => m.Id, m => m.Code);
 
-            // Operands reference a line item directly (SectionItemId).
             var sectionItemIds = ordered.Where(f => f.SectionItemId.HasValue)
                 .Select(f => f.SectionItemId!.Value).Distinct().ToList();
             var lineNames = await _applicationDbContext.ScheduleIIISectionItem
                 .Where(l => sectionItemIds.Contains(l.Id))
                 .ToDictionaryAsync(l => l.Id, l => l.LineName);
+
+            var subTotalIds = ordered.Where(f => f.OperandSubTotalId.HasValue)
+                .Select(f => f.OperandSubTotalId!.Value).Distinct().ToList();
+            var subTotalNames = await _applicationDbContext.ScheduleIIISubTotal
+                .Where(s => subTotalIds.Contains(s.Id))
+                .ToDictionaryAsync(s => s.Id, s => s.FormulaName);
 
             var parts = new List<string>();
             foreach (var f in ordered)
@@ -263,7 +313,11 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                 var opCode = operatorCodes.TryGetValue(f.OperatorId, out var oc) ? oc : string.Empty;
                 var symbol = string.Equals(opCode, "MINUS", StringComparison.OrdinalIgnoreCase) ? "-" : "+";
 
-                var name = f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln) ? ln : null;
+                string? name = null;
+                if (f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln))
+                    name = ln;
+                else if (f.OperandSubTotalId.HasValue && subTotalNames.TryGetValue(f.OperandSubTotalId.Value, out var sn))
+                    name = sn;
 
                 parts.Add($"{symbol} {name}");
             }

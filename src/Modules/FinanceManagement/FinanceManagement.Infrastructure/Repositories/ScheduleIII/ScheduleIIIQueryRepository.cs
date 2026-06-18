@@ -90,12 +90,14 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
         public async Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync(int? subTotalId)
         {
-            // Candidate operands = active P&L line items, LEFT JOINed to the sub-total's existing formula
-            // so each row shows its current +/− selection (off / + / −).
+            // Candidate operands = active P&L line items + other sub-totals (excluding the one being edited),
+            // each LEFT JOINed to the editing sub-total's formula so the row shows its current +/− selection.
+            // SortGroup 0 = line items first, 1 = sub-totals (matches the Edit-formula dialog order).
             const string sql = @"
                 SELECT li.Id AS Id, li.LineName AS Name, 'LINEITEM' AS Kind,
                        CASE WHEN f.Id IS NULL THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END AS IsSelected,
-                       f.OperatorId, op.Code AS OperatorCode, f.DisplayOrder
+                       f.OperatorId, op.Code AS OperatorCode, f.DisplayOrder,
+                       0 AS SortGroup, li.LineName AS SortKey
                 FROM [Finance].[ScheduleIIISectionItem] li
                 JOIN [Finance].[ScheduleIIISection] sec ON li.SectionId = sec.Id AND sec.IsDeleted = 0
                 JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0 AND stt.Code = 'PL'
@@ -103,7 +105,21 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                     ON f.SubTotalId = @SubTotalId AND f.IsDeleted = 0 AND f.SectionItemId = li.Id
                 LEFT JOIN [Finance].[MiscMaster] op ON f.OperatorId = op.Id AND op.IsDeleted = 0
                 WHERE li.IsDeleted = 0 AND li.IsActive = 1
-                ORDER BY li.LineName;";
+
+                UNION ALL
+
+                SELECT st.Id AS Id, st.FormulaName AS Name, 'SUBTOTAL' AS Kind,
+                       CASE WHEN f.Id IS NULL THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END AS IsSelected,
+                       f.OperatorId, op.Code AS OperatorCode, f.DisplayOrder,
+                       1 AS SortGroup, RIGHT('0000000000' + CAST(st.DisplayOrder AS varchar(10)), 10) AS SortKey
+                FROM [Finance].[ScheduleIIISubTotal] st
+                LEFT JOIN [Finance].[ScheduleIIISubTotalFormula] f
+                    ON f.SubTotalId = @SubTotalId AND f.IsDeleted = 0 AND f.OperandSubTotalId = st.Id
+                LEFT JOIN [Finance].[MiscMaster] op ON f.OperatorId = op.Id AND op.IsDeleted = 0
+                WHERE st.IsDeleted = 0 AND st.IsActive = 1
+                  AND (@SubTotalId IS NULL OR st.Id <> @SubTotalId)
+
+                ORDER BY SortGroup, SortKey;";
 
             var result = await _dbConnection.QueryAsync<SubTotalFormulaOperandDto>(sql, new { SubTotalId = subTotalId });
             return result.ToList();
@@ -212,7 +228,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             const string formulaSql = @"
                 SELECT f.Id, f.SubTotalId,
                        f.OperandTypeId, ot.Description AS OperandTypeName, ot.Code AS OperandTypeCode,
-                       f.SectionItemId,
+                       f.SectionItemId, f.OperandSubTotalId,
                        f.OperatorId, op.Description AS OperatorName,
                        f.DisplayOrder
                 FROM [Finance].[ScheduleIIISubTotalFormula] f
@@ -224,7 +240,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             var formulas = (await _dbConnection.QueryAsync<FormulaRow>(
                 formulaSql, new { SubTotalIds = subTotals.Select(s => s.Id).ToArray() })).ToList();
 
-            // Operands reference a line item directly (SectionItemId) — resolve its name.
+            // An operand is either a line item (SectionItemId) or another sub-total (OperandSubTotalId) — resolve its name.
             var lineRefIds = formulas.Where(f => f.SectionItemId.HasValue).Select(f => f.SectionItemId!.Value).Distinct().ToArray();
             var lineNames = lineRefIds.Length == 0
                 ? new Dictionary<int, string?>()
@@ -232,8 +248,22 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                     "SELECT Id, LineName FROM [Finance].[ScheduleIIISectionItem] WHERE Id IN @Ids AND IsDeleted = 0",
                     new { Ids = lineRefIds })).ToDictionary(x => x.Id, x => x.LineName);
 
+            var subRefIds = formulas.Where(f => f.OperandSubTotalId.HasValue).Select(f => f.OperandSubTotalId!.Value).Distinct().ToArray();
+            var subNames = subRefIds.Length == 0
+                ? new Dictionary<int, string?>()
+                : (await _dbConnection.QueryAsync<(int Id, string? FormulaName)>(
+                    "SELECT Id, FormulaName FROM [Finance].[ScheduleIIISubTotal] WHERE Id IN @Ids AND IsDeleted = 0",
+                    new { Ids = subRefIds })).ToDictionary(x => x.Id, x => x.FormulaName);
+
             foreach (var f in formulas)
-                f.OperandName = f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln) ? ln : null;
+            {
+                if (f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln))
+                    f.OperandName = ln;
+                else if (f.OperandSubTotalId.HasValue && subNames.TryGetValue(f.OperandSubTotalId.Value, out var sn))
+                    f.OperandName = sn;
+                else
+                    f.OperandName = null;
+            }
 
             foreach (var st in subTotals)
             {
@@ -244,6 +274,12 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             }
 
             return subTotals;
+        }
+
+        public async Task<ScheduleIIISubTotalDto?> GetSubTotalByIdAsync(int id)
+        {
+            var all = await GetSubTotalsAsync();
+            return all.FirstOrDefault(s => s.Id == id);
         }
 
         public async Task<ScheduleIIISectionItemDto?> GetLineItemByIdAsync(int id)
@@ -331,18 +367,6 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return count == 0;
         }
 
-
-        public async Task<bool> SubTotalTypeExistsAsync(int miscId)
-        {
-            const string sql = @"
-                SELECT COUNT(1)
-                FROM [Finance].[MiscMaster] mm
-                JOIN [Finance].[MiscTypeMaster] mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
-                WHERE mm.Id = @Id AND mm.IsActive = 1 AND mm.IsDeleted = 0
-                  AND mt.MiscTypeCode = 'S3_SUBTOTAL_TYPE';";
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = miscId });
-            return count > 0;
-        }
 
         public async Task<(List<ScheduleIIISectionItemDto>, int)> GetAllLineItemAsync(int pageNumber, int pageSize, string? searchTerm, int? scheduleIIIMasterId, int? sectionId)
         {

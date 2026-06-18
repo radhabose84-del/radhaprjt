@@ -127,7 +127,7 @@ public sealed class SubmitQCReviewCommandValidatorTests
             Comments = "Review",
             ExpectedResolutionDate = new DateOnly(2026, 3, 1),
             Assignments = null,
-            CompensationScheduleIIIMasterId = 4
+            CompensationStructureId = 4
         };
 
         var result = await CreateValidator().TestValidateAsync(command);

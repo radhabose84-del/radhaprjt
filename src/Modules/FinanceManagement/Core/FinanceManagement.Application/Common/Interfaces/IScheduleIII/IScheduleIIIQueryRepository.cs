@@ -8,6 +8,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         Task<ScheduleIIIMasterDto?> GetStructureAsync(int companyId, int divisionId);
         Task<Preview03BDto> Get03BPreviewAsync(int companyId, int divisionId);
         Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync();
+        Task<ScheduleIIISubTotalDto?> GetSubTotalByIdAsync(int id);
         Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync(int? subTotalId);   // Edit-formula picker: P&L lines + sub-total nodes, with current +/− selection
         Task<ScheduleIIISectionItemDto?> GetLineItemByIdAsync(int id);
 
@@ -30,9 +31,8 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         Task<bool> SectionExistsAsync(int sectionId);
         Task<bool> MasterContainsLineAsync(int companyId, int divisionId, int scheduleIIILineItemId);
         Task<bool> IsStructureLockedAsync(int companyId, int divisionId);
-        Task<bool> SubTotalTypeExistsAsync(int miscId);   // MiscMaster row under S3_SUBTOTAL_TYPE
 
-        // Resolves the MiscMaster Id for S3_OPERAND_TYPE = SUBTOTAL (for self-reference checks)
+        // Resolves the MiscMaster Id for S3_OPERAND_TYPE = SUBTOTAL (operand-kind id for the formula picker)
         Task<int> GetSubTotalOperandTypeIdAsync();
 
         // 03B usage (stubbed to 0/false until US-GL02-03B ships the ScheduleIIIAccountGroupMap table)

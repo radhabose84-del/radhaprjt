@@ -87,7 +87,7 @@ namespace ProjectManagement.UnitTests.Application.ProjectWorkBreakdownStructure.
             _mockQueryRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(dto);
 
             var command = ProjectWorkBreakdownStructureBuilders.ValidCreateCommand();
-            command.ParentWorkBreakdownScheduleIIIMasterId = 5;
+            command.ParentWorkBreakdownStructureId = 5;
 
             await CreateSut().Handle(command, CancellationToken.None);
 
