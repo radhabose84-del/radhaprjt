@@ -1,4 +1,3 @@
-using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal;
 using FinanceManagement.Application.ScheduleIII.Dto;
@@ -10,27 +9,20 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         private readonly Mock<IScheduleIIICommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
-        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
-
-        public CreateSubTotalCommandHandlerTests()
-        {
-            _mockIp.Setup(s => s.GetCompanyId()).Returns(1);
-            _mockIp.Setup(s => s.GetDivisionId()).Returns(7);
-        }
 
         private CreateSubTotalCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockIp.Object);
+            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private static CreateSubTotalCommand ValidCommand() =>
             new()
             {
-                SubTotalTypeId = 28,
+                FormulaName = "Gross Profit",
                 IncludeOtherIncome = false,
                 DisplayOrder = 5,
                 Formulas = new List<SubTotalFormulaInput>
                 {
-                    new() { OperandTypeId = 140, OperandRefId = 19, OperatorId = 130, DisplayOrder = 1 },
-                    new() { OperandTypeId = 140, OperandRefId = 22, OperatorId = 131, DisplayOrder = 2 }
+                    new() { OperandTypeId = 140, SectionItemId = 19, OperatorId = 130, DisplayOrder = 1 },
+                    new() { OperandTypeId = 140, SectionItemId = 22, OperatorId = 131, DisplayOrder = 2 }
                 }
             };
 

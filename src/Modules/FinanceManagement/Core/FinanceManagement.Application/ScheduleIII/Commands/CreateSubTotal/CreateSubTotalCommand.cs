@@ -7,7 +7,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal
     public class CreateSubTotalCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         // CompanyId + DivisionId (structure identity) come from the token — not the payload.
-        public int SubTotalTypeId { get; set; }
+        public string? FormulaName { get; set; }   // "Gross Profit" / "EBITDA" / "Profit Before Tax" / "Profit After Tax"
         public bool IncludeOtherIncome { get; set; }
         public int DisplayOrder { get; set; }
         public List<SubTotalFormulaInput> Formulas { get; set; } = new();

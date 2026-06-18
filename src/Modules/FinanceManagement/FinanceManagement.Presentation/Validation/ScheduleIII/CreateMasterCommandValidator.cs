@@ -28,9 +28,6 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.StatusId)
-                            .NotEmpty().WithMessage($"{nameof(CreateMasterCommand.StatusId)} {rule.Error}");
-
                         RuleFor(x => x.ScheduleIIISectionItemId)
                             .NotEmpty().WithMessage($"{nameof(CreateMasterCommand.ScheduleIIISectionItemId)} {rule.Error}");
                         break;

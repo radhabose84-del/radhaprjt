@@ -4,6 +4,7 @@ using FinanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260618091928_ScheduleIIISubTotalRework")]
+    partial class ScheduleIIISubTotalRework
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -347,6 +350,79 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasDatabaseName("IX_ActivityLog_Entity_CreatedDate");
 
                     b.ToTable("ActivityLog", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CurrencyForexConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("CurrencyTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("CurrencyTypeCode");
+
+                    b.Property<string>("CurrencyTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CurrencyTypeName");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CompanyId", "CurrencyTypeCode")
+                        .IsUnique();
+
+                    b.ToTable("CurrencyForexConfig", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.DocumentSequence", b =>
@@ -1047,6 +1123,8 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("AccountTypeId");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("CurrencyTypeId");
 
                     b.HasIndex("NormalBalanceId");
 
@@ -2360,6 +2438,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FinanceManagement.Domain.Entities.CurrencyForexConfig", "CurrencyTypeConfig")
+                        .WithMany()
+                        .HasForeignKey("CurrencyTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "NormalBalanceMaster")
                         .WithMany("GlAccountsAsNormalBalance")
                         .HasForeignKey("NormalBalanceId")
@@ -2375,6 +2459,8 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("AccountGroup");
 
                     b.Navigation("AccountTypeMaster");
+
+                    b.Navigation("CurrencyTypeConfig");
 
                     b.Navigation("NormalBalanceMaster");
 
