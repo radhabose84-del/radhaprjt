@@ -7,13 +7,17 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         // Header = one row per (Company, Division). EnsureHeader creates a DRAFT header if none exists.
         Task<int> EnsureHeaderAsync(int companyId, int divisionId);
         Task<int> UpdateHeaderAsync(int companyId, int divisionId, int statusId, bool textileSplitEnabled);
-        Task<bool> LockStructureAsync(int companyId, int divisionId);
+        Task<bool> LockStructureAsync(int scheduleIIIHeaderId);
 
         // Detail = the included lines of a header.
         Task<int> CreateDetailAsync(ScheduleIIIDetail entity);
         Task<int> UpdateDetailAsync(ScheduleIIIDetail entity);
         Task<bool> SoftDeleteDetailAsync(int id, CancellationToken ct);
         Task<bool> ReorderDetailAsync(int detailId, int direction, CancellationToken ct);
+
+        // Bulk line operations (one SaveChanges).
+        Task<int> CreateDetailRangeAsync(List<ScheduleIIIDetail> details);
+        Task<int> UpdateDetailRangeAsync(List<ScheduleIIIDetail> details);
 
         // Section (global catalog)
         Task<int> CreateSectionAsync(ScheduleIIISection entity);

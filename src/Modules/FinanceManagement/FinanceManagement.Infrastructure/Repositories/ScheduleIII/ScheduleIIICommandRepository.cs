@@ -53,14 +53,14 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return header.Id;
         }
 
-        public async Task<bool> LockStructureAsync(int companyId, int divisionId)
+        public async Task<bool> LockStructureAsync(int scheduleIIIHeaderId)
         {
             var lockedStatusId = await ResolveMiscIdAsync("S3_STATUS", "LOCKED");
             if (lockedStatusId == 0)
                 return false;
 
             var header = await _applicationDbContext.ScheduleIIIHeader
-                .FirstOrDefaultAsync(h => h.CompanyId == companyId && h.DivisionId == divisionId && h.IsDeleted == IsDelete.NotDeleted);
+                .FirstOrDefaultAsync(h => h.Id == scheduleIIIHeaderId && h.IsDeleted == IsDelete.NotDeleted);
 
             if (header == null)
                 return false;
@@ -110,6 +110,57 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             _applicationDbContext.ScheduleIIIDetail.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
+        }
+
+        public async Task<int> CreateDetailRangeAsync(List<ScheduleIIIDetail> details)
+        {
+            if (details == null || details.Count == 0)
+                return 0;
+
+            await _applicationDbContext.ScheduleIIIDetail.AddRangeAsync(details);
+            await _applicationDbContext.SaveChangesAsync();
+            return details.Count;
+        }
+
+        public async Task<int> UpdateDetailRangeAsync(List<ScheduleIIIDetail> details)
+        {
+            if (details == null || details.Count == 0)
+                return 0;
+
+            var ids = details.Select(d => d.Id).ToList();
+            var existing = await _applicationDbContext.ScheduleIIIDetail
+                .Where(x => ids.Contains(x.Id) && x.IsDeleted == IsDelete.NotDeleted)
+                .ToListAsync();
+            var byId = existing.ToDictionary(x => x.Id);
+
+            // Phase 1 — park every updated row on a temporary negative DisplayOrder so the new
+            // orders can't transiently collide with the UNIQUE(HeaderId, DisplayOrder) index.
+            foreach (var d in details)
+            {
+                if (byId.TryGetValue(d.Id, out var ex))
+                {
+                    ex.DisplayOrder = -ex.Id;
+                    _applicationDbContext.ScheduleIIIDetail.Update(ex);
+                }
+            }
+            await _applicationDbContext.SaveChangesAsync();
+
+            // Phase 2 — apply the real values.
+            var count = 0;
+            foreach (var d in details)
+            {
+                if (!byId.TryGetValue(d.Id, out var ex))
+                    continue;
+
+                ex.ScheduleIIISectionId = d.ScheduleIIISectionId;
+                ex.ScheduleIIISectionItemId = d.ScheduleIIISectionItemId;
+                ex.DisplayOrder = d.DisplayOrder;
+                ex.IsActive = d.IsActive;
+                _applicationDbContext.ScheduleIIIDetail.Update(ex);
+                count++;
+            }
+            await _applicationDbContext.SaveChangesAsync();
+            return count;
         }
 
         public async Task<bool> ReorderDetailAsync(int detailId, int direction, CancellationToken ct)

@@ -1,4 +1,3 @@
-using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.LockStructure;
 
@@ -8,23 +7,16 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
     {
         private readonly Mock<IScheduleIIICommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
-        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
-
-        public LockStructureCommandHandlerTests()
-        {
-            _mockIp.Setup(x => x.GetCompanyId()).Returns(1001);
-            _mockIp.Setup(x => x.GetDivisionId()).Returns(7);
-        }
 
         private LockStructureCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockIp.Object);
+            new(_mockCommandRepo.Object, _mockMediator.Object);
 
         [Fact]
         public async Task Handle_Locked_ReturnsSuccess()
         {
-            _mockCommandRepo.Setup(r => r.LockStructureAsync(1001, 7)).ReturnsAsync(true);
+            _mockCommandRepo.Setup(r => r.LockStructureAsync(5)).ReturnsAsync(true);
 
-            var result = await CreateSut().Handle(new LockStructureCommand(), CancellationToken.None);
+            var result = await CreateSut().Handle(new LockStructureCommand { ScheduleIIIHeaderId = 5 }, CancellationToken.None);
 
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
@@ -33,9 +25,9 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         [Fact]
         public async Task Handle_Locked_PublishesLockAuditEvent()
         {
-            _mockCommandRepo.Setup(r => r.LockStructureAsync(1001, 7)).ReturnsAsync(true);
+            _mockCommandRepo.Setup(r => r.LockStructureAsync(5)).ReturnsAsync(true);
 
-            await CreateSut().Handle(new LockStructureCommand(), CancellationToken.None);
+            await CreateSut().Handle(new LockStructureCommand { ScheduleIIIHeaderId = 5 }, CancellationToken.None);
 
             _mockMediator.Verify(
                 m => m.Publish(
@@ -47,10 +39,10 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         [Fact]
         public async Task Handle_NotFoundOrNoStatus_ThrowsExceptionRules()
         {
-            _mockCommandRepo.Setup(r => r.LockStructureAsync(1001, 7)).ReturnsAsync(false);
+            _mockCommandRepo.Setup(r => r.LockStructureAsync(99)).ReturnsAsync(false);
 
             Func<Task> act = async () =>
-                await CreateSut().Handle(new LockStructureCommand(), CancellationToken.None);
+                await CreateSut().Handle(new LockStructureCommand { ScheduleIIIHeaderId = 99 }, CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>();
         }
