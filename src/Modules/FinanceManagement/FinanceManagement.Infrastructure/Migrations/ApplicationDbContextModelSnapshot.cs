@@ -349,6 +349,79 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityLog", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CurrencyForexConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("CurrencyTypeCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("CurrencyTypeCode");
+
+                    b.Property<string>("CurrencyTypeName")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CurrencyTypeName");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CompanyId", "CurrencyTypeCode")
+                        .IsUnique();
+
+                    b.ToTable("CurrencyForexConfig", "Finance");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.DocumentSequence", b =>
                 {
                     b.Property<int>("Id")
@@ -1048,6 +1121,8 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CurrencyTypeId");
+
                     b.HasIndex("NormalBalanceId");
 
                     b.HasIndex("SubLedgerTypeId");
@@ -1689,6 +1764,10 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
                         .HasColumnName("CreatedBy");
@@ -1711,15 +1790,14 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("DisplayOrder");
 
+                    b.Property<int>("DivisionId")
+                        .HasColumnType("int")
+                        .HasColumnName("DivisionId");
+
                     b.Property<string>("FormulaExpression")
                         .IsRequired()
                         .HasColumnType("varchar(500)")
                         .HasColumnName("FormulaExpression");
-
-                    b.Property<string>("FormulaName")
-                        .IsRequired()
-                        .HasColumnType("varchar(120)")
-                        .HasColumnName("FormulaName");
 
                     b.Property<bool>("IncludeOtherIncome")
                         .ValueGeneratedOnAdd()
@@ -1734,6 +1812,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsSystemDefined")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IsSystemDefined");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -1751,9 +1835,15 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<int>("SubTotalTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("SubTotalTypeId");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("FormulaName");
+                    b.HasIndex("SubTotalTypeId");
+
+                    b.HasIndex("CompanyId", "DivisionId");
 
                     b.ToTable("ScheduleIIISubTotal", "Finance");
                 });
@@ -1813,6 +1903,10 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
+                    b.Property<int>("OperandRefId")
+                        .HasColumnType("int")
+                        .HasColumnName("OperandRefId");
+
                     b.Property<int>("OperandTypeId")
                         .HasColumnType("int")
                         .HasColumnName("OperandTypeId");
@@ -1821,11 +1915,7 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("OperatorId");
 
-                    b.Property<int?>("SectionItemId")
-                        .HasColumnType("int")
-                        .HasColumnName("SectionItemId");
-
-                    b.Property<int?>("SubTotalId")
+                    b.Property<int>("SubTotalId")
                         .HasColumnType("int")
                         .HasColumnName("SubTotalId");
 
@@ -1834,8 +1924,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("OperandTypeId");
 
                     b.HasIndex("OperatorId");
-
-                    b.HasIndex("SectionItemId");
 
                     b.HasIndex("SubTotalId");
 
@@ -2360,6 +2448,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FinanceManagement.Domain.Entities.CurrencyForexConfig", "CurrencyTypeConfig")
+                        .WithMany()
+                        .HasForeignKey("CurrencyTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "NormalBalanceMaster")
                         .WithMany("GlAccountsAsNormalBalance")
                         .HasForeignKey("NormalBalanceId")
@@ -2375,6 +2469,8 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("AccountGroup");
 
                     b.Navigation("AccountTypeMaster");
+
+                    b.Navigation("CurrencyTypeConfig");
 
                     b.Navigation("NormalBalanceMaster");
 
@@ -2477,21 +2573,15 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIISectionItem", "SectionItem")
-                        .WithMany()
-                        .HasForeignKey("SectionItemId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIISubTotal", "SubTotal")
                         .WithMany("Formulas")
                         .HasForeignKey("SubTotalId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("OperandType");
 
                     b.Navigation("Operator");
-
-                    b.Navigation("SectionItem");
 
                     b.Navigation("SubTotal");
                 });
