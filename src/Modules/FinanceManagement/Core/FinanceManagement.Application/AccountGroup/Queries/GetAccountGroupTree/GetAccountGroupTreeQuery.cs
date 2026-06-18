@@ -4,9 +4,8 @@ using MediatR;
 
 namespace FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupTree
 {
+    // Company scope is resolved from the session token in the handler (IIPAddressService.GetCompanyId()).
     public class GetAccountGroupTreeQuery : IRequest<ApiResponseDTO<List<AccountGroupTreeDto>>>
     {
-        // Optional company scope; null returns all companies' groups.
-        public int? CompanyId { get; set; }
     }
 }

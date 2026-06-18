@@ -39,6 +39,9 @@ using FinanceManagement.Application.Common.Interfaces.IGstrSection;
 using FinanceManagement.Infrastructure.Repositories.TaxCode;
 using FinanceManagement.Infrastructure.Logging;
 using FinanceManagement.Infrastructure.Repositories.GlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.IGlAccountImport;
+using FinanceManagement.Application.GlAccountImport.Services;
+using FinanceManagement.Infrastructure.Repositories.GlAccountImport;
 using FinanceManagement.Infrastructure.Repositories.CurrencyForexConfig;
 using FinanceManagement.Infrastructure.Repositories.Outbox;
 using FinanceManagement.Infrastructure.Services;
@@ -155,6 +158,12 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
+
+            // COA bulk import/export (GL02-FR-006)
+            services.AddScoped<IGlAccountImportCommandRepository, GlAccountImportCommandRepository>();
+            services.AddScoped<IGlAccountImportQueryRepository, GlAccountImportQueryRepository>();
+            services.AddScoped<IGlAccountImportFileService, GlAccountImportFileService>();
+            services.AddScoped<IGlAccountImportValidator, GlAccountImportValidator>();
 
             services.AddScoped<ICurrencyForexConfigCommandRepository, CurrencyForexConfigCommandRepository>();
             services.AddScoped<ICurrencyForexConfigQueryRepository, CurrencyForexConfigQueryRepository>();

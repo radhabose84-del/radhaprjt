@@ -67,11 +67,7 @@ namespace FinanceManagement.Presentation.Validation.AccountGroup
             }
 
             // ── Hierarchy business rules (bespoke — not covered by shared JSON rules) ──
-
-            // Company is mandatory.
-            RuleFor(x => x.CompanyId)
-                .GreaterThan(0)
-                .WithMessage("CompanyId is required.");
+            // CompanyId is taken from the session token in the handler — no client-supplied value to validate.
 
             // Level 1 (no parent) must reference a statutory head from AccountTypeMaster.
             RuleFor(x => x.AccountTypeId)
