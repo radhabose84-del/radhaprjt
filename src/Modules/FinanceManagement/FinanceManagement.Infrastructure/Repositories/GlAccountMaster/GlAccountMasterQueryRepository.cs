@@ -46,7 +46,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             LEFT JOIN Finance.MiscMaster          cat   ON tal.ControlAccountId = cat.Id AND cat.IsDeleted = 0
         ";
 
-        public async Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null)
+        public async Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int? pageNumber, int? pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null)
         {
             var whereClause = "am.IsDeleted = 0 AND am.CompanyId = @CompanyId";
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -55,6 +55,14 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
                 whereClause += " AND am.AccountTypeId = @AccountTypeId";
             if (accountGroupId.HasValue && accountGroupId.Value > 0)
                 whereClause += " AND am.AccountGroupId = @AccountGroupId";
+
+            // No (or non-positive) page size → return every matching row (no OFFSET/FETCH paging).
+            var isPaged = pageNumber.HasValue && pageNumber.Value > 0
+                          && pageSize.HasValue && pageSize.Value > 0;
+
+            var pagingClause = isPaged
+                ? "OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY"
+                : string.Empty;
 
             var query = $@"
                 DECLARE @TotalCount INT;
@@ -66,7 +74,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
                 {BaseFromAndJoins}
                 WHERE {whereClause}
                 ORDER BY am.AccountCode ASC, am.Id DESC
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+                {pagingClause};
 
                 SELECT @TotalCount AS TotalCount;
             ";
@@ -77,8 +85,8 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
                 CompanyId = companyId,
                 AccountTypeId = accountTypeId,
                 AccountGroupId = accountGroupId,
-                Offset = (pageNumber - 1) * pageSize,
-                PageSize = pageSize
+                Offset = isPaged ? (pageNumber!.Value - 1) * pageSize!.Value : 0,
+                PageSize = isPaged ? pageSize!.Value : 0
             };
 
             var result = await _dbConnection.QueryMultipleAsync(query, parameters);

@@ -36,8 +36,24 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             var structure = await _dbConnection.QueryFirstOrDefaultAsync<ScheduleIIIHeaderDto>(
                 headerSql, new { CompanyId = companyId, DivisionId = divisionId });
 
+            // No structure header yet → return the full catalog (all sections + line items) so the
+            // "Line items" builder can render straight from ScheduleIIISection / ScheduleIIISectionItem.
             if (structure == null)
-                return null;
+            {
+                var companyList = await _companyLookup.GetAllCompanyAsync();
+                var divisionList = await _divisionLookup.GetByIdsAsync(new[] { divisionId });
+
+                return new ScheduleIIIHeaderDto
+                {
+                    Id = 0,
+                    CompanyId = companyId,
+                    CompanyName = companyList.FirstOrDefault(c => c.CompanyId == companyId)?.CompanyName,
+                    DivisionId = divisionId,
+                    DivisionName = divisionList.FirstOrDefault(d => d.Id == divisionId)?.Name,
+                    IsActive = true,
+                    Sections = await GetCatalogSectionsAsync()
+                };
+            }
 
             // Cross-module names (no DB JOIN to other modules)
             var companies = await _companyLookup.GetAllCompanyAsync();
@@ -80,11 +96,51 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             // MappedCount stays 0 until US-GL02-03B ships ScheduleIIIAccountGroupMap.
             foreach (var sec in sections)
             {
-                sec.LineItems = lines.Where(l => l.SectionId == sec.Id).ToList();
+                var items = lines.Where(l => l.SectionId == sec.Id).ToList();
+                foreach (var li in items)
+                    li.SectionName = sec.SectionName;
+                sec.LineItems = items;
             }
 
             structure.Sections = sections;
             return structure;
+        }
+
+        // Global catalog — every section + all its line items (statement-type ordered).
+        // Used as the GetStructure fallback when no header exists yet.
+        private async Task<List<ScheduleIIISectionDto>> GetCatalogSectionsAsync()
+        {
+            const string sectionSql = @"
+                SELECT sec.Id, sec.SectionName,
+                       sec.StatementTypeId, stt.Description AS StatementTypeName,
+                       sec.NatureId, nat.Description AS NatureName
+                FROM [Finance].[ScheduleIIISection] sec
+                LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
+                LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
+                WHERE sec.IsDeleted = 0
+                ORDER BY sec.StatementTypeId, sec.SectionName;";
+
+            var sections = (await _dbConnection.QueryAsync<ScheduleIIISectionDto>(sectionSql)).ToList();
+            if (sections.Count == 0)
+                return sections;
+
+            const string lineSql = @"
+                SELECT li.Id, li.SectionId, li.LineCode, li.LineName, li.NoteReference, li.IsSplitLine, li.IsActive
+                FROM [Finance].[ScheduleIIISectionItem] li
+                WHERE li.IsDeleted = 0
+                ORDER BY li.SectionId, li.LineCode;";
+
+            var lines = (await _dbConnection.QueryAsync<ScheduleIIISectionItemDto>(lineSql)).ToList();
+
+            foreach (var sec in sections)
+            {
+                var items = lines.Where(l => l.SectionId == sec.Id).ToList();
+                foreach (var li in items)
+                    li.SectionName = sec.SectionName;
+                sec.LineItems = items;
+            }
+
+            return sections;
         }
 
         public async Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync(int? subTotalId)
@@ -163,7 +219,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
         public async Task<(List<ActivityLogDto>, int)> GetActivityLogAsync(string? entityName, int? entityId, int pageNumber, int pageSize)
         {
-            var nameClause = string.IsNullOrWhiteSpace(entityName) ? "" : "AND EntityName = @EntityName";
+            var nameClause = string.IsNullOrWhiteSpace(entityName) ? "" : "AND EntityName LIKE @EntityName";
             var idClause = entityId.HasValue ? "AND EntityId = @EntityId" : "";
 
             var query = $$"""
@@ -184,7 +240,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
             var parameters = new
             {
-                EntityName = entityName,
+                EntityName = string.IsNullOrWhiteSpace(entityName) ? null : $"%{entityName}%",
                 EntityId = entityId,
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
@@ -502,5 +558,6 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
         {
             public string? OperandTypeCode { get; set; }
         }
+
     }
 }

@@ -1,3 +1,5 @@
+using FinanceManagement.Application.ScheduleIII.Commands.BulkCreateMaster;
+using FinanceManagement.Application.ScheduleIII.Commands.BulkUpdateMaster;
 using FinanceManagement.Application.ScheduleIII.Commands.CreateMaster;
 using FinanceManagement.Application.ScheduleIII.Commands.DeleteMaster;
 using FinanceManagement.Application.ScheduleIII.Commands.LockStructure;
@@ -70,6 +72,22 @@ namespace FinanceManagement.Presentation.Controllers
 
         [HttpPut]
         public async Task<IActionResult> UpdateLine([FromBody] UpdateMasterCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        // Bulk add many lines in one call.
+        [HttpPost("bulk")]
+        public async Task<IActionResult> AddLines([FromBody] BulkCreateMasterCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        // Bulk update many lines in one call.
+        [HttpPut("bulk")]
+        public async Task<IActionResult> UpdateLines([FromBody] BulkUpdateMasterCommand command)
         {
             var result = await Mediator.Send(command);
             return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });

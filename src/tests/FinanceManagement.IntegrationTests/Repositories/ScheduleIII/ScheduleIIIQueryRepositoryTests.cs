@@ -177,6 +177,31 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             dto.Sections[0].LineItems.Should().OnlyContain(l => l.DetailId > 0);
         }
 
+        [Fact]
+        public async Task GetStructure_NoHeader_FallsBackToFullCatalog()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            // Catalog only — NO header / detail rows.
+            var bs = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Assets");
+            var pl = await SeedSectionAsync(ctx, misc["PL"], misc["INCOME"], "Income");
+            await SeedLineAsync(ctx, bs, "INV", "Inventories");
+            await SeedLineAsync(ctx, bs, "TR", "Trade Receivables");
+            await SeedLineAsync(ctx, pl, "REV", "Revenue");
+
+            var dto = await CreateQueryRepo().GetStructureAsync(1, 7);
+
+            dto.Should().NotBeNull();
+            dto!.Id.Should().Be(0, "no header exists yet — this is the catalog fallback");
+            dto.CompanyName.Should().Be("Acme Mills");
+            dto.Sections.Should().HaveCount(2);                                  // both catalog sections
+            dto.Sections.SelectMany(s => s.LineItems).Should().HaveCount(3);     // all catalog lines
+            dto.Sections.Should().Contain(s => s.StatementTypeName == "Statement of P&L");
+            // Each line carries its parent section name (not null).
+            dto.Sections.Should().OnlyContain(s => s.LineItems.All(li => li.SectionName == s.SectionName));
+        }
+
         // ---- GET SUB-TOTALS (global) -----------------------------------------
 
         [Fact]

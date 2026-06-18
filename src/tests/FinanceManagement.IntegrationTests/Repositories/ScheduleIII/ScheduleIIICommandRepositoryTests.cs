@@ -153,12 +153,13 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             var l2 = await SeedLineAsync(ctx, sectionId, "B", "Beta");
             await SeedDetailRowAsync(ctx, misc["DRAFT"], sectionId, l1, 1);
             await SeedDetailRowAsync(ctx, misc["DRAFT"], sectionId, l2, 2);
+            var headerId = (await ctx.ScheduleIIIHeader.FirstAsync(h => h.CompanyId == 1 && h.DivisionId == 7)).Id;
             ctx.ChangeTracker.Clear();
 
-            (await CreateRepository(ctx).LockStructureAsync(1, 7)).Should().BeTrue();
+            (await CreateRepository(ctx).LockStructureAsync(headerId)).Should().BeTrue();
             ctx.ChangeTracker.Clear();
 
-            (await ctx.ScheduleIIIHeader.FirstAsync(x => x.CompanyId == 1 && x.DivisionId == 7)).StatusId
+            (await ctx.ScheduleIIIHeader.FirstAsync(x => x.Id == headerId)).StatusId
                 .Should().Be(misc["LOCKED"]);
         }
 
@@ -196,6 +197,58 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
 
             (await ctx.ScheduleIIIDetail.FirstAsync(x => x.Id == d2)).DisplayOrder.Should().Be(1);
             (await ctx.ScheduleIIIDetail.FirstAsync(x => x.Id == d1)).DisplayOrder.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task CreateDetailRange_Inserts_All_Lines()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
+            var l1 = await SeedLineAsync(ctx, sectionId, "A", "Alpha");
+            var l2 = await SeedLineAsync(ctx, sectionId, "B", "Beta");
+            var l3 = await SeedLineAsync(ctx, sectionId, "C", "Gamma");
+            var headerId = await CreateRepository(ctx).EnsureHeaderAsync(1, 7);
+            ctx.ChangeTracker.Clear();
+
+            var n = await CreateRepository(ctx).CreateDetailRangeAsync(new List<ScheduleIIIDetail>
+            {
+                new() { ScheduleIIIHeaderId = headerId, ScheduleIIISectionId = sectionId, ScheduleIIISectionItemId = l1, DisplayOrder = 1 },
+                new() { ScheduleIIIHeaderId = headerId, ScheduleIIISectionId = sectionId, ScheduleIIISectionItemId = l2, DisplayOrder = 2 },
+                new() { ScheduleIIIHeaderId = headerId, ScheduleIIISectionId = sectionId, ScheduleIIISectionItemId = l3, DisplayOrder = 3 },
+            });
+
+            n.Should().Be(3);
+            ctx.ChangeTracker.Clear();
+            (await ctx.ScheduleIIIDetail.CountAsync(x => x.ScheduleIIIHeaderId == headerId && x.IsDeleted == IsDelete.NotDeleted)).Should().Be(3);
+        }
+
+        [Fact]
+        public async Task UpdateDetailRange_Swaps_Orders_Without_Unique_Violation()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"]);
+            var l1 = await SeedLineAsync(ctx, sectionId, "A", "Alpha");
+            var l2 = await SeedLineAsync(ctx, sectionId, "B", "Beta");
+            var d1 = await SeedDetailRowAsync(ctx, misc["DRAFT"], sectionId, l1, 1);
+            var d2 = await SeedDetailRowAsync(ctx, misc["DRAFT"], sectionId, l2, 2);
+            ctx.ChangeTracker.Clear();
+
+            // Swap display orders (1↔2) and deactivate d1 — the UNIQUE(HeaderId, DisplayOrder) index must not trip.
+            var n = await CreateRepository(ctx).UpdateDetailRangeAsync(new List<ScheduleIIIDetail>
+            {
+                new() { Id = d1, ScheduleIIISectionId = sectionId, ScheduleIIISectionItemId = l1, DisplayOrder = 2, IsActive = Status.Inactive },
+                new() { Id = d2, ScheduleIIISectionId = sectionId, ScheduleIIISectionItemId = l2, DisplayOrder = 1, IsActive = Status.Active },
+            });
+
+            n.Should().Be(2);
+            ctx.ChangeTracker.Clear();
+            (await ctx.ScheduleIIIDetail.FirstAsync(x => x.Id == d1)).DisplayOrder.Should().Be(2);
+            (await ctx.ScheduleIIIDetail.FirstAsync(x => x.Id == d2)).DisplayOrder.Should().Be(1);
+            (await ctx.ScheduleIIIDetail.FirstAsync(x => x.Id == d1)).IsActive.Should().Be(Status.Inactive);
         }
 
         // ---- SECTION / LINE (global) -----------------------------------------

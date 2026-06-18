@@ -53,8 +53,8 @@ namespace FinanceManagement.Application.GlAccountMaster.Queries.GetAllGlAccountM
                 Message = "GL Account list retrieved successfully.",
                 Data = dtos,
                 TotalCount = totalCount,
-                PageNumber = request.PageNumber,
-                PageSize = request.PageSize
+                PageNumber = request.PageNumber ?? 1,
+                PageSize = request.PageSize ?? totalCount
             };
         }
     }
