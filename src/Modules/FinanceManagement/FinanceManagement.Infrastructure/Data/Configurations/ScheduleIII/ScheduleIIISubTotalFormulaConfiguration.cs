@@ -26,17 +26,14 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.SubTotalId)
-                .HasColumnName("SubTotalId").HasColumnType("int").IsRequired();
+                .HasColumnName("SubTotalId").HasColumnType("int").IsRequired(false);
 
-            // Same-module FK -> Finance.MiscMaster (S3_OPERAND_TYPE)
             builder.Property(t => t.OperandTypeId)
                 .HasColumnName("OperandTypeId").HasColumnType("int").IsRequired();
 
-            // Polymorphic ref (LineItem.Id or SubTotal.Id) — validated in validator, no DB FK
-            builder.Property(t => t.OperandRefId)
-                .HasColumnName("OperandRefId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.SectionItemId)
+                .HasColumnName("SectionItemId").HasColumnType("int").IsRequired(false);
 
-            // Same-module FK -> Finance.MiscMaster (S3_OPERATOR)
             builder.Property(t => t.OperatorId)
                 .HasColumnName("OperatorId").HasColumnType("int").IsRequired();
 
@@ -66,7 +63,11 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.SubTotalId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Same-module FK -> MiscMaster (no inverse navigation on the shared master)
+            builder.HasOne(t => t.SectionItem)
+                .WithMany()
+                .HasForeignKey(t => t.SectionItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.OperandType)
                 .WithMany()
                 .HasForeignKey(t => t.OperandTypeId)
@@ -78,8 +79,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(t => t.SubTotalId);
-            builder.HasIndex(t => t.OperandTypeId);
-            builder.HasIndex(t => t.OperatorId);
+            builder.HasIndex(t => t.SectionItemId);
         }
     }
 }

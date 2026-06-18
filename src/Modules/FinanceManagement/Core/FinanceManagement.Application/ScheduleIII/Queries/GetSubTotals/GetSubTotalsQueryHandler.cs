@@ -1,5 +1,4 @@
 using Contracts.Common;
-using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Dto;
 using FinanceManagement.Domain.Events;
@@ -11,26 +10,18 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.GetSubTotals
     {
         private readonly IScheduleIIIQueryRepository _queryRepository;
         private readonly IMediator _mediator;
-        private readonly IIPAddressService _ipAddressService;
 
         public GetSubTotalsQueryHandler(
             IScheduleIIIQueryRepository queryRepository,
-            IMediator mediator,
-            IIPAddressService ipAddressService)
+            IMediator mediator)
         {
             _queryRepository = queryRepository;
             _mediator = mediator;
-            _ipAddressService = ipAddressService;
         }
 
         public async Task<ApiResponseDTO<List<ScheduleIIISubTotalDto>>> Handle(GetSubTotalsQuery request, CancellationToken cancellationToken)
         {
-            var companyId = _ipAddressService.GetCompanyId()
-                ?? throw new ExceptionRules("No active company in session.");
-            var divisionId = _ipAddressService.GetDivisionId()
-                ?? throw new ExceptionRules("No active division in session.");
-
-            var data = await _queryRepository.GetSubTotalsAsync(companyId, divisionId);
+            var data = await _queryRepository.GetSubTotalsAsync();
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetSubTotals",
