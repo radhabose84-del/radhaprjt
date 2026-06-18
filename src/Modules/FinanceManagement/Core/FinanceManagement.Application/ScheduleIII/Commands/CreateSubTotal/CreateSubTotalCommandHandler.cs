@@ -27,20 +27,12 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal
         {
             var subTotal = _mapper.Map<ScheduleIIISubTotal>(request);
 
-            var formulas = request.Formulas.Select(f => new ScheduleIIISubTotalFormula
-            {
-                OperandTypeId = f.OperandTypeId,
-                SectionItemId = f.SectionItemId,
-                OperatorId = f.OperatorId,
-                DisplayOrder = f.DisplayOrder
-            }).ToList();
-
-            var newId = await _commandRepository.CreateSubTotalAsync(subTotal, formulas);
+            var newId = await _commandRepository.CreateSubTotalAsync(subTotal);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
                 actionCode: "S3_SUBTOTAL_CREATE",
-                actionName: request.FormulaName ?? string.Empty,
+                actionName: request.FormulaName,
                 details: $"Schedule III sub-total '{request.FormulaName}' created successfully with Id {newId}.",
                 module: "ScheduleIIISubTotal"
             );

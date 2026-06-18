@@ -26,13 +26,16 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.SubTotalId)
-                .HasColumnName("SubTotalId").HasColumnType("int").IsRequired(false);
+                .HasColumnName("SubTotalId").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.OperandTypeId)
                 .HasColumnName("OperandTypeId").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.SectionItemId)
                 .HasColumnName("SectionItemId").HasColumnType("int").IsRequired(false);
+
+            builder.Property(t => t.OperandSubTotalId)
+                .HasColumnName("OperandSubTotalId").HasColumnType("int").IsRequired(false);
 
             builder.Property(t => t.OperatorId)
                 .HasColumnName("OperatorId").HasColumnType("int").IsRequired();
@@ -63,6 +66,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.SubTotalId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Operand that is itself a sub-total (second, distinct self-FK to ScheduleIIISubTotal — no inverse nav).
+            builder.HasOne(t => t.OperandSubTotal)
+                .WithMany()
+                .HasForeignKey(t => t.OperandSubTotalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(t => t.SectionItem)
                 .WithMany()
                 .HasForeignKey(t => t.SectionItemId)
@@ -80,6 +89,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
 
             builder.HasIndex(t => t.SubTotalId);
             builder.HasIndex(t => t.SectionItemId);
+            builder.HasIndex(t => t.OperandSubTotalId);
         }
     }
 }

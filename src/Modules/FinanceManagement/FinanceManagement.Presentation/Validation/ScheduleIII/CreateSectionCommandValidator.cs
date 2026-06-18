@@ -47,6 +47,13 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                             .WithMessage($"{nameof(CreateSectionCommand.SectionName)} {rule.Error} {maxLengthName} characters.");
                         break;
 
+                    case "AlreadyExists":
+                        RuleFor(x => x.SectionName)
+                            .MustAsync(async (name, ct) => !await _queryRepository.SectionNameExistsAsync(name!))
+                            .WithMessage($"{nameof(CreateSectionCommand.SectionName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.SectionName));
+                        break;
+
                     default:
                         break;
                 }

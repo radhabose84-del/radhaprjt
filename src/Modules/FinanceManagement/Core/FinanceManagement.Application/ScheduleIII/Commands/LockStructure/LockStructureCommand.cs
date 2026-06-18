@@ -3,11 +3,9 @@ using MediatR;
 
 namespace FinanceManagement.Application.ScheduleIII.Commands.LockStructure
 {
-    // Version & lock the structure at go-live; post-lock edits route through FR-008 change control.
+    // Lock the token company/division structure at go-live; post-lock edits route through FR-008 change control.
     public class LockStructureCommand : IRequest<ApiResponseDTO<bool>>, IRequirePermission
     {
-        public int ScheduleIIIMasterId { get; set; }
-
         public PermissionType RequiredPermission => PermissionType.CanUpdate;
     }
 }

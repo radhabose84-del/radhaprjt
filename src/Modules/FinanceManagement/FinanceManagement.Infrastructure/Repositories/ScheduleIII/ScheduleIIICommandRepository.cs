@@ -15,67 +15,118 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             _applicationDbContext = applicationDbContext;
         }
 
-        // ── Master (thin record) ─────────────────────────────────────────────
+        // ── Header (one row per Company+Division) ────────────────────────────
 
-        public async Task<int> CreateMasterAsync(ScheduleIIIMaster entity)
+        // Returns the structure header id for (company, division), creating a DRAFT header if none exists.
+        public async Task<int> EnsureHeaderAsync(int companyId, int divisionId)
         {
-            // A new master always starts as DRAFT (MiscMaster S3_STATUS = DRAFT) — status is not client-supplied.
-            entity.StatusId = await ResolveMiscIdAsync("S3_STATUS", "DRAFT");
+            var existing = await _applicationDbContext.ScheduleIIIHeader
+                .FirstOrDefaultAsync(h => h.CompanyId == companyId && h.DivisionId == divisionId && h.IsDeleted == IsDelete.NotDeleted);
 
-            await _applicationDbContext.ScheduleIIIMaster.AddAsync(entity);
+            if (existing != null)
+                return existing.Id;
+
+            var header = new ScheduleIIIHeader
+            {
+                CompanyId = companyId,
+                DivisionId = divisionId,
+                StatusId = await ResolveMiscIdAsync("S3_STATUS", "DRAFT"),
+                TextileSplitEnabled = false
+            };
+            await _applicationDbContext.ScheduleIIIHeader.AddAsync(header);
+            await _applicationDbContext.SaveChangesAsync();
+            return header.Id;
+        }
+
+        public async Task<int> UpdateHeaderAsync(int companyId, int divisionId, int statusId, bool textileSplitEnabled)
+        {
+            var header = await _applicationDbContext.ScheduleIIIHeader
+                .FirstOrDefaultAsync(h => h.CompanyId == companyId && h.DivisionId == divisionId && h.IsDeleted == IsDelete.NotDeleted);
+
+            if (header == null)
+                return 0;
+
+            header.StatusId = statusId;
+            header.TextileSplitEnabled = textileSplitEnabled;
+            _applicationDbContext.ScheduleIIIHeader.Update(header);
+            await _applicationDbContext.SaveChangesAsync();
+            return header.Id;
+        }
+
+        public async Task<bool> LockStructureAsync(int companyId, int divisionId)
+        {
+            var lockedStatusId = await ResolveMiscIdAsync("S3_STATUS", "LOCKED");
+            if (lockedStatusId == 0)
+                return false;
+
+            var header = await _applicationDbContext.ScheduleIIIHeader
+                .FirstOrDefaultAsync(h => h.CompanyId == companyId && h.DivisionId == divisionId && h.IsDeleted == IsDelete.NotDeleted);
+
+            if (header == null)
+                return false;
+
+            header.StatusId = lockedStatusId;
+            _applicationDbContext.ScheduleIIIHeader.Update(header);
+            await _applicationDbContext.SaveChangesAsync();
+            return true;
+        }
+
+        // ── Detail (included lines) ──────────────────────────────────────────
+
+        public async Task<int> CreateDetailAsync(ScheduleIIIDetail entity)
+        {
+            await _applicationDbContext.ScheduleIIIDetail.AddAsync(entity);
             await _applicationDbContext.SaveChangesAsync();
             return entity.Id;
         }
 
-        public async Task<int> UpdateMasterAsync(ScheduleIIIMaster entity)
+        public async Task<int> UpdateDetailAsync(ScheduleIIIDetail entity)
         {
-            var existing = await _applicationDbContext.ScheduleIIIMaster
+            var existing = await _applicationDbContext.ScheduleIIIDetail
                 .FirstOrDefaultAsync(x => x.Id == entity.Id && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existing == null)
                 return 0;
 
-            // CompanyId / DivisionId / ScheduleIIISectionItemId are immutable (the row identity).
-            existing.StatusId = entity.StatusId;
-            existing.TextileSplitEnabled = entity.TextileSplitEnabled;
+            existing.ScheduleIIISectionId = entity.ScheduleIIISectionId;
+            existing.ScheduleIIISectionItemId = entity.ScheduleIIISectionItemId;
             existing.DisplayOrder = entity.DisplayOrder;
             existing.IsActive = entity.IsActive;
 
-            _applicationDbContext.ScheduleIIIMaster.Update(existing);
+            _applicationDbContext.ScheduleIIIDetail.Update(existing);
             await _applicationDbContext.SaveChangesAsync();
             return existing.Id;
         }
 
-        public async Task<bool> SoftDeleteMasterAsync(int id, CancellationToken ct)
+        public async Task<bool> SoftDeleteDetailAsync(int id, CancellationToken ct)
         {
-            var existing = await _applicationDbContext.ScheduleIIIMaster
+            var existing = await _applicationDbContext.ScheduleIIIDetail
                 .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
 
             if (existing == null)
                 return false;
 
             existing.IsDeleted = IsDelete.Deleted;
-            _applicationDbContext.ScheduleIIIMaster.Update(existing);
+            _applicationDbContext.ScheduleIIIDetail.Update(existing);
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }
 
-        public async Task<bool> ReorderMasterAsync(int masterId, int direction, CancellationToken ct)
+        public async Task<bool> ReorderDetailAsync(int detailId, int direction, CancellationToken ct)
         {
-            var row = await _applicationDbContext.ScheduleIIIMaster
-                .FirstOrDefaultAsync(x => x.Id == masterId && x.IsDeleted == IsDelete.NotDeleted, ct);
+            var row = await _applicationDbContext.ScheduleIIIDetail
+                .FirstOrDefaultAsync(x => x.Id == detailId && x.IsDeleted == IsDelete.NotDeleted, ct);
 
             if (row == null)
                 return false;
 
-            // Siblings = same structure (Company, Division), excluding self, not deleted.
-            var siblings = _applicationDbContext.ScheduleIIIMaster
-                .Where(x => x.CompanyId == row.CompanyId
-                         && x.DivisionId == row.DivisionId
+            // Siblings = same header, excluding self, not deleted.
+            var siblings = _applicationDbContext.ScheduleIIIDetail
+                .Where(x => x.ScheduleIIIHeaderId == row.ScheduleIIIHeaderId
                          && x.Id != row.Id
                          && x.IsDeleted == IsDelete.NotDeleted);
 
-            ScheduleIIIMaster? neighbour = direction == 1
+            ScheduleIIIDetail? neighbour = direction == 1
                 ? await siblings.Where(x => x.DisplayOrder < row.DisplayOrder)
                                 .OrderByDescending(x => x.DisplayOrder).FirstOrDefaultAsync(ct)
                 : await siblings.Where(x => x.DisplayOrder > row.DisplayOrder)
@@ -84,37 +135,20 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             if (neighbour == null)
                 return false;
 
-            (row.DisplayOrder, neighbour.DisplayOrder) = (neighbour.DisplayOrder, row.DisplayOrder);
+            // Swap display orders without violating the UNIQUE(HeaderId, DisplayOrder) index:
+            // park the moving row on a temporary negative order first, then settle both.
+            var oldRow = row.DisplayOrder;
+            var oldNeighbour = neighbour.DisplayOrder;
 
-            _applicationDbContext.ScheduleIIIMaster.Update(row);
-            _applicationDbContext.ScheduleIIIMaster.Update(neighbour);
+            row.DisplayOrder = -row.Id;
+            neighbour.DisplayOrder = oldRow;
+            _applicationDbContext.ScheduleIIIDetail.Update(row);
+            _applicationDbContext.ScheduleIIIDetail.Update(neighbour);
             await _applicationDbContext.SaveChangesAsync(ct);
-            return true;
-        }
 
-        public async Task<bool> LockStructureAsync(int scheduleIIIMasterId)
-        {
-            var lockedStatusId = await ResolveMiscIdAsync("S3_STATUS", "LOCKED");
-            if (lockedStatusId == 0)
-                return false;
-
-            var row = await _applicationDbContext.ScheduleIIIMaster
-                .FirstOrDefaultAsync(x => x.Id == scheduleIIIMasterId && x.IsDeleted == IsDelete.NotDeleted);
-
-            if (row == null)
-                return false;
-
-            // Lock the whole structure — every row sharing (Company, Division).
-            var structureRows = await _applicationDbContext.ScheduleIIIMaster
-                .Where(x => x.CompanyId == row.CompanyId && x.DivisionId == row.DivisionId && x.IsDeleted == IsDelete.NotDeleted)
-                .ToListAsync();
-
-            foreach (var r in structureRows)
-            {
-                r.StatusId = lockedStatusId;
-                _applicationDbContext.ScheduleIIIMaster.Update(r);
-            }
-            await _applicationDbContext.SaveChangesAsync();
+            row.DisplayOrder = oldNeighbour;
+            _applicationDbContext.ScheduleIIIDetail.Update(row);
+            await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }
 
@@ -188,35 +222,59 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return true;
         }
 
-        // ── Sub-totals (+ formula operands) ──────────────────────────────────
+        // ── Sub-total header (catalog row) — operands handled by SaveSubTotalFormulaAsync ──
 
-        public async Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal, List<ScheduleIIISubTotalFormula> formulas)
+        public async Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal)
         {
-            subTotal.FormulaExpression = await BuildExpressionAsync(formulas);
+            // Header only — the operand set (and its derived expression) is saved via SaveSubTotalFormulaAsync.
+            subTotal.FormulaExpression = string.Empty;
 
             await _applicationDbContext.ScheduleIIISubTotal.AddAsync(subTotal);
             await _applicationDbContext.SaveChangesAsync();
-
-            foreach (var f in formulas)
-                f.SubTotalId = subTotal.Id;
-
-            await _applicationDbContext.ScheduleIIISubTotalFormula.AddRangeAsync(formulas);
-            await _applicationDbContext.SaveChangesAsync();
-
             return subTotal.Id;
         }
 
-        public async Task<int> UpdateSubTotalAsync(int subTotalId, string? formulaName, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas)
+        public async Task<int> UpdateSubTotalAsync(ScheduleIIISubTotal subTotal)
+        {
+            var existing = await _applicationDbContext.ScheduleIIISubTotal
+                .FirstOrDefaultAsync(x => x.Id == subTotal.Id && x.IsDeleted == IsDelete.NotDeleted);
+
+            if (existing == null)
+                return 0;
+
+            // Header fields only — FormulaExpression is owned by the operand-save path.
+            existing.FormulaName = subTotal.FormulaName;
+            existing.IncludeOtherIncome = subTotal.IncludeOtherIncome;
+            existing.DisplayOrder = subTotal.DisplayOrder;
+            existing.IsActive = subTotal.IsActive;
+
+            _applicationDbContext.ScheduleIIISubTotal.Update(existing);
+            await _applicationDbContext.SaveChangesAsync();
+            return existing.Id;
+        }
+
+        public async Task<bool> SoftDeleteSubTotalAsync(int id, CancellationToken ct)
+        {
+            var existing = await _applicationDbContext.ScheduleIIISubTotal
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (existing == null)
+                return false;
+
+            existing.IsDeleted = IsDelete.Deleted;
+            _applicationDbContext.ScheduleIIISubTotal.Update(existing);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
+        // ── Sub-total formula operands (physical replace) ───────────────────
+        public async Task<int> SaveSubTotalFormulaAsync(int subTotalId, List<ScheduleIIISubTotalFormula> formulas)
         {
             var existing = await _applicationDbContext.ScheduleIIISubTotal
                 .FirstOrDefaultAsync(x => x.Id == subTotalId && x.IsDeleted == IsDelete.NotDeleted);
 
             if (existing == null)
                 return 0;
-
-            existing.FormulaName = formulaName;
-            existing.IncludeOtherIncome = includeOtherIncome;
-            existing.FormulaExpression = await BuildExpressionAsync(formulas);
 
             // Replace the operand set: PHYSICALLY delete the old rows, then insert the new ones.
             // ScheduleIIISubTotalFormula is IActivityTracked, so the SaveChanges interceptor records each
@@ -231,13 +289,17 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                 f.SubTotalId = subTotalId;
 
             await _applicationDbContext.ScheduleIIISubTotalFormula.AddRangeAsync(formulas);
-            _applicationDbContext.ScheduleIIISubTotal.Update(existing);
-            await _applicationDbContext.SaveChangesAsync();
 
+            // The header caches the derived display expression.
+            existing.FormulaExpression = await BuildExpressionAsync(formulas);
+            _applicationDbContext.ScheduleIIISubTotal.Update(existing);
+
+            await _applicationDbContext.SaveChangesAsync();
             return existing.Id;
         }
 
-        // Rebuilds the cached display string (e.g. "Gross Profit + Other Income - Operating Expenses").
+        // Rebuilds the cached display string (e.g. "Revenue - Cost of Goods Sold + EBITDA").
+        // An operand is either a line item (SectionItemId) or another sub-total (OperandSubTotalId).
         private async Task<string> BuildExpressionAsync(List<ScheduleIIISubTotalFormula> formulas)
         {
             if (formulas == null || formulas.Count == 0)
@@ -250,12 +312,17 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                 .Where(m => operatorIds.Contains(m.Id))
                 .ToDictionaryAsync(m => m.Id, m => m.Code);
 
-            // Operands reference a line item directly (SectionItemId).
             var sectionItemIds = ordered.Where(f => f.SectionItemId.HasValue)
                 .Select(f => f.SectionItemId!.Value).Distinct().ToList();
             var lineNames = await _applicationDbContext.ScheduleIIISectionItem
                 .Where(l => sectionItemIds.Contains(l.Id))
                 .ToDictionaryAsync(l => l.Id, l => l.LineName);
+
+            var subTotalIds = ordered.Where(f => f.OperandSubTotalId.HasValue)
+                .Select(f => f.OperandSubTotalId!.Value).Distinct().ToList();
+            var subTotalNames = await _applicationDbContext.ScheduleIIISubTotal
+                .Where(s => subTotalIds.Contains(s.Id))
+                .ToDictionaryAsync(s => s.Id, s => s.FormulaName);
 
             var parts = new List<string>();
             foreach (var f in ordered)
@@ -263,7 +330,11 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                 var opCode = operatorCodes.TryGetValue(f.OperatorId, out var oc) ? oc : string.Empty;
                 var symbol = string.Equals(opCode, "MINUS", StringComparison.OrdinalIgnoreCase) ? "-" : "+";
 
-                var name = f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln) ? ln : null;
+                string? name = null;
+                if (f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln))
+                    name = ln;
+                else if (f.OperandSubTotalId.HasValue && subTotalNames.TryGetValue(f.OperandSubTotalId.Value, out var sn))
+                    name = sn;
 
                 parts.Add($"{symbol} {name}");
             }
