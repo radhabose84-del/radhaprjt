@@ -30,6 +30,18 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                             .NotEmpty().WithMessage($"{nameof(UpdateSubTotalCommand.FormulaName)} {rule.Error}");
                         break;
 
+                    case "AlreadyExists":
+                        RuleFor(x => x.FormulaName)
+                            .MustAsync(async (cmd, name, ct) => !await _queryRepository.SubTotalNameExistsAsync(name, cmd.Id))
+                            .WithMessage($"{nameof(UpdateSubTotalCommand.FormulaName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.FormulaName));
+
+                        RuleFor(x => x.DisplayOrder)
+                            .MustAsync(async (cmd, order, ct) => !await _queryRepository.SubTotalDisplayOrderExistsAsync(order, cmd.Id))
+                            .WithMessage($"{nameof(UpdateSubTotalCommand.DisplayOrder)} {rule.Error}")
+                            .When(x => x.DisplayOrder > 0);
+                        break;
+
                     case "NotFound":
                         RuleFor(x => x.Id)
                             .GreaterThan(0).WithMessage("Valid Id is required.")

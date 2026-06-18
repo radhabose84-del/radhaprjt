@@ -22,9 +22,17 @@ namespace FinanceManagement.Presentation.Controllers
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data });
         }
 
-        // Save (replace) the operand set of one sub-total. Old rows are physically deleted (logged to ActivityLog).
+        // Save the operand set of one sub-total (first time). Replaces any existing operands.
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] SaveSubTotalFormulaCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        // Replace the operand set of one sub-total. Old rows are physically deleted (logged to ActivityLog).
         [HttpPut]
-        public async Task<IActionResult> Save([FromBody] SaveSubTotalFormulaCommand command)
+        public async Task<IActionResult> Update([FromBody] SaveSubTotalFormulaCommand command)
         {
             var result = await Mediator.Send(command);
             return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });

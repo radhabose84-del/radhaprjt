@@ -171,10 +171,71 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             (await ctx.ScheduleIIISectionItem.FirstAsync(x => x.Id == newId)).LineCode.Should().Be("INV");
         }
 
-        // ---- SUB-TOTAL -------------------------------------------------------
+        // ---- SUB-TOTAL HEADER (CRUD) -----------------------------------------
 
         [Fact]
-        public async Task CreateSubTotal_Should_Persist_Operands_And_Build_Expression()
+        public async Task CreateSubTotal_Should_Persist_Header_Only()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var id = await CreateRepository(ctx).CreateSubTotalAsync(
+                new ScheduleIIISubTotal { FormulaName = "Gross Profit", IncludeOtherIncome = false, DisplayOrder = 1 });
+
+            id.Should().BeGreaterThan(0);
+            ctx.ChangeTracker.Clear();
+            var saved = await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == id);
+            saved.FormulaName.Should().Be("Gross Profit");
+            saved.FormulaExpression.Should().BeEmpty();   // operands not saved yet
+        }
+
+        [Fact]
+        public async Task UpdateSubTotal_Should_Update_Header_Fields()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var id = await CreateRepository(ctx).CreateSubTotalAsync(
+                new ScheduleIIISubTotal { FormulaName = "Gross Profit", DisplayOrder = 1 });
+            ctx.ChangeTracker.Clear();
+
+            await CreateRepository(ctx).UpdateSubTotalAsync(new ScheduleIIISubTotal
+            {
+                Id = id,
+                FormulaName = "EBITDA",
+                IncludeOtherIncome = true,
+                DisplayOrder = 2,
+                IsActive = Status.Active
+            });
+            ctx.ChangeTracker.Clear();
+
+            var updated = await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == id);
+            updated.FormulaName.Should().Be("EBITDA");
+            updated.IncludeOtherIncome.Should().BeTrue();
+            updated.DisplayOrder.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task SoftDeleteSubTotal_Should_Set_IsDeleted()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+
+            var id = await CreateRepository(ctx).CreateSubTotalAsync(
+                new ScheduleIIISubTotal { FormulaName = "Gross Profit", DisplayOrder = 1 });
+            ctx.ChangeTracker.Clear();
+
+            (await CreateRepository(ctx).SoftDeleteSubTotalAsync(id, CancellationToken.None)).Should().BeTrue();
+            ctx.ChangeTracker.Clear();
+
+            var deleted = await ctx.ScheduleIIISubTotal.IgnoreQueryFilters().FirstAsync(x => x.Id == id);
+            deleted.IsDeleted.Should().Be(IsDelete.Deleted);
+        }
+
+        // ---- SUB-TOTAL FORMULA (operands) ------------------------------------
+
+        [Fact]
+        public async Task SaveSubTotalFormula_Should_Insert_Operands_And_Build_Expression()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
@@ -182,25 +243,53 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             var sectionId = await SeedSectionAsync(ctx, misc["PL"], misc["INCOME"], "Income");
             var revenue = await SeedLineAsync(ctx, sectionId, "REV", "Revenue");
             var cogs = await SeedLineAsync(ctx, sectionId, "COGS", "Cost of Goods Sold");
+
+            var gpId = await CreateRepository(ctx).CreateSubTotalAsync(
+                new ScheduleIIISubTotal { FormulaName = "Gross Profit", DisplayOrder = 1 });
             ctx.ChangeTracker.Clear();
 
-            var subTotal = new ScheduleIIISubTotal { FormulaName = "Gross Profit", FormulaExpression = string.Empty, DisplayOrder = 1 };
-            var formulas = new List<ScheduleIIISubTotalFormula>
+            await CreateRepository(ctx).SaveSubTotalFormulaAsync(gpId, new List<ScheduleIIISubTotalFormula>
             {
                 new() { OperandTypeId = misc["LINEITEM"], SectionItemId = revenue, OperatorId = misc["PLUS"],  DisplayOrder = 1 },
                 new() { OperandTypeId = misc["LINEITEM"], SectionItemId = cogs,    OperatorId = misc["MINUS"], DisplayOrder = 2 },
-            };
-
-            var newId = await CreateRepository(ctx).CreateSubTotalAsync(subTotal, formulas);
-
-            newId.Should().BeGreaterThan(0);
+            });
             ctx.ChangeTracker.Clear();
-            (await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == newId)).FormulaExpression.Should().Be("Revenue - Cost of Goods Sold");
-            (await ctx.ScheduleIIISubTotalFormula.CountAsync(f => f.SubTotalId == newId && f.IsDeleted == IsDelete.NotDeleted)).Should().Be(2);
+
+            (await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == gpId)).FormulaExpression.Should().Be("Revenue - Cost of Goods Sold");
+            (await ctx.ScheduleIIISubTotalFormula.CountAsync(f => f.SubTotalId == gpId && f.IsDeleted == IsDelete.NotDeleted)).Should().Be(2);
         }
 
         [Fact]
-        public async Task UpdateSubTotal_Should_Replace_Operands_And_Rebuild_Expression()
+        public async Task SaveSubTotalFormula_Should_Support_SubTotal_Operand()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var sectionId = await SeedSectionAsync(ctx, misc["PL"], misc["INCOME"], "Income");
+            var other = await SeedLineAsync(ctx, sectionId, "OI", "Other Income");
+
+            var gpId = await CreateRepository(ctx).CreateSubTotalAsync(
+                new ScheduleIIISubTotal { FormulaName = "Gross Profit", DisplayOrder = 1 });
+            var ebitdaId = await CreateRepository(ctx).CreateSubTotalAsync(
+                new ScheduleIIISubTotal { FormulaName = "EBITDA", DisplayOrder = 2 });
+            ctx.ChangeTracker.Clear();
+
+            // EBITDA = + Gross Profit (a sub-total operand) + Other Income (a line operand)
+            await CreateRepository(ctx).SaveSubTotalFormulaAsync(ebitdaId, new List<ScheduleIIISubTotalFormula>
+            {
+                new() { OperandTypeId = misc["SUBTOTAL"], OperandSubTotalId = gpId,  OperatorId = misc["PLUS"], DisplayOrder = 1 },
+                new() { OperandTypeId = misc["LINEITEM"], SectionItemId = other,     OperatorId = misc["PLUS"], DisplayOrder = 2 },
+            });
+            ctx.ChangeTracker.Clear();
+
+            (await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == ebitdaId)).FormulaExpression.Should().Be("Gross Profit + Other Income");
+            var subOperand = await ctx.ScheduleIIISubTotalFormula.FirstAsync(f => f.SubTotalId == ebitdaId && f.OperandSubTotalId != null);
+            subOperand.OperandSubTotalId.Should().Be(gpId);
+            subOperand.SectionItemId.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task SaveSubTotalFormula_Should_Replace_Operands_Physically()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
@@ -209,27 +298,26 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             var revenue = await SeedLineAsync(ctx, sectionId, "REV", "Revenue");
             var other = await SeedLineAsync(ctx, sectionId, "OI", "Other Income");
 
-            var seedId = await CreateRepository(ctx).CreateSubTotalAsync(
-                new ScheduleIIISubTotal { FormulaName = "Gross Profit", FormulaExpression = string.Empty, DisplayOrder = 1 },
-                new List<ScheduleIIISubTotalFormula>
-                {
-                    new() { OperandTypeId = misc["LINEITEM"], SectionItemId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 }
-                });
+            var id = await CreateRepository(ctx).CreateSubTotalAsync(
+                new ScheduleIIISubTotal { FormulaName = "Gross Profit", DisplayOrder = 1 });
             ctx.ChangeTracker.Clear();
 
-            await CreateRepository(ctx).UpdateSubTotalAsync(seedId, "EBITDA", true, new List<ScheduleIIISubTotalFormula>
+            await CreateRepository(ctx).SaveSubTotalFormulaAsync(id, new List<ScheduleIIISubTotalFormula>
+            {
+                new() { OperandTypeId = misc["LINEITEM"], SectionItemId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 }
+            });
+            ctx.ChangeTracker.Clear();
+
+            await CreateRepository(ctx).SaveSubTotalFormulaAsync(id, new List<ScheduleIIISubTotalFormula>
             {
                 new() { OperandTypeId = misc["LINEITEM"], SectionItemId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 },
                 new() { OperandTypeId = misc["LINEITEM"], SectionItemId = other,   OperatorId = misc["PLUS"], DisplayOrder = 2 },
             });
             ctx.ChangeTracker.Clear();
 
-            var updated = await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == seedId);
-            updated.FormulaName.Should().Be("EBITDA");
-            updated.IncludeOtherIncome.Should().BeTrue();
-            updated.FormulaExpression.Should().Be("Revenue + Other Income");
-            // Old operands were physically deleted, new ones inserted.
-            (await ctx.ScheduleIIISubTotalFormula.CountAsync(f => f.SubTotalId == seedId)).Should().Be(2);
+            (await ctx.ScheduleIIISubTotal.FirstAsync(x => x.Id == id)).FormulaExpression.Should().Be("Revenue + Other Income");
+            // Old operands physically deleted, only the new set remains.
+            (await ctx.ScheduleIIISubTotalFormula.CountAsync(f => f.SubTotalId == id)).Should().Be(2);
         }
     }
 }

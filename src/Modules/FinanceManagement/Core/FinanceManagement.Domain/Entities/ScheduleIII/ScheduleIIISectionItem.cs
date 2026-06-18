@@ -14,7 +14,7 @@ namespace FinanceManagement.Domain.Entities
         // Same-module FK navigation
         public ScheduleIIISection? Section { get; set; }
 
-        // Inverse navigation (master rows that include this line)
-        public ICollection<ScheduleIIIMaster>? MasterRows { get; set; }
+        // Inverse navigation (detail rows that include this line)
+        public ICollection<ScheduleIIIDetail>? DetailRows { get; set; }
     }
 }

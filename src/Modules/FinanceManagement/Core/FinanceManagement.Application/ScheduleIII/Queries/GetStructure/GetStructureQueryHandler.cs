@@ -7,7 +7,7 @@ using MediatR;
 
 namespace FinanceManagement.Application.ScheduleIII.Queries.GetStructure
 {
-    public class GetStructureQueryHandler : IRequestHandler<GetStructureQuery, ScheduleIIIMasterDto?>
+    public class GetStructureQueryHandler : IRequestHandler<GetStructureQuery, ScheduleIIIHeaderDto?>
     {
         private readonly IScheduleIIIQueryRepository _queryRepository;
         private readonly IIPAddressService _ipAddressService;
@@ -23,7 +23,7 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.GetStructure
             _mediator = mediator;
         }
 
-        public async Task<ScheduleIIIMasterDto?> Handle(GetStructureQuery request, CancellationToken cancellationToken)
+        public async Task<ScheduleIIIHeaderDto?> Handle(GetStructureQuery request, CancellationToken cancellationToken)
         {
             var companyId = _ipAddressService.GetCompanyId()
                 ?? throw new ExceptionRules("No active company in session.");

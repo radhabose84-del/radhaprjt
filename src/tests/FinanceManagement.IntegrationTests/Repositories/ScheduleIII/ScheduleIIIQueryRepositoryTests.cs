@@ -203,5 +203,53 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             operands.Should().Contain(o => o.Id == revenue && o.IsSelected && o.OperatorCode == "PLUS");
             operands.Should().Contain(o => o.Id == cogs && !o.IsSelected);
         }
+
+        // ---- SUB-TOTAL UNIQUENESS (FormulaName / DisplayOrder) ---------------
+
+        [Fact]
+        public async Task SubTotalNameExists_TrueForDuplicate_FalseForSelfAndMissing()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var gp = new ScheduleIIISubTotal { FormulaName = "Gross Profit", FormulaExpression = string.Empty, DisplayOrder = 1 };
+            ctx.ScheduleIIISubTotal.Add(gp);
+            await ctx.SaveChangesAsync();
+
+            var repo = CreateQueryRepo();
+            (await repo.SubTotalNameExistsAsync("Gross Profit")).Should().BeTrue();          // duplicate
+            (await repo.SubTotalNameExistsAsync("Gross Profit", gp.Id)).Should().BeFalse();   // self excluded
+            (await repo.SubTotalNameExistsAsync("EBITDA")).Should().BeFalse();                // not present
+        }
+
+        [Fact]
+        public async Task SubTotalDisplayOrderExists_TrueForDuplicate_FalseForSelfAndMissing()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var gp = new ScheduleIIISubTotal { FormulaName = "Gross Profit", FormulaExpression = string.Empty, DisplayOrder = 3 };
+            ctx.ScheduleIIISubTotal.Add(gp);
+            await ctx.SaveChangesAsync();
+
+            var repo = CreateQueryRepo();
+            (await repo.SubTotalDisplayOrderExistsAsync(3)).Should().BeTrue();        // duplicate
+            (await repo.SubTotalDisplayOrderExistsAsync(3, gp.Id)).Should().BeFalse(); // self excluded
+            (await repo.SubTotalDisplayOrderExistsAsync(9)).Should().BeFalse();        // not present
+        }
+
+        // ---- SECTION UNIQUENESS (SectionName) --------------------------------
+
+        [Fact]
+        public async Task SectionNameExists_TrueForDuplicate_FalseForSelfAndMissing()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Liabilities");
+
+            var repo = CreateQueryRepo();
+            (await repo.SectionNameExistsAsync("Current Liabilities")).Should().BeTrue();           // duplicate
+            (await repo.SectionNameExistsAsync("Current Liabilities", sectionId)).Should().BeFalse(); // self excluded
+            (await repo.SectionNameExistsAsync("Current Assets")).Should().BeFalse();               // not present
+        }
     }
 }

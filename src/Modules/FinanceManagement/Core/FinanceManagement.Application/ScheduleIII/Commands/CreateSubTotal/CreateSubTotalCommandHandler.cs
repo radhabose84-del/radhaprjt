@@ -27,16 +27,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal
         {
             var subTotal = _mapper.Map<ScheduleIIISubTotal>(request);
 
-            var formulas = request.Formulas.Select(f => new ScheduleIIISubTotalFormula
-            {
-                OperandTypeId = f.OperandTypeId,
-                SectionItemId = f.SectionItemId,
-                OperandSubTotalId = f.OperandSubTotalId,
-                OperatorId = f.OperatorId,
-                DisplayOrder = f.DisplayOrder
-            }).ToList();
-
-            var newId = await _commandRepository.CreateSubTotalAsync(subTotal, formulas);
+            var newId = await _commandRepository.CreateSubTotalAsync(subTotal);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",

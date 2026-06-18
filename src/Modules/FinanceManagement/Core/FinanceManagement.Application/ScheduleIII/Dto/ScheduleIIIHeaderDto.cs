@@ -1,6 +1,7 @@
 namespace FinanceManagement.Application.ScheduleIII.Dto
 {
-    public class ScheduleIIIMasterDto
+    // Structure response — header (one per Company+Division) + its sections/lines.
+    public class ScheduleIIIHeaderDto
     {
         public int Id { get; set; }
         public int CompanyId { get; set; }
@@ -13,6 +14,5 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
         public bool IsActive { get; set; }
 
         public List<ScheduleIIISectionDto> Sections { get; set; } = new();
-        public List<ScheduleIIISubTotalDto> SubTotals { get; set; } = new();
     }
 }

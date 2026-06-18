@@ -1,3 +1,4 @@
+using AutoMapper;
 using Contracts.Common;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Domain.Entities;
@@ -10,28 +11,23 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal
     {
         private readonly IScheduleIIICommandRepository _commandRepository;
         private readonly IMediator _mediator;
+        private readonly IMapper _mapper;
 
         public UpdateSubTotalCommandHandler(
             IScheduleIIICommandRepository commandRepository,
-            IMediator mediator)
+            IMediator mediator,
+            IMapper mapper)
         {
             _commandRepository = commandRepository;
             _mediator = mediator;
+            _mapper = mapper;
         }
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateSubTotalCommand request, CancellationToken cancellationToken)
         {
-            var formulas = request.Formulas.Select(f => new ScheduleIIISubTotalFormula
-            {
-                OperandTypeId = f.OperandTypeId,
-                SectionItemId = f.SectionItemId,
-                OperandSubTotalId = f.OperandSubTotalId,
-                OperatorId = f.OperatorId,
-                DisplayOrder = f.DisplayOrder
-            }).ToList();
+            var entity = _mapper.Map<ScheduleIIISubTotal>(request);
 
-            var result = await _commandRepository.UpdateSubTotalAsync(
-                request.Id, request.FormulaName, request.IncludeOtherIncome, formulas);
+            var result = await _commandRepository.UpdateSubTotalAsync(entity);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",

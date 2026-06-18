@@ -34,7 +34,7 @@ namespace FinanceManagement.Presentation.Controllers
 
         // Validate + import. Mode = "AllOrNothing" (default) or "ValidRowsOnly".
         [HttpPost]
-        public async Task<IActionResult> ImportAsync([FromForm] IFormFile? file, [FromForm] string? mode = null)
+        public async Task<IActionResult> ImportAsync(IFormFile? file, [FromForm] string? mode = null)
         {
             var result = await Mediator.Send(new ImportGlAccountsCommand { File = file, Mode = mode });
 
