@@ -114,8 +114,9 @@ public sealed class PurchaseIndentQATests
     public async Task TC033_GetById_NonExistentId_Returns200Or404()
     {
         var resp = await _f.Client.GetAsync($"{BaseRoute}/999999");
-        // BUG (live, reconciled 2026-06-17): GetById NREs (500) for missing id.
-        ((int)resp.StatusCode).Should().BeOneOf(200, 404, 500);
+        // FIXED 2026-06-18: GetPurchaseIndentByIdQueryHandler now null-guards before mapping/deref,
+        // so a missing id returns cleanly (200 null-data / 404) instead of an NRE 500.
+        ((int)resp.StatusCode).Should().BeOneOf(200, 404);
     }
 
     // ── SECTION 4 — UPDATE / DELETE (lifecycle BLOCKED; negatives ACTIVE) ───────

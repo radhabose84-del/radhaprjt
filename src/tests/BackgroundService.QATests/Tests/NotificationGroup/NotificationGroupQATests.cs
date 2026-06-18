@@ -100,7 +100,10 @@ public sealed class NotificationGroupQATests
         await QAHelper.AssertOkAsync(resp);
         var doc = await QAHelper.ParseAsync(resp);
         doc.RootElement.TryGetProperty("data", out _).Should().BeTrue();
-        doc.RootElement.GetProperty("totalCount").GetInt32().Should().BeGreaterThanOrEqualTo(1);
+        // Smoke proves auth->DB->read works + the response shape — NOT that data exists.
+        // NotificationGroup is testsales-scoped and empty on a clean clone, and in the smoke-only
+        // slice the create (TC001) doesn't run, so totalCount can be 0. Assert shape, not row count.
+        doc.RootElement.GetProperty("totalCount").GetInt32().Should().BeGreaterThanOrEqualTo(0);
         doc.RootElement.GetProperty("pageNumber").GetInt32().Should().Be(1);
         doc.RootElement.GetProperty("pageSize").GetInt32().Should().Be(15);
     }
