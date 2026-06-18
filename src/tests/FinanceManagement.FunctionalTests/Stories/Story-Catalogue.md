@@ -5,6 +5,38 @@ Tags: ✅ [implementable] · ⚠️ [verify live] · 🚫 [blocked — needs see
 
 ---
 
+## US-GL02-02 — Account Group Hierarchy Builder (4-level tree, approval-gated Move)
+
+**User story:** As a Finance Controller, I maintain the Segment → Group → Sub-group → Account hierarchy
+so balances roll up at every level and accounts attach only at the leaf; structural re-parenting changes
+statutory presentation, so a Move is gated behind Finance Controller approval (tracked in
+`Finance.AccountGroupChangeRequest`).
+
+**Pre-condition (seed):** `Finance.AccountTypeMaster` is seeded (Asset = 1) in the QA clone. The
+approval half (Move → applied) needs **RabbitMQ + BSOFT.Worker** running and the workflow config
+(`WorkflowType` for Menu 1288 + Finance-Controller `ApprovalStepDetail` + step-unit mappings). GL
+leaf-only assign needs `GlAccountMaster` reference lookups; FR-003 map needs a seeded `ScheduleIIILineItem`.
+
+Base route: `api/finance/accountgroup`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — levels summarise; leaf-only | Given a branch L1→L4 is created, When GET `/tree`, Then each level nests its children and only the bottom node is `IsLeaf` (accounts attach there). | ✅ implementable |
+| AC2 — reject non-leaf account assign | Given a GL account, When POST `/api/finance/glaccountmaster` with `accountGroupId` = a non-leaf, Then 400 "Accounts attach only at leaf level — select a leaf group." | 🚫 needs GL lookups |
+| AC3 — circular / wrong-level move blocked | Given a node, When POST `/move` under its own descendant or a parent not exactly one level above, Then 400. | ✅ implementable |
+| AC4 — parent totals = Σ children | Given accounts under a leaf, When balances change, Then parent totals reflect the sum at all levels. | 🚫 blocked — no GL posting/ledger source |
+| AC5 — account in exactly one group | Given an account, When (re)assigned, Then it belongs to exactly one group (single `GlAccountMaster.AccountGroupId` FK). | ✅ structural |
+| Move — submitted for approval | Given a valid Move, When POST `/move`, Then 200 "submitted for Finance Controller approval", an `AccountGroupChangeRequest` is Pending and the group is NOT yet re-parented. | ⚠️ verify live |
+| Move — applied on approval | Given a Pending request, When the Finance Controller approves, Then the consumer re-parents the group + marks the request Approved (old parent → leaf, new parent → non-leaf). | 🚫 needs RabbitMQ + Worker + workflow |
+| FR-003 — Schedule III mapping | Given a group, When PUT `/schedule-iii-mapping {scheduleIIILineItemId}`, Then GET `/{id}` shows `scheduleIIILineName` (null clears it). | 🚫 needs seeded line |
+
+> Single self-referencing `AccountGroup` table (adjacency list); `Level` derived (parent+1), `IsLeaf`
+> maintained on create/move/delete. The Move uses a transactional outbox + `AccountGroupChangeRequest`
+> so the request is raised atomically and applied only after approval (engine is unit-scoped — payload
+> wraps `UnitId` at `$.Header.UnitId`). See `docs/AccountGroupHierarchy_HLD.md`.
+
+---
+
 ## US-GL02-03A — Schedule III Line-Item & Sub-total Configuration
 
 **User story:** As a Finance Controller, I maintain the Schedule III statement structure — its
