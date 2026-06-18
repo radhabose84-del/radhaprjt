@@ -35,6 +35,9 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
+        // Cost Centre master & 3-level hierarchy (US-GL05-01)
+        public DbSet<CostCentre> CostCentre => Set<CostCentre>();
+
         // COA bulk import/export (GL02-FR-006)
         public DbSet<GlAccountImportLog> GlAccountImportLog => Set<GlAccountImportLog>();
         public DbSet<GlAccountImportError> GlAccountImportError => Set<GlAccountImportError>();
