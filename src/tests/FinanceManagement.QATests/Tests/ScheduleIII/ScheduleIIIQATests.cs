@@ -22,7 +22,7 @@ namespace FinanceManagement.QATests.Tests.ScheduleIII;
 public sealed class ScheduleIIIQATests
 {
     private readonly QAServerFixture _f;
-    private const string MasterRoute = "/api/finance/ScheduleIIIMaster";
+    private const string MasterRoute = "/api/finance/ScheduleIIIHeader";
     private const string SectionRoute = "/api/finance/ScheduleIIISection";
     private const string LineItemRoute = "/api/finance/ScheduleIIISectionItem";
     private const string SubTotalRoute = "/api/finance/ScheduleIIISubTotal";
@@ -78,7 +78,7 @@ public sealed class ScheduleIIIQATests
     [Fact, TestPriority(4)]
     public async Task TC004_Preview03B_NoAuth_Returns401()
     {
-        var resp = await _f.AnonymousClient.GetAsync($"{MasterRoute}/preview-03b/1");
+        var resp = await _f.AnonymousClient.GetAsync($"{MasterRoute}/preview-03b");
         resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -116,8 +116,9 @@ public sealed class ScheduleIIIQATests
     [Fact, TestPriority(8)]
     public async Task TC008_CreateSubTotal_MissingRequired_Returns400()
     {
+        // Sub-total header requires a non-empty FormulaName.
         var resp = await _f.Client.PostAsJsonAsync(SubTotalRoute,
-            new { scheduleIIIMasterId = 0, subTotalTypeId = 0, includeOtherIncome = false, displayOrder = 1, formulas = Array.Empty<object>() });
+            new { formulaName = "", includeOtherIncome = false, displayOrder = 0 });
 
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

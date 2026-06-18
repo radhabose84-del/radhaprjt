@@ -25,7 +25,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Queries
         public async Task Handle_ExistingStructure_ReturnsDto()
         {
             _mockQueryRepo.Setup(r => r.GetStructureAsync(1001, 7))
-                .ReturnsAsync(new ScheduleIIIMasterDto { Id = 1, CompanyId = 1001, DivisionId = 7, StatusId = 22 });
+                .ReturnsAsync(new ScheduleIIIHeaderDto { Id = 1, CompanyId = 1001, DivisionId = 7, StatusId = 22 });
 
             var result = await CreateSut().Handle(new GetStructureQuery(), CancellationToken.None);
 
@@ -37,7 +37,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Queries
         [Fact]
         public async Task Handle_MissingStructure_ReturnsNull()
         {
-            _mockQueryRepo.Setup(r => r.GetStructureAsync(1001, 7)).ReturnsAsync((ScheduleIIIMasterDto?)null);
+            _mockQueryRepo.Setup(r => r.GetStructureAsync(1001, 7)).ReturnsAsync((ScheduleIIIHeaderDto?)null);
 
             var result = await CreateSut().Handle(new GetStructureQuery(), CancellationToken.None);
 
@@ -47,7 +47,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Queries
         [Fact]
         public async Task Handle_MissingStructure_DoesNotPublishAuditEvent()
         {
-            _mockQueryRepo.Setup(r => r.GetStructureAsync(1001, 7)).ReturnsAsync((ScheduleIIIMasterDto?)null);
+            _mockQueryRepo.Setup(r => r.GetStructureAsync(1001, 7)).ReturnsAsync((ScheduleIIIHeaderDto?)null);
 
             await CreateSut().Handle(new GetStructureQuery(), CancellationToken.None);
 

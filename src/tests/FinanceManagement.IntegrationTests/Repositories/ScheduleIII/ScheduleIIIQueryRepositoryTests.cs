@@ -73,11 +73,19 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             return line.Id;
         }
 
-        // A master row = (company/division header) + one included line.
-        private static async Task SeedMasterRowAsync(ApplicationDbContext ctx, int statusId, int sectionItemId, int displayOrder, int companyId = 1, int divisionId = 7)
+        // Ensures a header for (company/division) and adds one detail line.
+        private static async Task SeedDetailRowAsync(ApplicationDbContext ctx, int statusId, int sectionId, int sectionItemId, int displayOrder, int companyId = 1, int divisionId = 7)
         {
-            ctx.ScheduleIIIMaster.Add(new ScheduleIIIMaster
-            { CompanyId = companyId, DivisionId = divisionId, StatusId = statusId, ScheduleIIISectionItemId = sectionItemId, DisplayOrder = displayOrder });
+            var header = await ctx.ScheduleIIIHeader.FirstOrDefaultAsync(h => h.CompanyId == companyId && h.DivisionId == divisionId);
+            if (header == null)
+            {
+                header = new ScheduleIIIHeader { CompanyId = companyId, DivisionId = divisionId, StatusId = statusId, TextileSplitEnabled = false };
+                ctx.ScheduleIIIHeader.Add(header);
+                await ctx.SaveChangesAsync();
+            }
+
+            ctx.ScheduleIIIDetail.Add(new ScheduleIIIDetail
+            { ScheduleIIIHeaderId = header.Id, ScheduleIIISectionId = sectionId, ScheduleIIISectionItemId = sectionItemId, DisplayOrder = displayOrder });
             await ctx.SaveChangesAsync();
         }
 
@@ -91,7 +99,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             var misc = await SeedMiscAsync(ctx);
             var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Assets");
             var lineId = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
-            await SeedMasterRowAsync(ctx, misc["DRAFT"], lineId, 1, companyId: 1, divisionId: 7);
+            await SeedDetailRowAsync(ctx, misc["DRAFT"], sectionId, lineId, 1, companyId: 1, divisionId: 7);
 
             var repo = CreateQueryRepo();
             (await repo.StructureExistsByCompanyDivisionAsync(1, 7)).Should().BeTrue();
@@ -106,12 +114,29 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             var misc = await SeedMiscAsync(ctx);
             var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Assets");
             var lineId = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
-            await SeedMasterRowAsync(ctx, misc["DRAFT"], lineId, 1, divisionId: 7);
-            await SeedMasterRowAsync(ctx, misc["LOCKED"], lineId, 1, divisionId: 8);
+            await SeedDetailRowAsync(ctx, misc["DRAFT"], sectionId, lineId, 1, divisionId: 7);
+            await SeedDetailRowAsync(ctx, misc["LOCKED"], sectionId, lineId, 1, divisionId: 8);
 
             var repo = CreateQueryRepo();
             (await repo.IsStructureLockedAsync(1, 7)).Should().BeFalse();
             (await repo.IsStructureLockedAsync(1, 8)).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task DetailLineExists_And_DisplayOrderExists_PerStructure()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Assets");
+            var lineId = await SeedLineAsync(ctx, sectionId, "INV", "Inventories");
+            await SeedDetailRowAsync(ctx, misc["DRAFT"], sectionId, lineId, 5, companyId: 1, divisionId: 7);
+
+            var repo = CreateQueryRepo();
+            (await repo.DetailLineExistsAsync(1, 7, lineId)).Should().BeTrue();        // line already included
+            (await repo.DetailLineExistsAsync(1, 7, 99999)).Should().BeFalse();        // other line
+            (await repo.DetailDisplayOrderExistsAsync(1, 7, 5)).Should().BeTrue();     // order taken
+            (await repo.DetailDisplayOrderExistsAsync(1, 7, 6)).Should().BeFalse();    // order free
         }
 
         [Fact]
@@ -127,7 +152,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             (await repo.SectionExistsAsync(99999)).Should().BeFalse();
         }
 
-        // ---- GET STRUCTURE (via merged master rows) --------------------------
+        // ---- GET STRUCTURE (header + detail lines) ---------------------------
 
         [Fact]
         public async Task GetStructure_Returns_Sections_With_IncludedLines()
@@ -138,8 +163,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             var section = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Non-Current Assets");
             var ppe = await SeedLineAsync(ctx, section, "PPE", "Property, Plant and Equipment");
             var inv = await SeedLineAsync(ctx, section, "INV", "Inventories");
-            await SeedMasterRowAsync(ctx, misc["DRAFT"], ppe, 1, companyId: 1, divisionId: 7);
-            await SeedMasterRowAsync(ctx, misc["DRAFT"], inv, 2, companyId: 1, divisionId: 7);
+            await SeedDetailRowAsync(ctx, misc["DRAFT"], section, ppe, 1, companyId: 1, divisionId: 7);
+            await SeedDetailRowAsync(ctx, misc["DRAFT"], section, inv, 2, companyId: 1, divisionId: 7);
 
             var dto = await CreateQueryRepo().GetStructureAsync(1, 7);
 
@@ -149,6 +174,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             dto.StructureStatusName.Should().Be("Draft");
             dto.Sections.Should().HaveCount(1);
             dto.Sections[0].LineItems.Select(l => l.LineCode).Should().Contain(new[] { "PPE", "INV" });
+            dto.Sections[0].LineItems.Should().OnlyContain(l => l.DetailId > 0);
         }
 
         // ---- GET SUB-TOTALS (global) -----------------------------------------

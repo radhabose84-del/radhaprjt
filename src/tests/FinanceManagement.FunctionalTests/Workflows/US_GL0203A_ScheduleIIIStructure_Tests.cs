@@ -25,9 +25,8 @@ namespace FinanceManagement.FunctionalTests.Workflows;
 public sealed class US_GL0203A_ScheduleIIIMaster_Tests
 {
     private readonly QAServerFixture _f;
-    private const string MasterRoute = "/api/finance/ScheduleIIIMaster";
+    private const string MasterRoute = "/api/finance/ScheduleIIIHeader";
     private const string LineItemRoute = "/api/finance/ScheduleIIISectionItem";
-    private const string MasterLineRoute = "/api/finance/ScheduleIIIMasterLine";
     private const string SubTotalRoute = "/api/finance/ScheduleIIISubTotal";
     private const int CompanyId = 1;
     private const int DivisionId = 7;
@@ -88,16 +87,16 @@ public sealed class US_GL0203A_ScheduleIIIMaster_Tests
         createResp.StatusCode.Should().Be(HttpStatusCode.OK);
         _lineId = (await ParseAsync(createResp)).RootElement.GetProperty("data").GetInt32();
 
-        // Attach the global line to the master (junction) so it is part of this structure.
-        var attachResp = await _f.Client.PostAsJsonAsync(MasterLineRoute, new
+        // Add the global line to the structure (ScheduleIIIDetail) — header auto-resolved from token.
+        var attachResp = await _f.Client.PostAsJsonAsync(MasterRoute, new
         {
-            scheduleIIIMasterId = _scheduleIIIMasterId,
-            scheduleIIILineItemId = _lineId,
+            scheduleIIISectionId = _sectionId,
+            scheduleIIISectionItemId = _lineId,
             displayOrder = 99
         });
         attachResp.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var previewResp = await _f.Client.GetAsync($"{MasterRoute}/preview-03b/{_scheduleIIIMasterId}");
+        var previewResp = await _f.Client.GetAsync($"{MasterRoute}/preview-03b");
         previewResp.StatusCode.Should().Be(HttpStatusCode.OK);
         var preview = (await ParseAsync(previewResp)).RootElement.GetProperty("data");
         var bsLeaves = preview.GetProperty("balanceSheetLeaves").EnumerateArray()
