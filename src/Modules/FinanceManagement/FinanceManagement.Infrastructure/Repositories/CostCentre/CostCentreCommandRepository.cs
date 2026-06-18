@@ -29,9 +29,12 @@ namespace FinanceManagement.Infrastructure.Repositories.CostCentre
             if (existingEntity == null)
                 return 0;
 
-            // Code, CentreLevelId, ParentCostCentreId, UnitId (Plant) are immutable — only name + status change.
+            // Code, CentreLevelId, ParentCostCentreId, UnitId (Plant) are immutable.
             existingEntity.CostCentreName = entity.CostCentreName;
             existingEntity.IsActive = entity.IsActive;
+            existingEntity.ResponsibleManagerId = entity.ResponsibleManagerId;
+            existingEntity.EffectiveFromDate = entity.EffectiveFromDate;
+            existingEntity.EffectiveToDate = entity.EffectiveToDate;
 
             _applicationDbContext.CostCentre.Update(existingEntity);
             await _applicationDbContext.SaveChangesAsync();

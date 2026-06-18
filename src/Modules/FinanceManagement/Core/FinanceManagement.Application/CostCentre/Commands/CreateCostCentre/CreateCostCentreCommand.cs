@@ -14,6 +14,11 @@ namespace FinanceManagement.Application.CostCentre.Commands.CreateCostCentre
         public int? DepartmentGroupId { get; set; }    // set for L2 & L3
         public int? DepartmentId { get; set; }         // set for L3 only
 
+        // Optional (non-mandatory) — FE adds the inputs later; saved null until then.
+        public int? ResponsibleManagerId { get; set; }
+        public DateTimeOffset? EffectiveFromDate { get; set; }
+        public DateTimeOffset? EffectiveToDate { get; set; }
+
         public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }
