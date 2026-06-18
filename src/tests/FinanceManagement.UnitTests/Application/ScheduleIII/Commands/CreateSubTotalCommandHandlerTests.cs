@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal;
 using FinanceManagement.Application.ScheduleIII.Dto;
@@ -9,15 +10,21 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         private readonly Mock<IScheduleIIICommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
+
+        public CreateSubTotalCommandHandlerTests()
+        {
+            _mockIp.Setup(s => s.GetCompanyId()).Returns(1);
+            _mockIp.Setup(s => s.GetDivisionId()).Returns(7);
+        }
 
         private CreateSubTotalCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object, _mockIp.Object);
 
         private static CreateSubTotalCommand ValidCommand() =>
             new()
             {
-                StructureId = 1,
-                SubTotalName = "Gross Margin",
+                SubTotalTypeId = 28,
                 IncludeOtherIncome = false,
                 DisplayOrder = 5,
                 Formulas = new List<SubTotalFormulaInput>

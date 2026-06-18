@@ -70,7 +70,7 @@ namespace ProjectManagement.IntegrationTests.Repositories.ProjectWorkBreakdownSt
             var entity = new ProjectManagement.Domain.Entities.ProjectWorkBreakdownStructure
             {
                 ProjectId = projectId,
-                ParentWorkBreakdownStructureId = parentId,
+                ParentWorkBreakdownScheduleIIIMasterId = parentId,
                 WorkBreakdownStructureName = name,
                 ResponsibleDepartmentId = 1,
                 ResponsiblePerson = "John Doe",

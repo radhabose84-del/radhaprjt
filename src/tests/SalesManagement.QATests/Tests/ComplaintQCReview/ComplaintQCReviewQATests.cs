@@ -6,7 +6,7 @@ namespace SalesManagement.QATests.Tests.ComplaintQCReview;
 // Contract verified against source (2026-06-15):
 //   POST  /api/ComplaintQCReview                         SubmitQCReviewCommand (JSON body)
 //         { complaintHeaderId, physicalVerificationId, complaintStatusId?, severityId?,
-//           compensationStructureId?, labVerificationRequired, labResponsiblePersonId?,
+//           compensationScheduleIIIMasterId?, labVerificationRequired, labResponsiblePersonId?,
 //           expectedResolutionDate?, comments?, assignments?[] }
 //         (complaintHeaderId is a same-module Complaint FK; physicalVerificationId is a
 //          MiscMaster FK — submit needs a real pending complaint, so it is BLOCKED.)

@@ -17,8 +17,6 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
         {
             _queryRepository = queryRepository;
 
-            var maxLengthName = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>("SubTotalName") ?? 120;
-
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
             {
@@ -30,15 +28,15 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.SubTotalName)
-                            .NotNull().WithMessage($"{nameof(UpdateSubTotalCommand.SubTotalName)} {rule.Error}")
-                            .NotEmpty().WithMessage($"{nameof(UpdateSubTotalCommand.SubTotalName)} {rule.Error}");
+                        RuleFor(x => x.SubTotalTypeId)
+                            .NotEmpty().WithMessage($"{nameof(UpdateSubTotalCommand.SubTotalTypeId)} {rule.Error}");
                         break;
 
-                    case "MaxLength":
-                        RuleFor(x => x.SubTotalName)
-                            .MaximumLength(maxLengthName)
-                            .WithMessage($"{nameof(UpdateSubTotalCommand.SubTotalName)} {rule.Error} {maxLengthName} characters.");
+                    case "FKColumnDelete":
+                        RuleFor(x => x.SubTotalTypeId)
+                            .MustAsync(async (id, ct) => await _queryRepository.SubTotalTypeExistsAsync(id))
+                            .WithMessage($"{nameof(UpdateSubTotalCommand.SubTotalTypeId)} {rule.Error}")
+                            .When(x => x.SubTotalTypeId > 0);
                         break;
 
                     case "NotFound":

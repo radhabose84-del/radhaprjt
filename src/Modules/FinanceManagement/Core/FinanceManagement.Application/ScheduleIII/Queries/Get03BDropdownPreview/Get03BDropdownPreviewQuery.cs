@@ -5,6 +5,6 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.Get03BDropdownPrevie
 {
     public class Get03BDropdownPreviewQuery : IRequest<Preview03BDto>
     {
-        public int StructureId { get; set; }
+        public int ScheduleIIIMasterId { get; set; }
     }
 }
