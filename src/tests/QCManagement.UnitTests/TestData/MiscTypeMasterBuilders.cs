@@ -7,7 +7,7 @@ namespace QCManagement.UnitTests.TestData
     public static class MiscTypeMasterBuilders
     {
         public static CreateMiscTypeMasterCommand ValidCreateCommand(
-            string? code = "QP_GROUP",
+            string? code = "QPGROUP",
             string? description = "Quality Parameter Group") =>
             new CreateMiscTypeMasterCommand
             {

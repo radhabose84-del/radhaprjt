@@ -104,9 +104,11 @@ namespace BudgetManagement.Infrastructure.Repositories
          public async Task<bool> NotFoundAsync(int id)
         {
             var query = "SELECT COUNT(1) FROM  Budget.MiscTypeMaster WHERE Id = @Id AND IsDeleted = 0";
-             
+
             var count = await _dbConnection.ExecuteScalarAsync<int>(query, new { Id = id });
-            return count > 0;
+            // True when the record is NOT found (honest to the method name). Validators use
+            // !NotFoundAsync(id) so an existing row passes and a missing row fails "not found".
+            return count == 0;
         }
 
          public async Task<bool> SoftDeleteValidation(int Id)

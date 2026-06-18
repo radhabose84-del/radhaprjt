@@ -79,6 +79,21 @@ public sealed class QAServerFixture : IAsyncLifetime
             "/api/auth/login",
             new { username, password });
 
+        // Single-session guard: `testsales` allows only one active session, so a lingering session
+        // (a prior crashed/aborted run, a manual probe, or a slow deactivate) makes login return
+        // 400 "already logged in on another machine." Deactivate + retry a few times so a stale
+        // session self-heals instead of failing the whole collection at init.
+        for (var attempt = 0; attempt < 4 && loginResp.StatusCode == HttpStatusCode.BadRequest; attempt++)
+        {
+            await AnonymousClient.PostAsJsonAsync(
+                "/api/auth/deactivate-user-sessionByUsername",
+                new { username, password });
+            await Task.Delay(750);
+            loginResp = await AnonymousClient.PostAsJsonAsync(
+                "/api/auth/login",
+                new { username, password });
+        }
+
         loginResp.StatusCode.Should().Be(HttpStatusCode.OK,
             "QA server login must succeed before tests run.");
 

@@ -66,8 +66,8 @@ namespace BudgetManagement.Presentation.Validation.MiscMaster
                             break;
                     case "NotFound":
                            RuleFor(x => x.Id )
-                           .MustAsync(async (Id, cancellation) => 
-                        await _miscMasterQuery.NotFoundAsync(Id))             
+                           .MustAsync(async (Id, cancellation) =>
+                        !await _miscMasterQuery.NotFoundAsync(Id))
                            .WithName("Misc Code")
                             .WithMessage($"{rule.Error}");
                             break; 

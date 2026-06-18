@@ -44,6 +44,11 @@ namespace PurchaseManagement.Application.PurchaseIndents.Queries.GetPurchaseInde
         public async Task<IndentByIdDto> Handle(GetPurchaseIndentByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _purchaseIndentQuery.GetByIdAsync(request.Id);
+
+            // Missing id → return null instead of NRE-ing on indent.IndentDetails below (was a 500).
+            if (result == null)
+                return null!;
+
             var indent = _mapper.Map<IndentByIdDto>(result);
 
             indent.IndentDetails ??= new List<IndentDetailByIdDto>();

@@ -278,6 +278,73 @@ jobs:
             --logger "trx;LogFileName=maintenance-functional.trx" --logger "console;verbosity=normal" `
             --results-directory qa-reports
 
+      # ── Step 12c: All-module SMOKE (RECONCILING — non-blocking) ─────────
+      # Smoke = the GetAll happy-path per entity (Layer=Smoke) for the 12 modules added after
+      # FAM/Maintenance (Sales/UserManagement Tier 1 + the 11 Tier-2 modules). All are live-green
+      # on the BannariERP_QATest clone, but have NOT yet run in CI against the deployed
+      # BsoftErpDemo app (different DB/seed state), so they run continue-on-error to REPORT first.
+      # PROMOTE each module's smoke line into the blocking gate (Step 10/10a) once it is green
+      # across a few CI runs. UserManagement smoke is already blocking in Step 10.
+      - name: All-module smoke (reconciling)
+        if: success()
+        continue-on-error: true
+        shell: powershell
+        run: |
+          $projects = @(
+            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
+            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
+            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
+            "BackgroundService"
+          )
+          foreach ($p in $projects) {
+            Write-Host "── Smoke: $p ──"
+            dotnet test "src/tests/$p.QATests/$p.QATests.csproj" `
+              --filter "Layer=Smoke" `
+              --logger "trx;LogFileName=$p-smoke.trx" --logger "console;verbosity=normal" `
+              --results-directory qa-reports
+          }
+
+      # ── Step 12d: All-module full QA suites (RECONCILING — non-blocking) ─
+      # Full CRUD + Security + reachability per module. Reports TRX → Slack/JIRA without failing
+      # the deploy. Promote a module into the blocking Step 11 once it is stable in CI.
+      - name: All-module QA suites (reconciling)
+        if: success()
+        continue-on-error: true
+        shell: powershell
+        run: |
+          $projects = @(
+            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
+            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
+            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
+            "BackgroundService"
+          )
+          foreach ($p in $projects) {
+            Write-Host "── QA: $p ──"
+            dotnet test "src/tests/$p.QATests/$p.QATests.csproj" `
+              --logger "trx;LogFileName=$p-qa.trx" --logger "console;verbosity=normal" `
+              --results-directory qa-reports
+          }
+
+      # ── Step 12e: All-module Functional workflows (RECONCILING — non-blocking) ──
+      # Story workflows; skip-documented steps (blocked on seeded data) report as skipped, not failed.
+      - name: All-module Functional tests (reconciling)
+        if: success()
+        continue-on-error: true
+        shell: powershell
+        run: |
+          $projects = @(
+            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
+            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
+            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
+            "BackgroundService"
+          )
+          foreach ($p in $projects) {
+            Write-Host "── Functional: $p ──"
+            dotnet test "src/tests/$p.FunctionalTests/$p.FunctionalTests.csproj" `
+              --logger "trx;LogFileName=$p-functional.trx" --logger "console;verbosity=normal" `
+              --results-directory qa-reports
+          }
+
       # ── Step 13: Upload all reports (always) ────────────────────────────
       # Re-enabled: Gitea's ROOT_URL (app.ini) is now http://192.168.1.126:3000/ (was
       # localhost:3000, which the runner on 130 couldn't reach -> ECONNREFUSED). continue-on-error

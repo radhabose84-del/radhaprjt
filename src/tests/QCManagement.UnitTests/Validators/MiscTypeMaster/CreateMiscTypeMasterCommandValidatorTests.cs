@@ -34,7 +34,7 @@ namespace QCManagement.UnitTests.Validators.MiscTypeMaster
         public async Task ValidCommand_PassesValidation()
         {
             var command = MiscTypeMasterBuilders.ValidCreateCommand();
-            SetupCodeNotExists("QP_GROUP");
+            SetupAnyCodeNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -68,29 +68,33 @@ namespace QCManagement.UnitTests.Validators.MiscTypeMaster
         }
 
         [Theory]
-        [InlineData("QP01")]
         [InlineData("QP@GROUP")]
         [InlineData("QP.GROUP")]
         [InlineData("QP/GROUP")]
-        [InlineData("123ABC")]
-        public async Task MiscTypeCode_ContainsDigitsOrSpecials_FailsValidation(string code)
+        [InlineData("QP_GROUP")]
+        [InlineData("QP-GROUP")]
+        [InlineData("QP GROUP")]
+        public async Task MiscTypeCode_NonAlphanumeric_FailsValidation(string code)
         {
+            // MiscTypeCode uses the Alphanumeric rule (^[A-Za-z0-9]+$) — spaces, separators
+            // and special characters are rejected (consistent with other modules' code fields).
             var command = MiscTypeMasterBuilders.ValidCreateCommand(code: code);
             SetupAnyCodeNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.MiscTypeCode)
-                  .WithErrorMessage("MiscTypeCode  must not contain digits or special characters.");
+                  .WithErrorMessage("MiscTypeCode  must be alphanumeric only.");
         }
 
         [Theory]
-        [InlineData("QP_GROUP")]
-        [InlineData("QP-GROUP")]
-        [InlineData("QP GROUP")]
+        [InlineData("QP01")]
+        [InlineData("123ABC")]
+        [InlineData("QPGROUP")]
         [InlineData("PHYSICAL")]
-        public async Task MiscTypeCode_AllowedSeparators_PassesPatternCheck(string code)
+        public async Task MiscTypeCode_Alphanumeric_PassesPatternCheck(string code)
         {
+            // Letters and digits are valid; no separators needed.
             var command = MiscTypeMasterBuilders.ValidCreateCommand(code: code);
             SetupCodeNotExists(code);
 
@@ -117,7 +121,7 @@ namespace QCManagement.UnitTests.Validators.MiscTypeMaster
         public async Task Description_Empty_FailsValidation(string? description)
         {
             var command = MiscTypeMasterBuilders.ValidCreateCommand(description: description);
-            SetupCodeNotExists("QP_GROUP");
+            SetupAnyCodeNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -130,7 +134,7 @@ namespace QCManagement.UnitTests.Validators.MiscTypeMaster
         {
             var longDesc = new string('X', 251);
             var command = MiscTypeMasterBuilders.ValidCreateCommand(description: longDesc);
-            SetupCodeNotExists("QP_GROUP");
+            SetupAnyCodeNotExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 

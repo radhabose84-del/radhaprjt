@@ -1,4 +1,6 @@
 using FluentValidation.TestHelper;
+using Moq;
+using PurchaseManagement.Application.Common.Interfaces.IPortMaster;
 using PurchaseManagement.Presentation.Validation;
 using PurchaseManagement.UnitTests.TestData;
 
@@ -6,7 +8,15 @@ namespace PurchaseManagement.UnitTests.Validators.PortMaster
 {
     public sealed class CreatePortMasterValidatorTests
     {
-        private static CreatePortMasterValidator CreateValidator() => new();
+        // CreatePortMasterValidator now enforces PortCode uniqueness via IPortMasterQueryRepository.
+        // Mock it to "not exists" so the valid path passes; format/empty/zero tests fail on their own rules.
+        private static CreatePortMasterValidator CreateValidator()
+        {
+            var repo = new Mock<IPortMasterQueryRepository>();
+            repo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+            return new CreatePortMasterValidator(repo.Object);
+        }
 
         [Fact]
         public async Task Validate_ValidCommand_PassesValidation()
