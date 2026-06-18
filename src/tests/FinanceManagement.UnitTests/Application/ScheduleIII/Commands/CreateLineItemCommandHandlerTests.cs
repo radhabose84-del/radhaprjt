@@ -14,15 +14,15 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
             new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private static CreateLineItemCommand ValidCommand() =>
-            new() { StructureId = 1, SectionId = 5, LineCode = "INV", LineName = "Inventories", DisplayOrder = 1 };
+            new() { SectionId = 5, LineCode = "INV", LineName = "Inventories" };
 
         private void SetupHappyPath(int newId = 1)
         {
             _mockMapper
-                .Setup(m => m.Map<FinanceManagement.Domain.Entities.ScheduleIIILineItem>(It.IsAny<CreateLineItemCommand>()))
-                .Returns(new FinanceManagement.Domain.Entities.ScheduleIIILineItem());
+                .Setup(m => m.Map<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>(It.IsAny<CreateLineItemCommand>()))
+                .Returns(new FinanceManagement.Domain.Entities.ScheduleIIISectionItem());
             _mockCommandRepo
-                .Setup(r => r.CreateLineItemAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIILineItem>()))
+                .Setup(r => r.CreateLineItemAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>()))
                 .ReturnsAsync(newId);
         }
 
@@ -49,7 +49,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
             SetupHappyPath();
             await CreateSut().Handle(ValidCommand(), CancellationToken.None);
             _mockCommandRepo.Verify(
-                r => r.CreateLineItemAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIILineItem>()),
+                r => r.CreateLineItemAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>()),
                 Times.Once);
         }
 

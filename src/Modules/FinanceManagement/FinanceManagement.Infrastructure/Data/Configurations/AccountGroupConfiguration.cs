@@ -48,8 +48,8 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnName("AccountTypeId")
                 .HasColumnType("int");
 
-            builder.Property(t => t.ScheduleIIILineItemId)
-                .HasColumnName("ScheduleIIILineItemId")
+            builder.Property(t => t.ScheduleIIISectionItemId)
+                .HasColumnName("ScheduleIIISectionItemId")
                 .HasColumnType("int");
 
             builder.Property(t => t.ParentAccountGroupId)
@@ -100,7 +100,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.Level);
             builder.HasIndex(t => t.CompanyId);
             builder.HasIndex(t => t.AccountTypeId);
-            builder.HasIndex(t => t.ScheduleIIILineItemId);
+            builder.HasIndex(t => t.ScheduleIIISectionItemId);
 
             // Self-referencing single-parent FK (same-module). Restrict prevents deleting a
             // parent that still has children at the database level.
@@ -116,11 +116,11 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.AccountTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Schedule III line mapping FK (same-module → Finance.ScheduleIIILineItem). Nullable;
+            // Schedule III line mapping FK (same-module → Finance.ScheduleIIISectionItem). Nullable;
             // Restrict so a statutory line in use cannot be deleted.
-            builder.HasOne(t => t.ScheduleIIILineItem)
+            builder.HasOne(t => t.ScheduleIIISectionItem)
                 .WithMany()
-                .HasForeignKey(t => t.ScheduleIIILineItemId)
+                .HasForeignKey(t => t.ScheduleIIISectionItemId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

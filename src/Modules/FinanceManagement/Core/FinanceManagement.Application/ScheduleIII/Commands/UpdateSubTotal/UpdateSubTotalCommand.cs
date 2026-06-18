@@ -8,7 +8,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal
     public class UpdateSubTotalCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int Id { get; set; }
-        public string? SubTotalName { get; set; }
+        public int SubTotalTypeId { get; set; }
         public bool IncludeOtherIncome { get; set; }
         public List<SubTotalFormulaInput> Formulas { get; set; } = new();
 

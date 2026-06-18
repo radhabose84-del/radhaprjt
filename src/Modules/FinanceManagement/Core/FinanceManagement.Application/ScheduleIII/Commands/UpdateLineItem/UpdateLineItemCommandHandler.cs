@@ -27,7 +27,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.UpdateLineItem
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateLineItemCommand request, CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<Domain.Entities.ScheduleIIILineItem>(request);
+            var entity = _mapper.Map<Domain.Entities.ScheduleIIISectionItem>(request);
 
             var result = await _commandRepository.UpdateLineItemAsync(entity);
 
@@ -36,7 +36,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.UpdateLineItem
                 actionCode: "S3_LINEITEM_UPDATE",
                 actionName: request.Id.ToString(),
                 details: $"Schedule III line item with Id {request.Id} updated successfully.",
-                module: "ScheduleIIILineItem"
+                module: "ScheduleIIISectionItem"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 

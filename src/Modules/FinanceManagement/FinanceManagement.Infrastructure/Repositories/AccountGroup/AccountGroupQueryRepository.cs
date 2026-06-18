@@ -23,7 +23,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
             public int Id { get; set; }
             public int CompanyId { get; set; }
             public int? AccountTypeId { get; set; }
-            public int? ScheduleIIILineItemId { get; set; }
+            public int? ScheduleIIISectionItemId { get; set; }
             public string? GroupCode { get; set; }
             public string? GroupName { get; set; }
             public int? ParentAccountGroupId { get; set; }
@@ -36,7 +36,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
         public async Task<List<AccountGroupTreeDto>> GetTreeAsync(int? companyId)
         {
             const string sql = @"
-                SELECT ag.Id, ag.CompanyId, ag.AccountTypeId, ag.ScheduleIIILineItemId,
+                SELECT ag.Id, ag.CompanyId, ag.AccountTypeId, ag.ScheduleIIISectionItemId,
                        ag.GroupCode, ag.GroupName, ag.ParentAccountGroupId,
                        ag.Level, ag.SortOrder, ag.IsActive, ag.IsLeaf
                 FROM [Finance].[AccountGroup] ag
@@ -60,7 +60,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
                     SortOrder = r.SortOrder,
                     IsActive = r.IsActive,
                     IsLeaf = r.IsLeaf,
-                    ScheduleIIILineItemId = r.ScheduleIIILineItemId
+                    ScheduleIIISectionItemId = r.ScheduleIIISectionItemId
                 });
 
             var roots = new List<AccountGroupTreeDto>();
@@ -88,7 +88,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
         {
             const string sql = @"
                 SELECT ag.Id, ag.CompanyId, ag.AccountTypeId, at.AccountTypeName,
-                       ag.ScheduleIIILineItemId, sli.LineName AS ScheduleIIILineName,
+                       ag.ScheduleIIISectionItemId, sli.LineName AS ScheduleIIILineName,
                        ag.GroupCode, ag.GroupName, ag.ParentAccountGroupId,
                        ag.Level, ag.SortOrder, ag.IsLeaf,
                        p.GroupName AS ParentGroupName,
@@ -100,7 +100,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
                 FROM [Finance].[AccountGroup] ag
                 LEFT JOIN [Finance].[AccountGroup] p ON ag.ParentAccountGroupId = p.Id AND p.IsDeleted = 0
                 LEFT JOIN [Finance].[AccountTypeMaster] at ON ag.AccountTypeId = at.Id AND at.IsDeleted = 0
-                LEFT JOIN [Finance].[ScheduleIIILineItem] sli ON ag.ScheduleIIILineItemId = sli.Id AND sli.IsDeleted = 0
+                LEFT JOIN [Finance].[ScheduleIIISectionItem] sli ON ag.ScheduleIIISectionItemId = sli.Id AND sli.IsDeleted = 0
                 WHERE ag.IsDeleted = 0 AND ag.Id = @Id";
 
             var dto = await _dbConnection.QueryFirstOrDefaultAsync<AccountGroupDetailDto>(sql, new { Id = id });

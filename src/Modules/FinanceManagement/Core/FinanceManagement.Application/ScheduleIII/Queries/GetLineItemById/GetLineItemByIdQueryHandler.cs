@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FinanceManagement.Application.ScheduleIII.Queries.GetLineItemById
 {
-    public class GetLineItemByIdQueryHandler : IRequestHandler<GetLineItemByIdQuery, ScheduleIIILineItemDto?>
+    public class GetLineItemByIdQueryHandler : IRequestHandler<GetLineItemByIdQuery, ScheduleIIISectionItemDto?>
     {
         private readonly IScheduleIIIQueryRepository _queryRepository;
         private readonly IMediator _mediator;
@@ -18,7 +18,7 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.GetLineItemById
             _mediator = mediator;
         }
 
-        public async Task<ScheduleIIILineItemDto?> Handle(GetLineItemByIdQuery request, CancellationToken cancellationToken)
+        public async Task<ScheduleIIISectionItemDto?> Handle(GetLineItemByIdQuery request, CancellationToken cancellationToken)
         {
             var result = await _queryRepository.GetLineItemByIdAsync(request.Id);
 
@@ -30,7 +30,7 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.GetLineItemById
                 actionCode: "GetLineItemByIdQuery",
                 actionName: result.Id.ToString(),
                 details: $"Schedule III line item {result.Id} was fetched.",
-                module: "ScheduleIIILineItem"
+                module: "ScheduleIIISectionItem"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 

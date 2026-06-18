@@ -16,7 +16,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
             new()
             {
                 Id = 2,
-                SubTotalName = "EBITDA",
+                SubTotalTypeId = 29,
                 IncludeOtherIncome = true,
                 Formulas = new List<SubTotalFormulaInput>
                 {
@@ -28,7 +28,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         {
             _mockCommandRepo
                 .Setup(r => r.UpdateSubTotalAsync(
-                    It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<bool>(),
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(),
                     It.IsAny<List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>()))
                 .ReturnsAsync(result);
         }
@@ -48,9 +48,9 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
             bool? capturedInclude = null;
             _mockCommandRepo
                 .Setup(r => r.UpdateSubTotalAsync(
-                    It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<bool>(),
+                    It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(),
                     It.IsAny<List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>()))
-                .Callback<int, string?, bool, List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>(
+                .Callback<int, int, bool, List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>(
                     (_, _, inc, _) => capturedInclude = inc)
                 .ReturnsAsync(2);
 

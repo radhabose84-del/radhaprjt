@@ -25,9 +25,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
-            builder.Property(t => t.StructureId)
-                .HasColumnName("StructureId").HasColumnType("int").IsRequired();
-
             builder.Property(t => t.SectionName)
                 .HasColumnName("SectionName").HasColumnType("varchar(150)").IsRequired();
 
@@ -38,10 +35,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             // Same-module FK -> Finance.MiscMaster (S3_NATURE)
             builder.Property(t => t.NatureId)
                 .HasColumnName("NatureId").HasColumnType("int").IsRequired();
-
-            builder.Property(t => t.DisplayOrder)
-                .HasColumnName("DisplayOrder").HasColumnType("int")
-                .HasDefaultValue(0).IsRequired();
 
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive").HasColumnType("bit")
@@ -60,11 +53,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            builder.HasOne(t => t.Structure)
-                .WithMany(s => s.Sections)
-                .HasForeignKey(t => t.StructureId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             builder.HasOne(t => t.StatementType)
                 .WithMany()
                 .HasForeignKey(t => t.StatementTypeId)
@@ -75,7 +63,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasForeignKey(t => t.NatureId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(t => t.StructureId);
             builder.HasIndex(t => t.StatementTypeId);
             builder.HasIndex(t => t.NatureId);
         }

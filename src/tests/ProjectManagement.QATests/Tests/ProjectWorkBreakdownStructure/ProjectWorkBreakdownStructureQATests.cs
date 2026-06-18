@@ -9,7 +9,7 @@ namespace ProjectManagement.QATests.Tests.ProjectWorkBreakdownStructure;
 //   GET    /api/ProjectWorkBreakdownStructure/by-project?projectId=
 //   GET    /api/ProjectWorkBreakdownStructure/by-name?projectId=&name=
 //   GET    /api/ProjectWorkBreakdownStructure/ProjectWbsParentLookup?projectId=
-//   POST   /api/ProjectWorkBreakdownStructure   { projectId, parentWorkBreakdownStructureId?,
+//   POST   /api/ProjectWorkBreakdownStructure   { projectId, parentWorkBreakdownScheduleIIIMasterId?,
 //                                                 workBreakdownStructureName, workBreakdownStructureDescription?,
 //                                                 startDate?, endDate?, responsibleDepartmentId, responsiblePerson,
 //                                                 costCenterId?, plannedBudgetAmount?, currencyId, isMilestone,

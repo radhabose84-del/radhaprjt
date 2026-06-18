@@ -25,11 +25,14 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
-            builder.Property(t => t.StructureId)
-                .HasColumnName("StructureId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.CompanyId)
+                .HasColumnName("CompanyId").HasColumnType("int").IsRequired();
 
-            builder.Property(t => t.SubTotalName)
-                .HasColumnName("SubTotalName").HasColumnType("varchar(120)").IsRequired();
+            builder.Property(t => t.DivisionId)
+                .HasColumnName("DivisionId").HasColumnType("int").IsRequired();
+
+            builder.Property(t => t.SubTotalTypeId)
+                .HasColumnName("SubTotalTypeId").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.FormulaExpression)
                 .HasColumnName("FormulaExpression").HasColumnType("varchar(500)").IsRequired();
@@ -63,12 +66,8 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            builder.HasOne(t => t.Structure)
-                .WithMany(s => s.SubTotals)
-                .HasForeignKey(t => t.StructureId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasIndex(t => t.StructureId);
+            builder.HasIndex(t => new { t.CompanyId, t.DivisionId });
+            builder.HasIndex(t => t.SubTotalTypeId);
         }
     }
 }

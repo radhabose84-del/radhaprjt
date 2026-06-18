@@ -34,7 +34,7 @@ namespace ProjectManagement.UnitTests.Domain
             {
                 Id = 1,
                 ProjectId = 10,
-                ParentWorkBreakdownStructureId = null,
+                ParentWorkBreakdownScheduleIIIMasterId = null,
                 WorkBreakdownStructureName = "Phase 1",
                 WorkBreakdownStructureDescription = "First phase",
                 StartDate = now,
@@ -66,7 +66,7 @@ namespace ProjectManagement.UnitTests.Domain
         {
             var entity = new ProjectWorkBreakdownStructure
             {
-                ParentWorkBreakdownStructureId = null,
+                ParentWorkBreakdownScheduleIIIMasterId = null,
                 WorkBreakdownStructureDescription = null,
                 StartDate = null,
                 EndDate = null,
@@ -77,7 +77,7 @@ namespace ProjectManagement.UnitTests.Domain
                 Remarks = null
             };
 
-            entity.ParentWorkBreakdownStructureId.Should().BeNull();
+            entity.ParentWorkBreakdownScheduleIIIMasterId.Should().BeNull();
             entity.DurationInDays.Should().BeNull();
             entity.PlannedBudgetAmount.Should().BeNull();
         }

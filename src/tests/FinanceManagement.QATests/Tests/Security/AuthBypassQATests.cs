@@ -18,8 +18,9 @@ public sealed class AuthBypassQATests
 
     public AuthBypassQATests(QAServerFixture fixture) => _f = fixture;
 
-    private const string ProtectedGet = "/api/finance/ScheduleIII/structure?companyId=1&divisionId=7";
-    private const string ProtectedPost = "/api/finance/ScheduleIII/line-item";
+    // Section is a global catalog read (no token-company dependency) → 200 with a valid token, 401 without.
+    private const string ProtectedGet = "/api/finance/ScheduleIIISection?PageNumber=1&PageSize=5";
+    private const string ProtectedPost = "/api/finance/ScheduleIIISectionItem";
 
     private HttpClient ClientWithToken(string token)
     {
