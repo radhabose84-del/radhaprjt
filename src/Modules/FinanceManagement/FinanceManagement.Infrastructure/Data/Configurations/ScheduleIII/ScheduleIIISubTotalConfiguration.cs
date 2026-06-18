@@ -25,14 +25,8 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
 
-            builder.Property(t => t.CompanyId)
-                .HasColumnName("CompanyId").HasColumnType("int").IsRequired();
-
-            builder.Property(t => t.DivisionId)
-                .HasColumnName("DivisionId").HasColumnType("int").IsRequired();
-
-            builder.Property(t => t.SubTotalTypeId)
-                .HasColumnName("SubTotalTypeId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.FormulaName)
+                .HasColumnName("FormulaName").HasColumnType("varchar(120)").IsRequired();
 
             builder.Property(t => t.FormulaExpression)
                 .HasColumnName("FormulaExpression").HasColumnType("varchar(500)").IsRequired();
@@ -40,10 +34,6 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.IncludeOtherIncome)
                 .HasColumnName("IncludeOtherIncome").HasColumnType("bit")
                 .HasDefaultValue(false).IsRequired();
-
-            builder.Property(t => t.IsSystemDefined)
-                .HasColumnName("IsSystemDefined").HasColumnType("bit")
-                .HasDefaultValue(true).IsRequired();
 
             builder.Property(t => t.DisplayOrder)
                 .HasColumnName("DisplayOrder").HasColumnType("int")
@@ -66,8 +56,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            builder.HasIndex(t => new { t.CompanyId, t.DivisionId });
-            builder.HasIndex(t => t.SubTotalTypeId);
+            builder.HasIndex(t => t.FormulaName);
         }
     }
 }

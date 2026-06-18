@@ -22,10 +22,11 @@ namespace FinanceManagement.Presentation.Controllers
         }
 
         // Operand picker for the "Edit formula" dialog: active P&L line items + S3_SUBTOTAL_TYPE nodes.
+        // Pass ?subTotalId= when editing an existing sub-total to get each operand's current +/− selection.
         [HttpGet("formula-operands")]
-        public async Task<IActionResult> GetFormulaOperands()
+        public async Task<IActionResult> GetFormulaOperands([FromQuery] int? subTotalId = null)
         {
-            var result = await Mediator.Send(new GetSubTotalFormulaOperandsQuery());
+            var result = await Mediator.Send(new GetSubTotalFormulaOperandsQuery { SubTotalId = subTotalId });
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data });
         }
 

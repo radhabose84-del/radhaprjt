@@ -1,6 +1,5 @@
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal;
-using FinanceManagement.Presentation.Validation.Common;
 using FluentValidation;
 using Shared.Validation.Common;
 
@@ -11,9 +10,7 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
         private readonly List<ValidationRule> _validationRules;
         private readonly IScheduleIIIQueryRepository _queryRepository;
 
-        public UpdateSubTotalCommandValidator(
-            MaxLengthProvider maxLengthProvider,
-            IScheduleIIIQueryRepository queryRepository)
+        public UpdateSubTotalCommandValidator(IScheduleIIIQueryRepository queryRepository)
         {
             _queryRepository = queryRepository;
 
@@ -28,15 +25,9 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.SubTotalTypeId)
-                            .NotEmpty().WithMessage($"{nameof(UpdateSubTotalCommand.SubTotalTypeId)} {rule.Error}");
-                        break;
-
-                    case "FKColumnDelete":
-                        RuleFor(x => x.SubTotalTypeId)
-                            .MustAsync(async (id, ct) => await _queryRepository.SubTotalTypeExistsAsync(id))
-                            .WithMessage($"{nameof(UpdateSubTotalCommand.SubTotalTypeId)} {rule.Error}")
-                            .When(x => x.SubTotalTypeId > 0);
+                        RuleFor(x => x.FormulaName)
+                            .NotNull().WithMessage($"{nameof(UpdateSubTotalCommand.FormulaName)} {rule.Error}")
+                            .NotEmpty().WithMessage($"{nameof(UpdateSubTotalCommand.FormulaName)} {rule.Error}");
                         break;
 
                     case "NotFound":
@@ -50,16 +41,6 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                         break;
                 }
             }
-
-            // A sub-total cannot reference itself in its formula (basic cycle guard).
-            // NOTE: transitive cycle detection across the whole sub-total graph is deferred.
-            RuleFor(x => x)
-                .MustAsync(async (cmd, ct) =>
-                {
-                    var subTotalOperandTypeId = await _queryRepository.GetSubTotalOperandTypeIdAsync();
-                    return !cmd.Formulas.Any(f => f.OperandTypeId == subTotalOperandTypeId && f.OperandRefId == cmd.Id);
-                })
-                .WithMessage("A sub-total cannot reference itself in its formula.");
         }
     }
 }

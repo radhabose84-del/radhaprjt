@@ -5,7 +5,7 @@ namespace FinanceManagement.Application.AccountGroup.Commands.CreateAccountGroup
 {
     public class CreateAccountGroupCommand : IRequest<ApiResponseDTO<int>>
     {
-        public int CompanyId { get; set; }
+        // CompanyId is taken from the session token (IIPAddressService.GetCompanyId()) in the handler — never sent by the client.
         public string GroupCode { get; set; } = null!;
         public string GroupName { get; set; } = null!;
 

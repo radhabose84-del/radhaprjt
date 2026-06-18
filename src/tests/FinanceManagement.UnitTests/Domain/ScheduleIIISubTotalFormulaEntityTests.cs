@@ -25,14 +25,14 @@ namespace FinanceManagement.UnitTests.Domain
                 Id = 1,
                 SubTotalId = 1,
                 OperandTypeId = 140,
-                OperandRefId = 19,
+                SectionItemId = 19,
                 OperatorId = 130,
                 DisplayOrder = 1
             };
 
             entity.SubTotalId.Should().Be(1);
             entity.OperandTypeId.Should().Be(140);
-            entity.OperandRefId.Should().Be(19);
+            entity.SectionItemId.Should().Be(19);
             entity.OperatorId.Should().Be(130);
             entity.DisplayOrder.Should().Be(1);
         }

@@ -22,6 +22,6 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
 
         // Sub-totals (+ formula operands)
         Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal, List<ScheduleIIISubTotalFormula> formulas);
-        Task<int> UpdateSubTotalAsync(int subTotalId, int subTotalTypeId, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas);
+        Task<int> UpdateSubTotalAsync(int subTotalId, string? formulaName, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas);
     }
 }

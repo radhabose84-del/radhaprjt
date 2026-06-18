@@ -38,7 +38,6 @@ namespace FinanceManagement.Application.Common.Mappings
             CreateMap<CreateSubTotalCommand, Domain.Entities.ScheduleIIISubTotal>()
                 .ForMember(d => d.IsActive,          o => o.MapFrom(s => Status.Active))
                 .ForMember(d => d.IsDeleted,         o => o.MapFrom(s => IsDelete.NotDeleted))
-                .ForMember(d => d.IsSystemDefined,   o => o.MapFrom(s => false))
                 .ForMember(d => d.FormulaExpression, o => o.MapFrom(s => string.Empty))
                 .ForMember(d => d.Formulas,          o => o.Ignore());
         }

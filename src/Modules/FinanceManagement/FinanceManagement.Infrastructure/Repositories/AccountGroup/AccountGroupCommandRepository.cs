@@ -101,7 +101,7 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
             if (existing == null)
                 return 0;
 
-            existing.ScheduleIIILineItemId = scheduleIIILineItemId;
+            existing.ScheduleIIISectionItemId = scheduleIIILineItemId;
             _dbContext.AccountGroup.Update(existing);
             await _dbContext.SaveChangesAsync();
             return existing.Id;
