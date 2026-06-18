@@ -35,7 +35,9 @@ namespace BudgetManagement.UnitTests.Validators.MiscTypeMaster
         private UpdateMiscTypeMasterCommandValidator CreateValidator() =>
             new(_mockQueryRepo.Object, _maxLengthProvider);
 
-        private void SetupAllAsyncMocks(UpdateMiscTypeMasterCommand command, bool alreadyExists = false, bool notFound = true)
+        // notFound default = false → entity EXISTS (NotFoundAsync returns count==0 = false); the
+        // validator uses !NotFoundAsync, so an existing row passes the NotFound rule.
+        private void SetupAllAsyncMocks(UpdateMiscTypeMasterCommand command, bool alreadyExists = false, bool notFound = false)
         {
             _mockQueryRepo
                 .Setup(r => r.AlreadyExistsAsync(command.MiscTypeCode!, command.Id))
@@ -73,7 +75,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscTypeMaster
 
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(command.Id))
-                .ReturnsAsync(true);
+                .ReturnsAsync(false); // entity EXISTS → NotFoundAsync is false; validator uses !NotFoundAsync
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -109,7 +111,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscTypeMaster
         public async Task Validate_EntityNotFound_FailsNotFoundRule()
         {
             var command = MiscTypeMasterBuilders.ValidUpdateCommand(id: 999);
-            SetupAllAsyncMocks(command, alreadyExists: false, notFound: false);
+            SetupAllAsyncMocks(command, alreadyExists: false, notFound: true); // entity MISSING → !NotFoundAsync fails the rule
 
             var result = await CreateValidator().TestValidateAsync(command);
 

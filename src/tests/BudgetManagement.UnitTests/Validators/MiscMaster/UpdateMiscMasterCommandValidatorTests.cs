@@ -43,7 +43,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
 
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(command.Id))
-                .ReturnsAsync(true);
+                .ReturnsAsync(false); // entity EXISTS → NotFoundAsync (count==0) is false; validator uses !NotFoundAsync
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
 
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(command.Id))
-                .ReturnsAsync(true);
+                .ReturnsAsync(false); // entity EXISTS → NotFoundAsync (count==0) is false; validator uses !NotFoundAsync
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -104,7 +104,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
 
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(command.Id))
-                .ReturnsAsync(true);
+                .ReturnsAsync(false); // entity EXISTS → NotFoundAsync (count==0) is false; validator uses !NotFoundAsync
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -122,7 +122,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
 
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(999))
-                .ReturnsAsync(false);
+                .ReturnsAsync(true); // entity MISSING → NotFoundAsync (count==0) is true → !NotFoundAsync fails the rule
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -141,7 +141,7 @@ namespace BudgetManagement.UnitTests.Validators.MiscMaster
 
             _mockQueryRepo
                 .Setup(r => r.NotFoundAsync(command.Id))
-                .ReturnsAsync(true);
+                .ReturnsAsync(false); // entity EXISTS → NotFoundAsync (count==0) is false; validator uses !NotFoundAsync
 
             var result = await CreateValidator().TestValidateAsync(command);
 

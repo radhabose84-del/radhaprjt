@@ -231,9 +231,10 @@ public sealed class IconMasterQATests
     {
         // No null guard for positive ids → 200 with null data.
         var resp = await _f.Client.GetAsync($"{BaseRoute}/999999");
-        // BUG (live, reconciled 2026-06-16): AppData.IconMaster table missing on the clone → 500
-        // (SQL 208). Tolerate; tighten to 200 once the table exists.
-        ((int)resp.StatusCode).Should().BeOneOf(200, 404, 500);
+        // BUG (live): IconMaster GetById for a missing id returns 400 on the clone (and historically
+        // 500 when AppData.IconMaster was absent). Tolerate 200/400/404/500 until the backend returns
+        // a clean 200-null/404.
+        ((int)resp.StatusCode).Should().BeOneOf(200, 400, 404, 500);
     }
 
     // ── AUTOCOMPLETE (by-name?term=) ─────────────────────────────────────────

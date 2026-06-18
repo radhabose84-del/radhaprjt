@@ -66,28 +66,32 @@ namespace QCManagement.UnitTests.Validators.MiscMaster
         }
 
         [Theory]
-        [InlineData("PHY01")]
         [InlineData("PHY@01")]
         [InlineData("PHY.01")]
-        [InlineData("123")]
-        public async Task Code_ContainsDigitsOrSpecials_FailsValidation(string code)
+        [InlineData("PHY GROUP")]
+        [InlineData("PHY-GROUP")]
+        [InlineData("PHY_GROUP")]
+        public async Task Code_NonAlphanumeric_FailsValidation(string code)
         {
+            // Code uses the Alphanumeric rule (^[A-Za-z0-9]+$) — spaces, separators and
+            // special characters are rejected (consistent with every other module's code field).
             var command = MiscMasterBuilders.ValidCreateCommand(code: code);
             SetupAnyCodeOkAndTypeExists();
 
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.Code)
-                  .WithErrorMessage("Code  must not contain digits or special characters.");
+                  .WithErrorMessage("Code  must be alphanumeric only.");
         }
 
         [Theory]
         [InlineData("PHY")]
-        [InlineData("PHY GROUP")]
-        [InlineData("PHY-GROUP")]
-        [InlineData("PHY_GROUP")]
-        public async Task Code_AllowedSeparators_PassesPatternCheck(string code)
+        [InlineData("PHY01")]
+        [InlineData("PHY123")]
+        [InlineData("123")]
+        public async Task Code_Alphanumeric_PassesPatternCheck(string code)
         {
+            // Letters and digits are valid; no spaces/separators needed.
             var command = MiscMasterBuilders.ValidCreateCommand(code: code);
             SetupHappyPath(code, 1);
 
