@@ -21,6 +21,10 @@ namespace FinanceManagement.Domain.Entities
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }
 
+        // Traceability: the bulk-import run (GL02-FR-006) that created this account, if any.
+        // Lets the import batch be activated in one call (AC3). NULL for manually-created accounts.
+        public int? ImportLogId { get; set; }
+
         // Same-module FK navigation
         public AccountTypeMaster? AccountTypeMaster { get; set; }
         public AccountGroup? AccountGroup { get; set; }

@@ -35,6 +35,10 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
+        // COA bulk import/export (GL02-FR-006)
+        public DbSet<GlAccountImportLog> GlAccountImportLog => Set<GlAccountImportLog>();
+        public DbSet<GlAccountImportError> GlAccountImportError => Set<GlAccountImportError>();
+
         // Transactional outbox (SQL) — drained to the bus by the shared SqlOutboxProcessorJob.
         public DbSet<FinanceManagement.Domain.Entities.Outbox.OutboxMessage> OutboxMessages => Set<FinanceManagement.Domain.Entities.Outbox.OutboxMessage>();
 

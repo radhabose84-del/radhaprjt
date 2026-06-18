@@ -17,7 +17,7 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
 
         // Valid non-root command (created under an existing non-leaf parent).
         private static CreateAccountGroupCommand ValidChildCommand() =>
-            new() { CompanyId = 1, GroupCode = "A-CA-INV-FF", GroupName = "Finished Goods — Fabric", ParentAccountGroupId = 5, SortOrder = 1 };
+            new() { GroupCode = "A-CA-INV-FF", GroupName = "Finished Goods — Fabric", ParentAccountGroupId = 5, SortOrder = 1 };
 
         private void SetupHappyChild(int parentId = 5, int parentLevel = 3)
         {
@@ -64,16 +64,6 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
         }
 
         [Fact]
-        public async Task Validate_ZeroCompanyId_Fails()
-        {
-            SetupHappyChild();
-            var command = ValidChildCommand();
-            command.CompanyId = 0;
-            var result = await CreateValidator().TestValidateAsync(command);
-            result.ShouldHaveValidationErrorFor(x => x.CompanyId);
-        }
-
-        [Fact]
         public async Task Validate_ParentDoesNotExist_Fails()
         {
             SetupHappyChild();
@@ -106,7 +96,7 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
         {
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), null)).ReturnsAsync(false);
             _mockAccountTypeRepo.Setup(r => r.NotFoundAsync(3)).ReturnsAsync(false);
-            var command = new CreateAccountGroupCommand { CompanyId = 1, GroupCode = "A", GroupName = "Assets", AccountTypeId = 3, ParentAccountGroupId = null, SortOrder = 1 };
+            var command = new CreateAccountGroupCommand { GroupCode = "A", GroupName = "Assets", AccountTypeId = 3, ParentAccountGroupId = null, SortOrder = 1 };
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -117,7 +107,7 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
         public async Task Validate_Level1MissingAccountType_Fails()
         {
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), null)).ReturnsAsync(false);
-            var command = new CreateAccountGroupCommand { CompanyId = 1, GroupCode = "A", GroupName = "Assets", AccountTypeId = null, ParentAccountGroupId = null, SortOrder = 1 };
+            var command = new CreateAccountGroupCommand { GroupCode = "A", GroupName = "Assets", AccountTypeId = null, ParentAccountGroupId = null, SortOrder = 1 };
 
             var result = await CreateValidator().TestValidateAsync(command);
 
@@ -129,7 +119,7 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
         {
             _mockQueryRepo.Setup(r => r.AlreadyExistsAsync(It.IsAny<string>(), null)).ReturnsAsync(false);
             _mockAccountTypeRepo.Setup(r => r.NotFoundAsync(99)).ReturnsAsync(true);
-            var command = new CreateAccountGroupCommand { CompanyId = 1, GroupCode = "A", GroupName = "Assets", AccountTypeId = 99, ParentAccountGroupId = null, SortOrder = 1 };
+            var command = new CreateAccountGroupCommand { GroupCode = "A", GroupName = "Assets", AccountTypeId = 99, ParentAccountGroupId = null, SortOrder = 1 };
 
             var result = await CreateValidator().TestValidateAsync(command);
 

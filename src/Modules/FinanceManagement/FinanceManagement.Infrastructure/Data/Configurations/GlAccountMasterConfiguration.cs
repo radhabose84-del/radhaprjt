@@ -96,6 +96,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasDefaultValue(false)
                 .IsRequired();
 
+            // Bulk-import traceability (GL02-FR-006). Nullable column + index only — no DB FK
+            // constraint, keeping the link lightweight (queried for activate-by-batch).
+            builder.Property(t => t.ImportLogId)
+                .HasColumnName("ImportLogId")
+                .HasColumnType("int");
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
@@ -122,6 +128,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.CompanyId);
             builder.HasIndex(t => t.AccountTypeId);
             builder.HasIndex(t => t.AccountGroupId);
+            builder.HasIndex(t => t.ImportLogId);
 
             // Same-module FK relationships (with reverse navigation collections)
             builder.HasOne(t => t.AccountTypeMaster)
