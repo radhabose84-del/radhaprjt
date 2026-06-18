@@ -33,10 +33,12 @@ namespace FinanceManagement.Presentation.Controllers
         }
 
         // Validate + import. Mode = "AllOrNothing" (default) or "ValidRowsOnly".
+        // Bound as a [FromForm] command (matches the codebase's upload pattern; the standalone
+        // [FromForm] IFormFile form is unsupported by Swashbuckle).
         [HttpPost]
-        public async Task<IActionResult> ImportAsync([FromForm] IFormFile? file, [FromForm] string? mode = null)
+        public async Task<IActionResult> ImportAsync([FromForm] ImportGlAccountsCommand command)
         {
-            var result = await Mediator.Send(new ImportGlAccountsCommand { File = file, Mode = mode });
+            var result = await Mediator.Send(command);
 
             return Ok(new
             {
