@@ -23,18 +23,14 @@ namespace FinanceManagement.UnitTests.Domain
             var entity = new ScheduleIIISection
             {
                 Id = 1,
-                StructureId = 1,
                 SectionName = "Current Assets",
                 StatementTypeId = 100,
-                NatureId = 111,
-                DisplayOrder = 5
+                NatureId = 111
             };
 
-            entity.StructureId.Should().Be(1);
             entity.SectionName.Should().Be("Current Assets");
             entity.StatementTypeId.Should().Be(100);
             entity.NatureId.Should().Be(111);
-            entity.DisplayOrder.Should().Be(5);
         }
     }
 }

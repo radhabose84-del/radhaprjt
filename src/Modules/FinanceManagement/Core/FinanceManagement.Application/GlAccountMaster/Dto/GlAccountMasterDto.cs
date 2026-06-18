@@ -36,6 +36,12 @@ namespace FinanceManagement.Application.GlAccountMaster.Dto
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }
 
+        // Active tax-account linkage (LEFT JOIN Finance.TaxAccountLinkage; null when unlinked)
+        public int? TaxAccountLinkageId { get; set; }
+        public string? TaxCode { get; set; }
+        public string? TaxName { get; set; }
+        public string? ControlAccountType { get; set; }
+
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 

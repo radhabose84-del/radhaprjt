@@ -4,25 +4,33 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
 {
     public interface IScheduleIIIQueryRepository
     {
-        // Composite reads
-        Task<ScheduleIIIStructureDto?> GetByIdAsync(int structureId);                  // full tree (all 5 tables)
-        Task<ScheduleIIIStructureDto?> GetStructureAsync(int companyId, int divisionId);
-        Task<Preview03BDto> Get03BPreviewAsync(int structureId);
-        Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync(int structureId);
-        Task<ScheduleIIILineItemDto?> GetLineItemByIdAsync(int id);
+        // Composite reads — a structure is identified by (CompanyId, DivisionId).
+        Task<ScheduleIIIMasterDto?> GetStructureAsync(int companyId, int divisionId);
+        Task<Preview03BDto> Get03BPreviewAsync(int companyId, int divisionId);
+        Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync(int companyId, int divisionId);
+        Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync();   // Edit-formula picker: P&L lines + sub-total nodes
+        Task<ScheduleIIISectionItemDto?> GetLineItemByIdAsync(int id);
 
         // Activity log (Finance.ActivityLog) — Update/Delete change trail
         Task<(List<ActivityLogDto>, int)> GetActivityLogAsync(string? entityName, int? entityId, int pageNumber, int pageSize);
 
+        // Section (standalone master)
+        Task<(List<ScheduleIIISectionDto>, int)> GetAllSectionAsync(int pageNumber, int pageSize, string? searchTerm, int? scheduleIIIMasterId);
+        Task<ScheduleIIISectionDto?> GetSectionByIdAsync(int id);
+        Task<bool> SectionNotFoundAsync(int id);
+
+        // LineItem (standalone master)
+        Task<(List<ScheduleIIISectionItemDto>, int)> GetAllLineItemAsync(int pageNumber, int pageSize, string? searchTerm, int? scheduleIIIMasterId, int? sectionId);
+
         // Existence / validation
         Task<bool> LineItemNotFoundAsync(int id);
         Task<bool> SubTotalNotFoundAsync(int id);
-        Task<bool> StructureNotFoundAsync(int id);
-        Task<bool> StructureExistsAsync(int structureId);
+        Task<bool> MasterNotFoundAsync(int id);
         Task<bool> StructureExistsByCompanyDivisionAsync(int companyId, int divisionId);
-        Task<bool> SectionExistsAsync(int sectionId, int structureId);
-        Task<bool> ParentLineExistsAsync(int parentLineId, int structureId);
-        Task<bool> IsStructureLockedAsync(int structureId);
+        Task<bool> SectionExistsAsync(int sectionId);
+        Task<bool> MasterContainsLineAsync(int companyId, int divisionId, int scheduleIIILineItemId);
+        Task<bool> IsStructureLockedAsync(int companyId, int divisionId);
+        Task<bool> SubTotalTypeExistsAsync(int miscId);   // MiscMaster row under S3_SUBTOTAL_TYPE
 
         // Resolves the MiscMaster Id for S3_OPERAND_TYPE = SUBTOTAL (for self-reference checks)
         Task<int> GetSubTotalOperandTypeIdAsync();

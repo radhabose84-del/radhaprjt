@@ -30,7 +30,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.DeleteLineItem
                 actionCode: "S3_LINEITEM_DELETE",
                 actionName: request.Id.ToString(),
                 details: $"Schedule III line item with Id {request.Id} deleted successfully.",
-                module: "ScheduleIIILineItem"
+                module: "ScheduleIIISectionItem"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 

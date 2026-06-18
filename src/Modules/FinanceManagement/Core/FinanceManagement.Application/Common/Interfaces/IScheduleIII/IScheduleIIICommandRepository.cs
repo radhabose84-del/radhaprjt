@@ -1,25 +1,27 @@
-using FinanceManagement.Application.ScheduleIII.Dto;
 using FinanceManagement.Domain.Entities;
 
 namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
 {
     public interface IScheduleIIICommandRepository
     {
-        // Composite aggregate — one call persists Structure + Sections + LineItems + SubTotals + Formulas.
-        Task<int> CreateAggregateAsync(ScheduleIIIInput input);
-        Task<int> UpdateAggregateAsync(ScheduleIIIInput input);
+        // Master = one row per included line (header + line link). Structure = rows sharing (Company, Division).
+        Task<int> CreateMasterAsync(ScheduleIIIMaster entity);
+        Task<int> UpdateMasterAsync(ScheduleIIIMaster entity);
+        Task<bool> SoftDeleteMasterAsync(int id, CancellationToken ct);
+        Task<bool> ReorderMasterAsync(int masterId, int direction, CancellationToken ct);
+        Task<bool> LockStructureAsync(int scheduleIIIMasterId);
 
-        // Structure
-        Task<bool> LockStructureAsync(int structureId);
+        // Section (global catalog)
+        Task<int> CreateSectionAsync(ScheduleIIISection entity);
+        Task<int> UpdateSectionAsync(ScheduleIIISection entity);
 
-        // Line items (granular)
-        Task<int> CreateLineItemAsync(ScheduleIIILineItem entity);
-        Task<int> UpdateLineItemAsync(ScheduleIIILineItem entity);
+        // Line items (global catalog)
+        Task<int> CreateLineItemAsync(ScheduleIIISectionItem entity);
+        Task<int> UpdateLineItemAsync(ScheduleIIISectionItem entity);
         Task<bool> SoftDeleteLineItemAsync(int id, CancellationToken ct);
-        Task<bool> ReorderLineItemAsync(int lineItemId, int direction, CancellationToken ct);
 
-        // Sub-totals (granular, + formula operands)
+        // Sub-totals (+ formula operands)
         Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal, List<ScheduleIIISubTotalFormula> formulas);
-        Task<int> UpdateSubTotalAsync(int subTotalId, string? subTotalName, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas);
+        Task<int> UpdateSubTotalAsync(int subTotalId, int subTotalTypeId, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas);
     }
 }

@@ -7,7 +7,7 @@ namespace FinanceManagement.Application.AccountGroup.Dto
         public string? CompanyName { get; set; }
         public int? AccountTypeId { get; set; }
         public string? AccountTypeName { get; set; }
-        public int? ScheduleIIILineItemId { get; set; }
+        public int? ScheduleIIISectionItemId { get; set; }
         public string? ScheduleIIILineName { get; set; }
         public string? GroupCode { get; set; }
         public string? GroupName { get; set; }

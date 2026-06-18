@@ -3,9 +3,8 @@ using MediatR;
 
 namespace FinanceManagement.Application.ScheduleIII.Queries.GetStructure
 {
-    public class GetStructureQuery : IRequest<ScheduleIIIStructureDto?>
+    // CompanyId + DivisionId are resolved server-side from the token (IIPAddressService), not the client.
+    public class GetStructureQuery : IRequest<ScheduleIIIMasterDto?>
     {
-        public int CompanyId { get; set; }
-        public int DivisionId { get; set; }
     }
 }

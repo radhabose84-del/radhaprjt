@@ -101,9 +101,9 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ParentAccountGroupId");
 
-                    b.Property<int?>("ScheduleIIILineItemId")
+                    b.Property<int?>("ScheduleIIISectionItemId")
                         .HasColumnType("int")
-                        .HasColumnName("ScheduleIIILineItemId");
+                        .HasColumnName("ScheduleIIISectionItemId");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("int")
@@ -122,7 +122,7 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.HasIndex("ParentAccountGroupId");
 
-                    b.HasIndex("ScheduleIIILineItemId");
+                    b.HasIndex("ScheduleIIISectionItemId");
 
                     b.ToTable("AccountGroup", "Finance");
                 });
@@ -1434,7 +1434,101 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("OutboxMessages", "Finance");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIILineItem", b =>
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIIMaster", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("DisplayOrder");
+
+                    b.Property<int>("DivisionId")
+                        .HasColumnType("int")
+                        .HasColumnName("DivisionId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("ScheduleIIISectionItemId")
+                        .HasColumnType("int")
+                        .HasColumnName("ScheduleIIISectionItemId");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatusId");
+
+                    b.Property<bool>("TextileSplitEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("TextileSplitEnabled");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("DivisionId");
+
+                    b.HasIndex("ScheduleIIISectionItemId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("CompanyId", "DivisionId", "ScheduleIIISectionItemId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("ScheduleIIIMaster", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISection", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1459,11 +1553,76 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
-                    b.Property<int>("DisplayOrder")
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("NatureId")
+                        .HasColumnType("int")
+                        .HasColumnName("NatureId");
+
+                    b.Property<string>("SectionName")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("SectionName");
+
+                    b.Property<int>("StatementTypeId")
+                        .HasColumnType("int")
+                        .HasColumnName("StatementTypeId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NatureId");
+
+                    b.HasIndex("StatementTypeId");
+
+                    b.ToTable("ScheduleIIISection", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISectionItem", b =>
+                {
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("DisplayOrder");
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -1508,117 +1667,20 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(30)")
                         .HasColumnName("NoteReference");
 
-                    b.Property<int?>("ParentLineId")
-                        .HasColumnType("int")
-                        .HasColumnName("ParentLineId");
-
                     b.Property<int>("SectionId")
                         .HasColumnType("int")
                         .HasColumnName("SectionId");
 
-                    b.Property<int>("StructureId")
-                        .HasColumnType("int")
-                        .HasColumnName("StructureId");
-
-                    b.Property<string>("SubClassification")
-                        .HasColumnType("varchar(120)")
-                        .HasColumnName("SubClassification");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentLineId");
+                    b.HasIndex("LineCode");
 
                     b.HasIndex("SectionId");
 
-                    b.HasIndex("StructureId");
-
-                    b.ToTable("ScheduleIIILineItem", "Finance");
+                    b.ToTable("ScheduleIIISectionItem", "Finance");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISection", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<int>("DisplayOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("DisplayOrder");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("NatureId")
-                        .HasColumnType("int")
-                        .HasColumnName("NatureId");
-
-                    b.Property<string>("SectionName")
-                        .IsRequired()
-                        .HasColumnType("varchar(150)")
-                        .HasColumnName("SectionName");
-
-                    b.Property<int>("StatementTypeId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatementTypeId");
-
-                    b.Property<int>("StructureId")
-                        .HasColumnType("int")
-                        .HasColumnName("StructureId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NatureId");
-
-                    b.HasIndex("StatementTypeId");
-
-                    b.HasIndex("StructureId");
-
-                    b.ToTable("ScheduleIIISection", "Finance");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIIStructure", b =>
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISubTotal", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1647,95 +1709,15 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
-                    b.Property<int>("DivisionId")
-                        .HasColumnType("int")
-                        .HasColumnName("DivisionId");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<int>("StructureStatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StructureStatusId");
-
-                    b.Property<bool>("TextileSplitEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("TextileSplitEnabled");
-
-                    b.Property<int>("VersionNo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1)
-                        .HasColumnName("VersionNo");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("DivisionId");
-
-                    b.HasIndex("StructureStatusId");
-
-                    b.HasIndex("CompanyId", "DivisionId")
-                        .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
-
-                    b.ToTable("ScheduleIIIStructure", "Finance");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISubTotal", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
                     b.Property<int>("DisplayOrder")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0)
                         .HasColumnName("DisplayOrder");
+
+                    b.Property<int>("DivisionId")
+                        .HasColumnType("int")
+                        .HasColumnName("DivisionId");
 
                     b.Property<string>("FormulaExpression")
                         .IsRequired()
@@ -1778,18 +1760,15 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("ModifiedIP");
 
-                    b.Property<int>("StructureId")
+                    b.Property<int>("SubTotalTypeId")
                         .HasColumnType("int")
-                        .HasColumnName("StructureId");
-
-                    b.Property<string>("SubTotalName")
-                        .IsRequired()
-                        .HasColumnType("varchar(120)")
-                        .HasColumnName("SubTotalName");
+                        .HasColumnName("SubTotalTypeId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StructureId");
+                    b.HasIndex("SubTotalTypeId");
+
+                    b.HasIndex("CompanyId", "DivisionId");
 
                     b.ToTable("ScheduleIIISubTotal", "Finance");
                 });
@@ -2325,16 +2304,16 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasForeignKey("ParentAccountGroupId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIILineItem", "ScheduleIIILineItem")
+                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIISectionItem", "ScheduleIIISectionItem")
                         .WithMany()
-                        .HasForeignKey("ScheduleIIILineItemId")
+                        .HasForeignKey("ScheduleIIISectionItemId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("AccountType");
 
                     b.Navigation("ParentAccountGroup");
 
-                    b.Navigation("ScheduleIIILineItem");
+                    b.Navigation("ScheduleIIISectionItem");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.DocumentSequence", b =>
@@ -2448,30 +2427,23 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIILineItem", b =>
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIIMaster", b =>
                 {
-                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIILineItem", "ParentLine")
-                        .WithMany("ChildLines")
-                        .HasForeignKey("ParentLineId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIISection", "Section")
-                        .WithMany("LineItems")
-                        .HasForeignKey("SectionId")
+                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIISectionItem", "ScheduleIIISectionItem")
+                        .WithMany("MasterRows")
+                        .HasForeignKey("ScheduleIIISectionItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIIStructure", "Structure")
-                        .WithMany("LineItems")
-                        .HasForeignKey("StructureId")
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "StructureStatus")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("ParentLine");
+                    b.Navigation("ScheduleIIISectionItem");
 
-                    b.Navigation("Section");
-
-                    b.Navigation("Structure");
+                    b.Navigation("StructureStatus");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISection", b =>
@@ -2488,39 +2460,20 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIIStructure", "Structure")
-                        .WithMany("Sections")
-                        .HasForeignKey("StructureId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Nature");
 
                     b.Navigation("StatementType");
-
-                    b.Navigation("Structure");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIIStructure", b =>
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISectionItem", b =>
                 {
-                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "StructureStatus")
-                        .WithMany()
-                        .HasForeignKey("StructureStatusId")
+                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIISection", "Section")
+                        .WithMany("LineItems")
+                        .HasForeignKey("SectionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("StructureStatus");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISubTotal", b =>
-                {
-                    b.HasOne("FinanceManagement.Domain.Entities.ScheduleIIIStructure", "Structure")
-                        .WithMany("SubTotals")
-                        .HasForeignKey("StructureId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Structure");
+                    b.Navigation("Section");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula", b =>
@@ -2675,23 +2628,14 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("MiscMasters");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIILineItem", b =>
-                {
-                    b.Navigation("ChildLines");
-                });
-
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISection", b =>
                 {
                     b.Navigation("LineItems");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIIStructure", b =>
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISectionItem", b =>
                 {
-                    b.Navigation("LineItems");
-
-                    b.Navigation("Sections");
-
-                    b.Navigation("SubTotals");
+                    b.Navigation("MasterRows");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ScheduleIIISubTotal", b =>
