@@ -22,18 +22,20 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             _divisionLookup = divisionLookup;
         }
 
-        public async Task<ScheduleIIIStructureDto?> GetStructureAsync(int companyId, int divisionId)
+        public async Task<ScheduleIIIMasterDto?> GetStructureAsync(int companyId, int divisionId)
         {
-            const string structureSql = @"
-                SELECT s.Id, s.CompanyId, s.DivisionId,
-                       s.StructureStatusId, st.Description AS StructureStatusName,
-                       s.TextileSplitEnabled, s.VersionNo, s.IsActive
-                FROM [Finance].[ScheduleIIIStructure] s
-                LEFT JOIN [Finance].[MiscMaster] st ON s.StructureStatusId = st.Id AND st.IsDeleted = 0
-                WHERE s.CompanyId = @CompanyId AND s.DivisionId = @DivisionId AND s.IsDeleted = 0;";
+            // The structure header is shared across the rows of (Company, Division) — read it from the first row.
+            const string headerSql = @"
+                SELECT TOP 1 s.CompanyId, s.DivisionId,
+                       s.StatusId, st.Description AS StructureStatusName,
+                       s.TextileSplitEnabled, s.IsActive
+                FROM [Finance].[ScheduleIIIMaster] s
+                LEFT JOIN [Finance].[MiscMaster] st ON s.StatusId = st.Id AND st.IsDeleted = 0
+                WHERE s.CompanyId = @CompanyId AND s.DivisionId = @DivisionId AND s.IsDeleted = 0
+                ORDER BY s.DisplayOrder;";
 
-            var structure = await _dbConnection.QueryFirstOrDefaultAsync<ScheduleIIIStructureDto>(
-                structureSql, new { CompanyId = companyId, DivisionId = divisionId });
+            var structure = await _dbConnection.QueryFirstOrDefaultAsync<ScheduleIIIMasterDto>(
+                headerSql, new { CompanyId = companyId, DivisionId = divisionId });
 
             if (structure == null)
                 return null;
@@ -45,67 +47,86 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             var divisions = await _divisionLookup.GetByIdsAsync(new[] { structure.DivisionId });
             structure.DivisionName = divisions.FirstOrDefault(d => d.Id == structure.DivisionId)?.Name;
 
-            const string sectionSql = @"
-                SELECT sec.Id, sec.StructureId, sec.SectionName,
-                       sec.StatementTypeId, stt.Description AS StatementTypeName,
-                       sec.NatureId, nat.Description AS NatureName,
-                       sec.DisplayOrder
-                FROM [Finance].[ScheduleIIISection] sec
-                LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
-                LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
-                WHERE sec.StructureId = @StructureId AND sec.IsDeleted = 0
-                ORDER BY sec.DisplayOrder;";
-
-            var sections = (await _dbConnection.QueryAsync<ScheduleIIISectionDto>(
-                sectionSql, new { StructureId = structure.Id })).ToList();
-
+            // Included lines = ScheduleIIIMaster rows for (Company, Division), ordered by DisplayOrder.
             const string lineSql = @"
-                SELECT li.Id, li.StructureId, li.SectionId, li.ParentLineId,
-                       li.LineCode, li.LineName, li.SubClassification, li.NoteReference,
-                       li.DisplayOrder, li.IsSplitLine, li.IsActive
-                FROM [Finance].[ScheduleIIILineItem] li
-                WHERE li.StructureId = @StructureId AND li.IsDeleted = 0
-                ORDER BY li.SectionId, li.DisplayOrder;";
+                SELECT li.Id, li.SectionId, li.LineCode, li.LineName, li.NoteReference,
+                       li.IsSplitLine, li.IsActive
+                FROM [Finance].[ScheduleIIIMaster] m
+                JOIN [Finance].[ScheduleIIISectionItem] li ON m.ScheduleIIISectionItemId = li.Id AND li.IsDeleted = 0
+                WHERE m.CompanyId = @CompanyId AND m.DivisionId = @DivisionId AND m.IsDeleted = 0
+                ORDER BY li.SectionId, m.DisplayOrder;";
 
-            var lines = (await _dbConnection.QueryAsync<ScheduleIIILineItemDto>(
-                lineSql, new { StructureId = structure.Id })).ToList();
+            var lines = (await _dbConnection.QueryAsync<ScheduleIIISectionItemDto>(
+                lineSql, new { CompanyId = companyId, DivisionId = divisionId })).ToList();
+
+            var sections = new List<ScheduleIIISectionDto>();
+            var sectionIds = lines.Select(l => l.SectionId).Distinct().ToList();
+            if (sectionIds.Count > 0)
+            {
+                const string sectionSql = @"
+                    SELECT sec.Id, sec.SectionName,
+                           sec.StatementTypeId, stt.Description AS StatementTypeName,
+                           sec.NatureId, nat.Description AS NatureName
+                    FROM [Finance].[ScheduleIIISection] sec
+                    LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
+                    LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
+                    WHERE sec.Id IN @SectionIds AND sec.IsDeleted = 0
+                    ORDER BY sec.SectionName;";
+
+                sections = (await _dbConnection.QueryAsync<ScheduleIIISectionDto>(
+                    sectionSql, new { SectionIds = sectionIds })).ToList();
+            }
 
             // MappedCount stays 0 until US-GL02-03B ships ScheduleIIIAccountGroupMap.
             foreach (var sec in sections)
             {
-                var sectionLines = lines.Where(l => l.SectionId == sec.Id).ToList();
-                var topLines = sectionLines.Where(l => l.ParentLineId == null)
-                                           .OrderBy(l => l.DisplayOrder).ToList();
-                foreach (var top in topLines)
-                {
-                    top.ChildLines = sectionLines.Where(l => l.ParentLineId == top.Id)
-                                                 .OrderBy(l => l.DisplayOrder).ToList();
-                }
-                sec.LineItems = topLines;
+                sec.LineItems = lines.Where(l => l.SectionId == sec.Id).ToList();
             }
 
             structure.Sections = sections;
-            structure.SubTotals = await GetSubTotalsAsync(structure.Id);
+            structure.SubTotals = await GetSubTotalsAsync(companyId, divisionId);
             return structure;
         }
 
-        public async Task<ScheduleIIIStructureDto?> GetByIdAsync(int structureId)
+        public async Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync()
         {
-            var ids = await _dbConnection.QueryFirstOrDefaultAsync(
-                "SELECT CompanyId, DivisionId FROM [Finance].[ScheduleIIIStructure] WHERE Id = @Id AND IsDeleted = 0;",
-                new { Id = structureId });
+            // Candidate operands for a sub-total formula: active P&L line items + the S3_SUBTOTAL_TYPE nodes.
+            const string sql = @"
+                SELECT li.Id AS Id, li.LineName AS Name, 'LINEITEM' AS Kind
+                FROM [Finance].[ScheduleIIISectionItem] li
+                JOIN [Finance].[ScheduleIIISection] sec ON li.SectionId = sec.Id AND sec.IsDeleted = 0
+                JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0 AND stt.Code = 'PL'
+                WHERE li.IsDeleted = 0 AND li.IsActive = 1
 
-            if (ids == null)
-                return null;
+                UNION ALL
 
-            return await GetStructureAsync((int)ids.CompanyId, (int)ids.DivisionId);
+                SELECT mm.Id AS Id, mm.Description AS Name, 'SUBTOTAL' AS Kind
+                FROM [Finance].[MiscMaster] mm
+                JOIN [Finance].[MiscTypeMaster] mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mt.MiscTypeCode = 'S3_SUBTOTAL_TYPE' AND mm.IsActive = 1 AND mm.IsDeleted = 0
+
+                ORDER BY Kind, Name;";
+
+            var result = await _dbConnection.QueryAsync<SubTotalFormulaOperandDto>(sql);
+            return result.ToList();
         }
 
-        public async Task<bool> StructureNotFoundAsync(int id)
+        public async Task<bool> MasterNotFoundAsync(int id)
         {
-            const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIIStructure] WHERE Id = @Id AND IsDeleted = 0;";
+            const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIIMaster] WHERE Id = @Id AND IsDeleted = 0;";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;
+        }
+
+        public async Task<bool> MasterContainsLineAsync(int companyId, int divisionId, int scheduleIIILineItemId)
+        {
+            const string sql = @"
+                SELECT COUNT(1) FROM [Finance].[ScheduleIIIMaster]
+                WHERE CompanyId = @CompanyId AND DivisionId = @DivisionId
+                  AND ScheduleIIISectionItemId = @LineId AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql,
+                new { CompanyId = companyId, DivisionId = divisionId, LineId = scheduleIIILineItemId });
+            return count > 0;
         }
 
         public async Task<(List<ActivityLogDto>, int)> GetActivityLogAsync(string? entityName, int? entityId, int pageNumber, int pageSize)
@@ -143,19 +164,20 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return (list, totalCount);
         }
 
-        public async Task<Preview03BDto> Get03BPreviewAsync(int structureId)
+        public async Task<Preview03BDto> Get03BPreviewAsync(int companyId, int divisionId)
         {
             const string sql = @"
                 SELECT li.Id AS LineItemId, li.LineName, sec.SectionName, li.NoteReference,
                        stt.Code AS StatementTypeCode
-                FROM [Finance].[ScheduleIIILineItem] li
+                FROM [Finance].[ScheduleIIIMaster] m
+                JOIN [Finance].[ScheduleIIISectionItem] li ON m.ScheduleIIISectionItemId = li.Id AND li.IsDeleted = 0
                 JOIN [Finance].[ScheduleIIISection] sec ON li.SectionId = sec.Id AND sec.IsDeleted = 0
                 JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
-                WHERE li.StructureId = @StructureId AND li.IsDeleted = 0 AND li.IsActive = 1
-                ORDER BY sec.DisplayOrder, li.DisplayOrder;";
+                WHERE m.CompanyId = @CompanyId AND m.DivisionId = @DivisionId AND m.IsDeleted = 0 AND li.IsActive = 1
+                ORDER BY m.DisplayOrder;";
 
             var rows = (await _dbConnection.QueryAsync<Preview03BRow>(
-                sql, new { StructureId = structureId })).ToList();
+                sql, new { CompanyId = companyId, DivisionId = divisionId })).ToList();
 
             var preview = new Preview03BDto();
             foreach (var r in rows)
@@ -175,17 +197,18 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return preview;
         }
 
-        public async Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync(int structureId)
+        public async Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync(int companyId, int divisionId)
         {
             const string subTotalSql = @"
-                SELECT st.Id, st.StructureId, st.SubTotalName, st.FormulaExpression,
-                       st.IncludeOtherIncome, st.IsSystemDefined, st.DisplayOrder, st.IsActive
+                SELECT st.Id, st.CompanyId, st.DivisionId, st.SubTotalTypeId, stt.Description AS SubTotalName,
+                       st.FormulaExpression, st.IncludeOtherIncome, st.IsSystemDefined, st.DisplayOrder, st.IsActive
                 FROM [Finance].[ScheduleIIISubTotal] st
-                WHERE st.StructureId = @StructureId AND st.IsDeleted = 0
+                LEFT JOIN [Finance].[MiscMaster] stt ON st.SubTotalTypeId = stt.Id AND stt.IsDeleted = 0
+                WHERE st.CompanyId = @CompanyId AND st.DivisionId = @DivisionId AND st.IsDeleted = 0
                 ORDER BY st.DisplayOrder;";
 
             var subTotals = (await _dbConnection.QueryAsync<ScheduleIIISubTotalDto>(
-                subTotalSql, new { StructureId = structureId })).ToList();
+                subTotalSql, new { CompanyId = companyId, DivisionId = divisionId })).ToList();
 
             if (subTotals.Count == 0)
                 return subTotals;
@@ -205,10 +228,13 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             var formulas = (await _dbConnection.QueryAsync<FormulaRow>(
                 formulaSql, new { SubTotalIds = subTotals.Select(s => s.Id).ToArray() })).ToList();
 
-            // Resolve operand display names (line item names + sub-total names) for this structure.
-            var lineNames = (await _dbConnection.QueryAsync<(int Id, string? LineName)>(
-                "SELECT Id, LineName FROM [Finance].[ScheduleIIILineItem] WHERE StructureId = @StructureId AND IsDeleted = 0",
-                new { StructureId = structureId })).ToDictionary(x => x.Id, x => x.LineName);
+            // Resolve operand display names. Lines are a global catalog — resolve by the operand ref ids.
+            var lineRefIds = formulas.Select(f => f.OperandRefId).Distinct().ToArray();
+            var lineNames = lineRefIds.Length == 0
+                ? new Dictionary<int, string?>()
+                : (await _dbConnection.QueryAsync<(int Id, string? LineName)>(
+                    "SELECT Id, LineName FROM [Finance].[ScheduleIIISectionItem] WHERE Id IN @Ids AND IsDeleted = 0",
+                    new { Ids = lineRefIds })).ToDictionary(x => x.Id, x => x.LineName);
 
             var subTotalNames = subTotals.ToDictionary(s => s.Id, s => s.SubTotalName);
 
@@ -231,68 +257,159 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return subTotals;
         }
 
-        public async Task<ScheduleIIILineItemDto?> GetLineItemByIdAsync(int id)
+        public async Task<ScheduleIIISectionItemDto?> GetLineItemByIdAsync(int id)
         {
             const string sql = @"
-                SELECT li.Id, li.StructureId, li.SectionId, li.ParentLineId,
-                       li.LineCode, li.LineName, li.SubClassification, li.NoteReference,
-                       li.DisplayOrder, li.IsSplitLine, li.IsActive
-                FROM [Finance].[ScheduleIIILineItem] li
+                SELECT li.Id, li.SectionId, li.LineCode, li.LineName, li.NoteReference,
+                       li.IsSplitLine, li.IsActive
+                FROM [Finance].[ScheduleIIISectionItem] li
                 WHERE li.Id = @Id AND li.IsDeleted = 0;";
 
-            return await _dbConnection.QueryFirstOrDefaultAsync<ScheduleIIILineItemDto>(sql, new { Id = id });
+            return await _dbConnection.QueryFirstOrDefaultAsync<ScheduleIIISectionItemDto>(sql, new { Id = id });
         }
 
         public async Task<bool> LineItemNotFoundAsync(int id)
         {
-            const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIILineItem] WHERE Id = @Id AND IsDeleted = 0;";
+            const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIISectionItem] WHERE Id = @Id AND IsDeleted = 0;";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count == 0;
-        }
-
-        public async Task<bool> StructureExistsAsync(int structureId)
-        {
-            const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIIStructure] WHERE Id = @Id AND IsDeleted = 0;";
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = structureId });
-            return count > 0;
         }
 
         public async Task<bool> StructureExistsByCompanyDivisionAsync(int companyId, int divisionId)
         {
             const string sql = @"
-                SELECT COUNT(1) FROM [Finance].[ScheduleIIIStructure]
+                SELECT COUNT(1) FROM [Finance].[ScheduleIIIMaster]
                 WHERE CompanyId = @CompanyId AND DivisionId = @DivisionId AND IsDeleted = 0;";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { CompanyId = companyId, DivisionId = divisionId });
             return count > 0;
         }
 
-        public async Task<bool> SectionExistsAsync(int sectionId, int structureId)
+        public async Task<(List<ScheduleIIISectionDto>, int)> GetAllSectionAsync(int pageNumber, int pageSize, string? searchTerm, int? scheduleIIIMasterId)
+        {
+            // Section is a global catalog — scheduleIIIMasterId is ignored (kept for signature compatibility).
+            var searchClause = string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND sec.SectionName LIKE @Search";
+
+            var query = $$"""
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM [Finance].[ScheduleIIISection] sec
+                WHERE sec.IsDeleted = 0 {{searchClause}};
+
+                SELECT sec.Id, sec.SectionName,
+                       sec.StatementTypeId, stt.Description AS StatementTypeName,
+                       sec.NatureId, nat.Description AS NatureName
+                FROM [Finance].[ScheduleIIISection] sec
+                LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
+                LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
+                WHERE sec.IsDeleted = 0 {{searchClause}}
+                ORDER BY sec.SectionName
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            """;
+
+            var parameters = new
+            {
+                Search = $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<ScheduleIIISectionDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+            return (list, totalCount);
+        }
+
+        public async Task<ScheduleIIISectionDto?> GetSectionByIdAsync(int id)
+        {
+            const string sql = @"
+                SELECT sec.Id, sec.SectionName,
+                       sec.StatementTypeId, stt.Description AS StatementTypeName,
+                       sec.NatureId, nat.Description AS NatureName
+                FROM [Finance].[ScheduleIIISection] sec
+                LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
+                LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
+                WHERE sec.Id = @Id AND sec.IsDeleted = 0;";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<ScheduleIIISectionDto>(sql, new { Id = id });
+        }
+
+        public async Task<bool> SectionNotFoundAsync(int id)
+        {
+            const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIISection] WHERE Id = @Id AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
+            return count == 0;
+        }
+
+
+        public async Task<bool> SubTotalTypeExistsAsync(int miscId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM [Finance].[MiscMaster] mm
+                JOIN [Finance].[MiscTypeMaster] mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                WHERE mm.Id = @Id AND mm.IsActive = 1 AND mm.IsDeleted = 0
+                  AND mt.MiscTypeCode = 'S3_SUBTOTAL_TYPE';";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = miscId });
+            return count > 0;
+        }
+
+        public async Task<(List<ScheduleIIISectionItemDto>, int)> GetAllLineItemAsync(int pageNumber, int pageSize, string? searchTerm, int? scheduleIIIMasterId, int? sectionId)
+        {
+            // LineItem is a global catalog — scheduleIIIMasterId is ignored (kept for signature compatibility).
+            var searchClause = string.IsNullOrWhiteSpace(searchTerm) ? "" : "AND (li.LineCode LIKE @Search OR li.LineName LIKE @Search)";
+            var sectionClause = sectionId.HasValue ? "AND li.SectionId = @SectionId" : "";
+
+            var query = $$"""
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM [Finance].[ScheduleIIISectionItem] li
+                WHERE li.IsDeleted = 0 {{sectionClause}} {{searchClause}};
+
+                SELECT li.Id, li.SectionId, sec.SectionName,
+                       li.LineCode, li.LineName, li.NoteReference, li.IsSplitLine, li.IsActive
+                FROM [Finance].[ScheduleIIISectionItem] li
+                LEFT JOIN [Finance].[ScheduleIIISection] sec ON li.SectionId = sec.Id AND sec.IsDeleted = 0
+                WHERE li.IsDeleted = 0 {{sectionClause}} {{searchClause}}
+                ORDER BY li.SectionId, li.LineName
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            """;
+
+            var parameters = new
+            {
+                Search = $"%{searchTerm}%",
+                SectionId = sectionId,
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<ScheduleIIISectionItemDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+            return (list, totalCount);
+        }
+
+        public async Task<bool> SectionExistsAsync(int sectionId)
         {
             const string sql = @"
                 SELECT COUNT(1) FROM [Finance].[ScheduleIIISection]
-                WHERE Id = @SectionId AND StructureId = @StructureId AND IsDeleted = 0;";
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { SectionId = sectionId, StructureId = structureId });
+                WHERE Id = @SectionId AND IsDeleted = 0;";
+            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { SectionId = sectionId });
             return count > 0;
         }
 
-        public async Task<bool> ParentLineExistsAsync(int parentLineId, int structureId)
-        {
-            const string sql = @"
-                SELECT COUNT(1) FROM [Finance].[ScheduleIIILineItem]
-                WHERE Id = @ParentLineId AND StructureId = @StructureId AND IsDeleted = 0;";
-            var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { ParentLineId = parentLineId, StructureId = structureId });
-            return count > 0;
-        }
-
-        public async Task<bool> IsStructureLockedAsync(int structureId)
+        public async Task<bool> IsStructureLockedAsync(int companyId, int divisionId)
         {
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM [Finance].[ScheduleIIIStructure] s
-                    JOIN [Finance].[MiscMaster] st ON s.StructureStatusId = st.Id
-                    WHERE s.Id = @StructureId AND s.IsDeleted = 0 AND st.Code = 'LOCKED'
+                    SELECT 1 FROM [Finance].[ScheduleIIIMaster] s
+                    JOIN [Finance].[MiscMaster] st ON s.StatusId = st.Id
+                    WHERE s.CompanyId = @CompanyId AND s.DivisionId = @DivisionId AND s.IsDeleted = 0 AND st.Code = 'LOCKED'
                 ) THEN 1 ELSE 0 END;";
-            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { StructureId = structureId });
+            return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { CompanyId = companyId, DivisionId = divisionId });
         }
 
         public async Task<bool> SubTotalNotFoundAsync(int id)

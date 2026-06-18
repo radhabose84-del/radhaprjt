@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Dto;
 using FinanceManagement.Application.ScheduleIII.Queries.Get03BDropdownPreview;
@@ -8,9 +9,16 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Queries
     {
         private readonly Mock<IScheduleIIIQueryRepository> _mockQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
+
+        public Get03BDropdownPreviewQueryHandlerTests()
+        {
+            _mockIp.Setup(s => s.GetCompanyId()).Returns(1);
+            _mockIp.Setup(s => s.GetDivisionId()).Returns(7);
+        }
 
         private Get03BDropdownPreviewQueryHandler CreateSut() =>
-            new(_mockQueryRepo.Object, _mockMediator.Object);
+            new(_mockQueryRepo.Object, _mockMediator.Object, _mockIp.Object);
 
         [Fact]
         public async Task Handle_ReturnsBsAndPlLeaves()
@@ -24,9 +32,9 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Queries
                     new() { LineName = "Other Income" }
                 }
             };
-            _mockQueryRepo.Setup(r => r.Get03BPreviewAsync(1)).ReturnsAsync(preview);
+            _mockQueryRepo.Setup(r => r.Get03BPreviewAsync(1, 7)).ReturnsAsync(preview);
 
-            var result = await CreateSut().Handle(new Get03BDropdownPreviewQuery { StructureId = 1 }, CancellationToken.None);
+            var result = await CreateSut().Handle(new Get03BDropdownPreviewQuery(), CancellationToken.None);
 
             result.BalanceSheetLeaves.Should().HaveCount(1);
             result.ProfitAndLossLeaves.Should().HaveCount(2);

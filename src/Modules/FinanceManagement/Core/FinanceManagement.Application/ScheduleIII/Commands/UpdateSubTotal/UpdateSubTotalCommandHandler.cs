@@ -31,7 +31,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal
             }).ToList();
 
             var result = await _commandRepository.UpdateSubTotalAsync(
-                request.Id, request.SubTotalName, request.IncludeOtherIncome, formulas);
+                request.Id, request.SubTotalTypeId, request.IncludeOtherIncome, formulas);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",

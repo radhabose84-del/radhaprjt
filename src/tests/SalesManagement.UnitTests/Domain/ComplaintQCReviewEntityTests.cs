@@ -37,7 +37,7 @@ public class ComplaintQCReviewEntityTests
             PhysicalVerificationId = 5,
             ComplaintStatusId = 3,
             SeverityId = 2,
-            CompensationStructureId = 4,
+            CompensationScheduleIIIMasterId = 4,
             LabVerificationRequired = true,
             LabResponsiblePersonId = 50,
             ExpectedResolutionDate = new DateOnly(2026, 3, 1),
@@ -63,7 +63,7 @@ public class ComplaintQCReviewEntityTests
         {
             ComplaintStatusId = null,
             SeverityId = null,
-            CompensationStructureId = null,
+            CompensationScheduleIIIMasterId = null,
             LabResponsiblePersonId = null,
             ExpectedResolutionDate = null,
             Comments = null,

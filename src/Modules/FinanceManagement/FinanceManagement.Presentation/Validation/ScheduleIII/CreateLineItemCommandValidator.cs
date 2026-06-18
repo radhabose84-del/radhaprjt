@@ -17,10 +17,9 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
         {
             _queryRepository = queryRepository;
 
-            var maxLengthCode = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIILineItem>("LineCode") ?? 20;
-            var maxLengthName = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIILineItem>("LineName") ?? 200;
-            var maxLengthSub  = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIILineItem>("SubClassification") ?? 120;
-            var maxLengthNote = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIILineItem>("NoteReference") ?? 30;
+            var maxLengthCode = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>("LineCode") ?? 20;
+            var maxLengthName = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>("LineName") ?? 200;
+            var maxLengthNote = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>("NoteReference") ?? 30;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
@@ -36,9 +35,6 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                         RuleFor(x => x.LineName)
                             .NotNull().WithMessage($"{nameof(CreateLineItemCommand.LineName)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(CreateLineItemCommand.LineName)} {rule.Error}");
-
-                        RuleFor(x => x.StructureId)
-                            .NotEmpty().WithMessage($"{nameof(CreateLineItemCommand.StructureId)} {rule.Error}");
 
                         RuleFor(x => x.SectionId)
                             .NotEmpty().WithMessage($"{nameof(CreateLineItemCommand.SectionId)} {rule.Error}");
@@ -61,11 +57,6 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                             .MaximumLength(maxLengthName)
                             .WithMessage($"{nameof(CreateLineItemCommand.LineName)} {rule.Error} {maxLengthName} characters.");
 
-                        RuleFor(x => x.SubClassification)
-                            .MaximumLength(maxLengthSub)
-                            .WithMessage($"{nameof(CreateLineItemCommand.SubClassification)} {rule.Error} {maxLengthSub} characters.")
-                            .When(x => !string.IsNullOrWhiteSpace(x.SubClassification));
-
                         RuleFor(x => x.NoteReference)
                             .MaximumLength(maxLengthNote)
                             .WithMessage($"{nameof(CreateLineItemCommand.NoteReference)} {rule.Error} {maxLengthNote} characters.")
@@ -73,26 +64,10 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                         break;
 
                     case "FKColumnDelete":
-                        RuleFor(x => x.StructureId)
-                            .MustAsync(async (id, ct) => await _queryRepository.StructureExistsAsync(id))
-                            .WithMessage($"{nameof(CreateLineItemCommand.StructureId)} {rule.Error}")
-                            .When(x => x.StructureId > 0);
-
-                        RuleFor(x => x)
-                            .MustAsync(async (cmd, ct) => await _queryRepository.SectionExistsAsync(cmd.SectionId, cmd.StructureId))
+                        RuleFor(x => x.SectionId)
+                            .MustAsync(async (id, ct) => await _queryRepository.SectionExistsAsync(id))
                             .WithMessage($"{nameof(CreateLineItemCommand.SectionId)} {rule.Error}")
-                            .When(x => x.SectionId > 0 && x.StructureId > 0);
-
-                        RuleFor(x => x)
-                            .MustAsync(async (cmd, ct) => await _queryRepository.ParentLineExistsAsync(cmd.ParentLineId!.Value, cmd.StructureId))
-                            .WithMessage($"{nameof(CreateLineItemCommand.ParentLineId)} {rule.Error}")
-                            .When(x => x.ParentLineId.HasValue && x.ParentLineId.Value > 0 && x.StructureId > 0);
-
-                        // Structure must not be locked (post-lock edits go through FR-008 change control).
-                        RuleFor(x => x.StructureId)
-                            .MustAsync(async (id, ct) => !await _queryRepository.IsStructureLockedAsync(id))
-                            .WithMessage("Structure is locked — edits must go through change control (FR-008).")
-                            .When(x => x.StructureId > 0);
+                            .When(x => x.SectionId > 0);
                         break;
 
                     default:

@@ -27,15 +27,16 @@ namespace FinanceManagement.UnitTests.Domain
             var entity = new ScheduleIIISubTotal
             {
                 Id = 2,
-                StructureId = 1,
-                SubTotalName = "EBITDA",
+                CompanyId = 1,
+                DivisionId = 7,
+                SubTotalTypeId = 29,
                 FormulaExpression = "Gross Profit + Other Income - Operating Expenses",
                 IncludeOtherIncome = true,
                 IsSystemDefined = true,
                 DisplayOrder = 2
             };
 
-            entity.SubTotalName.Should().Be("EBITDA");
+            entity.SubTotalTypeId.Should().Be(29);
             entity.FormulaExpression.Should().Contain("Other Income");
             entity.IncludeOtherIncome.Should().BeTrue();
             entity.DisplayOrder.Should().Be(2);

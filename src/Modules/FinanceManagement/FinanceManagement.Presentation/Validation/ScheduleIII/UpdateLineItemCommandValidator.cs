@@ -17,9 +17,8 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
         {
             _queryRepository = queryRepository;
 
-            var maxLengthName = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIILineItem>("LineName") ?? 200;
-            var maxLengthSub  = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIILineItem>("SubClassification") ?? 120;
-            var maxLengthNote = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIILineItem>("NoteReference") ?? 30;
+            var maxLengthName = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>("LineName") ?? 200;
+            var maxLengthNote = maxLengthProvider.GetMaxLength<FinanceManagement.Domain.Entities.ScheduleIIISectionItem>("NoteReference") ?? 30;
 
             _validationRules = ValidationRuleLoader.LoadValidationRules();
             if (_validationRules == null || _validationRules.Count == 0)
@@ -41,11 +40,6 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                         RuleFor(x => x.LineName)
                             .MaximumLength(maxLengthName)
                             .WithMessage($"{nameof(UpdateLineItemCommand.LineName)} {rule.Error} {maxLengthName} characters.");
-
-                        RuleFor(x => x.SubClassification)
-                            .MaximumLength(maxLengthSub)
-                            .WithMessage($"{nameof(UpdateLineItemCommand.SubClassification)} {rule.Error} {maxLengthSub} characters.")
-                            .When(x => !string.IsNullOrWhiteSpace(x.SubClassification));
 
                         RuleFor(x => x.NoteReference)
                             .MaximumLength(maxLengthNote)
