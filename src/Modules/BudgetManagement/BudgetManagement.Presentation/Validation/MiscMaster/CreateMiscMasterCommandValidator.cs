@@ -50,6 +50,14 @@ namespace BudgetManagement.Presentation.Validation.MiscMaster
                             .MaximumLength(DescriptionMaxLength)
                             .WithMessage($"{nameof(CreateMiscMasterCommand.Description)} {rule.Error}");
                         break;
+                    case "Alphanumeric":
+                        // Code must be alphanumeric (pattern from shared validation-rules.json — never hardcoded).
+                        // Previously missing here, so space/special-char codes were silently accepted.
+                        RuleFor(x => x.Code)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateMiscMasterCommand.Code)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.Code));
+                        break;
                     case "AlreadyExists":
                         RuleFor(x => x)
                             .MustAsync(async (command, cancellation) =>

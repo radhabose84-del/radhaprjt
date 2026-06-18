@@ -147,10 +147,8 @@ public sealed class MiscMasterQATests
     [Fact, TestPriority(7)]
     public async Task TC007_Create_CodeWithSpace_Returns400()
     {
-        // BUG (live): the Budget MiscMaster Create validator has NO Alphanumeric rule (only
-        // NotFound/MaxLength/AlreadyExists), so a code with a space is accepted (201) instead
-        // of being rejected 400. Run-unique prefix keeps it deterministic (avoids an
-        // already-exists 400 from a prior run); tolerate either real outcome.
+        // FIXED 2026-06-18: CreateMiscMasterCommandValidator now has an Alphanumeric case
+        // (pattern from shared validation-rules.json), so a code with a space is rejected 400.
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
             miscTypeId = await ResolveMiscTypeIdAsync(),
@@ -158,14 +156,13 @@ public sealed class MiscMasterQATests
             description = TestDescription
         });
 
-        ((int)resp.StatusCode).Should().BeOneOf(200, 400);
+        await QAHelper.Assert400Async(resp);
     }
 
     [Fact, TestPriority(8)]
     public async Task TC008_Create_CodeWithSpecialChar_Returns400()
     {
-        // BUG (live): code format is not enforced (no Alphanumeric rule) — a special char is
-        // accepted (201). Run-unique prefix avoids an already-exists collision; tolerate either.
+        // FIXED 2026-06-18: Alphanumeric rule now enforced — a special-char code is rejected 400.
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
             miscTypeId = await ResolveMiscTypeIdAsync(),
@@ -173,7 +170,7 @@ public sealed class MiscMasterQATests
             description = TestDescription
         });
 
-        ((int)resp.StatusCode).Should().BeOneOf(200, 400);
+        await QAHelper.Assert400Async(resp);
     }
 
     [Fact, TestPriority(9)]
@@ -414,10 +411,10 @@ public sealed class MiscMasterQATests
         if (_f.CreatedId == 0) return;
 
         var resp = await _f.Client.DeleteAsync($"{BaseRoute}/{_f.CreatedId}");
-        // BUG (live): Delete of a valid, existing row returns 400 "not found." because the
-        // query repo's NotFoundAsync is inverted — it returns true when the row EXISTS, and the
-        // Delete validator does !NotFoundAsync(id), so the NotFound rule fails for live rows.
-        // The soft-delete therefore never succeeds via the API. Tolerate the real 400.
-        ((int)resp.StatusCode).Should().BeOneOf(200, 400);
+        // FIXED 2026-06-18: MiscMasterQueryRepository.NotFoundAsync was inverted (returned true when
+        // the row EXISTS); the Delete validator's !NotFoundAsync(id) then failed for live rows, so
+        // soft-delete never succeeded. The repo now returns count==0 (honest to its name) and the
+        // Update validators were aligned to !NotFoundAsync — delete of a real row now returns 200.
+        await QAHelper.AssertOkAsync(resp);
     }
 }

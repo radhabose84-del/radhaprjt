@@ -43,10 +43,10 @@ public sealed class DutyMasterQATests
     // SECTION 1 — CREATE
     // ─────────────────────────────────────────────────────────────────────────
 
-    // Skipped on the QA clone: create returns 400 "No transaction type configured for Duty Master."
-    // — the clone has no Finance TransactionTypeMaster row (and DocumentSequence) for Duty Master
-    // doc-numbering. Downstream id-dependent update/delete steps are skipped likewise.
-    [Fact(Skip = "needs seeded data: Finance TransactionTypeMaster + DocumentSequence for 'Duty Master'"), TestPriority(1)]
+    // Un-skipped: qa-seed.ps1 now seeds the 'Duty Master' Finance TransactionTypeMaster + DocumentSequence
+    // (Purchase module) the create handler needs for DutyCode numbering. FKs hsnId/dutyCategoryId resolve
+    // from existing clone data; create self-skips only if those are unresolvable.
+    [Fact, TestPriority(1)]
     public async Task TC001_Create_HappyPath_Returns200_And_CapturesId()
     {
         _createdTariff = NewTariff();
@@ -229,7 +229,7 @@ public sealed class DutyMasterQATests
     // SECTION 5 — UPDATE  (tariffNumber immutable)
     // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(Skip = "needs seeded data: Finance TransactionTypeMaster + DocumentSequence for 'Duty Master'"), TestPriority(50)]
+    [Fact, TestPriority(50)]
     public async Task TC050_Update_HappyPath_Returns200()
     {
         if (_f.CreatedId == 0) return; // create-happy skipped
@@ -271,7 +271,7 @@ public sealed class DutyMasterQATests
         resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    [Fact(Skip = "needs seeded data: Finance TransactionTypeMaster + DocumentSequence for 'Duty Master'"), TestPriority(52)]
+    [Fact, TestPriority(52)]
     public async Task TC052_Update_Inactivate_Then_Reactivate_Returns200()
     {
         if (_f.CreatedId == 0) return; // create-happy skipped
@@ -332,7 +332,7 @@ public sealed class DutyMasterQATests
         resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    [Fact(Skip = "needs seeded data: Finance TransactionTypeMaster + DocumentSequence for 'Duty Master'"), TestPriority(93)]
+    [Fact, TestPriority(93)]
     public async Task TC093_Delete_HappyPath_SoftDelete_Returns200()
     {
         if (_f.CreatedId == 0) return; // create-happy skipped
@@ -341,7 +341,7 @@ public sealed class DutyMasterQATests
         await QAHelper.AssertOkAsync(resp);
     }
 
-    [Fact(Skip = "needs seeded data: Finance TransactionTypeMaster + DocumentSequence for 'Duty Master'"), TestPriority(94)]
+    [Fact, TestPriority(94)]
     public async Task TC094_Delete_AlreadyDeleted_Returns200_Or_400()
     {
         if (_f.CreatedId == 0) return; // create-happy skipped

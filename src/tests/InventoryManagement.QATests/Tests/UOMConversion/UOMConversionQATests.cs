@@ -225,10 +225,9 @@ public sealed class UOMConversionQATests
     public async Task TC032_GetById_NonExistentId_Returns404Or200()
     {
         var resp = await _f.Client.GetAsync($"{BaseRoute}/999999");
-        // BUG (live, reconciled 2026-06-17): GetById for a non-existent id throws an unguarded
-        // NullReferenceException → 500 ("Object reference not set to an instance of an object")
-        // instead of a clean 200-null or 404. Tolerated until the handler adds a null guard.
-        ((int)resp.StatusCode).Should().BeOneOf(200, 404, 500);
+        // FIXED 2026-06-18: GetUOMConversionByIdQueryHandler now null-guards before the audit deref,
+        // so a missing id returns cleanly (200 null-data / 404) instead of an NRE 500.
+        ((int)resp.StatusCode).Should().BeOneOf(200, 404);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
