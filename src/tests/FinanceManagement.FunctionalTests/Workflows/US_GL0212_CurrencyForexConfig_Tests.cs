@@ -36,7 +36,8 @@ public sealed class US_GL0212_CurrencyForexConfig_Tests
     [Fact, TestPriority(1)]
     public async Task Step1_CreateCurrencyType_BecomesAvailableInDropdown()
     {
-        _code = $"FT{_f.EntityCode}";
+        // CurrencyTypeCode has a 20-char limit; "FT" + EntityCode (~20) overflows → clamp to 20.
+        _code = ("FT" + _f.EntityCode)[..Math.Min(20, ("FT" + _f.EntityCode).Length)];
 
         var createResp = await _f.Client.PostAsJsonAsync($"{Route}", new
         {

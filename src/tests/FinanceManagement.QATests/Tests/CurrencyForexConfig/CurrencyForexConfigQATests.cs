@@ -21,8 +21,10 @@ public sealed class CurrencyForexConfigQATests
 
     public CurrencyForexConfigQATests(QAServerFixture fixture) => _f = fixture;
 
-    // CurrencyTypeCode must be alphanumeric (no hyphen/space) and unique per company.
-    private string UniqueCode() => $"QA{_f.EntityCode}";
+    // CurrencyTypeCode must be alphanumeric (no hyphen/space), unique per company AND <= 20 chars.
+    // EntityCode is ~20 letters/digits, so "QA"+EntityCode overflows the 20-char column → truncate.
+    private string UniqueCode() =>
+        $"QA{new string(_f.EntityCode.Where(char.IsLetterOrDigit).Take(18).ToArray())}";
 
     private object ValidCreateBody(string code) => new
     {
