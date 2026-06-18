@@ -31,29 +31,33 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateMaster
 
         public async Task<ApiResponseDTO<int>> Handle(CreateMasterCommand request, CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<Domain.Entities.ScheduleIIIMaster>(request);
-
             // CompanyId + DivisionId come from the token, never the payload.
-            entity.CompanyId = _ipAddressService.GetCompanyId()
+            var companyId = _ipAddressService.GetCompanyId()
                 ?? throw new ExceptionRules("No active company in session.");
-            entity.DivisionId = _ipAddressService.GetDivisionId()
+            var divisionId = _ipAddressService.GetDivisionId()
                 ?? throw new ExceptionRules("No active division in session.");
 
-            var newId = await _commandRepository.CreateMasterAsync(entity);
+            // Ensure the structure header exists (DRAFT on first line), then add the line.
+            var headerId = await _commandRepository.EnsureHeaderAsync(companyId, divisionId);
+
+            var detail = _mapper.Map<Domain.Entities.ScheduleIIIDetail>(request);
+            detail.ScheduleIIIHeaderId = headerId;
+
+            var newId = await _commandRepository.CreateDetailAsync(detail);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
-                actionCode: "S3_MASTER_CREATE",
+                actionCode: "S3_DETAIL_CREATE",
                 actionName: newId.ToString(),
-                details: $"Schedule III master created successfully with Id {newId}.",
-                module: "ScheduleIIIMaster"
+                details: $"Schedule III line added successfully with Id {newId}.",
+                module: "ScheduleIIIDetail"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Schedule III master created successfully.",
+                Message = "Schedule III line added successfully.",
                 Data = newId
             };
         }

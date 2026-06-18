@@ -27,23 +27,23 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.UpdateMaster
 
         public async Task<ApiResponseDTO<int>> Handle(UpdateMasterCommand request, CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<Domain.Entities.ScheduleIIIMaster>(request);
+            var detail = _mapper.Map<Domain.Entities.ScheduleIIIDetail>(request);
 
-            var result = await _commandRepository.UpdateMasterAsync(entity);
+            var result = await _commandRepository.UpdateDetailAsync(detail);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
-                actionCode: "S3_MASTER_UPDATE",
+                actionCode: "S3_DETAIL_UPDATE",
                 actionName: request.Id.ToString(),
-                details: $"Schedule III master with Id {request.Id} updated successfully.",
-                module: "ScheduleIIIMaster"
+                details: $"Schedule III line with Id {request.Id} updated successfully.",
+                module: "ScheduleIIIDetail"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Schedule III master updated successfully.",
+                Message = "Schedule III line updated successfully.",
                 Data = result
             };
         }

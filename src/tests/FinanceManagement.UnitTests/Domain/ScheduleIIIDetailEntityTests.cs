@@ -2,39 +2,35 @@ using FinanceManagement.Domain.Entities;
 
 namespace FinanceManagement.UnitTests.Domain
 {
-    public class ScheduleIIIMasterEntityTests
+    public class ScheduleIIIDetailEntityTests
     {
         [Fact]
         public void DefaultIsActive_ShouldBeActive() =>
-            new ScheduleIIIMaster().IsActive.Should().Be(Status.Active);
+            new ScheduleIIIDetail().IsActive.Should().Be(Status.Active);
 
         [Fact]
         public void DefaultIsDeleted_ShouldBeNotDeleted() =>
-            new ScheduleIIIMaster().IsDeleted.Should().Be(IsDelete.NotDeleted);
+            new ScheduleIIIDetail().IsDeleted.Should().Be(IsDelete.NotDeleted);
 
         [Fact]
         public void ShouldInheritFromBaseEntity() =>
             typeof(FinanceManagement.Domain.Common.BaseEntity)
-                .IsAssignableFrom(typeof(ScheduleIIIMaster)).Should().BeTrue();
+                .IsAssignableFrom(typeof(ScheduleIIIDetail)).Should().BeTrue();
 
         [Fact]
         public void Properties_ShouldBeAssignable()
         {
-            var entity = new ScheduleIIIMaster
+            var entity = new ScheduleIIIDetail
             {
                 Id = 1,
-                CompanyId = 1001,
-                DivisionId = 7,
-                StatusId = 120,
-                TextileSplitEnabled = true,
+                ScheduleIIIHeaderId = 5,
+                ScheduleIIISectionId = 9,
                 ScheduleIIISectionItemId = 50,
                 DisplayOrder = 3
             };
 
-            entity.CompanyId.Should().Be(1001);
-            entity.DivisionId.Should().Be(7);
-            entity.StatusId.Should().Be(120);
-            entity.TextileSplitEnabled.Should().BeTrue();
+            entity.ScheduleIIIHeaderId.Should().Be(5);
+            entity.ScheduleIIISectionId.Should().Be(9);
             entity.ScheduleIIISectionItemId.Should().Be(50);
             entity.DisplayOrder.Should().Be(3);
         }

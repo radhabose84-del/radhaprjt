@@ -46,7 +46,8 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<FinanceManagement.Domain.Entities.Outbox.OutboxMessage> OutboxMessages => Set<FinanceManagement.Domain.Entities.Outbox.OutboxMessage>();
 
         // Schedule III line-item & sub-total configuration (US-GL02-03A)
-        public DbSet<ScheduleIIIMaster> ScheduleIIIMaster => Set<ScheduleIIIMaster>();
+        public DbSet<ScheduleIIIHeader> ScheduleIIIHeader => Set<ScheduleIIIHeader>();
+        public DbSet<ScheduleIIIDetail> ScheduleIIIDetail => Set<ScheduleIIIDetail>();
         public DbSet<ScheduleIIISection> ScheduleIIISection => Set<ScheduleIIISection>();
         public DbSet<ScheduleIIISectionItem> ScheduleIIISectionItem => Set<ScheduleIIISectionItem>();
         public DbSet<ScheduleIIISubTotal> ScheduleIIISubTotal => Set<ScheduleIIISubTotal>();

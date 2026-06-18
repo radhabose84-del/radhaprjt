@@ -11,5 +11,9 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
         public bool IsSplitLine { get; set; }
         public int MappedCount { get; set; }                  // usage = account groups mapped in 03B (stub 0 until 03B)
         public bool IsActive { get; set; }
+
+        // Set only inside a structure response (the ScheduleIIIDetail row that includes this line).
+        public int DetailId { get; set; }
+        public int DisplayOrder { get; set; }
     }
 }

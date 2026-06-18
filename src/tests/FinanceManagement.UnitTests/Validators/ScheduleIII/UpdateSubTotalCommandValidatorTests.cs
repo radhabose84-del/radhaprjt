@@ -1,7 +1,6 @@
 using FluentValidation.TestHelper;
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal;
-using FinanceManagement.Application.ScheduleIII.Dto;
 using FinanceManagement.Presentation.Validation.ScheduleIII;
 
 namespace FinanceManagement.UnitTests.Validators.ScheduleIII
@@ -26,10 +25,8 @@ namespace FinanceManagement.UnitTests.Validators.ScheduleIII
                 Id = 2,
                 FormulaName = "EBITDA",
                 IncludeOtherIncome = true,
-                Formulas = new List<SubTotalFormulaInput>
-                {
-                    new() { OperandTypeId = 140, SectionItemId = 22, OperatorId = 131, DisplayOrder = 1 }
-                }
+                DisplayOrder = 3,
+                IsActive = 1
             };
 
             var result = await CreateValidator().TestValidateAsync(command);
@@ -46,6 +43,30 @@ namespace FinanceManagement.UnitTests.Validators.ScheduleIII
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.ShouldHaveValidationErrorFor(x => x.FormulaName);
+        }
+
+        [Fact]
+        public async Task Validate_DuplicateFormulaName_Fails()
+        {
+            SetupCommon();
+            _mockQueryRepo.Setup(r => r.SubTotalNameExistsAsync("EBITDA", 2)).ReturnsAsync(true);
+            var command = new UpdateSubTotalCommand { Id = 2, FormulaName = "EBITDA", DisplayOrder = 3, IsActive = 1 };
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.FormulaName);
+        }
+
+        [Fact]
+        public async Task Validate_DuplicateDisplayOrder_Fails()
+        {
+            SetupCommon();
+            _mockQueryRepo.Setup(r => r.SubTotalDisplayOrderExistsAsync(3, 2)).ReturnsAsync(true);
+            var command = new UpdateSubTotalCommand { Id = 2, FormulaName = "EBITDA", DisplayOrder = 3, IsActive = 1 };
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.DisplayOrder);
         }
     }
 }

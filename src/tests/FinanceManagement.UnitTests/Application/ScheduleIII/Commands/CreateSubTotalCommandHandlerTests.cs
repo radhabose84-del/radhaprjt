@@ -1,6 +1,5 @@
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal;
-using FinanceManagement.Application.ScheduleIII.Dto;
 
 namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
 {
@@ -18,12 +17,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
             {
                 FormulaName = "Gross Profit",
                 IncludeOtherIncome = false,
-                DisplayOrder = 5,
-                Formulas = new List<SubTotalFormulaInput>
-                {
-                    new() { OperandTypeId = 140, SectionItemId = 19, OperatorId = 130, DisplayOrder = 1 },
-                    new() { OperandTypeId = 140, SectionItemId = 22, OperatorId = 131, DisplayOrder = 2 }
-                }
+                DisplayOrder = 5
             };
 
         private void SetupHappyPath(int newId = 1)
@@ -32,9 +26,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
                 .Setup(m => m.Map<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(It.IsAny<CreateSubTotalCommand>()))
                 .Returns(new FinanceManagement.Domain.Entities.ScheduleIIISubTotal());
             _mockCommandRepo
-                .Setup(r => r.CreateSubTotalAsync(
-                    It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(),
-                    It.IsAny<List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>()))
+                .Setup(r => r.CreateSubTotalAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>()))
                 .ReturnsAsync(newId);
         }
 
@@ -48,24 +40,21 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_PassesAllFormulaOperandsToRepo()
+        public async Task Handle_ValidCommand_PassesMappedHeaderToRepo()
         {
-            List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>? captured = null;
+            var mapped = new FinanceManagement.Domain.Entities.ScheduleIIISubTotal { FormulaName = "Gross Profit" };
+            FinanceManagement.Domain.Entities.ScheduleIIISubTotal? captured = null;
             _mockMapper
                 .Setup(m => m.Map<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(It.IsAny<CreateSubTotalCommand>()))
-                .Returns(new FinanceManagement.Domain.Entities.ScheduleIIISubTotal());
+                .Returns(mapped);
             _mockCommandRepo
-                .Setup(r => r.CreateSubTotalAsync(
-                    It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(),
-                    It.IsAny<List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>()))
-                .Callback<FinanceManagement.Domain.Entities.ScheduleIIISubTotal, List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>(
-                    (_, f) => captured = f)
+                .Setup(r => r.CreateSubTotalAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>()))
+                .Callback<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(e => captured = e)
                 .ReturnsAsync(1);
 
             await CreateSut().Handle(ValidCommand(), CancellationToken.None);
 
-            captured.Should().NotBeNull();
-            captured!.Should().HaveCount(2);
+            captured.Should().BeSameAs(mapped);
         }
 
         [Fact]
