@@ -1,4 +1,5 @@
 using Contracts.Commands.Workflow;
+using Contracts.Interfaces;
 using FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
@@ -9,10 +10,11 @@ namespace FinanceManagement.UnitTests.Application.AccountGroup.Commands
     {
         private readonly Mock<IAccountGroupChangeRequestRepository> _mockChangeRequestRepo = new(MockBehavior.Strict);
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
+        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private MoveAccountGroupCommandHandler CreateSut() =>
-            new(_mockChangeRequestRepo.Object, _mockOutbox.Object, _mockMediator.Object);
+            new(_mockChangeRequestRepo.Object, _mockOutbox.Object, _mockIp.Object, _mockMediator.Object);
 
         private static MoveAccountGroupCommand ValidCommand() =>
             new() { Id = 10, NewParentAccountGroupId = 5, Justification = "Restructure for FY2026 reporting", ApproverId = 99 };
