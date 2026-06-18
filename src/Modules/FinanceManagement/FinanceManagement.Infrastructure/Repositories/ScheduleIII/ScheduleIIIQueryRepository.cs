@@ -219,7 +219,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
         public async Task<(List<ActivityLogDto>, int)> GetActivityLogAsync(string? entityName, int? entityId, int pageNumber, int pageSize)
         {
-            var nameClause = string.IsNullOrWhiteSpace(entityName) ? "" : "AND EntityName = @EntityName";
+            var nameClause = string.IsNullOrWhiteSpace(entityName) ? "" : "AND EntityName LIKE @EntityName";
             var idClause = entityId.HasValue ? "AND EntityId = @EntityId" : "";
 
             var query = $$"""
@@ -240,7 +240,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
             var parameters = new
             {
-                EntityName = entityName,
+                EntityName = string.IsNullOrWhiteSpace(entityName) ? null : $"%{entityName}%",
                 EntityId = entityId,
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
