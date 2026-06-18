@@ -1,3 +1,4 @@
+using Contracts.Interfaces;
 using FinanceManagement.Application.AccountGroup.Commands.CreateAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 
@@ -6,17 +7,20 @@ namespace FinanceManagement.UnitTests.Application.AccountGroup.Commands
     public sealed class CreateAccountGroupCommandHandlerTests
     {
         private readonly Mock<IAccountGroupCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
+        private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
         private CreateAccountGroupCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockIp.Object, _mockMediator.Object, _mockMapper.Object);
 
         private static CreateAccountGroupCommand ValidCommand() =>
-            new() { CompanyId = 1, GroupCode = "A-CA-INV-FF", GroupName = "Finished Goods — Fabric", ParentAccountGroupId = 5, SortOrder = 1 };
+            new() { GroupCode = "A-CA-INV-FF", GroupName = "Finished Goods — Fabric", ParentAccountGroupId = 5, SortOrder = 1 };
 
         private void SetupHappyPath(int newId = 1)
         {
+            _mockIp.Setup(s => s.GetCompanyId()).Returns(1);
+
             _mockMapper
                 .Setup(m => m.Map<FinanceManagement.Domain.Entities.AccountGroup>(It.IsAny<CreateAccountGroupCommand>()))
                 .Returns(new FinanceManagement.Domain.Entities.AccountGroup());

@@ -32,7 +32,7 @@ namespace FinanceManagement.UnitTests.Controllers
                     TotalCount = 0
                 });
 
-            var result = await CreateSut().GetAccountGroupTreeAsync(null);
+            var result = await CreateSut().GetAccountGroupTreeAsync();
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -68,7 +68,7 @@ namespace FinanceManagement.UnitTests.Controllers
                 .Setup(m => m.Send(It.IsAny<GetAccountGroupParentsQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<AccountGroupLookupDto>)new List<AccountGroupLookupDto>());
 
-            var result = await CreateSut().GetAccountGroupParentsAsync(2, null);
+            var result = await CreateSut().GetAccountGroupParentsAsync(2);
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -80,7 +80,7 @@ namespace FinanceManagement.UnitTests.Controllers
                 .Setup(m => m.Send(It.IsAny<GetAccountGroupLeavesQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((IReadOnlyList<AccountGroupLookupDto>)new List<AccountGroupLookupDto>());
 
-            var result = await CreateSut().GetAccountGroupLeavesAsync(1, 3);
+            var result = await CreateSut().GetAccountGroupLeavesAsync(3);
 
             result.Should().BeOfType<OkObjectResult>();
         }
@@ -94,7 +94,6 @@ namespace FinanceManagement.UnitTests.Controllers
 
             var result = await CreateSut().CreateAccountGroup(new CreateAccountGroupCommand
             {
-                CompanyId = 1,
                 GroupCode = "A-CA-INV-FF",
                 GroupName = "Finished Goods — Fabric",
                 ParentAccountGroupId = 5

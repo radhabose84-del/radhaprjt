@@ -20,9 +20,9 @@ namespace FinanceManagement.Presentation.Controllers
         public AccountGroupController(IMediator mediator) : base(mediator) { }
 
         [HttpGet("tree")]
-        public async Task<IActionResult> GetAccountGroupTreeAsync([FromQuery] int? companyId = null)
+        public async Task<IActionResult> GetAccountGroupTreeAsync()
         {
-            var result = await Mediator.Send(new GetAccountGroupTreeQuery { CompanyId = companyId });
+            var result = await Mediator.Send(new GetAccountGroupTreeQuery());
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -54,9 +54,9 @@ namespace FinanceManagement.Presentation.Controllers
         }
 
         [HttpGet("parents")]
-        public async Task<IActionResult> GetAccountGroupParentsAsync([FromQuery] int level, [FromQuery] int? companyId = null)
+        public async Task<IActionResult> GetAccountGroupParentsAsync([FromQuery] int level)
         {
-            var result = await Mediator.Send(new GetAccountGroupParentsQuery(level, companyId));
+            var result = await Mediator.Send(new GetAccountGroupParentsQuery(level));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,
@@ -66,9 +66,9 @@ namespace FinanceManagement.Presentation.Controllers
 
         // Assignable leaf groups for the GL-account "Account Group" picker.
         [HttpGet("leaf-groups")]
-        public async Task<IActionResult> GetAccountGroupLeavesAsync([FromQuery] int? companyId = null, [FromQuery] int? accountTypeId = null)
+        public async Task<IActionResult> GetAccountGroupLeavesAsync([FromQuery] int? accountTypeId = null)
         {
-            var result = await Mediator.Send(new GetAccountGroupLeavesQuery(companyId, accountTypeId));
+            var result = await Mediator.Send(new GetAccountGroupLeavesQuery(accountTypeId));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

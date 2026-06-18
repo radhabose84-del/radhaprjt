@@ -1002,6 +1002,205 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("EWaybillHeader", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportError", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AttemptedValue")
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("AttemptedValue");
+
+                    b.Property<string>("ColumnName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ColumnName");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<string>("ErrorMessage")
+                        .IsRequired()
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("ErrorMessage");
+
+                    b.Property<int>("ImportLogId")
+                        .HasColumnType("int")
+                        .HasColumnName("ImportLogId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("RecordType")
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("RecordType");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("int")
+                        .HasColumnName("RowNumber");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportLogId");
+
+                    b.ToTable("GlAccountImportError", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountRows")
+                        .HasColumnType("int")
+                        .HasColumnName("AccountRows");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DurationMs")
+                        .HasColumnType("int")
+                        .HasColumnName("DurationMs");
+
+                    b.Property<string>("FileFormat")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("FileFormat");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("varchar(260)")
+                        .HasColumnName("FileName");
+
+                    b.Property<int>("GroupRows")
+                        .HasColumnType("int")
+                        .HasColumnName("GroupRows");
+
+                    b.Property<string>("ImportMode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("ImportMode");
+
+                    b.Property<int>("ImportedAccounts")
+                        .HasColumnType("int")
+                        .HasColumnName("ImportedAccounts");
+
+                    b.Property<int>("ImportedGroups")
+                        .HasColumnType("int")
+                        .HasColumnName("ImportedGroups");
+
+                    b.Property<int>("InvalidRows")
+                        .HasColumnType("int")
+                        .HasColumnName("InvalidRows");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("SkippedRows")
+                        .HasColumnType("int")
+                        .HasColumnName("SkippedRows");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("Status");
+
+                    b.Property<int>("TotalRows")
+                        .HasColumnType("int")
+                        .HasColumnName("TotalRows");
+
+                    b.Property<int>("ValidRows")
+                        .HasColumnType("int")
+                        .HasColumnName("ValidRows");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedDate");
+
+                    b.ToTable("GlAccountImportLog", "Finance");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountMaster", b =>
                 {
                     b.Property<int>("Id")
@@ -1056,6 +1255,10 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("varchar(500)")
                         .HasColumnName("Description");
+
+                    b.Property<int?>("ImportLogId")
+                        .HasColumnType("int")
+                        .HasColumnName("ImportLogId");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
@@ -1122,6 +1325,8 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("CurrencyTypeId");
+
+                    b.HasIndex("ImportLogId");
 
                     b.HasIndex("NormalBalanceId");
 
@@ -2421,6 +2626,17 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("EInvoiceHeader");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportError", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.GlAccountImportLog", "ImportLog")
+                        .WithMany("Errors")
+                        .HasForeignKey("ImportLogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ImportLog");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountMaster", b =>
                 {
                     b.HasOne("FinanceManagement.Domain.Entities.AccountGroup", "AccountGroup")
@@ -2685,6 +2901,11 @@ namespace FinanceManagement.Infrastructure.Migrations
             modelBuilder.Entity("FinanceManagement.Domain.Entities.EWaybillHeader", b =>
                 {
                     b.Navigation("EWaybillDetails");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportLog", b =>
+                {
+                    b.Navigation("Errors");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>

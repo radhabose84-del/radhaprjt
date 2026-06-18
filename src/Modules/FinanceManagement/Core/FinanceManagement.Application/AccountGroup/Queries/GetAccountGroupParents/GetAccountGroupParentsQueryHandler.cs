@@ -1,3 +1,5 @@
+using Contracts.Common;
+using Contracts.Interfaces;
 using FinanceManagement.Application.AccountGroup.Dto;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 using FinanceManagement.Domain.Events;
@@ -8,19 +10,25 @@ namespace FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupPare
     public class GetAccountGroupParentsQueryHandler : IRequestHandler<GetAccountGroupParentsQuery, IReadOnlyList<AccountGroupLookupDto>>
     {
         private readonly IAccountGroupQueryRepository _queryRepository;
+        private readonly IIPAddressService _ipAddressService;
         private readonly IMediator _mediator;
 
         public GetAccountGroupParentsQueryHandler(
             IAccountGroupQueryRepository queryRepository,
+            IIPAddressService ipAddressService,
             IMediator mediator)
         {
             _queryRepository = queryRepository;
+            _ipAddressService = ipAddressService;
             _mediator = mediator;
         }
 
         public async Task<IReadOnlyList<AccountGroupLookupDto>> Handle(GetAccountGroupParentsQuery request, CancellationToken cancellationToken)
         {
-            var result = await _queryRepository.GetParentsByLevelAsync(request.Level, request.CompanyId);
+            var companyId = _ipAddressService.GetCompanyId()
+                ?? throw new ExceptionRules("No active company in session.");
+
+            var result = await _queryRepository.GetParentsByLevelAsync(request.Level, companyId);
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetAll",
