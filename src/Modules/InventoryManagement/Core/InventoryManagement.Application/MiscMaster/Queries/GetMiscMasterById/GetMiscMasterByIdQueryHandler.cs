@@ -24,8 +24,11 @@ namespace InventoryManagement.Application.MiscMaster.Queries.GetMiscMasterById
         {
                   
             var result = await _miscMasterQueryRepository.GetByIdAsync(request.Id);
-          
-           
+
+            // Missing id → return null instead of NRE-ing on the audit deref below (was a 500).
+            if (result == null)
+                return null!;
+
             var misctypemaster = _mapper.Map<GetMiscMasterDto>(result);
 
             //Domain Event

@@ -10,10 +10,33 @@ public sealed class CurrencyQATests
     // Currency-specific test data
     // Code: 3-6 alphabetic chars only (AlphabeticOnly pattern, no digits/symbols)
     // Name: alphabetic + spaces only (AlphabeticWithSpaces pattern)
-    private const string TestCode = "QATST";
+    // The backend DOES enforce Currency-code uniqueness, so the code must be run-unique
+    // (derived from the run-unique EntityCode, digits mapped to letters) — otherwise a
+    // hardcoded code collides with a prior run's row and Create 400s ("already exists"),
+    // cascading to every downstream test. This keeps the suite re-runnable without a reset.
+    private readonly string TestCode;
     private const string TestName = "QA Test Currency";
 
-    public CurrencyQATests(QAServerFixture fixture) => _f = fixture;
+    public CurrencyQATests(QAServerFixture fixture)
+    {
+        _f = fixture;
+        TestCode = MakeAlphaCode(_f.EntityCode);
+    }
+
+    // Currency code must be 3-6 ALPHABETIC chars (no digits). Map the run-unique EntityCode's
+    // digits to letters (0->A .. 9->J) and take 5 chars so each run gets a fresh, valid code.
+    private static string MakeAlphaCode(string entityCode)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var c in entityCode)
+        {
+            if (char.IsDigit(c)) sb.Append((char)('A' + (c - '0')));
+            else if (char.IsLetter(c)) sb.Append(char.ToUpperInvariant(c));
+            if (sb.Length == 5) break;
+        }
+        while (sb.Length < 5) sb.Append('X');
+        return sb.ToString();
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // SECTION 1 — CREATE  (TC001 captures CreatedId)

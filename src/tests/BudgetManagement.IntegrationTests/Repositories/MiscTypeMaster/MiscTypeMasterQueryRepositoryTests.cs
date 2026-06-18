@@ -177,24 +177,25 @@ namespace BudgetManagement.IntegrationTests.Repositories.MiscTypeMaster
         // --- NOT FOUND ---
 
         [Fact]
-        public async Task NotFoundAsync_Should_Return_True_When_Exists()
+        public async Task NotFoundAsync_Should_Return_False_When_Exists()
         {
+            // NotFoundAsync is honest to its name: false when the row EXISTS (count != 0).
             await ClearTableAsync();
             var id = await SeedEntityAsync();
 
             var found = await CreateQueryRepo().NotFoundAsync(id);
 
-            found.Should().BeTrue();
+            found.Should().BeFalse();
         }
 
         [Fact]
-        public async Task NotFoundAsync_Should_Return_False_When_NotExists()
+        public async Task NotFoundAsync_Should_Return_True_When_NotExists()
         {
             await ClearTableAsync();
 
             var found = await CreateQueryRepo().NotFoundAsync(9999);
 
-            found.Should().BeFalse();
+            found.Should().BeTrue();
         }
     }
 }

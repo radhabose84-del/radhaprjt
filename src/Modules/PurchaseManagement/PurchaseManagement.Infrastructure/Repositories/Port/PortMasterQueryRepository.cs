@@ -87,6 +87,13 @@ public sealed class PortMasterQueryRepository : IPortMasterQueryRepository
         return count == 0;
     }
 
+    public async Task<bool> AlreadyExistsAsync(string portCode, CancellationToken ct)
+    {
+        const string sql = "SELECT COUNT(1) FROM [Purchase].[PortMaster] WHERE PortCode = @portCode AND IsDeleted = 0";
+        var count = await _db.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { portCode }, cancellationToken: ct));
+        return count > 0;
+    }
+
     public async Task<bool> SoftDeleteValidationAsync(int id)
     {
         const string query = @"

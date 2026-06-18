@@ -17,4 +17,41 @@ namespace FinanceManagement.QATests
 
     [CollectionDefinition("AccountGroupCollection")]
     public sealed class AccountGroupCollection : ICollectionFixture<QAServerFixture> { }
+
+    // ── Added 2026-06-17: remaining Finance entities (extends the existing suite) ──
+    [CollectionDefinition("FinMiscMasterCollection")]
+    public sealed class FinMiscMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("FinMiscTypeMasterCollection")]
+    public sealed class FinMiscTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("AccountTypeMasterCollection")]
+    public sealed class AccountTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("TransactionTypeMasterCollection")]
+    public sealed class TransactionTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("DocumentSequenceCollection")]
+    public sealed class DocumentSequenceCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("GlAccountMasterCollection")]
+    public sealed class GlAccountMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("GstrSectionMasterCollection")]
+    public sealed class GstrSectionMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("GstrSectionAccountLinkageCollection")]
+    public sealed class GstrSectionAccountLinkageCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("TaxAccountLinkageCollection")]
+    public sealed class TaxAccountLinkageCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("EInvoiceHeaderCollection")]
+    public sealed class EInvoiceHeaderCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("EWaybillHeaderCollection")]
+    public sealed class EWaybillHeaderCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("FinAuditLogCollection")]
+    public sealed class FinAuditLogCollection : ICollectionFixture<QAServerFixture> { }
 }
