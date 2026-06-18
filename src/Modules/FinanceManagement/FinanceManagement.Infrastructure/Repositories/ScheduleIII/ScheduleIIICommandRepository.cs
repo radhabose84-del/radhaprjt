@@ -19,6 +19,9 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
         public async Task<int> CreateMasterAsync(ScheduleIIIMaster entity)
         {
+            // A new master always starts as DRAFT (MiscMaster S3_STATUS = DRAFT) — status is not client-supplied.
+            entity.StatusId = await ResolveMiscIdAsync("S3_STATUS", "DRAFT");
+
             await _applicationDbContext.ScheduleIIIMaster.AddAsync(entity);
             await _applicationDbContext.SaveChangesAsync();
             return entity.Id;
@@ -203,7 +206,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return subTotal.Id;
         }
 
-        public async Task<int> UpdateSubTotalAsync(int subTotalId, int subTotalTypeId, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas)
+        public async Task<int> UpdateSubTotalAsync(int subTotalId, string? formulaName, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas)
         {
             var existing = await _applicationDbContext.ScheduleIIISubTotal
                 .FirstOrDefaultAsync(x => x.Id == subTotalId && x.IsDeleted == IsDelete.NotDeleted);
@@ -211,17 +214,18 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             if (existing == null)
                 return 0;
 
-            existing.SubTotalTypeId = subTotalTypeId;
+            existing.FormulaName = formulaName;
             existing.IncludeOtherIncome = includeOtherIncome;
             existing.FormulaExpression = await BuildExpressionAsync(formulas);
 
-            // Replace the operand set: soft-delete the old rows, insert the new ones.
+            // Replace the operand set: PHYSICALLY delete the old rows, then insert the new ones.
+            // ScheduleIIISubTotalFormula is IActivityTracked, so the SaveChanges interceptor records each
+            // hard delete as a "Delete" entry in Finance.ActivityLog (with the old operand values).
             var oldFormulas = await _applicationDbContext.ScheduleIIISubTotalFormula
-                .Where(f => f.SubTotalId == subTotalId && f.IsDeleted == IsDelete.NotDeleted)
+                .Where(f => f.SubTotalId == subTotalId)
                 .ToListAsync();
 
-            foreach (var f in oldFormulas)
-                f.IsDeleted = IsDelete.Deleted;
+            _applicationDbContext.ScheduleIIISubTotalFormula.RemoveRange(oldFormulas);
 
             foreach (var f in formulas)
                 f.SubTotalId = subTotalId;
@@ -241,35 +245,25 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
             var ordered = formulas.OrderBy(f => f.DisplayOrder).ToList();
 
-            var miscIds = ordered.Select(f => f.OperatorId)
-                .Concat(ordered.Select(f => f.OperandTypeId))
-                .Distinct()
-                .ToList();
-            var miscCodes = await _applicationDbContext.MiscMaster
-                .Where(m => miscIds.Contains(m.Id))
+            var operatorIds = ordered.Select(f => f.OperatorId).Distinct().ToList();
+            var operatorCodes = await _applicationDbContext.MiscMaster
+                .Where(m => operatorIds.Contains(m.Id))
                 .ToDictionaryAsync(m => m.Id, m => m.Code);
 
-            var refIds = ordered.Select(f => f.OperandRefId).Distinct().ToList();
+            // Operands reference a line item directly (SectionItemId).
+            var sectionItemIds = ordered.Where(f => f.SectionItemId.HasValue)
+                .Select(f => f.SectionItemId!.Value).Distinct().ToList();
             var lineNames = await _applicationDbContext.ScheduleIIISectionItem
-                .Where(l => refIds.Contains(l.Id))
+                .Where(l => sectionItemIds.Contains(l.Id))
                 .ToDictionaryAsync(l => l.Id, l => l.LineName);
-            // Sub-total node name lives in MiscMaster (S3_SUBTOTAL_TYPE) — resolve SubTotalId -> MiscMaster.Description.
-            var subNames = await (from s in _applicationDbContext.ScheduleIIISubTotal
-                                  where refIds.Contains(s.Id)
-                                  join m in _applicationDbContext.MiscMaster on s.SubTotalTypeId equals m.Id
-                                  select new { s.Id, m.Description })
-                                  .ToDictionaryAsync(x => x.Id, x => x.Description);
 
             var parts = new List<string>();
             foreach (var f in ordered)
             {
-                var opCode = miscCodes.TryGetValue(f.OperatorId, out var oc) ? oc : string.Empty;
+                var opCode = operatorCodes.TryGetValue(f.OperatorId, out var oc) ? oc : string.Empty;
                 var symbol = string.Equals(opCode, "MINUS", StringComparison.OrdinalIgnoreCase) ? "-" : "+";
 
-                var typeCode = miscCodes.TryGetValue(f.OperandTypeId, out var tc) ? tc : string.Empty;
-                var name = string.Equals(typeCode, "SUBTOTAL", StringComparison.OrdinalIgnoreCase)
-                    ? (subNames.TryGetValue(f.OperandRefId, out var sn) ? sn : null)
-                    : (lineNames.TryGetValue(f.OperandRefId, out var ln) ? ln : null);
+                var name = f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln) ? ln : null;
 
                 parts.Add($"{symbol} {name}");
             }

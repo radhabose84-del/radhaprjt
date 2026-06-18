@@ -7,8 +7,8 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         // Composite reads — a structure is identified by (CompanyId, DivisionId).
         Task<ScheduleIIIMasterDto?> GetStructureAsync(int companyId, int divisionId);
         Task<Preview03BDto> Get03BPreviewAsync(int companyId, int divisionId);
-        Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync(int companyId, int divisionId);
-        Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync();   // Edit-formula picker: P&L lines + sub-total nodes
+        Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync();
+        Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync(int? subTotalId);   // Edit-formula picker: P&L lines + sub-total nodes, with current +/− selection
         Task<ScheduleIIISectionItemDto?> GetLineItemByIdAsync(int id);
 
         // Activity log (Finance.ActivityLog) — Update/Delete change trail

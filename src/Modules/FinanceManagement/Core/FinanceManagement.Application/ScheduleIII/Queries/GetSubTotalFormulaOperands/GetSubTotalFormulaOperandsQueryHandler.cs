@@ -21,7 +21,7 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.GetSubTotalFormulaOp
         public async Task<ApiResponseDTO<List<SubTotalFormulaOperandDto>>> Handle(
             GetSubTotalFormulaOperandsQuery request, CancellationToken cancellationToken)
         {
-            var data = await _queryRepository.GetSubTotalFormulaOperandsAsync();
+            var data = await _queryRepository.GetSubTotalFormulaOperandsAsync(request.SubTotalId);
 
             await _mediator.Publish(new AuditLogsDomainEvent(
                 actionDetail: "GetSubTotalFormulaOperands", actionCode: "Get", actionName: data.Count.ToString(),

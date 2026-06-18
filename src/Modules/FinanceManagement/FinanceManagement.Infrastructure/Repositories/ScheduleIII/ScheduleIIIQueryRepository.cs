@@ -84,30 +84,28 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             }
 
             structure.Sections = sections;
-            structure.SubTotals = await GetSubTotalsAsync(companyId, divisionId);
+            structure.SubTotals = await GetSubTotalsAsync();
             return structure;
         }
 
-        public async Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync()
+        public async Task<List<SubTotalFormulaOperandDto>> GetSubTotalFormulaOperandsAsync(int? subTotalId)
         {
-            // Candidate operands for a sub-total formula: active P&L line items + the S3_SUBTOTAL_TYPE nodes.
+            // Candidate operands = active P&L line items, LEFT JOINed to the sub-total's existing formula
+            // so each row shows its current +/− selection (off / + / −).
             const string sql = @"
-                SELECT li.Id AS Id, li.LineName AS Name, 'LINEITEM' AS Kind
+                SELECT li.Id AS Id, li.LineName AS Name, 'LINEITEM' AS Kind,
+                       CASE WHEN f.Id IS NULL THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END AS IsSelected,
+                       f.OperatorId, op.Code AS OperatorCode, f.DisplayOrder
                 FROM [Finance].[ScheduleIIISectionItem] li
                 JOIN [Finance].[ScheduleIIISection] sec ON li.SectionId = sec.Id AND sec.IsDeleted = 0
                 JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0 AND stt.Code = 'PL'
+                LEFT JOIN [Finance].[ScheduleIIISubTotalFormula] f
+                    ON f.SubTotalId = @SubTotalId AND f.IsDeleted = 0 AND f.SectionItemId = li.Id
+                LEFT JOIN [Finance].[MiscMaster] op ON f.OperatorId = op.Id AND op.IsDeleted = 0
                 WHERE li.IsDeleted = 0 AND li.IsActive = 1
+                ORDER BY li.LineName;";
 
-                UNION ALL
-
-                SELECT mm.Id AS Id, mm.Description AS Name, 'SUBTOTAL' AS Kind
-                FROM [Finance].[MiscMaster] mm
-                JOIN [Finance].[MiscTypeMaster] mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
-                WHERE mt.MiscTypeCode = 'S3_SUBTOTAL_TYPE' AND mm.IsActive = 1 AND mm.IsDeleted = 0
-
-                ORDER BY Kind, Name;";
-
-            var result = await _dbConnection.QueryAsync<SubTotalFormulaOperandDto>(sql);
+            var result = await _dbConnection.QueryAsync<SubTotalFormulaOperandDto>(sql, new { SubTotalId = subTotalId });
             return result.ToList();
         }
 
@@ -197,18 +195,16 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return preview;
         }
 
-        public async Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync(int companyId, int divisionId)
+        public async Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync()
         {
             const string subTotalSql = @"
-                SELECT st.Id, st.CompanyId, st.DivisionId, st.SubTotalTypeId, stt.Description AS SubTotalName,
-                       st.FormulaExpression, st.IncludeOtherIncome, st.IsSystemDefined, st.DisplayOrder, st.IsActive
+                SELECT st.Id, st.FormulaName,
+                       st.FormulaExpression, st.IncludeOtherIncome, st.DisplayOrder, st.IsActive
                 FROM [Finance].[ScheduleIIISubTotal] st
-                LEFT JOIN [Finance].[MiscMaster] stt ON st.SubTotalTypeId = stt.Id AND stt.IsDeleted = 0
-                WHERE st.CompanyId = @CompanyId AND st.DivisionId = @DivisionId AND st.IsDeleted = 0
+                WHERE st.IsDeleted = 0
                 ORDER BY st.DisplayOrder;";
 
-            var subTotals = (await _dbConnection.QueryAsync<ScheduleIIISubTotalDto>(
-                subTotalSql, new { CompanyId = companyId, DivisionId = divisionId })).ToList();
+            var subTotals = (await _dbConnection.QueryAsync<ScheduleIIISubTotalDto>(subTotalSql)).ToList();
 
             if (subTotals.Count == 0)
                 return subTotals;
@@ -216,7 +212,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             const string formulaSql = @"
                 SELECT f.Id, f.SubTotalId,
                        f.OperandTypeId, ot.Description AS OperandTypeName, ot.Code AS OperandTypeCode,
-                       f.OperandRefId,
+                       f.SectionItemId,
                        f.OperatorId, op.Description AS OperatorName,
                        f.DisplayOrder
                 FROM [Finance].[ScheduleIIISubTotalFormula] f
@@ -228,23 +224,16 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             var formulas = (await _dbConnection.QueryAsync<FormulaRow>(
                 formulaSql, new { SubTotalIds = subTotals.Select(s => s.Id).ToArray() })).ToList();
 
-            // Resolve operand display names. Lines are a global catalog — resolve by the operand ref ids.
-            var lineRefIds = formulas.Select(f => f.OperandRefId).Distinct().ToArray();
+            // Operands reference a line item directly (SectionItemId) — resolve its name.
+            var lineRefIds = formulas.Where(f => f.SectionItemId.HasValue).Select(f => f.SectionItemId!.Value).Distinct().ToArray();
             var lineNames = lineRefIds.Length == 0
                 ? new Dictionary<int, string?>()
                 : (await _dbConnection.QueryAsync<(int Id, string? LineName)>(
                     "SELECT Id, LineName FROM [Finance].[ScheduleIIISectionItem] WHERE Id IN @Ids AND IsDeleted = 0",
                     new { Ids = lineRefIds })).ToDictionary(x => x.Id, x => x.LineName);
 
-            var subTotalNames = subTotals.ToDictionary(s => s.Id, s => s.SubTotalName);
-
             foreach (var f in formulas)
-            {
-                if (string.Equals(f.OperandTypeCode, "SUBTOTAL", StringComparison.OrdinalIgnoreCase))
-                    f.OperandName = subTotalNames.TryGetValue(f.OperandRefId, out var sn) ? sn : null;
-                else
-                    f.OperandName = lineNames.TryGetValue(f.OperandRefId, out var ln) ? ln : null;
-            }
+                f.OperandName = f.SectionItemId.HasValue && lineNames.TryGetValue(f.SectionItemId.Value, out var ln) ? ln : null;
 
             foreach (var st in subTotals)
             {

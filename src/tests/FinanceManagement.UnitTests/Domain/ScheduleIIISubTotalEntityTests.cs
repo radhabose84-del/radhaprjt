@@ -13,10 +13,6 @@ namespace FinanceManagement.UnitTests.Domain
             new ScheduleIIISubTotal().IsDeleted.Should().Be(IsDelete.NotDeleted);
 
         [Fact]
-        public void IsSystemDefined_DefaultsToTrue() =>
-            new ScheduleIIISubTotal().IsSystemDefined.Should().BeTrue();
-
-        [Fact]
         public void ShouldInheritFromBaseEntity() =>
             typeof(FinanceManagement.Domain.Common.BaseEntity)
                 .IsAssignableFrom(typeof(ScheduleIIISubTotal)).Should().BeTrue();
@@ -27,16 +23,13 @@ namespace FinanceManagement.UnitTests.Domain
             var entity = new ScheduleIIISubTotal
             {
                 Id = 2,
-                CompanyId = 1,
-                DivisionId = 7,
-                SubTotalTypeId = 29,
+                FormulaName = "EBITDA",
                 FormulaExpression = "Gross Profit + Other Income - Operating Expenses",
                 IncludeOtherIncome = true,
-                IsSystemDefined = true,
                 DisplayOrder = 2
             };
 
-            entity.SubTotalTypeId.Should().Be(29);
+            entity.FormulaName.Should().Be("EBITDA");
             entity.FormulaExpression.Should().Contain("Other Income");
             entity.IncludeOtherIncome.Should().BeTrue();
             entity.DisplayOrder.Should().Be(2);
