@@ -27,7 +27,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateLineItem
 
         public async Task<ApiResponseDTO<int>> Handle(CreateLineItemCommand request, CancellationToken cancellationToken)
         {
-            var entity = _mapper.Map<Domain.Entities.ScheduleIIILineItem>(request);
+            var entity = _mapper.Map<Domain.Entities.ScheduleIIISectionItem>(request);
 
             var newId = await _commandRepository.CreateLineItemAsync(entity);
 
@@ -36,7 +36,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateLineItem
                 actionCode: "S3_LINEITEM_CREATE",
                 actionName: request.LineName ?? string.Empty,
                 details: $"Schedule III line item '{request.LineName}' created successfully with Id {newId}.",
-                module: "ScheduleIIILineItem"
+                module: "ScheduleIIISectionItem"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 

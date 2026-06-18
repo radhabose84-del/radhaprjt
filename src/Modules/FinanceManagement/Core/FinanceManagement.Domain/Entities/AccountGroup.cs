@@ -17,10 +17,10 @@ namespace FinanceManagement.Domain.Entities
         public int? AccountTypeId { get; set; }
         public AccountTypeMaster? AccountType { get; set; }
 
-        // Schedule III statutory line mapping (FR-003). FK to Finance.ScheduleIIILineItem; nullable
+        // Schedule III statutory line mapping (FR-003). FK to Finance.ScheduleIIISectionItem; nullable
         // because a group may not be mapped yet.
-        public int? ScheduleIIILineItemId { get; set; }
-        public ScheduleIIILineItem? ScheduleIIILineItem { get; set; }
+        public int? ScheduleIIISectionItemId { get; set; }
+        public ScheduleIIISectionItem? ScheduleIIISectionItem { get; set; }
 
         // Self-referencing parent (NULL = Level 1 root). Enforces the single-parent rule structurally.
         public int? ParentAccountGroupId { get; set; }

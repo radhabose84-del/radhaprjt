@@ -6,7 +6,6 @@ using FinanceManagement.Domain.Entities;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
 using FinanceManagement.IntegrationTests.Common;
-using static FinanceManagement.Domain.Common.BaseEntity;
 
 namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
 {
@@ -20,43 +19,27 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             _fixture = fixture;
         }
 
-        private ScheduleIIIQueryRepository CreateQueryRepo(
-            Mock<ICompanyLookup>? companyLookup = null,
-            Mock<IDivisionLookup>? divisionLookup = null)
+        private ScheduleIIIQueryRepository CreateQueryRepo()
         {
-            companyLookup ??= BuildCompanyLookup();
-            divisionLookup ??= BuildDivisionLookup();
-            var conn = new SqlConnection(_fixture.ConnectionString);
-            return new ScheduleIIIQueryRepository(conn, companyLookup.Object, divisionLookup.Object);
+            var company = new Mock<ICompanyLookup>(MockBehavior.Loose);
+            company.Setup(c => c.GetAllCompanyAsync())
+                .ReturnsAsync(new List<CompanyLookupDto> { new() { CompanyId = 1, CompanyName = "Acme Mills" } });
+            var division = new Mock<IDivisionLookup>(MockBehavior.Loose);
+            division.Setup(d => d.GetByIdsAsync(It.IsAny<IEnumerable<int>>()))
+                .ReturnsAsync(new List<DivisionLookupDto> { new() { Id = 7, Name = "Spinning Division" } });
+            return new ScheduleIIIQueryRepository(new SqlConnection(_fixture.ConnectionString), company.Object, division.Object);
         }
-
-        private static Mock<ICompanyLookup> BuildCompanyLookup(int companyId = 1, string name = "Acme Mills")
-        {
-            var mock = new Mock<ICompanyLookup>(MockBehavior.Loose);
-            mock.Setup(c => c.GetAllCompanyAsync())
-                .ReturnsAsync(new List<CompanyLookupDto> { new() { CompanyId = companyId, CompanyName = name } });
-            return mock;
-        }
-
-        private static Mock<IDivisionLookup> BuildDivisionLookup(int divisionId = 7, string name = "Spinning Division")
-        {
-            var mock = new Mock<IDivisionLookup>(MockBehavior.Loose);
-            mock.Setup(d => d.GetByIdsAsync(It.IsAny<IEnumerable<int>>()))
-                .ReturnsAsync(new List<DivisionLookupDto> { new() { Id = divisionId, Name = name } });
-            return mock;
-        }
-
-        // ---- seeding (via EF) ------------------------------------------------
 
         private static async Task<Dictionary<string, int>> SeedMiscAsync(ApplicationDbContext ctx)
         {
             var groups = new (string Type, (string Code, string Desc)[] Values)[]
             {
                 ("S3_STMT_TYPE",    new[] { ("BS", "Balance Sheet"), ("PL", "Statement of P&L") }),
-                ("S3_NATURE",       new[] { ("ASSET", "Asset"), ("INCOME", "Income"), ("EXPENSE", "Expense") }),
+                ("S3_NATURE",       new[] { ("ASSET", "Asset"), ("INCOME", "Income") }),
                 ("S3_STATUS",       new[] { ("DRAFT", "Draft"), ("LOCKED", "Locked") }),
                 ("S3_OPERATOR",     new[] { ("PLUS", "Plus"), ("MINUS", "Minus") }),
                 ("S3_OPERAND_TYPE", new[] { ("LINEITEM", "Line Item"), ("SUBTOTAL", "Sub Total") }),
+                ("S3_SUBTOTAL_TYPE",new[] { ("GROSSPROFIT", "Gross Profit"), ("EBITDA", "EBITDA") }),
             };
             var map = new Dictionary<string, int>();
             foreach (var g in groups)
@@ -75,39 +58,34 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             return map;
         }
 
-        private static async Task<int> SeedStructureAsync(ApplicationDbContext ctx, int statusId, int companyId = 1, int divisionId = 7)
+        private static async Task<int> SeedMasterAsync(ApplicationDbContext ctx, int statusId, int companyId = 1, int divisionId = 7)
         {
-            var s = new ScheduleIIIStructure
-            { CompanyId = companyId, DivisionId = divisionId, StructureStatusId = statusId, VersionNo = 3 };
-            ctx.ScheduleIIIStructure.Add(s);
+            var s = new ScheduleIIIMaster { CompanyId = companyId, DivisionId = divisionId, StatusId = statusId, VersionNo = 3 };
+            ctx.ScheduleIIIMaster.Add(s);
             await ctx.SaveChangesAsync();
             return s.Id;
         }
 
-        private static async Task<int> SeedSectionAsync(ApplicationDbContext ctx, int structureId, int stmtTypeId, int natureId, string name, int order)
+        private static async Task<int> SeedSectionAsync(ApplicationDbContext ctx, int stmtTypeId, int natureId, string name)
         {
-            var sec = new ScheduleIIISection
-            { StructureId = structureId, SectionName = name, StatementTypeId = stmtTypeId, NatureId = natureId, DisplayOrder = order };
+            var sec = new ScheduleIIISection { SectionName = name, StatementTypeId = stmtTypeId, NatureId = natureId };
             ctx.ScheduleIIISection.Add(sec);
             await ctx.SaveChangesAsync();
             return sec.Id;
         }
 
-        private static async Task<int> SeedLineAsync(ApplicationDbContext ctx, int structureId, int sectionId, string code, string name, int order, int? parentId = null, Status active = Status.Active)
+        private static async Task<int> SeedLineAsync(ApplicationDbContext ctx, int sectionId, string code, string name)
         {
-            var line = new ScheduleIIILineItem
-            {
-                StructureId = structureId,
-                SectionId = sectionId,
-                ParentLineId = parentId,
-                LineCode = code,
-                LineName = name,
-                DisplayOrder = order,
-                IsActive = active
-            };
-            ctx.ScheduleIIILineItem.Add(line);
+            var line = new ScheduleIIISectionItem { SectionId = sectionId, LineCode = code, LineName = name };
+            ctx.ScheduleIIISectionItem.Add(line);
             await ctx.SaveChangesAsync();
             return line.Id;
+        }
+
+        private static async Task SeedMasterLineAsync(ApplicationDbContext ctx, int masterId, int lineId, int order)
+        {
+            ctx.ScheduleIIIMasterLine.Add(new ScheduleIIIMasterLine { ScheduleIIIMasterId = masterId, ScheduleIIISectionItemId = lineId, DisplayOrder = order });
+            await ctx.SaveChangesAsync();
         }
 
         // ---- EXISTENCE / LOCK ------------------------------------------------
@@ -118,7 +96,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            await SeedStructureAsync(ctx, misc["DRAFT"], companyId: 1, divisionId: 7);
+            await SeedMasterAsync(ctx, misc["DRAFT"], companyId: 1, divisionId: 7);
 
             var repo = CreateQueryRepo();
             (await repo.StructureExistsByCompanyDivisionAsync(1, 7)).Should().BeTrue();
@@ -131,26 +109,53 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            var draft = await SeedStructureAsync(ctx, misc["DRAFT"], companyId: 1, divisionId: 7);
-            var locked = await SeedStructureAsync(ctx, misc["LOCKED"], companyId: 1, divisionId: 8);
+            var draft = await SeedMasterAsync(ctx, misc["DRAFT"], divisionId: 7);
+            var locked = await SeedMasterAsync(ctx, misc["LOCKED"], divisionId: 8);
 
             var repo = CreateQueryRepo();
             (await repo.IsStructureLockedAsync(draft)).Should().BeFalse();
             (await repo.IsStructureLockedAsync(locked)).Should().BeTrue();
         }
 
-        // ---- GET STRUCTURE ---------------------------------------------------
-
         [Fact]
-        public async Task GetStructure_Returns_Sections_NestedLines_And_Names()
+        public async Task SectionExists_TrueThenFalse()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            var structureId = await SeedStructureAsync(ctx, misc["DRAFT"], companyId: 1, divisionId: 7);
-            var section = await SeedSectionAsync(ctx, structureId, misc["BS"], misc["ASSET"], "Non-Current Assets", 1);
-            var ppe = await SeedLineAsync(ctx, structureId, section, "PPE", "Property, Plant and Equipment", 1);
-            await SeedLineAsync(ctx, structureId, section, "PPE-TAN", "Tangible assets", 1, parentId: ppe);
+            var sectionId = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Assets");
+
+            var repo = CreateQueryRepo();
+            (await repo.SectionExistsAsync(sectionId)).Should().BeTrue();
+            (await repo.SectionExistsAsync(99999)).Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task SubTotalTypeExists_TrueThenFalse()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+
+            var repo = CreateQueryRepo();
+            (await repo.SubTotalTypeExistsAsync(misc["GROSSPROFIT"])).Should().BeTrue();
+            (await repo.SubTotalTypeExistsAsync(misc["BS"])).Should().BeFalse();   // wrong misc type
+        }
+
+        // ---- GET STRUCTURE (via junction) ------------------------------------
+
+        [Fact]
+        public async Task GetStructure_Returns_Sections_With_LinkedLines()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"], companyId: 1, divisionId: 7);
+            var section = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Non-Current Assets");
+            var ppe = await SeedLineAsync(ctx, section, "PPE", "Property, Plant and Equipment");
+            var inv = await SeedLineAsync(ctx, section, "INV", "Inventories");
+            await SeedMasterLineAsync(ctx, masterId, ppe, 1);
+            await SeedMasterLineAsync(ctx, masterId, inv, 2);
 
             var dto = await CreateQueryRepo().GetStructureAsync(1, 7);
 
@@ -159,98 +164,58 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             dto.DivisionName.Should().Be("Spinning Division");
             dto.StructureStatusName.Should().Be("Draft");
             dto.Sections.Should().HaveCount(1);
-            dto.Sections[0].StatementTypeName.Should().Be("Balance Sheet");
-            dto.Sections[0].NatureName.Should().Be("Asset");
-            dto.Sections[0].LineItems.Should().HaveCount(1);               // PPE is the only top-level line
-            dto.Sections[0].LineItems[0].ChildLines.Should().HaveCount(1); // Tangible nested under PPE
+            dto.Sections[0].LineItems.Should().HaveCount(2);
+            dto.Sections[0].LineItems.Select(l => l.LineCode).Should().Contain(new[] { "PPE", "INV" });
         }
 
-        [Fact]
-        public async Task GetStructure_Missing_ReturnsNull()
-        {
-            await _fixture.ClearAllTablesAsync();
-            (await CreateQueryRepo().GetStructureAsync(1, 7)).Should().BeNull();
-        }
-
-        // ---- 03B PREVIEW -----------------------------------------------------
+        // ---- GET MASTER LINES ------------------------------------------------
 
         [Fact]
-        public async Task Get03BPreview_Splits_BS_and_PL_And_Excludes_Inactive()
+        public async Task GetMasterLines_Returns_Linked_Lines_With_Names()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            var structureId = await SeedStructureAsync(ctx, misc["DRAFT"]);
-            var bs = await SeedSectionAsync(ctx, structureId, misc["BS"], misc["ASSET"], "Current Assets", 1);
-            var pl = await SeedSectionAsync(ctx, structureId, misc["PL"], misc["EXPENSE"], "Expenses", 2);
-            await SeedLineAsync(ctx, structureId, bs, "INV", "Inventories", 1);
-            await SeedLineAsync(ctx, structureId, pl, "COMC", "Cost of Materials Consumed", 1);
-            await SeedLineAsync(ctx, structureId, pl, "OLD", "Inactive line", 2, active: Status.Inactive);
+            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
+            var section = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Assets");
+            var inv = await SeedLineAsync(ctx, section, "INV", "Inventories");
+            await SeedMasterLineAsync(ctx, masterId, inv, 1);
 
-            var preview = await CreateQueryRepo().Get03BPreviewAsync(structureId);
+            var result = await CreateQueryRepo().GetMasterLinesAsync(masterId);
 
-            preview.BalanceSheetLeaves.Should().ContainSingle(x => x.LineName == "Inventories");
-            preview.ProfitAndLossLeaves.Should().ContainSingle(x => x.LineName == "Cost of Materials Consumed");
-            preview.ProfitAndLossLeaves.Should().NotContain(x => x.LineName == "Inactive line");
+            result.Should().HaveCount(1);
+            result[0].LineCode.Should().Be("INV");
+            result[0].LineName.Should().Be("Inventories");
+            result[0].SectionName.Should().Be("Current Assets");
         }
 
-        // ---- SUB-TOTALS ------------------------------------------------------
+        // ---- GET SUB-TOTALS --------------------------------------------------
 
         [Fact]
-        public async Task GetSubTotals_Returns_Formulas_With_ResolvedOperandNames()
+        public async Task GetSubTotals_Resolves_Name_From_MiscMaster_And_Operands()
         {
             await _fixture.ClearAllTablesAsync();
             await using var ctx = _fixture.CreateFreshDbContext();
             var misc = await SeedMiscAsync(ctx);
-            var structureId = await SeedStructureAsync(ctx, misc["DRAFT"]);
-            var pl = await SeedSectionAsync(ctx, structureId, misc["PL"], misc["INCOME"], "Income", 1);
-            var revenue = await SeedLineAsync(ctx, structureId, pl, "REV", "Revenue", 1);
+            var masterId = await SeedMasterAsync(ctx, misc["DRAFT"]);
+            var section = await SeedSectionAsync(ctx, misc["PL"], misc["INCOME"], "Income");
+            var revenue = await SeedLineAsync(ctx, section, "REV", "Revenue");
 
             var subTotal = new ScheduleIIISubTotal
-            {
-                StructureId = structureId,
-                SubTotalName = "Gross Profit",
-                FormulaExpression = "Revenue",
-                DisplayOrder = 1
-            };
+            { ScheduleIIIMasterId = masterId, SubTotalTypeId = misc["GROSSPROFIT"], FormulaExpression = "Revenue", DisplayOrder = 1 };
             ctx.ScheduleIIISubTotal.Add(subTotal);
             await ctx.SaveChangesAsync();
             ctx.ScheduleIIISubTotalFormula.Add(new ScheduleIIISubTotalFormula
-            {
-                SubTotalId = subTotal.Id,
-                OperandTypeId = misc["LINEITEM"],
-                OperandRefId = revenue,
-                OperatorId = misc["PLUS"],
-                DisplayOrder = 1
-            });
+            { SubTotalId = subTotal.Id, OperandTypeId = misc["LINEITEM"], OperandRefId = revenue, OperatorId = misc["PLUS"], DisplayOrder = 1 });
             await ctx.SaveChangesAsync();
 
-            var result = await CreateQueryRepo().GetSubTotalsAsync(structureId);
+            var result = await CreateQueryRepo().GetSubTotalsAsync(masterId);
 
             result.Should().HaveCount(1);
             result[0].SubTotalName.Should().Be("Gross Profit");
             result[0].Formulas.Should().HaveCount(1);
             result[0].Formulas[0].OperandName.Should().Be("Revenue");
             result[0].Formulas[0].OperatorName.Should().Be("Plus");
-        }
-
-        // ---- GET LINE ITEM BY ID --------------------------------------------
-
-        [Fact]
-        public async Task GetLineItemById_Returns_Dto()
-        {
-            await _fixture.ClearAllTablesAsync();
-            await using var ctx = _fixture.CreateFreshDbContext();
-            var misc = await SeedMiscAsync(ctx);
-            var structureId = await SeedStructureAsync(ctx, misc["DRAFT"]);
-            var section = await SeedSectionAsync(ctx, structureId, misc["BS"], misc["ASSET"], "Current Assets", 1);
-            var lineId = await SeedLineAsync(ctx, structureId, section, "INV", "Inventories", 1);
-
-            var dto = await CreateQueryRepo().GetLineItemByIdAsync(lineId);
-
-            dto.Should().NotBeNull();
-            dto!.LineCode.Should().Be("INV");
-            dto.LineName.Should().Be("Inventories");
         }
     }
 }

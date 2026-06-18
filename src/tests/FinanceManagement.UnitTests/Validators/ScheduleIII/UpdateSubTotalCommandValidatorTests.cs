@@ -19,6 +19,7 @@ namespace FinanceManagement.UnitTests.Validators.ScheduleIII
         {
             _mockQueryRepo.Setup(r => r.SubTotalNotFoundAsync(id)).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.GetSubTotalOperandTypeIdAsync()).ReturnsAsync(SubTotalOperandTypeId);
+            _mockQueryRepo.Setup(r => r.SubTotalTypeExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
         }
 
         [Fact]
@@ -28,7 +29,7 @@ namespace FinanceManagement.UnitTests.Validators.ScheduleIII
             var command = new UpdateSubTotalCommand
             {
                 Id = 2,
-                SubTotalName = "EBITDA",
+                SubTotalTypeId = 29,
                 IncludeOtherIncome = true,
                 Formulas = new List<SubTotalFormulaInput>
                 {
@@ -48,7 +49,7 @@ namespace FinanceManagement.UnitTests.Validators.ScheduleIII
             var command = new UpdateSubTotalCommand
             {
                 Id = 2,
-                SubTotalName = "EBITDA",
+                SubTotalTypeId = 29,
                 Formulas = new List<SubTotalFormulaInput>
                 {
                     // operand is a SUBTOTAL pointing at the same sub-total Id (2) -> self reference
@@ -63,14 +64,14 @@ namespace FinanceManagement.UnitTests.Validators.ScheduleIII
         }
 
         [Fact]
-        public async Task Validate_EmptyName_Fails()
+        public async Task Validate_EmptyType_Fails()
         {
             SetupCommon();
-            var command = new UpdateSubTotalCommand { Id = 2, SubTotalName = "" };
+            var command = new UpdateSubTotalCommand { Id = 2, SubTotalTypeId = 0 };
 
             var result = await CreateValidator().TestValidateAsync(command);
 
-            result.ShouldHaveValidationErrorFor(x => x.SubTotalName);
+            result.ShouldHaveValidationErrorFor(x => x.SubTotalTypeId);
         }
     }
 }
