@@ -25,6 +25,11 @@ namespace InventoryManagement.Application.UOMConversion.Queries.GetUOMConversion
         {
 
             var result = await _iUOMConversionQueryRepository.GetByIdAsync(request.Id);
+
+            // Missing id → return null instead of NRE-ing on the audit deref below (was a 500).
+            if (result == null)
+                return null!;
+
             var uomConversion = _mapper.Map<UOMConversionDto>(result);
 
                var domainEvent = new AuditLogsDomainEvent(

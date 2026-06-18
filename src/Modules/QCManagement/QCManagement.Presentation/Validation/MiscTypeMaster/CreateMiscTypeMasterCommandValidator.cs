@@ -44,7 +44,7 @@ namespace QCManagement.Presentation.Validation.MiscTypeMaster
                             .WithMessage($"{nameof(CreateMiscTypeMasterCommand.Description)} {rule.Error}");
                         break;
 
-                    case "AlphabeticWithSeparators":
+                    case "Alphanumeric":
                         RuleFor(x => x.MiscTypeCode)
                             .Matches(rule.Pattern)
                             .WithMessage($"{nameof(CreateMiscTypeMasterCommand.MiscTypeCode)} {rule.Error}")

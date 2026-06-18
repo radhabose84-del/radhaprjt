@@ -225,14 +225,15 @@ namespace MaintenanceManagement.IntegrationTests.Repositories.PowerConsumption
         }
 
         [Fact]
-        public async Task GetOpeningReaderValueById_Should_Throw_When_Feeder_Not_Found()
+        public async Task GetOpeningReaderValueById_Should_Return_Null_When_Feeder_Not_Found()
         {
             await ClearTablesAsync();
 
-            Func<Task> act = async () => await CreateQueryRepo().GetOpeningReaderValueById(9999);
+            // Repository returns null (not an exception) when the feeder is missing or
+            // outside the caller's unit scope — the controller maps null → 404.
+            var result = await CreateQueryRepo().GetOpeningReaderValueById(9999);
 
-            await act.Should().ThrowAsync<Exception>()
-                .WithMessage("*not found*");
+            result.Should().BeNull();
         }
     }
 }

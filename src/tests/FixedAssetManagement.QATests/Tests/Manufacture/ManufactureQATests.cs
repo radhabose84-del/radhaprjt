@@ -38,7 +38,10 @@ public sealed class ManufactureQATests
     {
         id,
         code = NewCode(),
-        manufactureName = "QA Manufacturer",
+        // Run-unique name: the backend enforces uniqueness on ManufactureName, so a fixed
+        // string collides with rows left by earlier runs (the clone reset only clears
+        // testsales rows that this same name may already occupy) → 400 "already exists".
+        manufactureName = $"QA Manufacturer {NewCode()}",
         manufactureType = _manuType,
         countryId = ValidCountryId,
         stateId = ValidStateId,

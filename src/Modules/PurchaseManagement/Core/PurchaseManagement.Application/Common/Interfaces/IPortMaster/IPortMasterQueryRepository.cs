@@ -8,6 +8,7 @@ public interface IPortMasterQueryRepository
     Task<(IReadOnlyList<PortMasterDto> Items, int Total)> GetAllAsync(int page, int size, string? search, int? countryId,int? portTypeId, CancellationToken ct);
     Task<IReadOnlyList<PortLookupDto>> AutocompleteAsync(string term, CancellationToken ct);
     Task<bool> NotFoundAsync(int id, CancellationToken ct);
+    Task<bool> AlreadyExistsAsync(string portCode, CancellationToken ct);
     Task<bool> SoftDeleteValidationAsync(int id);
     Task<bool> IsPortMasterLinkedAsync(int id);
 }
