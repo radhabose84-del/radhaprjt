@@ -16,7 +16,9 @@ using Contracts.Interfaces.Lookups.QC;
 using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Warehouse;
 using Microsoft.Data.SqlClient;
+using PurchaseManagement.Domain.Common;
 using PurchaseManagement.Domain.Entities.Arrival;
+using PurchaseManagement.Domain.Entities.FreightRfq;
 using PurchaseManagement.Domain.Entities.RawMaterialPO;
 using PurchaseManagement.Infrastructure.Data;
 using PurchaseManagement.Infrastructure.Repositories.Arrival;
@@ -307,6 +309,62 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var exists = await CreateQueryRepo().RawMaterialPOExistsAsync(rmpoId);
 
             exists.Should().BeTrue();
+        }
+
+        // Seeds an Approved Freight RFQ against the PO. Inserted directly (not via the command repo, which
+        // forces the status to QuotationPending) so StatusId points at the 'Approved' MiscMaster.
+        private async Task<int> SeedApprovedFreightRfqAsync(
+            ApplicationDbContext ctx, int rmpoId, int approvedTransporterId, decimal approvedRate)
+        {
+            var statusType = await new MiscTypeMasterCommandRepository(ctx).CreateAsync(
+                new PurchaseManagement.Domain.Entities.MiscTypeMaster
+                { MiscTypeCode = MiscEnumEntity.FreightRfqStatus, Description = "Status", IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
+            var approved = await new MiscMasterCommandRepository(ctx).CreateAsync(
+                new PurchaseManagement.Domain.Entities.MiscMaster
+                { Code = MiscEnumEntity.Approved, Description = MiscEnumEntity.Approved, MiscTypeId = statusType.Id, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
+
+            var header = new FreightRfqHeader
+            {
+                FreightRfqNumber = "FRFQ/2025/0007", RfqDate = DateTimeOffset.UtcNow,
+                RfqTypeId = approved.Id, PoReferenceId = rmpoId, SupplierId = 10,
+                SourceLocation = "Adilabad", SourceStation = "Adilabad Yard",
+                DestinationLocation = "Dindigul", DestinationStation = "Dindigul Mill",
+                StatusId = approved.Id,
+                ApprovedTransporterId = approvedTransporterId, ApprovedRate = approvedRate, ApprovedFreightValue = 540000m,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            ctx.Set<FreightRfqHeader>().Add(header);
+            await ctx.SaveChangesAsync();
+            return header.Id;
+        }
+
+        [Fact]
+        public async Task GetApprovedFreightByPoAsync_Should_Return_Approved_Transporter_Party_And_Rate()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (rmpoId, _, _) = await SeedAsync(ctx);
+            await SeedApprovedFreightRfqAsync(ctx, rmpoId, approvedTransporterId: 7, approvedRate: 4500m);
+
+            var dto = await CreateQueryRepo().GetApprovedFreightByPoAsync(rmpoId);
+
+            dto.Should().NotBeNull();
+            dto!.FreightRfqNumber.Should().Be("FRFQ/2025/0007");
+            dto.TransporterId.Should().Be(7);
+            dto.Transporter.Should().Be("TCI Freight");   // resolved via ITransporterLookup mock
+            dto.PartyId.Should().Be(7);                    // approved transporter is a party
+            dto.Party.Should().Be("TCI Freight");
+            dto.FreightRate.Should().Be(4500m);
+        }
+
+        [Fact]
+        public async Task GetApprovedFreightByPoAsync_Should_Return_Null_When_No_Approved_Rfq()
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var (rmpoId, _, _) = await SeedAsync(ctx);
+
+            var dto = await CreateQueryRepo().GetApprovedFreightByPoAsync(rmpoId);
+
+            dto.Should().BeNull();
         }
     }
 }

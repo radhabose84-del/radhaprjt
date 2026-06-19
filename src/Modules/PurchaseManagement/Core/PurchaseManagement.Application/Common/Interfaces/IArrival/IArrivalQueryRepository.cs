@@ -28,5 +28,12 @@ namespace PurchaseManagement.Application.Common.Interfaces.IArrival
         /// PO ordered qty − total arrived qty. One row per PO item.
         /// </summary>
         Task<IReadOnlyList<ArrivalBalanceQtyDto>> GetBalanceQuantitiesAsync(int rawMaterialPOId);
+
+        /// <summary>
+        /// Approved freight (transporter/party + agreed rate) from the Approved Freight RFQ linked to a
+        /// Raw Material PO, to prefill the arrival form's Transport &amp; Lorry fields. Same-module read of
+        /// Purchase.FreightRfqHeader. Null when the PO has no Approved Freight RFQ.
+        /// </summary>
+        Task<ApprovedFreightDto?> GetApprovedFreightByPoAsync(int rawMaterialPOId);
     }
 }
