@@ -32,7 +32,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnName("CompanyId").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.TaxCodeId)
-                .HasColumnName("TaxCodeId").HasColumnType("int").IsRequired();
+                .HasColumnName("TaxCodeId").HasColumnType("int").IsRequired(false);
 
             builder.Property(t => t.GlAccountId)
                 .HasColumnName("GlAccountId").HasColumnType("int").IsRequired();
