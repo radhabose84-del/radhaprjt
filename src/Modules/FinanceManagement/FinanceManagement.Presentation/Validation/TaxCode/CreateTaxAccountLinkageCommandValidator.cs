@@ -24,17 +24,16 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
-                        RuleFor(x => x.TaxCodeId)
-                            .GreaterThan(0).WithMessage($"{nameof(CreateTaxAccountLinkageCommand.TaxCodeId)} {rule.Error}");
+                        // TaxCodeId is optional now — only GlAccountId is mandatory.
                         RuleFor(x => x.GlAccountId)
                             .GreaterThan(0).WithMessage($"{nameof(CreateTaxAccountLinkageCommand.GlAccountId)} {rule.Error}");
                         break;
 
                     case "FKColumnDelete":
                         RuleFor(x => x.TaxCodeId)
-                            .MustAsync(async (id, ct) => await _queryRepository.TaxCodeExistsAsync(id))
+                            .MustAsync(async (id, ct) => await _queryRepository.TaxCodeExistsAsync(id!.Value))
                             .WithMessage($"{nameof(CreateTaxAccountLinkageCommand.TaxCodeId)} {rule.Error}")
-                            .When(x => x.TaxCodeId > 0);
+                            .When(x => x.TaxCodeId.HasValue && x.TaxCodeId.Value > 0);
 
                         RuleFor(x => x.GlAccountId)
                             .MustAsync(async (id, ct) => await _queryRepository.GlAccountExistsAsync(id))

@@ -210,6 +210,61 @@ namespace FinanceManagement.IntegrationTests.Repositories.TaxCode
         }
 
         [Fact]
+        public async Task GetChangeAuditLinkagesAsync_Should_Return_All_Change_Rows_With_Old_And_New()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var taxTypeId = await SeedTaxTypeAsync();
+            var glId = await SeedGlAccountAsync();
+            var approvedId = await SeedApprovalStatusAsync("APPROVED");
+            var pendingId = await SeedApprovalStatusAsync("PENDING");
+
+            int taxOld, taxNew;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var repo = CreateCommandRepo(ctx);
+                taxOld = await repo.CreateTaxCodeAsync(new Domain.Entities.TaxCodeMaster
+                { CompanyId = 1, TaxCode = "GST-IN-5", TaxName = "GST Input 5%", TaxTypeId = taxTypeId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
+                taxNew = await repo.CreateTaxCodeAsync(new Domain.Entities.TaxCodeMaster
+                { CompanyId = 1, TaxCode = "GST-IN-12", TaxName = "GST Input 12%", TaxTypeId = taxTypeId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted });
+            }
+
+            int oldLinkId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                // Initial linkage — no OldTaxLinkageId; superseded (Inactive) so only the approved change is the
+                // one active row per account. Must NOT show in Change Audit (it isn't a change request).
+                var initial = new Domain.Entities.TaxAccountLinkage
+                { CompanyId = 1, TaxCodeId = taxOld, GlAccountId = glId, StatusId = approvedId, EffectiveFrom = new DateOnly(2026, 1, 1), EffectiveTo = new DateOnly(2026, 4, 14), IsActive = Status.Inactive };
+                ctx.TaxAccountLinkage.Add(initial);
+                await ctx.SaveChangesAsync();
+                oldLinkId = initial.Id;
+
+                ctx.TaxAccountLinkage.Add(new Domain.Entities.TaxAccountLinkage
+                {
+                    CompanyId = 1, TaxCodeId = taxNew, GlAccountId = glId, OldTaxLinkageId = oldLinkId,
+                    StatusId = approvedId, ChangeReason = "HSN reclassification", EffectiveFrom = new DateOnly(2026, 4, 15), IsActive = Status.Active
+                });
+                ctx.TaxAccountLinkage.Add(new Domain.Entities.TaxAccountLinkage
+                {
+                    CompanyId = 1, TaxCodeId = taxNew, GlAccountId = glId, OldTaxLinkageId = oldLinkId,
+                    StatusId = pendingId, ChangeReason = "pending review", EffectiveFrom = new DateOnly(2026, 5, 25), IsActive = Status.Inactive
+                });
+                await ctx.SaveChangesAsync();
+            }
+
+            var (rows, total) = await CreateQueryRepo().GetChangeAuditLinkagesAsync(1, 20, null, 1, null);
+
+            total.Should().Be(2);   // only the 2 change rows — the initial create is excluded
+            rows.Should().OnlyContain(r => r.OldTaxLinkageId == oldLinkId);
+            rows.Should().Contain(r => r.Status == "APPROVED" && r.OldTaxCode == "GST-IN-5"
+                                       && r.NewTaxCode == "GST-IN-12" && r.ChangeReason == "HSN reclassification");
+            rows.Should().Contain(r => r.Status == "PENDING");
+
+            var (approvedOnly, _) = await CreateQueryRepo().GetChangeAuditLinkagesAsync(1, 20, null, 1, approvedId);
+            approvedOnly.Should().OnlyContain(r => r.Status == "APPROVED");
+        }
+
+        [Fact]
         public async Task GlAccountExistsAsync_Should_Return_True_For_Seeded()
         {
             await _fixture.ClearAllTablesAsync();

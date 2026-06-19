@@ -26,7 +26,10 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             am.CurrencyTypeId, cfc.CurrencyTypeCode, cfc.CurrencyTypeName,
             am.SubLedgerTypeId, slt.Code AS SubLedgerTypeCode, slt.Description AS SubLedgerTypeName,
             am.IsCostCentreMandatory, am.IsTaxRelevant, am.IsInterCompany, am.IsReconciliationRequired,
-            tal.Id AS TaxAccountLinkageId, tc.TaxCode, tc.TaxName, cat.Description AS ControlAccountType,
+            tal.Id AS TaxAccountLinkageId, tal.TaxCodeId, tc.TaxCode, tc.TaxName,
+            -- Control account type = the GL account's SubLedgerType (SLTYPE) when it isn't 'NONE'.
+            CASE WHEN slt.Code <> 'NONE' THEN am.SubLedgerTypeId END AS ControlAccountTypeId,
+            CASE WHEN slt.Code <> 'NONE' THEN slt.Description END AS ControlAccountType,
             am.IsActive, am.IsDeleted,
             am.CreatedBy, am.CreatedDate, am.CreatedByName, am.CreatedIP,
             am.ModifiedBy, am.ModifiedDate, am.ModifiedByName, am.ModifiedIP
@@ -43,7 +46,6 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
                 AND CAST(GETDATE() AS date) >= tal.EffectiveFrom
                 AND (tal.EffectiveTo IS NULL OR CAST(GETDATE() AS date) <= tal.EffectiveTo)
             LEFT JOIN Finance.TaxCodeMaster       tc    ON tal.TaxCodeId = tc.Id
-            LEFT JOIN Finance.MiscMaster          cat   ON tal.ControlAccountId = cat.Id AND cat.IsDeleted = 0
         ";
 
         public async Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int? pageNumber, int? pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null)

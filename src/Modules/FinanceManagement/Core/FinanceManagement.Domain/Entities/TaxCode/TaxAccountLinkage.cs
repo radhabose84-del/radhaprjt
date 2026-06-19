@@ -11,7 +11,7 @@ namespace FinanceManagement.Domain.Entities
     public class TaxAccountLinkage : BaseEntity, IActivityTracked
     {
         public int CompanyId { get; set; }
-        public int TaxCodeId { get; set; }              // same-module FK -> TaxCodeMaster (the NEW/proposed tax code)
+        public int? TaxCodeId { get; set; }             // same-module FK -> TaxCodeMaster (nullable — a linkage may carry no tax code)
         public int GlAccountId { get; set; }            // same-module FK -> GlAccountMaster
         public int? ControlAccountId { get; set; }      // same-module FK -> MiscMaster (NEW control account type)
 

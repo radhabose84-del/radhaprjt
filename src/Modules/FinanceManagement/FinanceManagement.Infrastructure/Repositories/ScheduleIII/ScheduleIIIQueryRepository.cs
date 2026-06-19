@@ -180,6 +180,33 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return result.ToList();
         }
 
+        public async Task<List<ScheduleIIILineLookupDto>> GetLinesAutoCompleteAsync(int companyId, int divisionId, string? term)
+        {
+            const string sql = @"
+                SELECT d.Id AS DetailId, d.DisplayOrder,
+                       d.ScheduleIIISectionId AS SectionId, sec.SectionName,
+                       stt.Description AS StatementTypeName, nat.Description AS NatureName,
+                       d.ScheduleIIISectionItemId, li.LineCode, li.LineName, li.NoteReference
+                FROM [Finance].[ScheduleIIIDetail] d
+                JOIN [Finance].[ScheduleIIIHeader] h ON d.ScheduleIIIHeaderId = h.Id AND h.IsDeleted = 0
+                JOIN [Finance].[ScheduleIIISectionItem] li ON d.ScheduleIIISectionItemId = li.Id AND li.IsDeleted = 0
+                JOIN [Finance].[ScheduleIIISection] sec ON d.ScheduleIIISectionId = sec.Id AND sec.IsDeleted = 0
+                LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
+                LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
+                WHERE h.CompanyId = @CompanyId AND h.DivisionId = @DivisionId
+                  AND d.IsDeleted = 0 AND d.IsActive = 1
+                  AND (@Term IS NULL OR li.LineCode LIKE @Term OR li.LineName LIKE @Term OR sec.SectionName LIKE @Term)
+                ORDER BY d.DisplayOrder;";
+
+            var result = await _dbConnection.QueryAsync<ScheduleIIILineLookupDto>(sql, new
+            {
+                CompanyId = companyId,
+                DivisionId = divisionId,
+                Term = string.IsNullOrWhiteSpace(term) ? null : $"%{term}%"
+            });
+            return result.ToList();
+        }
+
         public async Task<bool> DetailNotFoundAsync(int id)
         {
             const string sql = @"SELECT COUNT(1) FROM [Finance].[ScheduleIIIDetail] WHERE Id = @Id AND IsDeleted = 0;";

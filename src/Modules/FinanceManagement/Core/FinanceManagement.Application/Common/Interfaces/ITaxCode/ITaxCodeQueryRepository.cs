@@ -24,6 +24,7 @@ namespace FinanceManagement.Application.Common.Interfaces.ITaxCode
         // --- Tax Account Linkage ---
         Task<(List<TaxAccountLinkageDto>, int)> GetAllLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, int? statusId);
         Task<(List<PendingTaxAccountLinkageDto>, int)> GetPendingLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId);
+        Task<(List<PendingTaxAccountLinkageDto>, int)> GetChangeAuditLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, int? statusId);   // all change requests, all statuses
         Task<TaxAccountLinkageDto?> GetLinkageByIdAsync(int id);
         Task<TaxAccountLinkageDto?> GetLinkageByAccountAsync(int glAccountId);
         Task<bool> GlAccountExistsAsync(int glAccountId);

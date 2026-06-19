@@ -30,12 +30,24 @@ namespace FinanceManagement.UnitTests.Validators.TaxCode
         }
 
         [Fact]
-        public async Task Validate_ZeroTaxCodeId_FailsValidation()
+        public async Task Validate_NullTaxCodeId_PassesValidation()
         {
+            // TaxCodeId is optional — a linkage may carry no tax code.
             SetupAllAsyncMocks();
             var command = ValidCommand();
-            command.TaxCodeId = 0;
+            command.TaxCodeId = null;
             var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldNotHaveValidationErrorFor(x => x.TaxCodeId);
+        }
+
+        [Fact]
+        public async Task Validate_NonExistentTaxCodeId_FailsValidation()
+        {
+            _mockQueryRepo.Setup(r => r.TaxCodeExistsAsync(It.IsAny<int>())).ReturnsAsync(false);
+            _mockQueryRepo.Setup(r => r.GlAccountExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
+
+            var result = await CreateValidator().TestValidateAsync(ValidCommand());
+
             result.ShouldHaveValidationErrorFor(x => x.TaxCodeId);
         }
 

@@ -40,7 +40,7 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.GetStructure
                 actionCode: "GetStructureQuery",
                 actionName: result.Id.ToString(),
                 details: $"Schedule III structure {result.Id} was fetched.",
-                module: "ScheduleIIIMaster"
+                module: "ScheduleIIIHeader"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 

@@ -38,8 +38,10 @@ namespace FinanceManagement.Application.GlAccountMaster.Dto
 
         // Active tax-account linkage (LEFT JOIN Finance.TaxAccountLinkage; null when unlinked)
         public int? TaxAccountLinkageId { get; set; }
+        public int? TaxCodeId { get; set; }
         public string? TaxCode { get; set; }
         public string? TaxName { get; set; }
+        public int? ControlAccountTypeId { get; set; }
         public string? ControlAccountType { get; set; }
 
         public bool IsActive { get; set; }

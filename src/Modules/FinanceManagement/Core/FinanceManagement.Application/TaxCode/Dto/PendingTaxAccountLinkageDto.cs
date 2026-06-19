@@ -14,7 +14,7 @@ namespace FinanceManagement.Application.TaxCode.Dto
         public int? OldTaxCodeId { get; set; }               // Old Tax Code (read from the superseded linkage row)
         public string? OldTaxCode { get; set; }
 
-        public int NewTaxCodeId { get; set; }                // New Tax Code (the requested change)
+        public int? NewTaxCodeId { get; set; }               // New Tax Code (the requested change)
         public string? NewTaxCode { get; set; }
         public string? NewTaxName { get; set; }
 
