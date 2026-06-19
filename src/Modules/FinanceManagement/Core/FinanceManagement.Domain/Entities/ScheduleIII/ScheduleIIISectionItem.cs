@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    // Global catalog of Schedule III line items. A master includes lines via ScheduleIIIMasterLine (junction).
+    // Global catalog of Schedule III line items. A structure includes a line via ScheduleIIIDetail.
     public class ScheduleIIISectionItem : BaseEntity, IActivityTracked
     {
         public int SectionId { get; set; }              // same-module FK -> ScheduleIIISection

@@ -26,7 +26,8 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             am.CurrencyTypeId, cfc.CurrencyTypeCode, cfc.CurrencyTypeName,
             am.SubLedgerTypeId, slt.Code AS SubLedgerTypeCode, slt.Description AS SubLedgerTypeName,
             am.IsCostCentreMandatory, am.IsTaxRelevant, am.IsInterCompany, am.IsReconciliationRequired,
-            tal.Id AS TaxAccountLinkageId, tc.TaxCode, tc.TaxName, cat.Description AS ControlAccountType,
+            tal.Id AS TaxAccountLinkageId, tal.TaxCodeId, tc.TaxCode, tc.TaxName,
+            tal.ControlAccountId AS ControlAccountTypeId, cat.Description AS ControlAccountType,
             am.IsActive, am.IsDeleted,
             am.CreatedBy, am.CreatedDate, am.CreatedByName, am.CreatedIP,
             am.ModifiedBy, am.ModifiedDate, am.ModifiedByName, am.ModifiedIP

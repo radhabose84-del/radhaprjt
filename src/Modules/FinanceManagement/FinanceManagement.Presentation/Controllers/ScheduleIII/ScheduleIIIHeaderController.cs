@@ -8,6 +8,7 @@ using FinanceManagement.Application.ScheduleIII.Commands.UpdateHeader;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateMaster;
 using FinanceManagement.Application.ScheduleIII.Queries.GetActivityLog;
 using FinanceManagement.Application.ScheduleIII.Queries.Get03BDropdownPreview;
+using FinanceManagement.Application.ScheduleIII.Queries.GetLinesAutoComplete;
 using FinanceManagement.Application.ScheduleIII.Queries.GetStructure;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -35,6 +36,14 @@ namespace FinanceManagement.Presentation.Controllers
         {
             var result = await Mediator.Send(new Get03BDropdownPreviewQuery());
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        // Autocomplete — the structure's included lines (section + line item), ordered by DisplayOrder.
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetLinesAutoComplete([FromQuery] string? term = null)
+        {
+            var result = await Mediator.Send(new GetLinesAutoCompleteQuery { Term = term });
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data });
         }
 
         [HttpGet("activity-log")]
