@@ -48,15 +48,13 @@ namespace FinanceManagement.Presentation.Controllers
 
         [HttpGet("activity-log")]
         public async Task<IActionResult> GetActivityLog(
-            [FromQuery] string? entityName = null,
-            [FromQuery] int? entityId = null,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 20)
         {
+            // Always scoped to Schedule III activity (EntityName LIKE '%schedule%').
             var result = await Mediator.Send(new GetActivityLogQuery
             {
-                EntityName = entityName,
-                EntityId = entityId,
+                EntityName = "schedule",
                 PageNumber = pageNumber,
                 PageSize = pageSize
             });

@@ -3,6 +3,7 @@ using FinanceManagement.Application.TaxCode.Commands.SubmitLinkageChangeRequest;
 using FinanceManagement.Application.TaxCode.Queries.GetAllTaxAccountLinkage;
 using FinanceManagement.Application.TaxCode.Queries.GetPendingTaxAccountLinkage;
 using FinanceManagement.Application.TaxCode.Queries.GetTaxAccountLinkageByAccount;
+using FinanceManagement.Application.TaxCode.Queries.GetTaxAccountLinkageChangeAudit;
 using FinanceManagement.Application.TaxCode.Queries.GetTaxAccountLinkageById;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -53,6 +54,32 @@ namespace FinanceManagement.Presentation.Controllers
                 PageNumber = PageNumber,
                 PageSize = PageSize,
                 SearchTerm = SearchTerm
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        // Change Audit tab — every change request (old → new tax code) with approval status.
+        [HttpGet("change-audit")]
+        public async Task<IActionResult> GetChangeAuditAsync(
+            [FromQuery] int PageNumber,
+            [FromQuery] int PageSize,
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] int? StatusId = null)
+        {
+            var result = await Mediator.Send(new GetTaxAccountLinkageChangeAuditQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                SearchTerm = SearchTerm,
+                StatusId = StatusId
             });
 
             return Ok(new

@@ -120,6 +120,20 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
             target.StatusId = approvedStatusId;
             _applicationDbContext.TaxAccountLinkage.Update(target);
 
+            // On approval, sync the GL account's SubLedgerType to the linkage's control account
+            // (only when a control account was actually chosen — mirrors the GET fallback direction).
+            if (target.ControlAccountId.HasValue)
+            {
+                var glAccount = await _applicationDbContext.GlAccountMaster
+                    .FirstOrDefaultAsync(x => x.Id == target.GlAccountId && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+                if (glAccount != null)
+                {
+                    glAccount.SubLedgerTypeId = target.ControlAccountId.Value;
+                    _applicationDbContext.GlAccountMaster.Update(glAccount);
+                }
+            }
+
             await _applicationDbContext.SaveChangesAsync(ct);
             return true;
         }
