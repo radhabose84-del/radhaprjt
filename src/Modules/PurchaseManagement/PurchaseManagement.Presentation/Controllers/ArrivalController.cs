@@ -9,6 +9,7 @@ using PurchaseManagement.Application.Arrival.Queries.GetArrivalAutoComplete;
 using PurchaseManagement.Application.Arrival.Queries.GetArrivalBalanceQty;
 using PurchaseManagement.Application.Arrival.Queries.GetArrivalById;
 using PurchaseManagement.Application.Arrival.Queries.GetArrivalLastLotNo;
+using PurchaseManagement.Application.Arrival.Queries.GetArrivalPoPrefill;
 
 namespace PurchaseManagement.Presentation.Controllers
 {
@@ -86,6 +87,19 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetArrivalBalanceQtyAsync([FromQuery] int rawMaterialPoId)
         {
             var result = await Mediator.Send(new GetArrivalBalanceQtyQuery(rawMaterialPoId));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // PO-select prefill for the arrival form: balance qty per item + approved freight (transporter/party
+        // + rate) from the Approved Freight RFQ linked to the PO. Supersedes balance-qty.
+        [HttpGet("po-prefill/{poId}")]
+        public async Task<IActionResult> GetArrivalPoPrefillAsync(int poId)
+        {
+            var result = await Mediator.Send(new GetArrivalPoPrefillQuery(poId));
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

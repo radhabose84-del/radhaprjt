@@ -18,6 +18,9 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("AccountGroupCollection")]
     public sealed class AccountGroupCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("CostCentreCollection")]
+    public sealed class CostCentreCollection : ICollectionFixture<QAServerFixture> { }
+
     // ── Added 2026-06-17: remaining Finance entities (extends the existing suite) ──
     [CollectionDefinition("FinMiscMasterCollection")]
     public sealed class FinMiscMasterCollection : ICollectionFixture<QAServerFixture> { }
