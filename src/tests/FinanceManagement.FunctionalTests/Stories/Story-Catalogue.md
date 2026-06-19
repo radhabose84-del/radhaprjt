@@ -151,3 +151,34 @@ Base route: `api/finance/CostCentre`.
 > (ordinal from the stable `SortOrder`, never the id). Code unique per `(UnitId, CostCentreCode)`;
 > `UnitId`/`CompanyId` from the JWT. `ResponsibleManagerId` + effective dates are nullable/optional
 > columns (FE adds the inputs later). See the **🌐 QA** suite `CostCentreQATests` for endpoint coverage.
+
+---
+
+## US-GL01-02 — Voucher Type Configuration (per-type series · allowed account types · FY reset)
+
+**User story:** As a System Administrator, I configure voucher types each with their own dedicated
+number series, allowed account types and number padding, so finance can introduce new document types
+without a code change.
+
+**Pre-condition (seed):** `Finance.AccountTypeMaster` is seeded (Asset/Liability/… for `CompanyId=1`)
+and at least one UserManagement `FinancialYear` exists in the QA clone — both FK ids are resolved at
+runtime (`accounttypemaster?CompanyId=1` first row, `/api/FinancialYear` first row), never hardcoded;
+the create + series steps self-skip if neither resolves. The **Type-Lock on a saved voucher** (AC3)
+depends on the voucher-entry transaction table (separate feature) and is `[Fact(Skip=…)]`. Approval
+threshold / approver role are **out of scope** (removed by design).
+
+Base route: `api/finance/VoucherTypeMaster`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC4 — add type, no deployment | Given the config screen, When a new type is created (POST), Then it appears in `/by-name` + GetAll immediately, with no code change/deployment. | ✅ implementable |
+| AC1 — own dedicated series | Given a new type, When GET `/number-series?FinancialYearId=`, Then its row shows a next number formatted from its own `VoucherTypeCode`+padding starting at `…/0001`. | ✅ implementable |
+| Edit | Given an existing type, When PUT (name/padding/account types), Then GET `/{id}` reflects it (code immutable). | ✅ implementable |
+| AC2 — FY reset | Given a consumed series, When POST `/reset-series {voucherTypeId, financialYearId}`, Then the counter returns to `…/0001`. | ✅ implementable |
+| Deactivate | Given an active type, When PUT `isActive=0`, Then it is excluded from `/by-name` (selectable list) but still present in GetAll (`IsDeleted=0`). | ✅ implementable |
+| AC3 — saved-voucher type lock | Given a posted voucher of a type, When its type change is attempted, Then blocked. | 🚫 needs voucher-entry table |
+
+> Standalone 3-table master (`VoucherTypeMaster` + `VoucherTypeAccountType` → `AccountTypeMaster` +
+> `VoucherTypeNumberSeries` per `FinancialYearId`); does NOT touch `TransactionTypeMaster`/`DocumentSequence`.
+> `VoucherTypeCode` doubles as the series prefix. See the **🌐 QA** suite `VoucherTypeMasterQATests` for
+> endpoint coverage and `docs/VoucherType_Specification.md`.

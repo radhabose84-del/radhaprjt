@@ -62,6 +62,11 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<GstrSectionMaster> GstrSectionMaster => Set<GstrSectionMaster>();
         public DbSet<GstrSectionAccountLinkage> GstrSectionAccountLinkage => Set<GstrSectionAccountLinkage>();
 
+        // Voucher-type configuration master + dedicated number series + allowed account types (US-GL01-02)
+        public DbSet<VoucherTypeMaster> VoucherTypeMaster => Set<VoucherTypeMaster>();
+        public DbSet<VoucherTypeAccountType> VoucherTypeAccountType => Set<VoucherTypeAccountType>();
+        public DbSet<VoucherTypeNumberSeries> VoucherTypeNumberSeries => Set<VoucherTypeNumberSeries>();
+
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
