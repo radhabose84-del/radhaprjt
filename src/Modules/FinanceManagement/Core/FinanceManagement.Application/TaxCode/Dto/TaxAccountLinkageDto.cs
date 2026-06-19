@@ -6,7 +6,7 @@ namespace FinanceManagement.Application.TaxCode.Dto
         public int CompanyId { get; set; }
         public int? UnitId { get; set; }                    // workflow payload only (from token) — no DB column
 
-        public int TaxCodeId { get; set; }
+        public int? TaxCodeId { get; set; }
         public string? TaxCode { get; set; }              // same-module join
         public string? TaxName { get; set; }
 
