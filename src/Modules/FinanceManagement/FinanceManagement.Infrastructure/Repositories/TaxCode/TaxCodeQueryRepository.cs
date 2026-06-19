@@ -308,6 +308,72 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
 
         // Linkages awaiting dual approval — the "Change Audit / Pending" grid shape.
         // Old Tax Code = the GL account's current active linkage (IsActive=1, EffectiveTo IS NULL).
+        // Change Audit grid — every change request (a row that superseded a prior linkage), ALL statuses
+        // (Approved / Pending / Rejected). Old tax code / control account read from the superseded row.
+        public async Task<(List<PendingTaxAccountLinkageDto>, int)> GetChangeAuditLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId, int? statusId)
+        {
+            var whereClause = @"UPPER(REPLACE(REPLACE(mt.MiscTypeCode, ' ', ''), '_', '')) = 'APPROVALSTATUS'
+                AND tal.OldTaxLinkageId IS NOT NULL";
+            if (statusId.HasValue && statusId.Value > 0)
+                whereClause += " AND tal.StatusId = @StatusId";
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                whereClause += " AND (tc.TaxCode LIKE @Search OR gl.AccountCode LIKE @Search OR gl.AccountName LIKE @Search)";
+            if (companyId.HasValue && companyId.Value > 0)
+                whereClause += " AND tal.CompanyId = @CompanyId";
+
+            const string columns = @"
+                tal.Id, tal.CompanyId,
+                tal.GlAccountId, gl.AccountCode, gl.AccountName,
+                tal.OldTaxLinkageId,
+                old.TaxCodeId AS OldTaxCodeId, otc.TaxCode AS OldTaxCode,
+                tal.TaxCodeId AS NewTaxCodeId, tc.TaxCode AS NewTaxCode, tc.TaxName AS NewTaxName,
+                old.ControlAccountId AS OldControlAccountId, ocat.Description AS OldControlAccountName,
+                tal.ControlAccountId, cat.Description AS ControlAccountName,
+                tal.ChangeReason,
+                CAST(NULL AS varchar(100)) AS Approver1Name,
+                CAST(NULL AS varchar(100)) AS Approver2Name,
+                tal.EffectiveFrom, tal.StatusId, st.Code AS Status,
+                tal.CreatedDate, tal.CreatedByName";
+
+            const string fromJoins = @"
+                FROM Finance.TaxAccountLinkage tal
+                LEFT JOIN Finance.GlAccountMaster gl ON tal.GlAccountId = gl.Id AND gl.IsDeleted = 0
+                LEFT JOIN Finance.TaxCodeMaster tc ON tal.TaxCodeId = tc.Id
+                LEFT JOIN Finance.MiscMaster cat ON tal.ControlAccountId = cat.Id AND cat.IsDeleted = 0
+                LEFT JOIN Finance.MiscMaster st ON tal.StatusId = st.Id AND st.IsDeleted = 0
+                LEFT JOIN Finance.MiscTypeMaster mt ON st.MiscTypeId = mt.Id AND mt.IsDeleted = 0
+                LEFT JOIN Finance.TaxAccountLinkage old ON tal.OldTaxLinkageId = old.Id
+                LEFT JOIN Finance.TaxCodeMaster otc ON old.TaxCodeId = otc.Id
+                LEFT JOIN Finance.MiscMaster ocat ON old.ControlAccountId = ocat.Id AND ocat.IsDeleted = 0";
+
+            var query = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*) {fromJoins} WHERE {whereClause};
+
+                SELECT {columns}
+                {fromJoins}
+                WHERE {whereClause}
+                ORDER BY tal.EffectiveFrom DESC, tal.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;
+            ";
+
+            var parameters = new
+            {
+                Search = $"%{searchTerm}%",
+                CompanyId = companyId,
+                StatusId = statusId,
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            var result = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await result.ReadAsync<PendingTaxAccountLinkageDto>()).ToList();
+            var totalCount = await result.ReadFirstAsync<int>();
+            return (list, totalCount);
+        }
+
         // Approver 1 (FC) / Approver 2 (Tax) are owned by the Workflow module (AppData.ApprovalRequest);
         // they are null while pending, matching the "—" shown for pending rows in the UI.
         public async Task<(List<PendingTaxAccountLinkageDto>, int)> GetPendingLinkagesAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId)
@@ -393,8 +459,8 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
             return count > 0;
         }
 
-        // Valid only when the MiscMaster row is active and belongs to the CONTROL ACCOUNT TYPE
-        // misc-type. Separator-insensitive ('CONTROL ACCOUNT TYPE' / 'CONTROL_ACCOUNT_TYPE' / 'ControlAccountType').
+        // The control account on a tax-account linkage is an SLTYPE (sub-ledger type) MiscMaster value
+        // — SLTYPE is the control-account-type list. Valid only when the row is active and of misc-type SLTYPE.
         public async Task<bool> ControlAccountExistsAsync(int id)
         {
             const string sql = @"
@@ -402,7 +468,7 @@ namespace FinanceManagement.Infrastructure.Repositories.TaxCode
                 FROM Finance.MiscMaster mm
                 JOIN Finance.MiscTypeMaster mt ON mm.MiscTypeId = mt.Id AND mt.IsDeleted = 0
                 WHERE mm.Id = @Id AND mm.IsActive = 1 AND mm.IsDeleted = 0
-                    AND UPPER(REPLACE(REPLACE(mt.MiscTypeCode, ' ', ''), '_', '')) = 'CONTROLACCOUNTTYPE'";
+                    AND UPPER(REPLACE(REPLACE(mt.MiscTypeCode, ' ', ''), '_', '')) = 'SLTYPE'";
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
         }

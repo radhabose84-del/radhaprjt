@@ -27,7 +27,12 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             am.SubLedgerTypeId, slt.Code AS SubLedgerTypeCode, slt.Description AS SubLedgerTypeName,
             am.IsCostCentreMandatory, am.IsTaxRelevant, am.IsInterCompany, am.IsReconciliationRequired,
             tal.Id AS TaxAccountLinkageId, tal.TaxCodeId, tc.TaxCode, tc.TaxName,
-            tal.ControlAccountId AS ControlAccountTypeId, cat.Description AS ControlAccountType,
+            -- When the linkage has no control account AND the GL sub-ledger type isn't 'NONE',
+            -- surface the GL sub-ledger type as the control account type (response-only fallback).
+            CASE WHEN tal.ControlAccountId IS NULL AND slt.Code <> 'NONE'
+                 THEN am.SubLedgerTypeId ELSE tal.ControlAccountId END AS ControlAccountTypeId,
+            CASE WHEN tal.ControlAccountId IS NULL AND slt.Code <> 'NONE'
+                 THEN slt.Description ELSE cat.Description END AS ControlAccountType,
             am.IsActive, am.IsDeleted,
             am.CreatedBy, am.CreatedDate, am.CreatedByName, am.CreatedIP,
             am.ModifiedBy, am.ModifiedDate, am.ModifiedByName, am.ModifiedIP
