@@ -4,7 +4,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IGlAccountMaster
 {
     public interface IGlAccountMasterQueryRepository
     {
-        Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null);
+        Task<(List<GlAccountMasterDto>, int)> GetAllAsync(int? pageNumber, int? pageSize, string? searchTerm, int companyId, int? accountTypeId = null, int? accountGroupId = null);
         Task<GlAccountMasterDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<GlAccountMasterLookupDto>> AutocompleteAsync(string term, int companyId, string? accountTypeCode, CancellationToken ct);
 

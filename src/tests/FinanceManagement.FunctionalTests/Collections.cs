@@ -14,4 +14,10 @@ namespace FinanceManagement.FunctionalTests
 
     [CollectionDefinition("US-GL02-02")]
     public sealed class AccountGroupStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL05-01")]
+    public sealed class CostCentreStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL01-02")]
+    public sealed class VoucherTypeStoryCollection : ICollectionFixture<QAServerFixture> { }
 }

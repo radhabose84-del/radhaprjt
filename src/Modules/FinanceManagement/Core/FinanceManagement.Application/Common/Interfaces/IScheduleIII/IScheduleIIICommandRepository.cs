@@ -4,12 +4,20 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
 {
     public interface IScheduleIIICommandRepository
     {
-        // Master = one row per included line (header + line link). Structure = rows sharing (Company, Division).
-        Task<int> CreateMasterAsync(ScheduleIIIMaster entity);
-        Task<int> UpdateMasterAsync(ScheduleIIIMaster entity);
-        Task<bool> SoftDeleteMasterAsync(int id, CancellationToken ct);
-        Task<bool> ReorderMasterAsync(int masterId, int direction, CancellationToken ct);
-        Task<bool> LockStructureAsync(int scheduleIIIMasterId);
+        // Header = one row per (Company, Division). EnsureHeader creates a DRAFT header if none exists.
+        Task<int> EnsureHeaderAsync(int companyId, int divisionId);
+        Task<int> UpdateHeaderAsync(int companyId, int divisionId, int statusId, bool textileSplitEnabled);
+        Task<bool> LockStructureAsync(int scheduleIIIHeaderId);
+
+        // Detail = the included lines of a header.
+        Task<int> CreateDetailAsync(ScheduleIIIDetail entity);
+        Task<int> UpdateDetailAsync(ScheduleIIIDetail entity);
+        Task<bool> SoftDeleteDetailAsync(int id, CancellationToken ct);
+        Task<bool> ReorderDetailAsync(int detailId, int direction, CancellationToken ct);
+
+        // Bulk line operations (one SaveChanges).
+        Task<int> CreateDetailRangeAsync(List<ScheduleIIIDetail> details);
+        Task<int> UpdateDetailRangeAsync(List<ScheduleIIIDetail> details);
 
         // Section (global catalog)
         Task<int> CreateSectionAsync(ScheduleIIISection entity);
@@ -20,8 +28,12 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         Task<int> UpdateLineItemAsync(ScheduleIIISectionItem entity);
         Task<bool> SoftDeleteLineItemAsync(int id, CancellationToken ct);
 
-        // Sub-totals (+ formula operands)
-        Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal, List<ScheduleIIISubTotalFormula> formulas);
-        Task<int> UpdateSubTotalAsync(int subTotalId, string? formulaName, bool includeOtherIncome, List<ScheduleIIISubTotalFormula> formulas);
+        // Sub-total HEADERS (catalog of formulas: Gross Profit / EBITDA / PBT / PAT) — header fields only.
+        Task<int> CreateSubTotalAsync(ScheduleIIISubTotal subTotal);
+        Task<int> UpdateSubTotalAsync(ScheduleIIISubTotal subTotal);
+        Task<bool> SoftDeleteSubTotalAsync(int id, CancellationToken ct);
+
+        // Sub-total formula operands (separate ScheduleIIISubTotalFormula API) — physical replace, logged to ActivityLog.
+        Task<int> SaveSubTotalFormulaAsync(int subTotalId, List<ScheduleIIISubTotalFormula> formulas);
     }
 }

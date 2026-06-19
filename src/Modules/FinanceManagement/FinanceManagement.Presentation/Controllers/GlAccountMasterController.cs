@@ -17,8 +17,8 @@ namespace FinanceManagement.Presentation.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAllGlAccountMasterAsync(
-            [FromQuery] int PageNumber,
-            [FromQuery] int PageSize,
+            [FromQuery] int? PageNumber = null,
+            [FromQuery] int? PageSize = null,
             [FromQuery] string? SearchTerm = null,
             [FromQuery] int? AccountTypeId = null,
             [FromQuery] int? AccountGroupId = null)

@@ -47,6 +47,13 @@ namespace FinanceManagement.Presentation.Validation.ScheduleIII
                             .WithMessage($"{nameof(UpdateSectionCommand.SectionName)} {rule.Error} {maxLengthName} characters.");
                         break;
 
+                    case "AlreadyExists":
+                        RuleFor(x => x.SectionName)
+                            .MustAsync(async (cmd, name, ct) => !await _queryRepository.SectionNameExistsAsync(name!, cmd.Id))
+                            .WithMessage($"{nameof(UpdateSectionCommand.SectionName)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.SectionName));
+                        break;
+
                     case "NotFound":
                         RuleFor(x => x.Id)
                             .GreaterThan(0).WithMessage("Valid Id is required.")

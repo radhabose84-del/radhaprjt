@@ -118,3 +118,67 @@ Base route: `api/finance/CurrencyForexConfig`.
 > Scope now = the currency-type **master + the GL dropdown wired to it** (`GlAccountMaster.CurrencyTypeId`
 > → FK). EEFC flag, unrealised/realised forex G/L accounts, allowed currency and all enforcement
 > (AC1–AC5) land with the GL-04 posting/revaluation engine.
+
+---
+
+## US-GL05-01 — Cost Centre Master & 3-level Hierarchy
+
+**User story:** As a Finance Controller, I maintain a unit-wise cost-centre master with a
+Plant (L1) → Department Group (L2) → Department (L3) hierarchy, a responsible manager and effective
+dates, so costs can be tagged and rolled up at every level for departmental reporting.
+
+**Pre-condition (seed):** the `COSTCENTRELEVEL` MiscType + its 3 level rows (`CCL1`/`CCL2`/`CCL3`,
+SortOrder 1/2/3) must exist in the QA clone; level ids are resolved at runtime via
+`miscmaster/by-name?MiscTypeCode=COSTCENTRELEVEL` (never hardcoded). L1 (Plant) is self-contained;
+L2/L3 need a UserManagement Department Group / Department (resolved at runtime, self-skip if none).
+`UnitId`+`CompanyId` come from the token (unit-wise). Enforcement (open-txn deactivation guard,
+manager-alert routing, rollup) is journal-engine (Sprint 2) / reporting (FR-004) — those steps are 🚫.
+
+Base route: `api/finance/CostCentre`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| Create → available in parent picker | Given a new L1 Plant is created, When GET `/by-name?level={L1}`, Then it is returned (offered to the L2 parent-CC picker, no code change). | ✅ implementable |
+| Edit | Given an existing CC, When PUT with a new name, Then GET `/{id}` reflects it (code/level/plant immutable). | ✅ implementable |
+| Deactivate | Given an active CC, When PUT with `isActive=0`, Then it is excluded from `/by-name` (picker) but still present in GetAll (`IsDeleted=0`). | ✅ implementable |
+| AC1 — 3-level hierarchy + plant inheritance | Given an L2 created under an L1, Then it inherits the parent's plant and shows `parentCostCentreName`; the parent must be exactly one level above and in the same unit. | ⚠️ verify live (needs a Department Group) |
+| AC2 — duplicate code rejected (per unit) | Given a code that exists in the unit, When saving another with that code, Then 400; the same code is allowed in a different unit. | ✅ implementable |
+| AC3 — deactivation blocked by open transactions | Given a CC with open transactions in the current period, When deactivation is attempted, Then 400 "open transactions… close or reassign". | 🚫 journal engine (Sprint 2) — `HasOpenTransactionsAsync` stubbed to false |
+| AC4 — manager change → alert routing | Given a CC with a responsible manager, When the manager changes, Then budget-alert routing updates to the new manager. | 🚫 needs Budget consumer |
+| AC5 — rollup totals | Given department costs change, Then division & plant totals reflect the sum. | 🚫 reporting (FR-004) |
+
+> Single self-referencing `Finance.CostCentre` table; `CentreLevelId` → `Finance.MiscMaster`
+> (ordinal from the stable `SortOrder`, never the id). Code unique per `(UnitId, CostCentreCode)`;
+> `UnitId`/`CompanyId` from the JWT. `ResponsibleManagerId` + effective dates are nullable/optional
+> columns (FE adds the inputs later). See the **🌐 QA** suite `CostCentreQATests` for endpoint coverage.
+
+---
+
+## US-GL01-02 — Voucher Type Configuration (per-type series · allowed account types · FY reset)
+
+**User story:** As a System Administrator, I configure voucher types each with their own dedicated
+number series, allowed account types and number padding, so finance can introduce new document types
+without a code change.
+
+**Pre-condition (seed):** `Finance.AccountTypeMaster` is seeded (Asset/Liability/… for `CompanyId=1`)
+and at least one UserManagement `FinancialYear` exists in the QA clone — both FK ids are resolved at
+runtime (`accounttypemaster?CompanyId=1` first row, `/api/FinancialYear` first row), never hardcoded;
+the create + series steps self-skip if neither resolves. The **Type-Lock on a saved voucher** (AC3)
+depends on the voucher-entry transaction table (separate feature) and is `[Fact(Skip=…)]`. Approval
+threshold / approver role are **out of scope** (removed by design).
+
+Base route: `api/finance/VoucherTypeMaster`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC4 — add type, no deployment | Given the config screen, When a new type is created (POST), Then it appears in `/by-name` + GetAll immediately, with no code change/deployment. | ✅ implementable |
+| AC1 — own dedicated series | Given a new type, When GET `/number-series?FinancialYearId=`, Then its row shows a next number formatted from its own `VoucherTypeCode`+padding starting at `…/0001`. | ✅ implementable |
+| Edit | Given an existing type, When PUT (name/padding/account types), Then GET `/{id}` reflects it (code immutable). | ✅ implementable |
+| AC2 — FY reset | Given a consumed series, When POST `/reset-series {voucherTypeId, financialYearId}`, Then the counter returns to `…/0001`. | ✅ implementable |
+| Deactivate | Given an active type, When PUT `isActive=0`, Then it is excluded from `/by-name` (selectable list) but still present in GetAll (`IsDeleted=0`). | ✅ implementable |
+| AC3 — saved-voucher type lock | Given a posted voucher of a type, When its type change is attempted, Then blocked. | 🚫 needs voucher-entry table |
+
+> Standalone 3-table master (`VoucherTypeMaster` + `VoucherTypeAccountType` → `AccountTypeMaster` +
+> `VoucherTypeNumberSeries` per `FinancialYearId`); does NOT touch `TransactionTypeMaster`/`DocumentSequence`.
+> `VoucherTypeCode` doubles as the series prefix. See the **🌐 QA** suite `VoucherTypeMasterQATests` for
+> endpoint coverage and `docs/VoucherType_Specification.md`.

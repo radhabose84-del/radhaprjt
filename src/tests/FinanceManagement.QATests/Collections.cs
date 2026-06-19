@@ -18,6 +18,9 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("AccountGroupCollection")]
     public sealed class AccountGroupCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("CostCentreCollection")]
+    public sealed class CostCentreCollection : ICollectionFixture<QAServerFixture> { }
+
     // ── Added 2026-06-17: remaining Finance entities (extends the existing suite) ──
     [CollectionDefinition("FinMiscMasterCollection")]
     public sealed class FinMiscMasterCollection : ICollectionFixture<QAServerFixture> { }
@@ -27,6 +30,9 @@ namespace FinanceManagement.QATests
 
     [CollectionDefinition("AccountTypeMasterCollection")]
     public sealed class AccountTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("VoucherTypeMasterCollection")]
+    public sealed class VoucherTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
 
     [CollectionDefinition("TransactionTypeMasterCollection")]
     public sealed class TransactionTypeMasterCollection : ICollectionFixture<QAServerFixture> { }

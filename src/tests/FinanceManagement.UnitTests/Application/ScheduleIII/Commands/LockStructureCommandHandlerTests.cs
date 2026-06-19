@@ -14,9 +14,9 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         [Fact]
         public async Task Handle_Locked_ReturnsSuccess()
         {
-            _mockCommandRepo.Setup(r => r.LockStructureAsync(1)).ReturnsAsync(true);
+            _mockCommandRepo.Setup(r => r.LockStructureAsync(5)).ReturnsAsync(true);
 
-            var result = await CreateSut().Handle(new LockStructureCommand { ScheduleIIIMasterId = 1 }, CancellationToken.None);
+            var result = await CreateSut().Handle(new LockStructureCommand { ScheduleIIIHeaderId = 5 }, CancellationToken.None);
 
             result.IsSuccess.Should().BeTrue();
             result.Data.Should().BeTrue();
@@ -25,9 +25,9 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         [Fact]
         public async Task Handle_Locked_PublishesLockAuditEvent()
         {
-            _mockCommandRepo.Setup(r => r.LockStructureAsync(1)).ReturnsAsync(true);
+            _mockCommandRepo.Setup(r => r.LockStructureAsync(5)).ReturnsAsync(true);
 
-            await CreateSut().Handle(new LockStructureCommand { ScheduleIIIMasterId = 1 }, CancellationToken.None);
+            await CreateSut().Handle(new LockStructureCommand { ScheduleIIIHeaderId = 5 }, CancellationToken.None);
 
             _mockMediator.Verify(
                 m => m.Publish(
@@ -42,7 +42,7 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
             _mockCommandRepo.Setup(r => r.LockStructureAsync(99)).ReturnsAsync(false);
 
             Func<Task> act = async () =>
-                await CreateSut().Handle(new LockStructureCommand { ScheduleIIIMasterId = 99 }, CancellationToken.None);
+                await CreateSut().Handle(new LockStructureCommand { ScheduleIIIHeaderId = 99 }, CancellationToken.None);
 
             await act.Should().ThrowAsync<ExceptionRules>();
         }

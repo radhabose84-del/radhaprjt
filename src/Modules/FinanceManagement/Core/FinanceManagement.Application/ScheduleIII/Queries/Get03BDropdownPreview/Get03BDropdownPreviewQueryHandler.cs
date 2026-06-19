@@ -37,7 +37,7 @@ namespace FinanceManagement.Application.ScheduleIII.Queries.Get03BDropdownPrevie
                 actionCode: "Get03BDropdownPreviewQuery",
                 actionName: (result.BalanceSheetLeaves.Count + result.ProfitAndLossLeaves.Count).ToString(),
                 details: "Schedule III 03B dropdown preview was fetched.",
-                module: "ScheduleIIIMaster"
+                module: "ScheduleIIIHeader"
             );
             await _mediator.Publish(domainEvent, cancellationToken);
 

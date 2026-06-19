@@ -35,6 +35,9 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
+        // Cost Centre master & 3-level hierarchy (US-GL05-01)
+        public DbSet<CostCentre> CostCentre => Set<CostCentre>();
+
         // COA bulk import/export (GL02-FR-006)
         public DbSet<GlAccountImportLog> GlAccountImportLog => Set<GlAccountImportLog>();
         public DbSet<GlAccountImportError> GlAccountImportError => Set<GlAccountImportError>();
@@ -43,7 +46,8 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<FinanceManagement.Domain.Entities.Outbox.OutboxMessage> OutboxMessages => Set<FinanceManagement.Domain.Entities.Outbox.OutboxMessage>();
 
         // Schedule III line-item & sub-total configuration (US-GL02-03A)
-        public DbSet<ScheduleIIIMaster> ScheduleIIIMaster => Set<ScheduleIIIMaster>();
+        public DbSet<ScheduleIIIHeader> ScheduleIIIHeader => Set<ScheduleIIIHeader>();
+        public DbSet<ScheduleIIIDetail> ScheduleIIIDetail => Set<ScheduleIIIDetail>();
         public DbSet<ScheduleIIISection> ScheduleIIISection => Set<ScheduleIIISection>();
         public DbSet<ScheduleIIISectionItem> ScheduleIIISectionItem => Set<ScheduleIIISectionItem>();
         public DbSet<ScheduleIIISubTotal> ScheduleIIISubTotal => Set<ScheduleIIISubTotal>();
@@ -57,6 +61,11 @@ namespace FinanceManagement.Infrastructure.Data
         // GSTR-1 / GSTR-3B section master + account-range mapping
         public DbSet<GstrSectionMaster> GstrSectionMaster => Set<GstrSectionMaster>();
         public DbSet<GstrSectionAccountLinkage> GstrSectionAccountLinkage => Set<GstrSectionAccountLinkage>();
+
+        // Voucher-type configuration master + dedicated number series + allowed account types (US-GL01-02)
+        public DbSet<VoucherTypeMaster> VoucherTypeMaster => Set<VoucherTypeMaster>();
+        public DbSet<VoucherTypeAccountType> VoucherTypeAccountType => Set<VoucherTypeAccountType>();
+        public DbSet<VoucherTypeNumberSeries> VoucherTypeNumberSeries => Set<VoucherTypeNumberSeries>();
 
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();

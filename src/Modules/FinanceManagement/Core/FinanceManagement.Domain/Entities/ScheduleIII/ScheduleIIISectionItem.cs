@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    // Global catalog of Schedule III line items. A master includes lines via ScheduleIIIMasterLine (junction).
+    // Global catalog of Schedule III line items. A structure includes a line via ScheduleIIIDetail.
     public class ScheduleIIISectionItem : BaseEntity, IActivityTracked
     {
         public int SectionId { get; set; }              // same-module FK -> ScheduleIIISection
@@ -14,7 +14,7 @@ namespace FinanceManagement.Domain.Entities
         // Same-module FK navigation
         public ScheduleIIISection? Section { get; set; }
 
-        // Inverse navigation (master rows that include this line)
-        public ICollection<ScheduleIIIMaster>? MasterRows { get; set; }
+        // Inverse navigation (detail rows that include this line)
+        public ICollection<ScheduleIIIDetail>? DetailRows { get; set; }
     }
 }

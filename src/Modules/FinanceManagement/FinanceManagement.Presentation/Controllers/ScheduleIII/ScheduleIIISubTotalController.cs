@@ -1,6 +1,7 @@
 using FinanceManagement.Application.ScheduleIII.Commands.CreateSubTotal;
+using FinanceManagement.Application.ScheduleIII.Commands.DeleteSubTotal;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal;
-using FinanceManagement.Application.ScheduleIII.Queries.GetSubTotalFormulaOperands;
+using FinanceManagement.Application.ScheduleIII.Queries.GetSubTotalById;
 using FinanceManagement.Application.ScheduleIII.Queries.GetSubTotals;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceManagement.Presentation.Controllers
 {
-    // Schedule III sub-total nodes (Gross Profit / EBITDA / PBT / PAT). Structure = token company/division.
+    // Schedule III sub-total headers (Gross Profit / EBITDA / PBT / PAT) — global catalog.
     [Route("api/finance/[controller]")]
     public class ScheduleIIISubTotalController : ApiControllerBase
     {
@@ -21,13 +22,11 @@ namespace FinanceManagement.Presentation.Controllers
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data });
         }
 
-        // Operand picker for the "Edit formula" dialog: active P&L line items + S3_SUBTOTAL_TYPE nodes.
-        // Pass ?subTotalId= when editing an existing sub-total to get each operand's current +/− selection.
-        [HttpGet("formula-operands")]
-        public async Task<IActionResult> GetFormulaOperands([FromQuery] int? subTotalId = null)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            var result = await Mediator.Send(new GetSubTotalFormulaOperandsQuery { SubTotalId = subTotalId });
-            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data });
+            var result = await Mediator.Send(new GetSubTotalByIdQuery { Id = id });
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 
         [HttpPost]
@@ -42,6 +41,13 @@ namespace FinanceManagement.Presentation.Controllers
         {
             var result = await Mediator.Send(command);
             return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await Mediator.Send(new DeleteSubTotalCommand(id));
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result, message = "Sub-total deleted successfully." });
         }
     }
 }

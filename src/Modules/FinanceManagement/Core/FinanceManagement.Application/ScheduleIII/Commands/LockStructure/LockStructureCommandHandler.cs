@@ -10,9 +10,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.LockStructure
         private readonly IScheduleIIICommandRepository _commandRepository;
         private readonly IMediator _mediator;
 
-        public LockStructureCommandHandler(
-            IScheduleIIICommandRepository commandRepository,
-            IMediator mediator)
+        public LockStructureCommandHandler(IScheduleIIICommandRepository commandRepository, IMediator mediator)
         {
             _commandRepository = commandRepository;
             _mediator = mediator;
@@ -20,7 +18,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.LockStructure
 
         public async Task<ApiResponseDTO<bool>> Handle(LockStructureCommand request, CancellationToken cancellationToken)
         {
-            var result = await _commandRepository.LockStructureAsync(request.ScheduleIIIMasterId);
+            var result = await _commandRepository.LockStructureAsync(request.ScheduleIIIHeaderId);
 
             if (!result)
                 throw new ExceptionRules("Structure not found or 'Locked' status is not configured.");
@@ -28,9 +26,9 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.LockStructure
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Lock",
                 actionCode: "S3_STRUCTURE_LOCK",
-                actionName: request.ScheduleIIIMasterId.ToString(),
-                details: $"Schedule III structure {request.ScheduleIIIMasterId} locked.",
-                module: "ScheduleIIIMaster"
+                actionName: request.ScheduleIIIHeaderId.ToString(),
+                details: $"Schedule III structure header {request.ScheduleIIIHeaderId} locked.",
+                module: "ScheduleIIIHeader"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 

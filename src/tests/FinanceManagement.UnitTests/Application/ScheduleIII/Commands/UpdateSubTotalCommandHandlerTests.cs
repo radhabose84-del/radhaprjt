@@ -1,6 +1,5 @@
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateSubTotal;
-using FinanceManagement.Application.ScheduleIII.Dto;
 
 namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
 {
@@ -8,9 +7,10 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
     {
         private readonly Mock<IScheduleIIICommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
+        private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
         private UpdateSubTotalCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockMediator.Object);
+            new(_mockCommandRepo.Object, _mockMediator.Object, _mockMapper.Object);
 
         private static UpdateSubTotalCommand ValidCommand() =>
             new()
@@ -18,18 +18,18 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
                 Id = 2,
                 FormulaName = "EBITDA",
                 IncludeOtherIncome = true,
-                Formulas = new List<SubTotalFormulaInput>
-                {
-                    new() { OperandTypeId = 141, SectionItemId = 1, OperatorId = 130, DisplayOrder = 1 }
-                }
+                DisplayOrder = 3,
+                IsActive = 1
             };
 
-        private void SetupHappyPath(int result = 2)
+        private void SetupHappyPath(
+            FinanceManagement.Domain.Entities.ScheduleIIISubTotal? mapped = null, int result = 2)
         {
+            _mockMapper
+                .Setup(m => m.Map<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(It.IsAny<UpdateSubTotalCommand>()))
+                .Returns(mapped ?? new FinanceManagement.Domain.Entities.ScheduleIIISubTotal());
             _mockCommandRepo
-                .Setup(r => r.UpdateSubTotalAsync(
-                    It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<bool>(),
-                    It.IsAny<List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>()))
+                .Setup(r => r.UpdateSubTotalAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>()))
                 .ReturnsAsync(result);
         }
 
@@ -43,20 +43,22 @@ namespace FinanceManagement.UnitTests.Application.ScheduleIII.Commands
         }
 
         [Fact]
-        public async Task Handle_ValidCommand_PassesIncludeOtherIncomeToRepo()
+        public async Task Handle_ValidCommand_PassesMappedHeaderToRepo()
         {
-            bool? capturedInclude = null;
+            var mapped = new FinanceManagement.Domain.Entities.ScheduleIIISubTotal { Id = 2, IncludeOtherIncome = true };
+            FinanceManagement.Domain.Entities.ScheduleIIISubTotal? captured = null;
+            _mockMapper
+                .Setup(m => m.Map<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(It.IsAny<UpdateSubTotalCommand>()))
+                .Returns(mapped);
             _mockCommandRepo
-                .Setup(r => r.UpdateSubTotalAsync(
-                    It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<bool>(),
-                    It.IsAny<List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>()))
-                .Callback<int, string?, bool, List<FinanceManagement.Domain.Entities.ScheduleIIISubTotalFormula>>(
-                    (_, _, inc, _) => capturedInclude = inc)
+                .Setup(r => r.UpdateSubTotalAsync(It.IsAny<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>()))
+                .Callback<FinanceManagement.Domain.Entities.ScheduleIIISubTotal>(e => captured = e)
                 .ReturnsAsync(2);
 
             await CreateSut().Handle(ValidCommand(), CancellationToken.None);
 
-            capturedInclude.Should().BeTrue();
+            captured.Should().BeSameAs(mapped);
+            captured!.IncludeOtherIncome.Should().BeTrue();
         }
 
         [Fact]
