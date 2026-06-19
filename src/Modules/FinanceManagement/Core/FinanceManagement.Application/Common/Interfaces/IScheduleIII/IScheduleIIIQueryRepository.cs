@@ -6,6 +6,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
     {
         // Composite reads — a structure is identified by (CompanyId, DivisionId).
         Task<ScheduleIIIHeaderDto?> GetStructureAsync(int companyId, int divisionId);
+        Task<List<ScheduleIIILineLookupDto>> GetLinesAutoCompleteAsync(int companyId, int divisionId, string? term);   // structure lines ordered by DisplayOrder
         Task<Preview03BDto> Get03BPreviewAsync(int companyId, int divisionId);
         Task<List<ScheduleIIISubTotalDto>> GetSubTotalsAsync();
         Task<ScheduleIIISubTotalDto?> GetSubTotalByIdAsync(int id);

@@ -202,6 +202,32 @@ namespace FinanceManagement.IntegrationTests.Repositories.ScheduleIII
             dto.Sections.Should().OnlyContain(s => s.LineItems.All(li => li.SectionName == s.SectionName));
         }
 
+        [Fact]
+        public async Task GetLinesAutoComplete_Returns_StructureLines_OrderedByDisplayOrder()
+        {
+            await _fixture.ClearAllTablesAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var misc = await SeedMiscAsync(ctx);
+            var section = await SeedSectionAsync(ctx, misc["BS"], misc["ASSET"], "Current Assets");
+            var ppe = await SeedLineAsync(ctx, section, "PPE", "Property, Plant and Equipment");
+            var inv = await SeedLineAsync(ctx, section, "INV", "Inventories");
+            // Insert out of display order to prove ORDER BY DisplayOrder.
+            await SeedDetailRowAsync(ctx, misc["DRAFT"], section, inv, 2, companyId: 1, divisionId: 7);
+            await SeedDetailRowAsync(ctx, misc["DRAFT"], section, ppe, 1, companyId: 1, divisionId: 7);
+
+            var repo = CreateQueryRepo();
+
+            var all = await repo.GetLinesAutoCompleteAsync(1, 7, null);
+            all.Should().HaveCount(2);
+            all.Select(x => x.LineCode).Should().ContainInOrder("PPE", "INV");   // by DisplayOrder 1,2
+            all[0].SectionName.Should().Be("Current Assets");
+            all[0].DisplayOrder.Should().Be(1);
+            all[0].DetailId.Should().BeGreaterThan(0);
+
+            var filtered = await repo.GetLinesAutoCompleteAsync(1, 7, "Inv");
+            filtered.Should().ContainSingle(x => x.LineCode == "INV");
+        }
+
         // ---- GET SUB-TOTALS (global) -----------------------------------------
 
         [Fact]
