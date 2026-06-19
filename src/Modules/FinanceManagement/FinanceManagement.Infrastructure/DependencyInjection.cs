@@ -17,6 +17,7 @@ using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
+using FinanceManagement.Application.Common.Interfaces.ICostCentre;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Infrastructure.Data;
 using FinanceManagement.Infrastructure.Persistence;
@@ -43,6 +44,7 @@ using FinanceManagement.Application.Common.Interfaces.IGlAccountImport;
 using FinanceManagement.Application.GlAccountImport.Services;
 using FinanceManagement.Infrastructure.Repositories.GlAccountImport;
 using FinanceManagement.Infrastructure.Repositories.CurrencyForexConfig;
+using FinanceManagement.Infrastructure.Repositories.CostCentre;
 using FinanceManagement.Infrastructure.Repositories.Outbox;
 using FinanceManagement.Infrastructure.Services;
 using FinanceManagement.Infrastructure.Services.Outbox;
@@ -167,6 +169,10 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<ICurrencyForexConfigCommandRepository, CurrencyForexConfigCommandRepository>();
             services.AddScoped<ICurrencyForexConfigQueryRepository, CurrencyForexConfigQueryRepository>();
+
+            // Cost Centre master & 3-level hierarchy (US-GL05-01)
+            services.AddScoped<ICostCentreCommandRepository, CostCentreCommandRepository>();
+            services.AddScoped<ICostCentreQueryRepository, CostCentreQueryRepository>();
 
             // Tax Code feature (US-GL02-05A / 05B) — consolidated command + query repos
             services.AddScoped<ITaxCodeCommandRepository, TaxCodeCommandRepository>();
