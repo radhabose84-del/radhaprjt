@@ -15,6 +15,7 @@ using FinanceManagement.Application.Common.Interfaces.ITransactionTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
+using FinanceManagement.Application.Common.Interfaces.IVoucherTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
 using FinanceManagement.Application.Common.Interfaces.ICostCentre;
@@ -32,6 +33,7 @@ using FinanceManagement.Infrastructure.Repositories.TransactionTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscTypeMaster;
 using FinanceManagement.Infrastructure.Repositories.MiscMaster;
 using FinanceManagement.Infrastructure.Repositories.AccountTypeMaster;
+using FinanceManagement.Infrastructure.Repositories.VoucherType;
 
 using FinanceManagement.Application.Common.Interfaces.IScheduleIII;
 using FinanceManagement.Infrastructure.Repositories.ScheduleIII;
@@ -157,6 +159,10 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IAccountTypeMasterCommandRepository, AccountTypeMasterCommandRepository>();
             services.AddScoped<IAccountTypeMasterQueryRepository, AccountTypeMasterQueryRepository>();
+
+            // Voucher Type configuration master (US-GL01-02)
+            services.AddScoped<IVoucherTypeMasterCommandRepository, VoucherTypeMasterCommandRepository>();
+            services.AddScoped<IVoucherTypeMasterQueryRepository, VoucherTypeMasterQueryRepository>();
 
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();

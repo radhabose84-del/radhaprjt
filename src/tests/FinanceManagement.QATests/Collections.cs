@@ -31,6 +31,9 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("AccountTypeMasterCollection")]
     public sealed class AccountTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("VoucherTypeMasterCollection")]
+    public sealed class VoucherTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
+
     [CollectionDefinition("TransactionTypeMasterCollection")]
     public sealed class TransactionTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
 
