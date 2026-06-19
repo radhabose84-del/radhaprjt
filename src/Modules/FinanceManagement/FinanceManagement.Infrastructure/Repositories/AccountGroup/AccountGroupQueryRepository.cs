@@ -3,6 +3,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Dapper;
 using FinanceManagement.Application.AccountGroup.Dto;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
+using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
 {
@@ -239,6 +240,58 @@ namespace FinanceManagement.Infrastructure.Repositories.AccountGroup
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
+        }
+
+        public async Task<(List<AccountGroupMovePendingDto>, int)> GetMovePendingAsync(int pageNumber, int pageSize, string? searchTerm)
+        {
+            // Pending Move requests joined to the moved group + its current parent + the proposed new parent.
+            // The DB column is [Status] (the entity maps RequestStatus → "Status"); Pending requests only.
+            var query = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM [Finance].[AccountGroupChangeRequest] cr
+                INNER JOIN [Finance].[AccountGroup] ag ON ag.Id = cr.AccountGroupId
+                WHERE cr.IsDeleted = 0 AND cr.[Status] = @Pending
+                  AND (@Search IS NULL OR ag.GroupCode LIKE @Search OR ag.GroupName LIKE @Search);
+
+                SELECT
+                    cr.Id                       AS ChangeRequestId,
+                    cr.AccountGroupId           AS AccountGroupId,
+                    ag.GroupCode                AS GroupCode,
+                    ag.GroupName                AS GroupName,
+                    ag.ParentAccountGroupId     AS CurrentParentId,
+                    cp.GroupCode                AS CurrentParentCode,
+                    cp.GroupName                AS CurrentParentName,
+                    cr.NewParentAccountGroupId  AS NewParentAccountGroupId,
+                    np.GroupCode                AS NewParentCode,
+                    np.GroupName                AS NewParentName,
+                    cr.Justification            AS Justification,
+                    cr.CreatedBy                AS RequestedById,
+                    cr.CreatedByName            AS RequestedByName,
+                    cr.CreatedDate              AS RequestedDate
+                FROM [Finance].[AccountGroupChangeRequest] cr
+                INNER JOIN [Finance].[AccountGroup] ag ON ag.Id = cr.AccountGroupId
+                LEFT  JOIN [Finance].[AccountGroup] cp ON cp.Id = ag.ParentAccountGroupId
+                LEFT  JOIN [Finance].[AccountGroup] np ON np.Id = cr.NewParentAccountGroupId
+                WHERE cr.IsDeleted = 0 AND cr.[Status] = @Pending
+                  AND (@Search IS NULL OR ag.GroupCode LIKE @Search OR ag.GroupName LIKE @Search)
+                ORDER BY cr.CreatedDate DESC, cr.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;";
+
+            var parameters = new
+            {
+                Pending = MiscEnumEntity.Pending,
+                Search = string.IsNullOrWhiteSpace(searchTerm) ? null : $"%{searchTerm}%",
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            };
+
+            using var multi = await _dbConnection.QueryMultipleAsync(query, parameters);
+            var list = (await multi.ReadAsync<AccountGroupMovePendingDto>()).ToList();
+            var totalCount = await multi.ReadFirstAsync<int>();
+            return (list, totalCount);
         }
 
         // ── Private helpers ────────────────────────────────────────────────────

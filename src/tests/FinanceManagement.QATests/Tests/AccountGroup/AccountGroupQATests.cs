@@ -62,7 +62,7 @@ public sealed class AccountGroupQATests
     public async Task TC004_Move_NoAuth_Returns401()
     {
         var resp = await _f.AnonymousClient.PostAsJsonAsync($"{BaseRoute}/move",
-            new { id = 1, newParentAccountGroupId = 2, justification = "x", approverId = 1 });
+            new { id = 1, newParentAccountGroupId = 2, justification = "x" });
         resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -80,7 +80,7 @@ public sealed class AccountGroupQATests
     public async Task TC006_Move_MissingFields_Returns400()
     {
         var resp = await _f.Client.PostAsJsonAsync($"{BaseRoute}/move",
-            new { id = 0, newParentAccountGroupId = 0, justification = "short", approverId = 0 });
+            new { id = 0, newParentAccountGroupId = 0, justification = "short" });
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -130,12 +130,12 @@ public sealed class AccountGroupQATests
         _l3.Should().BeGreaterThan(0);
         // circular / bad-level guard first: moving L3 under L1 (two levels up) is rejected
         var bad = await _f.Client.PostAsJsonAsync($"{BaseRoute}/move",
-            new { id = _l3, newParentAccountGroupId = _l1, justification = "wrong level test long enough", approverId = 1 });
+            new { id = _l3, newParentAccountGroupId = _l1, justification = "wrong level test long enough" });
         bad.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        // valid: L2b is exactly one level above L3 → 200 "submitted" (deferred to approval)
+        // valid: L2b is exactly one level above L3 → 200 "submitted" (deferred to multilevel approval)
         var ok = await _f.Client.PostAsJsonAsync($"{BaseRoute}/move",
-            new { id = _l3, newParentAccountGroupId = _l2b, justification = "QA restructure for FY reporting", approverId = 1 });
+            new { id = _l3, newParentAccountGroupId = _l2b, justification = "QA restructure for FY reporting" });
         ok.StatusCode.Should().Be(HttpStatusCode.OK);
         (await ParseAsync(ok)).RootElement.GetProperty("isSuccess").GetBoolean().Should().BeTrue();
     }
@@ -152,6 +152,53 @@ public sealed class AccountGroupQATests
         (await _f.Client.DeleteAsync($"{BaseRoute}?id={_l2a}")).StatusCode.Should().Be(HttpStatusCode.OK);
         (await _f.Client.DeleteAsync($"{BaseRoute}?id={_l2b}")).StatusCode.Should().Be(HttpStatusCode.OK);
         (await _f.Client.DeleteAsync($"{BaseRoute}?id={_l1}")).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    // ── APPROVAL CHAIN (read-only Move-modal banner — configured multilevel chain FC → CFO) ──
+    [Fact, TestPriority(24)]
+    [Trait("Layer", "Smoke")]
+    public async Task TC024_GetApprovalChain_HappyPath_Returns200WithLevelAndLabel()
+    {
+        var resp = await _f.Client.GetAsync($"{BaseRoute}/approval-chain");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var root = (await ParseAsync(resp)).RootElement;
+        root.TryGetProperty("data", out var data).Should().BeTrue();
+        data.ValueKind.Should().Be(JsonValueKind.Array);
+        data.GetArrayLength().Should().BeGreaterThan(0);   // config default falls back to FC → CFO
+        foreach (var lvl in data.EnumerateArray())
+        {
+            lvl.TryGetProperty("level", out _).Should().BeTrue();
+            lvl.TryGetProperty("label", out _).Should().BeTrue();
+        }
+    }
+
+    [Fact, TestPriority(25)]
+    public async Task TC025_GetApprovalChain_NoAuth_Returns401()
+    {
+        var resp = await _f.AnonymousClient.GetAsync($"{BaseRoute}/approval-chain");
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    // ── MOVE PENDING (approval inbox — items awaiting the logged-in approver) ──
+    [Fact, TestPriority(26)]
+    [Trait("Layer", "Smoke")]
+    public async Task TC026_GetMovePending_HappyPath_Returns200()
+    {
+        var resp = await _f.Client.GetAsync($"{BaseRoute}/move-pending?pageNumber=1&pageSize=10");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var root = (await ParseAsync(resp)).RootElement;
+        root.TryGetProperty("data", out var data).Should().BeTrue();
+        data.ValueKind.Should().Be(JsonValueKind.Array);   // may be empty when nothing is pending for this user
+        root.TryGetProperty("TotalCount", out _).Should().BeTrue();
+    }
+
+    [Fact, TestPriority(27)]
+    public async Task TC027_GetMovePending_NoAuth_Returns401()
+    {
+        var resp = await _f.AnonymousClient.GetAsync($"{BaseRoute}/move-pending");
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     private async Task<int> CreateChild(string code, string name, int parentId)

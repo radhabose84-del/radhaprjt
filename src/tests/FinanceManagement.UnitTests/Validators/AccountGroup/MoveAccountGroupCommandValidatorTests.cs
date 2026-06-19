@@ -14,7 +14,7 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
 
         // Move a level-3 node (Id 10) under a level-2 parent (Id 5).
         private static MoveAccountGroupCommand ValidCommand() =>
-            new() { Id = 10, NewParentAccountGroupId = 5, Justification = "Restructure for FY2026 reporting", ApproverId = 99 };
+            new() { Id = 10, NewParentAccountGroupId = 5, Justification = "Restructure for FY2026 reporting" };
 
         private void SetupHappyPath()
         {
@@ -88,16 +88,6 @@ namespace FinanceManagement.UnitTests.Validators.AccountGroup
             command.Justification = "too short";
             var result = await CreateValidator().TestValidateAsync(command);
             result.ShouldHaveValidationErrorFor(x => x.Justification);
-        }
-
-        [Fact]
-        public async Task Validate_ZeroApprover_Fails()
-        {
-            SetupHappyPath();
-            var command = ValidCommand();
-            command.ApproverId = 0;
-            var result = await CreateValidator().TestValidateAsync(command);
-            result.ShouldHaveValidationErrorFor(x => x.ApproverId);
         }
     }
 }
