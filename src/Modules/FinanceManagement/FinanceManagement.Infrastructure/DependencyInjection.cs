@@ -17,6 +17,8 @@ using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IVoucherTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.ICoaFreeze;
+using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
 using FinanceManagement.Application.Common.Interfaces.ICostCentre;
 using FinanceManagement.Application.Common.Interfaces.IProfitCentre;
@@ -168,6 +170,15 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
+
+            // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
+            // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
+            services.AddScoped<IGlAccountUserPrefStore, GlAccountUserPrefRepository>();
+
+            // COA Freeze engine (US-GL02-FR-008a) — state read/write + Mongo violation log.
+            services.AddScoped<ICoaFreezeQueryRepository, CoaFreezeQueryRepository>();
+            services.AddScoped<ICoaFreezeCommandRepository, CoaFreezeCommandRepository>();
+            services.AddScoped<ICoaFreezeViolationLog, CoaFreezeViolationLogStore>();
 
             // COA bulk import/export (GL02-FR-006)
             services.AddScoped<IGlAccountImportCommandRepository, GlAccountImportCommandRepository>();

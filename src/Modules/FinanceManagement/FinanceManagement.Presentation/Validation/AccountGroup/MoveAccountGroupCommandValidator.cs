@@ -44,16 +44,14 @@ namespace FinanceManagement.Presentation.Validation.AccountGroup
                 }
             }
 
-            // Documented justification — Finance Controller requirement.
+            // Documented justification — required for the statutory presentation change.
             RuleFor(x => x.Justification)
                 .MinimumLength(MinJustificationLength)
                 .WithMessage($"Justification must be at least {MinJustificationLength} characters.")
                 .When(x => !string.IsNullOrWhiteSpace(x.Justification));
 
-            // Finance Controller approver is mandatory.
-            RuleFor(x => x.ApproverId)
-                .GreaterThan(0)
-                .WithMessage("Finance Controller approver is required.");
+            // Approvers are NOT supplied here — the workflow engine routes the request through the
+            // configured multilevel chain (Finance Controller → CFO).
 
             // New parent must be supplied and must exist / be active.
             RuleFor(x => x.NewParentAccountGroupId)

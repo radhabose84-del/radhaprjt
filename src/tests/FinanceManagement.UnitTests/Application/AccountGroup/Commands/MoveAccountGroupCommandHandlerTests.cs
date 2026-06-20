@@ -17,7 +17,7 @@ namespace FinanceManagement.UnitTests.Application.AccountGroup.Commands
             new(_mockChangeRequestRepo.Object, _mockOutbox.Object, _mockIp.Object, _mockMediator.Object);
 
         private static MoveAccountGroupCommand ValidCommand() =>
-            new() { Id = 10, NewParentAccountGroupId = 5, Justification = "Restructure for FY2026 reporting", ApproverId = 99 };
+            new() { Id = 10, NewParentAccountGroupId = 5, Justification = "Restructure for FY2026 reporting" };
 
         private void SetupHappyPath()
         {

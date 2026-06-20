@@ -91,6 +91,62 @@ Base route: `api/finance/TaxCode`.
 
 ---
 
+## US-GL02-07 — Account Search / Type-ahead Component (reusable, all entry screens)
+
+**User story:** As a journal-entry user, I want a fast type-ahead account search with filters, aliases and
+favourites embedded in every entry screen, so that I find accounts instantly and can never pick an inactive one.
+
+**Pre-condition (seed):** runs off the existing `Finance.GlAccountMaster` chart of accounts (company-scoped
+by token) — no seed table needed for search. Favourites / recently-used persist in **MongoDB** collections
+(`GlAccountFavourite` / `GlAccountRecentUse`), created on first write. The per-user ranking steps only show
+data once the QA user has starred / selected accounts in that run.
+
+Base route: `api/finance/glaccountmaster` (search/favourites/recent live under the GlAccountMaster owner).
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — search code/name/type/status | Given a COA, When GET `/search?term=110`, Then matches return code, name, type and active status (TOP-N, prefix-first). *(300ms target is a live/perf check, not asserted in code.)* | ⚠️ verify live |
+| AC2 — inactive visible, not selectable | Given an inactive account matches, When results render, Then it is returned with `isActive=false` (FE greys + blocks select; `activeOnly=true` excludes it for entry fields; FR-001 validators reject on submit). | ✅ implementable (API returns flag) |
+| AC3 — alias "yarn" | Given a user types `yarn`, When suggestions render, Then accounts whose **name / description / group / type** contains it are suggested. *(Arbitrary aliases present in no name/desc need a keyword store — DEFERRED.)* | ⚠️ partial |
+| AC4 — favourites + recently-used first | Given the user has favourites / recent (Mongo), When the component opens (empty term) or searches, Then those shortcuts rank first. | ✅ implementable |
+| AC5 — keyboard navigation | Given keyboard-only nav, When arrow + Enter, Then selection works without a mouse. | 🚫 FE-only (no API) |
+
+> Zero-migration build: search/filter/status are pure reads off `GlAccountMaster` (+ AccountType/AccountGroup
+> joins; group filter expands to the **subtree** via a recursive CTE). Per-user favourites + recently-used live in
+> **MongoDB** (`IGlAccountUserPrefStore`), so no SQL table/column was added. Recently-used is **record-on-select**
+> (`POST /recent`) — there is no journal/posting module yet to auto-capture usage. See `docs/AccountSearchTypeahead_HLD.md`.
+
+---
+
+## US-GL02-FR-008a — COA Freeze Engine & DB Triggers
+
+**User story:** As a CFO, I want the Chart of Accounts locked at the database level once frozen, with a
+visible freeze state and an automatic re-freeze, so that no structural change can slip through while the
+books are sealed.
+
+**Pre-condition (seed):** the migration `CoaFreezeTriggers` must be applied so the enforcement triggers
+(`Finance.trg_GlAccountMaster_CoaFreeze`, `trg_AccountGroup_CoaFreeze`) exist (drives `dbTriggerActive`).
+⚠️ Freezing locks the **whole company COA** in the shared QA clone, so the freeze/blocked-write steps are
+guarded — they always re-open an unfreeze window in teardown. Auto-re-freeze needs BSOFT.Api's
+`coa-auto-refreeze` recurring job running.
+
+Base route: `api/finance/coa-freeze`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC2 — freeze banner | Given any COA screen, When GET `/state`, Then it returns the freeze state + `dbTriggerActive` + Total Accounts/Groups + Blocked Attempts. | ⚠️ verify live |
+| AC1 — frozen write blocked | Given the COA is frozen, When a structural write (create account/group via API) is attempted, Then it is rejected — 400 "Chart of Accounts is frozen" (DB trigger rolled it back). | ⚠️ verify live (guarded — unfreezes after) |
+| AC4 — enforcement at DB-trigger level | Given the engine, When inspected, Then `dbTriggerActive` is true (triggers exist + enabled in `sys.triggers`); enforcement is the trigger, not app code. | ⚠️ verify live |
+| AC3 — auto-re-freeze on window expiry | Given an unfreeze window opened (`set-state isFrozen=false`), When it lapses, Then the `coa-auto-refreeze` Hangfire job returns the COA to frozen. | 🚫 needs Worker/Hangfire + wait |
+
+> Enforcement is **DB triggers** (shipped in the `CoaFreezeTriggers` migration via `migrationBuilder.Sql`;
+> entities declare `.HasTrigger(...)` so EF8 keeps saving). The flag is `Finance.CoaFreezeState` (one row/company);
+> blocked attempts are logged to MongoDB (`CoaFreezeViolationLog`) by the `CoaFreezeViolationBehavior` safety-net.
+> Governed dual-approval freeze/unfreeze (the mockup's Dual-Approval / Unfreeze-Requests / Change-Requests / Alerts
+> tabs) is **US-GL02-08B**; the audit viewer is FR-009. See `docs/CoaFreezeEngine_HLD.md`.
+
+---
+
 ## US-GL02-12 — Account Currency & Forex Configuration
 
 **User story:** As a Finance Controller, I maintain the currency-type master (INR-only / Forex /

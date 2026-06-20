@@ -1,9 +1,14 @@
+using FinanceManagement.Application.GlAccountMaster.Commands.AddGlAccountFavourite;
 using FinanceManagement.Application.GlAccountMaster.Commands.CreateGlAccountMaster;
 using FinanceManagement.Application.GlAccountMaster.Commands.DeleteGlAccountMaster;
+using FinanceManagement.Application.GlAccountMaster.Commands.RecordGlAccountRecent;
+using FinanceManagement.Application.GlAccountMaster.Commands.RemoveGlAccountFavourite;
 using FinanceManagement.Application.GlAccountMaster.Commands.UpdateGlAccountMaster;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetAllGlAccountMaster;
+using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountFavourites;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountMasterAutoComplete;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountMasterById;
+using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountSearch;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -66,6 +71,56 @@ namespace FinanceManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 data = result
             });
+        }
+
+        // ── US-GL02-07 type-ahead component ────────────────────────────────────
+        // Reusable account search; empty term returns the user's favourites + recently-used first.
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchAccountsAsync(
+            [FromQuery] string? term = null,
+            [FromQuery] int? accountTypeId = null,
+            [FromQuery] int? accountGroupId = null,
+            [FromQuery] bool activeOnly = false,
+            [FromQuery] int take = 20)
+        {
+            var result = await Mediator.Send(new GetGlAccountSearchQuery
+            {
+                Term = term,
+                AccountTypeId = accountTypeId,
+                AccountGroupId = accountGroupId,
+                ActiveOnly = activeOnly,
+                Take = take
+            });
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        [HttpGet("favourites")]
+        public async Task<IActionResult> GetFavouritesAsync()
+        {
+            var result = await Mediator.Send(new GetGlAccountFavouritesQuery());
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        [HttpPost("favourites")]
+        public async Task<IActionResult> AddFavourite([FromBody] AddGlAccountFavouriteCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        [HttpDelete("favourites")]
+        public async Task<IActionResult> RemoveFavourite([FromQuery] int glAccountMasterId)
+        {
+            var result = await Mediator.Send(new RemoveGlAccountFavouriteCommand { GlAccountMasterId = glAccountMasterId });
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        // Record-on-select — the FE pings this when the user picks an account in an entry.
+        [HttpPost("recent")]
+        public async Task<IActionResult> RecordRecent([FromBody] RecordGlAccountRecentCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
         }
 
         [HttpPost]

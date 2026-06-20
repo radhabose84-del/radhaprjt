@@ -3,9 +3,11 @@ using FinanceManagement.Application.AccountGroup.Commands.DeleteAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.MapScheduleIIILine;
 using FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup;
 using FinanceManagement.Application.AccountGroup.Commands.UpdateAccountGroup;
+using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupApprovalChain;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupAutoComplete;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupById;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupLeaves;
+using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupMovePending;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupParents;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupTree;
 using MediatR;
@@ -73,6 +75,41 @@ namespace FinanceManagement.Presentation.Controllers
             {
                 StatusCode = StatusCodes.Status200OK,
                 data = result
+            });
+        }
+
+        // Read-only multilevel approval chain for the Move modal banner (e.g. 1) Finance Controller → 2) CFO).
+        [HttpGet("approval-chain")]
+        public async Task<IActionResult> GetAccountGroupApprovalChainAsync()
+        {
+            var result = await Mediator.Send(new GetAccountGroupApprovalChainQuery());
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Approval inbox — Move requests awaiting the logged-in approver (FC at L1, CFO at L2).
+        [HttpGet("move-pending")]
+        public async Task<IActionResult> GetAccountGroupMovePendingAsync(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? searchTerm = null)
+        {
+            var result = await Mediator.Send(new GetAccountGroupMovePendingQuery
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm
+            });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
             });
         }
 

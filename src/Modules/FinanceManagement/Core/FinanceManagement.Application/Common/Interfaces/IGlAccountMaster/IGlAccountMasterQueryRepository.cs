@@ -25,5 +25,14 @@ namespace FinanceManagement.Application.Common.Interfaces.IGlAccountMaster
 
         Task<bool> SoftDeleteValidationAsync(int id);
         Task<bool> IsGlAccountLinkedAsync(int id);
+
+        // US-GL02-07 type-ahead: prefix/contains match across code, name, description, group & type names;
+        // optional type filter + group-subtree filter; activeOnly excludes inactive. TOP @take.
+        Task<IReadOnlyList<AccountSearchResultDto>> SearchAsync(
+            string? term, int companyId, int? accountTypeId, int? accountGroupId, bool activeOnly, int take, CancellationToken ct);
+
+        // Resolve a set of account ids to search rows (favourites/recent shortcuts + enrichment).
+        Task<IReadOnlyList<AccountSearchResultDto>> GetByIdsForSearchAsync(
+            IReadOnlyCollection<int> ids, int companyId, CancellationToken ct);
     }
 }

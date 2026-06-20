@@ -293,6 +293,86 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
 
         public Task<bool> IsGlAccountLinkedAsync(int id) => Task.FromResult(false);
 
+        // ── US-GL02-07 type-ahead ──────────────────────────────────────────────
+        private const string SearchSelect = @"
+            am.Id, am.AccountCode, am.AccountName,
+            am.AccountTypeId, atype.AccountTypeName,
+            am.AccountGroupId, ag.GroupName AS AccountGroupName,
+            am.IsActive";
+
+        public async Task<IReadOnlyList<AccountSearchResultDto>> SearchAsync(
+            string? term, int companyId, int? accountTypeId, int? accountGroupId, bool activeOnly, int take, CancellationToken ct)
+        {
+            var hasTerm = !string.IsNullOrWhiteSpace(term);
+            var topN = take > 0 ? take : 20;
+
+            // GroupSubtree expands the chosen group to all descendant groups (accounts attach at leaves),
+            // so the group filter matches the whole branch. Empty when no group filter is supplied.
+            var sql = $@"
+                WITH GroupSubtree AS (
+                    SELECT Id FROM Finance.AccountGroup
+                    WHERE @AccountGroupId IS NOT NULL AND Id = @AccountGroupId AND IsDeleted = 0
+                    UNION ALL
+                    SELECT c.Id FROM Finance.AccountGroup c
+                    INNER JOIN GroupSubtree s ON c.ParentAccountGroupId = s.Id
+                    WHERE c.IsDeleted = 0
+                )
+                SELECT TOP (@TopN) {SearchSelect}
+                FROM Finance.GlAccountMaster am
+                LEFT JOIN Finance.AccountTypeMaster atype ON am.AccountTypeId = atype.Id AND atype.IsDeleted = 0
+                LEFT JOIN Finance.AccountGroup       ag    ON am.AccountGroupId = ag.Id AND ag.IsDeleted = 0
+                WHERE am.IsDeleted = 0 AND am.CompanyId = @CompanyId
+                  AND (@ActiveOnly = 0 OR am.IsActive = 1)
+                  AND (@AccountTypeId IS NULL OR am.AccountTypeId = @AccountTypeId)
+                  AND (@AccountGroupId IS NULL OR am.AccountGroupId IN (SELECT Id FROM GroupSubtree))
+                  AND (
+                        @HasTerm = 0
+                     OR am.AccountCode LIKE @Prefix
+                     OR am.AccountName LIKE @Contains
+                     OR am.Description LIKE @Contains
+                     OR ag.GroupName LIKE @Contains
+                     OR atype.AccountTypeName LIKE @Contains
+                      )
+                ORDER BY
+                    CASE WHEN am.AccountCode LIKE @Prefix THEN 0 ELSE 1 END,   -- exact code-prefix first
+                    am.AccountCode ASC, am.AccountName ASC
+                OPTION (MAXRECURSION 32);";
+
+            var parameters = new
+            {
+                CompanyId = companyId,
+                AccountTypeId = accountTypeId,
+                AccountGroupId = accountGroupId,
+                ActiveOnly = activeOnly ? 1 : 0,
+                HasTerm = hasTerm ? 1 : 0,
+                Prefix = hasTerm ? $"{term!.Trim()}%" : null,
+                Contains = hasTerm ? $"%{term!.Trim()}%" : null,
+                TopN = topN
+            };
+
+            var rows = await _dbConnection.QueryAsync<AccountSearchResultDto>(
+                new CommandDefinition(sql, parameters, cancellationToken: ct));
+            return rows.ToList();
+        }
+
+        public async Task<IReadOnlyList<AccountSearchResultDto>> GetByIdsForSearchAsync(
+            IReadOnlyCollection<int> ids, int companyId, CancellationToken ct)
+        {
+            if (ids == null || ids.Count == 0)
+                return Array.Empty<AccountSearchResultDto>();
+
+            var sql = $@"
+                SELECT {SearchSelect}
+                FROM Finance.GlAccountMaster am
+                LEFT JOIN Finance.AccountTypeMaster atype ON am.AccountTypeId = atype.Id AND atype.IsDeleted = 0
+                LEFT JOIN Finance.AccountGroup       ag    ON am.AccountGroupId = ag.Id AND ag.IsDeleted = 0
+                WHERE am.IsDeleted = 0 AND am.CompanyId = @CompanyId AND am.Id IN @Ids";
+
+            var rows = await _dbConnection.QueryAsync<AccountSearchResultDto>(
+                new CommandDefinition(sql, new { CompanyId = companyId, Ids = ids }, cancellationToken: ct));
+            return rows.ToList();
+        }
+
         private sealed class AccountTypeFormatRow
         {
             public int AccountCodeLength { get; set; }

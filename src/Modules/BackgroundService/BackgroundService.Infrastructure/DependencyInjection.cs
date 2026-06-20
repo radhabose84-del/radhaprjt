@@ -452,6 +452,7 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IHangfireQuery, HangfireQueryRepository>();
             services.AddScoped<SqlOutboxProcessorJob>();
+            services.AddScoped<CoaAutoReFreezeJob>();   // US-GL02-FR-008a auto-re-freeze (recurring, scheduled by the Hangfire host)
 
             // Inbox/Dedup — prevents duplicate message processing on MassTransit redelivery
             services.AddScoped<IInboxRepository, InboxRepository>();

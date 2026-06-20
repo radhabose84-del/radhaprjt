@@ -124,7 +124,12 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.HasIndex("ScheduleIIISectionItemId");
 
-                    b.ToTable("AccountGroup", "Finance");
+                    b.ToTable("AccountGroup", "Finance", t =>
+                        {
+                            t.HasTrigger("trg_AccountGroup_CoaFreeze");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.AccountGroupChangeRequest", b =>
@@ -347,6 +352,84 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasDatabaseName("IX_ActivityLog_Entity_CreatedDate");
 
                     b.ToTable("ActivityLog", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CoaFreezeState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int?>("FrozenByUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("FrozenByUserId");
+
+                    b.Property<DateTimeOffset?>("FrozenOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("FrozenOn");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsFrozen")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsFrozen");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<DateTimeOffset?>("UnfreezeWindowExpiry")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("UnfreezeWindowExpiry");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("CoaFreezeState", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.CostCentre", b =>
@@ -1115,6 +1198,80 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("EWaybillHeader", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountFavourite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("GlAccountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("GlAccountMasterId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GlAccountMasterId");
+
+                    b.HasIndex("UserId", "CompanyId");
+
+                    b.HasIndex("UserId", "CompanyId", "GlAccountMasterId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("GlAccountFavourite", "Finance");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportError", b =>
                 {
                     b.Property<int>("Id")
@@ -1451,7 +1608,94 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("CompanyId", "AccountName")
                         .IsUnique();
 
-                    b.ToTable("GlAccountMaster", "Finance");
+                    b.ToTable("GlAccountMaster", "Finance", t =>
+                        {
+                            t.HasTrigger("trg_GlAccountMaster_CoaFreeze");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountRecentUse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("GlAccountMasterId")
+                        .HasColumnType("int")
+                        .HasColumnName("GlAccountMasterId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTimeOffset>("LastUsedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("LastUsedDate");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("UseCount")
+                        .HasColumnType("int")
+                        .HasColumnName("UseCount");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GlAccountMasterId");
+
+                    b.HasIndex("UserId", "CompanyId", "GlAccountMasterId")
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("UserId", "CompanyId", "LastUsedDate");
+
+                    b.ToTable("GlAccountRecentUse", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionAccountLinkage", b =>
@@ -3154,6 +3398,17 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("EInvoiceHeader");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountFavourite", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.GlAccountMaster", "GlAccountMaster")
+                        .WithMany()
+                        .HasForeignKey("GlAccountMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GlAccountMaster");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportError", b =>
                 {
                     b.HasOne("FinanceManagement.Domain.Entities.GlAccountImportLog", "ImportLog")
@@ -3206,6 +3461,17 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("NormalBalanceMaster");
 
                     b.Navigation("SubLedgerTypeMaster");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountRecentUse", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.GlAccountMaster", "GlAccountMaster")
+                        .WithMany()
+                        .HasForeignKey("GlAccountMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GlAccountMaster");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionAccountLinkage", b =>

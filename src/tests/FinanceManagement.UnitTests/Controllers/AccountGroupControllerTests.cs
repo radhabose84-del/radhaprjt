@@ -10,6 +10,8 @@ using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupById;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupAutoComplete;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupParents;
 using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupLeaves;
+using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupApprovalChain;
+using FinanceManagement.Application.AccountGroup.Queries.GetAccountGroupMovePending;
 using FinanceManagement.Application.AccountGroup.Dto;
 
 namespace FinanceManagement.UnitTests.Controllers
@@ -86,6 +88,37 @@ namespace FinanceManagement.UnitTests.Controllers
         }
 
         [Fact]
+        public async Task GetApprovalChain_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetAccountGroupApprovalChainQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyList<AccountGroupApprovalChainDto>)new List<AccountGroupApprovalChainDto>());
+
+            var result = await CreateSut().GetAccountGroupApprovalChainAsync();
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetMovePending_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetAccountGroupMovePendingQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ApiResponseDTO<List<AccountGroupMovePendingDto>>
+                {
+                    IsSuccess = true,
+                    Data = new List<AccountGroupMovePendingDto>(),
+                    TotalCount = 0,
+                    PageNumber = 1,
+                    PageSize = 10
+                });
+
+            var result = await CreateSut().GetAccountGroupMovePendingAsync(1, 10, null);
+
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
         public async Task Create_ReturnsOkResult()
         {
             _mockMediator
@@ -130,8 +163,7 @@ namespace FinanceManagement.UnitTests.Controllers
             {
                 Id = 10,
                 NewParentAccountGroupId = 5,
-                Justification = "Restructure for FY2026 reporting",
-                ApproverId = 99
+                Justification = "Restructure for FY2026 reporting"
             });
 
             result.Should().BeOfType<OkObjectResult>();
