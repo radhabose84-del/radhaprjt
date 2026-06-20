@@ -38,6 +38,9 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<GlAccountFavourite> GlAccountFavourite => Set<GlAccountFavourite>();
         public DbSet<GlAccountRecentUse> GlAccountRecentUse => Set<GlAccountRecentUse>();
 
+        // US-GL02-FR-008a — COA freeze flag the DB triggers read (one row per company).
+        public DbSet<CoaFreezeState> CoaFreezeState => Set<CoaFreezeState>();
+
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
         // Cost Centre master & 3-level hierarchy (US-GL05-01)

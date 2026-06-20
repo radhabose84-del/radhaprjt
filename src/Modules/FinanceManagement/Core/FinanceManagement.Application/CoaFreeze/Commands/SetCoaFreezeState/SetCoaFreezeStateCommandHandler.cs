@@ -1,0 +1,61 @@
+using Contracts.Common;
+using Contracts.Interfaces;
+using FinanceManagement.Application.Common.Interfaces;
+using FinanceManagement.Application.Common.Interfaces.ICoaFreeze;
+using FinanceManagement.Domain.Events;
+using MediatR;
+
+namespace FinanceManagement.Application.CoaFreeze.Commands.SetCoaFreezeState
+{
+    public class SetCoaFreezeStateCommandHandler : IRequestHandler<SetCoaFreezeStateCommand, ApiResponseDTO<bool>>
+    {
+        private const int DefaultUnfreezeWindowMinutes = 60;
+
+        private readonly ICoaFreezeCommandRepository _commandRepository;
+        private readonly IIPAddressService _ipAddressService;
+        private readonly ITimeZoneService _timeZoneService;
+        private readonly IMediator _mediator;
+
+        public SetCoaFreezeStateCommandHandler(
+            ICoaFreezeCommandRepository commandRepository,
+            IIPAddressService ipAddressService,
+            ITimeZoneService timeZoneService,
+            IMediator mediator)
+        {
+            _commandRepository = commandRepository;
+            _ipAddressService = ipAddressService;
+            _timeZoneService = timeZoneService;
+            _mediator = mediator;
+        }
+
+        public async Task<ApiResponseDTO<bool>> Handle(SetCoaFreezeStateCommand request, CancellationToken cancellationToken)
+        {
+            var companyId = _ipAddressService.GetCompanyId()
+                ?? throw new ExceptionRules("No active company in session.");
+            var userId = _ipAddressService.GetUserId();
+            var now = _timeZoneService.GetCurrentTime();
+
+            string message;
+            if (request.IsFrozen)
+            {
+                await _commandRepository.FreezeAsync(companyId, userId, now, cancellationToken);
+                message = "Chart of Accounts frozen.";
+            }
+            else
+            {
+                var minutes = request.UnfreezeWindowMinutes is > 0 ? request.UnfreezeWindowMinutes!.Value : DefaultUnfreezeWindowMinutes;
+                await _commandRepository.OpenUnfreezeWindowAsync(companyId, now.AddMinutes(minutes), cancellationToken);
+                message = $"Unfreeze window opened for {minutes} minutes; auto-re-freeze on expiry.";
+            }
+
+            await _mediator.Publish(new AuditLogsDomainEvent(
+                actionDetail: "Update",
+                actionCode: request.IsFrozen ? "COA_FREEZE" : "COA_UNFREEZE_WINDOW_OPEN",
+                actionName: companyId.ToString(),
+                details: message,
+                module: "CoaFreeze"), cancellationToken);
+
+            return new ApiResponseDTO<bool> { IsSuccess = true, Message = message, Data = true };
+        }
+    }
+}
