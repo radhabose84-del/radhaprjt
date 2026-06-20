@@ -167,6 +167,9 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
 
+            // Account type-ahead per-user favourites + recently-used (US-GL02-07) — MongoDB-backed, no SQL.
+            services.AddScoped<IGlAccountUserPrefStore, GlAccountUserPrefStore>();
+
             // COA bulk import/export (GL02-FR-006)
             services.AddScoped<IGlAccountImportCommandRepository, GlAccountImportCommandRepository>();
             services.AddScoped<IGlAccountImportQueryRepository, GlAccountImportQueryRepository>();

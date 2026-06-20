@@ -33,6 +33,11 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
         public DbSet<AccountTypeMaster> AccountTypeMaster => Set<AccountTypeMaster>();
         public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
+
+        // US-GL02-07 type-ahead — per-user favourites + recently-used (relational store).
+        public DbSet<GlAccountFavourite> GlAccountFavourite => Set<GlAccountFavourite>();
+        public DbSet<GlAccountRecentUse> GlAccountRecentUse => Set<GlAccountRecentUse>();
+
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
         // Cost Centre master & 3-level hierarchy (US-GL05-01)
