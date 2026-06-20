@@ -7,8 +7,11 @@
    (UI, API or raw SQL). The app's "DB Trigger: ACTIVE" badge verifies these exist
    and are enabled (sys.triggers, is_disabled = 0).
 
-   PRE-REQ: run the EF migration that creates Finance.CoaFreezeState FIRST.
-   APPLY:   DBA reviews + executes this script against the target database.
+   DELIVERY: the triggers now ship inside the EF migration "CoaFreezeTriggers"
+            (migrationBuilder.Sql) so they travel with `dotnet ef database update` —
+            no separate DBA run needed. This script is kept as a REFERENCE and for the
+            verify/rollback queries below. (The entities also declare .HasTrigger(...) so
+            EF Core 8 keeps saving once these triggers exist.)
    ============================================================================ */
 
 SET ANSI_NULLS ON;

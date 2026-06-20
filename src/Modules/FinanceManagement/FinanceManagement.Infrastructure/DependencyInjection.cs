@@ -171,8 +171,9 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
 
-            // Account type-ahead per-user favourites + recently-used (US-GL02-07) — MongoDB-backed, no SQL.
-            services.AddScoped<IGlAccountUserPrefStore, GlAccountUserPrefStore>();
+            // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
+            // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
+            services.AddScoped<IGlAccountUserPrefStore, GlAccountUserPrefRepository>();
 
             // COA Freeze engine (US-GL02-FR-008a) — state read/write + Mongo violation log.
             services.AddScoped<ICoaFreezeQueryRepository, CoaFreezeQueryRepository>();

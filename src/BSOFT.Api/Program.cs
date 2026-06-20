@@ -12,6 +12,7 @@ using Shared.Infrastructure.Resilience;
 using UserManagement.Module;
 using FixedAssetManagement.Module;
 using MaintenanceManagement.Infrastructure.Jobs;
+using BackgroundService.Infrastructure.Jobs;
 using MaintenanceManagement.Module;
 using PurchaseManagement.Module;
 using InventoryManagement.Module;
@@ -106,7 +107,7 @@ builder.Services.AddCorsPolicy();
 builder.Services.AddHangfireServer(options =>
 {
     options.ServerName  = "BSOFT.Api";
-    options.Queues      = ["maintenance-jobs"];
+    options.Queues      = ["maintenance-jobs", "coa-refreeze-queue"];
     options.WorkerCount = 5;
 });
 
@@ -158,6 +159,13 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 RecurringJob.AddOrUpdate<MaintenanceOutboxProcessorJob>(
     "maintenance-outbox-processor",
     "maintenance-jobs",
+    job => job.ProcessAsync(CancellationToken.None),
+    Cron.Minutely());
+
+// US-GL02-FR-008a — auto-re-freeze the COA when an unfreeze window lapses (AC3). Every minute.
+RecurringJob.AddOrUpdate<CoaAutoReFreezeJob>(
+    "coa-auto-refreeze",
+    "coa-refreeze-queue",
     job => job.ProcessAsync(CancellationToken.None),
     Cron.Minutely());
 
