@@ -16,6 +16,23 @@ using FinanceManagement.Application.Common.Interfaces.IMiscTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IMiscMaster;
 using FinanceManagement.Application.Common.Interfaces.IAccountTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IVoucherTypeMaster;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IAccountingPeriod;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurringJournalTemplate;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournalThresholdRule;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournalImport;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.ISecurityViolationLog;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournalFlag;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurringGeneration;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IGapScan;
+using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Services;
+using FinanceManagement.Application.JournalMaster.JournalThresholdRule.Services;
+using FinanceManagement.Infrastructure.Repositories.JournalMaster.AccountingPeriod;
+using FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal;
+using FinanceManagement.Infrastructure.Repositories.JournalMaster.RecurringJournalTemplate;
+using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalThresholdRule;
+using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalImport;
+using FinanceManagement.Infrastructure.Repositories.JournalMaster.SecurityViolationLog;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
 using FinanceManagement.Application.Common.Interfaces.ICoaFreeze;
 using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
@@ -167,6 +184,40 @@ namespace FinanceManagement.Infrastructure
             // Voucher Type configuration master (US-GL01-02)
             services.AddScoped<IVoucherTypeMasterCommandRepository, VoucherTypeMasterCommandRepository>();
             services.AddScoped<IVoucherTypeMasterQueryRepository, VoucherTypeMasterQueryRepository>();
+
+            // Accounting Period master (GL-03 / JournalMaster GL01)
+            services.AddScoped<IAccountingPeriodCommandRepository, AccountingPeriodCommandRepository>();
+            services.AddScoped<IAccountingPeriodQueryRepository, AccountingPeriodQueryRepository>();
+
+            // Journal voucher entry aggregate (JournalHeader + JournalDetail) — US-GL01-01/05
+            services.AddScoped<IJournalCommandRepository, JournalCommandRepository>();
+            services.AddScoped<IJournalQueryRepository, JournalQueryRepository>();
+
+            // Recurring journal template authoring (Header + Detail) — US-GL01-11A
+            services.AddScoped<IRecurringJournalTemplateCommandRepository, RecurringJournalTemplateCommandRepository>();
+            services.AddScoped<IRecurringJournalTemplateQueryRepository, RecurringJournalTemplateQueryRepository>();
+
+            // Journal threshold rules (US-GL01-16A) + flag read (US-GL01-16B)
+            services.AddScoped<IJournalThresholdRuleCommandRepository, JournalThresholdRuleCommandRepository>();
+            services.AddScoped<IJournalThresholdRuleQueryRepository, JournalThresholdRuleQueryRepository>();
+
+            // Flagging engine (US-GL01-16B) — evaluates thresholds on posting + raises JournalFlag rows
+            services.AddScoped<IJournalFlagEngineRepository, JournalFlagEngineRepository>();
+
+            // Recurring generation (US-GL01-11B) — instantiate due templates on period-open
+            services.AddScoped<IRecurringGenerationRepository, RecurringGenerationRepository>();
+            services.AddScoped<IRecurringJournalGenerationService, RecurringJournalGenerationService>();
+
+            // Sequence gap detection (US-GL01-03B) — scan number series for missing numbers
+            services.AddScoped<IGapScanRepository, GapScanRepository>();
+            services.AddScoped<IGapScanService, GapScanService>();
+
+            // Bulk journal import from Excel (US-GL01-17)
+            services.AddScoped<IJournalImportCommandRepository, JournalImportCommandRepository>();
+            services.AddScoped<IJournalImportQueryRepository, JournalImportQueryRepository>();
+
+            // Posted-journal immutability — security violation log read (US-GL01-10; rows written by DB triggers)
+            services.AddScoped<ISecurityViolationLogQueryRepository, SecurityViolationLogQueryRepository>();
 
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
