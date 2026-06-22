@@ -1,11 +1,21 @@
 name: Deploy to QA and Run Tests
 
 on:
-  # MANUAL ONE-CLICK DEPLOY ONLY (no push trigger). When ready to deploy, the designated
-  # developer runs this: Gitea -> Actions -> "Deploy to QA and Run Tests" -> Run workflow
-  # -> branch BSOFTERP_Dev_V0.1. Builds + publishes + deploys to the QA IIS app + runs the
+  # ON-DEMAND DEPLOY. This Gitea (1.22.3) does NOT support manual workflow_dispatch — there is
+  # no "Run workflow" UI button and no dispatch REST API until Gitea 1.24+. So we trigger an
+  # intentional deploy by pushing a tag:
+  #     git tag deploy-qa-1 origin/BSOFTERP_Dev_V0.1
+  #     git push origin deploy-qa-1
+  # Each new deploy-qa-* tag = ONE intentional QA deploy of that tagged commit. Normal dev
+  # pushes do NOT trigger a deploy. Builds + publishes + deploys to the QA IIS app + runs the
   # full QA/Functional suite, replacing the manual build/publish/deploy-to-IIS process.
+  #
+  # workflow_dispatch is kept so the "Run workflow" button + API start working automatically
+  # once this Gitea server is upgraded to 1.24+ (then the deploy-qa-* tag path is optional).
   workflow_dispatch:
+  push:
+    tags:
+      - 'deploy-qa-*'
 
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
