@@ -210,6 +210,41 @@ Base route: `api/finance/CostCentre`.
 
 ---
 
+## US-GL05-02 — Profit Centre Master & 2-level Hierarchy
+
+**User story:** As a CFO, I maintain a profit-centre master for revenue segments
+(Segment L1 → Sub-segment L2) linked to a responsible head, so PC-wise gross margin is reportable
+each month. PC codes are unique **across all companies** (group segment reporting).
+
+**Pre-condition (seed):** the `PROFITCENTRELEVEL` MiscType + its 2 level rows (`PCL1`/`PCL2`,
+SortOrder 1/2) must exist in the QA clone; level ids are resolved at runtime via
+`miscmaster/by-name?MiscTypeCode=PROFITCENTRELEVEL` (never hardcoded). The L1 (Segment) lifecycle is
+self-contained (no cross-module FK). `CompanyId` comes from the token (owning company, stored for
+audit only — uniqueness is global). `ResponsibleHeadId` is nullable/optional (resolved via `IUserLookup`).
+Enforcement (current-FY-transaction deactivation guard, PC-mandatory tagging, PC P&L) is journal-engine
+(Sprint 2) / FR-003 / FR-004 — those steps are 🚫.
+
+Base route: `api/finance/ProfitCentre`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| Create → available in parent picker | Given a new L1 Segment is created, When GET `/by-name?level={L1}`, Then it is returned (offered to the L2 parent-segment picker, no code change). | ✅ implementable |
+| Edit | Given an existing PC, When PUT with a new name, Then GET `/{id}` reflects it (code/level immutable). | ✅ implementable |
+| Deactivate | Given an active PC, When PUT with `isActive=0`, Then it is excluded from `/by-name` (picker) but still present in GetAll (`IsDeleted=0`). | ✅ implementable |
+| AC1 — segment links to responsible head | Given segments are created under a group, Then each links to a responsible head and is available for tagging. *(Head FK is optional/nullable until the FE wires the picker.)* | ⚠️ verify live |
+| AC2 — code unique across companies | Given a PC code, When reused (in any company), Then it is rejected (400). | ✅ implementable |
+| AC3 — hierarchy rolls up across families | Given an L2 Sub-segment under an L1 Segment, Then it shows `parentProfitCentreName` (rolls up to its segment). | ✅ implementable |
+| AC4 — mid-year add note | Given a new PC added mid-year (with a justification), When created, Then an audit note records that prior transactions cannot be retro-tagged. | ✅ implementable (audit log) |
+| AC5 — deactivation blocked by current-FY transactions | Given a PC with current-year transactions, When deactivation is attempted, Then 400 "blocked until year-end close". | 🚫 journal engine (Sprint 2) — `HasCurrentYearTransactionsAsync` stubbed to false |
+
+> Single self-referencing `Finance.ProfitCentre` table; `LevelId` → `Finance.MiscMaster`
+> (ordinal from the stable `SortOrder`, never the id). Code unique **globally** (`ProfitCentreCode`,
+> across all companies); `CompanyId` from the JWT (audit only). PC codes allow hyphens
+> (`^[A-Za-z0-9-]+$`) so `PC-SPIN-001` validates. `ResponsibleHeadId` is nullable/optional. See the
+> **🌐 QA** suite `ProfitCentreQATests` for endpoint coverage.
+
+---
+
 ## US-GL01-02 — Voucher Type Configuration (per-type series · allowed account types · FY reset)
 
 **User story:** As a System Administrator, I configure voucher types each with their own dedicated
