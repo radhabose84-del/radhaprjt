@@ -367,6 +367,7 @@ jobs:
           if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set - skipping."; exit 0 }
 
           $failed = @(); $total = 0; $pass = 0; $fail = 0
+          $byModule = @{}
           Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
             try {
               [xml]$trx = Get-Content $_.FullName
@@ -374,7 +375,13 @@ jobs:
               if ($c) { $total += [int]$c.total; $pass += [int]$c.passed; $fail += [int]$c.failed }
               $trx.TestRun.Results.UnitTestResult |
                 Where-Object { $_.outcome -eq 'Failed' } |
-                ForEach-Object { $failed += $_.testName }
+                ForEach-Object {
+                  $failed += $_.testName
+                  # Module = first segment of the fully-qualified test name (e.g. "FinanceManagement.QATests...").
+                  $mod = ($_.testName -split '\.')[0]
+                  if (-not $mod) { $mod = 'Unknown' }
+                  if ($byModule.ContainsKey($mod)) { $byModule[$mod]++ } else { $byModule[$mod] = 1 }
+                }
             } catch { Write-Host "Could not parse $($_.Name): $_" }
           }
 
@@ -385,10 +392,15 @@ jobs:
             $text = ":white_check_mark: *QA pipeline passed* on ``$branch`` ($sha)`n" +
                     "Passed: $pass  Failed: $fail  Total: $total"
           } else {
+            # Per-module failure breakdown (most failures first) so the responsible module is obvious at a glance.
+            $modLines = ($byModule.GetEnumerator() | Sort-Object Value -Descending |
+                         ForEach-Object { "- $($_.Key): $($_.Value) failed" }) -join "`n"
+            $modCount = $byModule.Keys.Count
             $lines = ($failed | Select-Object -First 20 | ForEach-Object { "- $_" }) -join "`n"
             if ($failed.Count -gt 20) { $lines += "`n...and $($failed.Count - 20) more" }
-            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
+            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha) - $fail test(s) across $modCount module(s)`n" +
                     "Passed: $pass  Failed: $fail  Total: $total`n" +
+                    "*Failures by module:*`n$modLines`n" +
                     "*Failed tests:*`n$lines"
           }
 
@@ -454,7 +466,9 @@ jobs:
 
           foreach ($t in $failed) {
             $short = ($t.Name -split '\.')[-1]
-            $summary = "[QA] $short failing"
+            # Module = first segment of the fully-qualified test name, so the JIRA board groups by module.
+            $module = ($t.Name -split '\.')[0]
+            $summary = "[QA][$module] $short failing"
             $err = "$($t.Error)"
             if ([string]::IsNullOrWhiteSpace($err)) { $err = "(no error message captured in TRX)" }
             if ($err.Length -gt 2000) { $err = $err.Substring(0,2000) + " ..." }
