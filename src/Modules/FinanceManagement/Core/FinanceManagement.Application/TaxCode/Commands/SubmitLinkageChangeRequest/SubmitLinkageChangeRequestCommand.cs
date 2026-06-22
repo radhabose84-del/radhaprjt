@@ -6,7 +6,7 @@ namespace FinanceManagement.Application.TaxCode.Commands.SubmitLinkageChangeRequ
     public class SubmitLinkageChangeRequestCommand : IRequest<ApiResponseDTO<int>>, IRequirePermission
     {
         public int GlAccountId { get; set; }
-        public int NewTaxCodeId { get; set; }
+        public int? NewTaxCodeId { get; set; }           // optional — a linkage may carry no tax code
         public int? NewControlAccountId { get; set; }
         public string? Reason { get; set; }
         public DateOnly EffectiveFrom { get; set; }
