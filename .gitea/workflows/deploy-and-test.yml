@@ -205,6 +205,45 @@ jobs:
             Write-Host "No backup found - nothing to roll back to (likely the first deploy)."
           }
 
+      # ── Step 9c: Reset QA test data (clean baseline) ────────────────────
+      # Deletes every testsales-created row from BannariERP_QATest so repeated runs do NOT
+      # accumulate QA data. Without this, the sliced unique codes (e.g. Country EntityCode[..5])
+      # slowly fill their finite code space and Create/Setup tests start flaking with
+      # "already exists" 400s. qa-clone-reset.sql self-guards — it ABORTS (RAISERROR) unless
+      # connected to BannariERP_QATest, so it can never touch another DB. Runs AFTER readiness
+      # (app is healthy) and BEFORE the tests. Uses the same DATABASE_* secrets as web.config;
+      # if they are unset it skips (so a creds-less run still works, just without the reset).
+      - name: Reset QA data (testsales rows)
+        shell: powershell
+        env:
+          DB_SERVER: ${{ secrets.DATABASE_SERVER }}
+          DB_USER: ${{ secrets.DATABASE_USERID }}
+          DB_PASS: ${{ secrets.DATABASE_PASSWORD }}
+        run: |
+          if (-not $env:DB_SERVER -or -not $env:DB_USER -or -not $env:DB_PASS) {
+            Write-Host "DB secrets not set - skipping QA data reset. Set DATABASE_SERVER / DATABASE_USERID / DATABASE_PASSWORD secrets to enable the per-run reset."
+          } else {
+            $b = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
+            $b['Server']                 = $env:DB_SERVER
+            $b['Database']               = 'BannariERP_QATest'
+            $b['User Id']                = $env:DB_USER
+            $b['Password']               = $env:DB_PASS
+            $b['Encrypt']                = $false
+            $b['TrustServerCertificate'] = $true
+            $sql  = Get-Content -Raw "src/tests/qa-clone-reset.sql"
+            $conn = New-Object System.Data.SqlClient.SqlConnection $b.ConnectionString
+            $conn.Open()
+            try {
+              $cmd = $conn.CreateCommand()
+              $cmd.CommandText    = $sql
+              $cmd.CommandTimeout = 120
+              [void]$cmd.ExecuteNonQuery()
+              Write-Host "QA data reset complete (BannariERP_QATest)."
+            } finally {
+              $conn.Close()
+            }
+          }
+
       # ── Step 10: SMOKE GATE (fail fast) ─────────────────────────────────
       # If the deployed app can't serve the critical read paths, stop here — no point
       # running the full suite against a broken deploy. A failing step fails the job.
