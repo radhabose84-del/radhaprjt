@@ -24,10 +24,9 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
                 switch (rule.Rule)
                 {
                     case "NotEmpty":
+                        // NewTaxCodeId is optional — a linkage may carry no tax code.
                         RuleFor(x => x.GlAccountId)
                             .GreaterThan(0).WithMessage($"{nameof(SubmitLinkageChangeRequestCommand.GlAccountId)} {rule.Error}");
-                        RuleFor(x => x.NewTaxCodeId)
-                            .GreaterThan(0).WithMessage($"{nameof(SubmitLinkageChangeRequestCommand.NewTaxCodeId)} {rule.Error}");
                         RuleFor(x => x.Reason)
                             .NotNull().WithMessage($"{nameof(SubmitLinkageChangeRequestCommand.Reason)} {rule.Error}")
                             .NotEmpty().WithMessage($"{nameof(SubmitLinkageChangeRequestCommand.Reason)} {rule.Error}");
@@ -35,9 +34,9 @@ namespace FinanceManagement.Presentation.Validation.TaxCode
 
                     case "FKColumnDelete":
                         RuleFor(x => x.NewTaxCodeId)
-                            .MustAsync(async (id, ct) => await _queryRepository.TaxCodeExistsAsync(id))
+                            .MustAsync(async (id, ct) => await _queryRepository.TaxCodeExistsAsync(id!.Value))
                             .WithMessage($"{nameof(SubmitLinkageChangeRequestCommand.NewTaxCodeId)} {rule.Error}")
-                            .When(x => x.NewTaxCodeId > 0);
+                            .When(x => x.NewTaxCodeId.HasValue && x.NewTaxCodeId.Value > 0);
 
                         RuleFor(x => x.GlAccountId)
                             .MustAsync(async (id, ct) => await _queryRepository.GlAccountExistsAsync(id))
