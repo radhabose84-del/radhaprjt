@@ -80,6 +80,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasDefaultValue(false)
                 .IsRequired();
 
+            builder.Property(t => t.IsProfitCentreMandatory)
+                .HasColumnName("IsProfitCentreMandatory")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
             builder.Property(t => t.IsTaxRelevant)
                 .HasColumnName("IsTaxRelevant")
                 .HasColumnType("bit")
@@ -103,6 +109,10 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ImportLogId)
                 .HasColumnName("ImportLogId")
                 .HasColumnType("int");
+
+            // US-GL02-08B (AC3) — non-NULL stamps the account 'Post-Freeze' in COA listings/exports.
+            builder.Property(t => t.LastPostFreezeChangeOn)
+                .HasColumnName("LastPostFreezeChangeOn");
 
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")

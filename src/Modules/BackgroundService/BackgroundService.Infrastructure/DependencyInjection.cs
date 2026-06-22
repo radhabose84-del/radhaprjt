@@ -188,6 +188,9 @@ namespace BackgroundService.Infrastructure
                     x.AddConsumer<ApprovalRequestConsumer>();
                     x.AddConsumer<ApprovalResultDispatcherConsumer>();
 
+                    // US-GL02-08B — COA unfreeze alert (CFO / FC / Internal Audit)
+                    x.AddConsumer<CoaUnfreezeAlertConsumer>();
+
                     // Module-specific approval result consumers
                     x.AddConsumer<PurchaseManagement.Application.Consumers.ApprovedRejectedConsumer>();
                     x.AddConsumer<BudgetManagement.Application.Consumers.ApprovedRejectedConsumer>();
@@ -333,6 +336,12 @@ namespace BackgroundService.Infrastructure
                             e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
                             e.ConfigureConsumer<FinanceManagement.Application.Consumers.ApprovedRejectedConsumer>(context);
                         });
+                        // US-GL02-08B — COA unfreeze alert to CFO / FC / Internal Audit
+                        cfg.ReceiveEndpoint("coa-unfreeze-alert-queue", e =>
+                        {
+                            e.UseMessageRetry(r => r.Intervals(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30)));
+                            e.ConfigureConsumer<CoaUnfreezeAlertConsumer>(context);
+                        });
                         // Party → User integration queues
                         cfg.ReceiveEndpoint("party-approved-user-creation-queue", e =>
                         {
@@ -453,6 +462,7 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<IHangfireQuery, HangfireQueryRepository>();
             services.AddScoped<SqlOutboxProcessorJob>();
             services.AddScoped<CoaAutoReFreezeJob>();   // US-GL02-FR-008a auto-re-freeze (recurring, scheduled by the Hangfire host)
+            services.AddScoped<CoaLapseExpiredRequestsJob>();   // US-GL02-08B lapse expired unfreeze requests (recurring)
 
             // Inbox/Dedup — prevents duplicate message processing on MassTransit redelivery
             services.AddScoped<IInboxRepository, InboxRepository>();

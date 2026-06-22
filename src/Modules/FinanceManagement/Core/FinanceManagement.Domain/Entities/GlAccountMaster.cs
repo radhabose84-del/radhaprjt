@@ -17,6 +17,7 @@ namespace FinanceManagement.Domain.Entities
         public int SubLedgerTypeId { get; set; }
 
         public bool IsCostCentreMandatory { get; set; }
+        public bool IsProfitCentreMandatory { get; set; }
         public bool IsTaxRelevant { get; set; }
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }
@@ -24,6 +25,10 @@ namespace FinanceManagement.Domain.Entities
         // Traceability: the bulk-import run (GL02-FR-006) that created this account, if any.
         // Lets the import batch be activated in one call (AC3). NULL for manually-created accounts.
         public int? ImportLogId { get; set; }
+
+        // US-GL02-08B (AC3) — stamped when a post-freeze change to this account is committed during an
+        // unfreeze window. Non-NULL marks the account 'Post-Freeze' in COA listings/exports. NULL otherwise.
+        public DateTimeOffset? LastPostFreezeChangeOn { get; set; }
 
         // Same-module FK navigation
         public AccountTypeMaster? AccountTypeMaster { get; set; }

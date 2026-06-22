@@ -169,6 +169,13 @@ RecurringJob.AddOrUpdate<CoaAutoReFreezeJob>(
     job => job.ProcessAsync(CancellationToken.None),
     Cron.Minutely());
 
+// US-GL02-08B — lapse incomplete change requests + close the window when it expires (AC4). Every minute.
+RecurringJob.AddOrUpdate<CoaLapseExpiredRequestsJob>(
+    "coa-lapse-expired-requests",
+    "coa-refreeze-queue",
+    job => job.ProcessAsync(CancellationToken.None),
+    Cron.Minutely());
+
 app.UseMiddleware<TokenValidationMiddleware>();
 
 

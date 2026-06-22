@@ -18,9 +18,15 @@ namespace FinanceManagement.FunctionalTests
     [CollectionDefinition("US-GL05-01")]
     public sealed class CostCentreStoryCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("US-GL05-02")]
+    public sealed class ProfitCentreStoryCollection : ICollectionFixture<QAServerFixture> { }
+
     [CollectionDefinition("US-GL01-02")]
     public sealed class VoucherTypeStoryCollection : ICollectionFixture<QAServerFixture> { }
 
     [CollectionDefinition("US-GL02-FR-008a")]
     public sealed class CoaFreezeStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL02-08B")]
+    public sealed class CoaChangeRequestStoryCollection : ICollectionFixture<QAServerFixture> { }
 }

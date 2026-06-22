@@ -20,8 +20,8 @@ public sealed class CountryQATests
     {
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
-            countryCode = _f.EntityCode[..4],   // max 5 chars
-            countryName = $"QA Country {_f.EntityCode}"
+            countryCode = _f.EntityCode[..5],   // max 5 chars; [..5] ("Q"+4 digits) gives a 10000-value
+            countryName = $"QA Country {_f.EntityCode}"   // space so it never collides with legacy 4-char codes
         });
 
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -135,7 +135,7 @@ public sealed class CountryQATests
     {
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
-            countryCode = _f.EntityCode[..4],   // same code as TC001
+            countryCode = _f.EntityCode[..5],   // same code as TC001
             countryName = "Duplicate Code Country"
         });
 
@@ -236,7 +236,7 @@ public sealed class CountryQATests
         doc.RootElement.CreatedId()
             .Should().Be(_f.CreatedId);
         doc.RootElement.GetProperty("data").GetProperty("countryCode").GetString()
-            .Should().Be(_f.EntityCode[..4]);
+            .Should().Be(_f.EntityCode[..5]);
     }
 
     [Fact, TestPriority(18)]
@@ -306,7 +306,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = _f.CreatedId,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = $"QA Country Updated {_f.EntityCode}",
             isActive    = (byte)1
         });
@@ -323,7 +323,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = _f.CreatedId,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = $"QA Country Updated {_f.EntityCode}",
             isActive    = (byte)0
         });
@@ -337,7 +337,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = _f.CreatedId,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = $"QA Country Updated {_f.EntityCode}",
             isActive    = (byte)1
         });
@@ -351,7 +351,7 @@ public sealed class CountryQATests
         var resp = await _f.AnonymousClient.PutAsJsonAsync(BaseRoute, new
         {
             id          = _f.CreatedId,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = $"QA Country Updated {_f.EntityCode}",
             isActive    = (byte)1
         });
@@ -381,7 +381,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = _f.CreatedId,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = "",
             isActive    = (byte)1
         });
@@ -445,7 +445,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = _f.CreatedId,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = new string('A', 51),
             isActive    = (byte)1
         });
@@ -461,7 +461,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = _f.CreatedId,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = $"QA Country Updated {_f.EntityCode}",
             isActive    = (byte)2
         });
@@ -477,7 +477,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = 0,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = "Updated Country",
             isActive    = (byte)1
         });
@@ -493,7 +493,7 @@ public sealed class CountryQATests
         var resp = await _f.Client.PutAsJsonAsync(BaseRoute, new
         {
             id          = 999999,
-            countryCode = _f.EntityCode[..4],
+            countryCode = _f.EntityCode[..5],
             countryName = "Updated Country",
             isActive    = (byte)1
         });

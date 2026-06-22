@@ -1,11 +1,21 @@
 name: Deploy to QA and Run Tests
 
 on:
-  # MANUAL ONE-CLICK DEPLOY ONLY (no push trigger). When ready to deploy, the designated
-  # developer runs this: Gitea -> Actions -> "Deploy to QA and Run Tests" -> Run workflow
-  # -> branch BSOFTERP_Dev_V0.1. Builds + publishes + deploys to the QA IIS app + runs the
+  # ON-DEMAND DEPLOY. This Gitea (1.22.3) does NOT support manual workflow_dispatch — there is
+  # no "Run workflow" UI button and no dispatch REST API until Gitea 1.24+. So we trigger an
+  # intentional deploy by pushing a tag:
+  #     git tag deploy-qa-1 origin/BSOFTERP_Dev_V0.1
+  #     git push origin deploy-qa-1
+  # Each new deploy-qa-* tag = ONE intentional QA deploy of that tagged commit. Normal dev
+  # pushes do NOT trigger a deploy. Builds + publishes + deploys to the QA IIS app + runs the
   # full QA/Functional suite, replacing the manual build/publish/deploy-to-IIS process.
+  #
+  # workflow_dispatch is kept so the "Run workflow" button + API start working automatically
+  # once this Gitea server is upgraded to 1.24+ (then the deploy-qa-* tag path is optional).
   workflow_dispatch:
+  push:
+    tags:
+      - 'deploy-qa-*'
 
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
@@ -195,6 +205,45 @@ jobs:
             Write-Host "No backup found - nothing to roll back to (likely the first deploy)."
           }
 
+      # ── Step 9c: Reset QA test data (clean baseline) ────────────────────
+      # Deletes every testsales-created row from BannariERP_QATest so repeated runs do NOT
+      # accumulate QA data. Without this, the sliced unique codes (e.g. Country EntityCode[..5])
+      # slowly fill their finite code space and Create/Setup tests start flaking with
+      # "already exists" 400s. qa-clone-reset.sql self-guards — it ABORTS (RAISERROR) unless
+      # connected to BannariERP_QATest, so it can never touch another DB. Runs AFTER readiness
+      # (app is healthy) and BEFORE the tests. Uses the same DATABASE_* secrets as web.config;
+      # if they are unset it skips (so a creds-less run still works, just without the reset).
+      - name: Reset QA data (testsales rows)
+        shell: powershell
+        env:
+          DB_SERVER: ${{ secrets.DATABASE_SERVER }}
+          DB_USER: ${{ secrets.DATABASE_USERID }}
+          DB_PASS: ${{ secrets.DATABASE_PASSWORD }}
+        run: |
+          if (-not $env:DB_SERVER -or -not $env:DB_USER -or -not $env:DB_PASS) {
+            Write-Host "DB secrets not set - skipping QA data reset. Set DATABASE_SERVER / DATABASE_USERID / DATABASE_PASSWORD secrets to enable the per-run reset."
+          } else {
+            $b = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
+            $b['Server']                 = $env:DB_SERVER
+            $b['Database']               = 'BannariERP_QATest'
+            $b['User Id']                = $env:DB_USER
+            $b['Password']               = $env:DB_PASS
+            $b['Encrypt']                = $false
+            $b['TrustServerCertificate'] = $true
+            $sql  = Get-Content -Raw "src/tests/qa-clone-reset.sql"
+            $conn = New-Object System.Data.SqlClient.SqlConnection $b.ConnectionString
+            $conn.Open()
+            try {
+              $cmd = $conn.CreateCommand()
+              $cmd.CommandText    = $sql
+              $cmd.CommandTimeout = 120
+              [void]$cmd.ExecuteNonQuery()
+              Write-Host "QA data reset complete (BannariERP_QATest)."
+            } finally {
+              $conn.Close()
+            }
+          }
+
       # ── Step 10: SMOKE GATE (fail fast) ─────────────────────────────────
       # If the deployed app can't serve the critical read paths, stop here — no point
       # running the full suite against a broken deploy. A failing step fails the job.
@@ -367,6 +416,7 @@ jobs:
           if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set - skipping."; exit 0 }
 
           $failed = @(); $total = 0; $pass = 0; $fail = 0
+          $byModule = @{}
           Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
             try {
               [xml]$trx = Get-Content $_.FullName
@@ -374,7 +424,13 @@ jobs:
               if ($c) { $total += [int]$c.total; $pass += [int]$c.passed; $fail += [int]$c.failed }
               $trx.TestRun.Results.UnitTestResult |
                 Where-Object { $_.outcome -eq 'Failed' } |
-                ForEach-Object { $failed += $_.testName }
+                ForEach-Object {
+                  $failed += $_.testName
+                  # Module = first segment of the fully-qualified test name (e.g. "FinanceManagement.QATests...").
+                  $mod = ($_.testName -split '\.')[0]
+                  if (-not $mod) { $mod = 'Unknown' }
+                  if ($byModule.ContainsKey($mod)) { $byModule[$mod]++ } else { $byModule[$mod] = 1 }
+                }
             } catch { Write-Host "Could not parse $($_.Name): $_" }
           }
 
@@ -385,10 +441,15 @@ jobs:
             $text = ":white_check_mark: *QA pipeline passed* on ``$branch`` ($sha)`n" +
                     "Passed: $pass  Failed: $fail  Total: $total"
           } else {
+            # Per-module failure breakdown (most failures first) so the responsible module is obvious at a glance.
+            $modLines = ($byModule.GetEnumerator() | Sort-Object Value -Descending |
+                         ForEach-Object { "- $($_.Key): $($_.Value) failed" }) -join "`n"
+            $modCount = $byModule.Keys.Count
             $lines = ($failed | Select-Object -First 20 | ForEach-Object { "- $_" }) -join "`n"
             if ($failed.Count -gt 20) { $lines += "`n...and $($failed.Count - 20) more" }
-            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
+            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha) - $fail test(s) across $modCount module(s)`n" +
                     "Passed: $pass  Failed: $fail  Total: $total`n" +
+                    "*Failures by module:*`n$modLines`n" +
                     "*Failed tests:*`n$lines"
           }
 
@@ -454,7 +515,9 @@ jobs:
 
           foreach ($t in $failed) {
             $short = ($t.Name -split '\.')[-1]
-            $summary = "[QA] $short failing"
+            # Module = first segment of the fully-qualified test name, so the JIRA board groups by module.
+            $module = ($t.Name -split '\.')[0]
+            $summary = "[QA][$module] $short failing"
             $err = "$($t.Error)"
             if ([string]::IsNullOrWhiteSpace($err)) { $err = "(no error message captured in TRX)" }
             if ($err.Length -gt 2000) { $err = $err.Substring(0,2000) + " ..." }

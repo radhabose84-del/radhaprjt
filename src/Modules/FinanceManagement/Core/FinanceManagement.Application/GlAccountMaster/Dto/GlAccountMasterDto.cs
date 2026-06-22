@@ -32,6 +32,7 @@ namespace FinanceManagement.Application.GlAccountMaster.Dto
         public string? SubLedgerTypeName { get; set; }
 
         public bool IsCostCentreMandatory { get; set; }
+        public bool IsProfitCentreMandatory { get; set; }
         public bool IsTaxRelevant { get; set; }
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }
@@ -43,6 +44,11 @@ namespace FinanceManagement.Application.GlAccountMaster.Dto
         public string? TaxName { get; set; }
         public int? ControlAccountTypeId { get; set; }
         public string? ControlAccountType { get; set; }
+
+        // US-GL02-08B (AC3 / G3) — marks the account as touched by a committed post-freeze change.
+        // IsPostFreeze is the report flag; LastPostFreezeChangeOn carries when it happened.
+        public bool IsPostFreeze { get; set; }
+        public DateTimeOffset? LastPostFreezeChangeOn { get; set; }
 
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

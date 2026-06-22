@@ -147,6 +147,34 @@ Base route: `api/finance/coa-freeze`.
 
 ---
 
+## US-GL02-08B — COA Change-Request & Dual-Approval Unfreeze Workflow
+
+**User story:** As a CFO, I want post-freeze changes to require a change request with an impact
+assessment and a dual-approval unfreeze by two distinct people, fully logged, so any change to a
+sealed COA is authorised and traceable. Drives the freeze state that US-GL02-08A enforces.
+
+**Pre-condition (config):** the `CoaUnfreeze` section in `appsettings.json` must map `CfoRoleId`,
+`SystemAdminRoleId`, `FcRoleId`, `InternalAuditRoleId` to real `AppSecurity.UserRole` IDs, and the
+unfreeze/approve screen must be registered as a menu (so the `CanApprove` permission gate enforces).
+Until then, role-gated steps refuse by design and are guarded as 🚫.
+
+Base route: `api/finance/coa-change-request`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC5 — impact assessment required | Given a change request, When raised without an impact assessment, Then it is rejected (400); with one it lands in PendingImpactApproval, and the CFO must approve the impact before any unfreeze approval proceeds. | ✅ implementable (raise + 400); ⚠️ CFO impact-approve needs role config |
+| AC3 — post-freeze change log | Given committed post-freeze changes, When GET `/post-freeze-log`, Then each row carries account, change type, BOTH approvers + timestamps, justification, flagged Post-Freeze; accounts also carry the flag in the GL listing. | ⚠️ verify live (report shape) |
+| AC1 — distinct approvers | Given an unfreeze request, When the same person tries both approvals, Then it is blocked: "Dual approval required — approvers must be different users." | 🚫 needs RoleIds + dual-role login |
+| AC2 — dual approval opens window + alerts | Given CFO + System Admin (distinct) approve, When the second approval lands, Then a time-boxed window opens (08A auto-re-freezes) and alerts go to CFO/FC/Internal Audit. | 🚫 needs RoleIds + Worker (email) |
+| AC4 — lapse on auto-re-freeze | Given a window expires with incomplete change requests, When auto-re-freeze runs, Then those requests are cancelled as 'Lapsed' (by the `coa-lapse-expired-requests` job). | 🚫 needs Worker/Hangfire + wait |
+
+> Workflow tables are `Finance.CoaChangeRequest` + `Finance.CoaUnfreezeRequest` (two distinct approver
+> slots). Window-open drives 08A's `OpenUnfreezeWindowAsync`; post-freeze capture is the
+> `CoaPostFreezeCaptureBehavior` (heuristic linkage). Alerts publish `CoaUnfreezeAlertEvent` → BackgroundService
+> `CoaUnfreezeAlertConsumer`. The TEST/ADMIN `set-state` unfreeze branch is now blocked (governed seal = `/seal`).
+
+---
+
 ## US-GL02-12 — Account Currency & Forex Configuration
 
 **User story:** As a Finance Controller, I maintain the currency-type master (INR-only / Forex /
@@ -207,6 +235,41 @@ Base route: `api/finance/CostCentre`.
 > (ordinal from the stable `SortOrder`, never the id). Code unique per `(UnitId, CostCentreCode)`;
 > `UnitId`/`CompanyId` from the JWT. `ResponsibleManagerId` + effective dates are nullable/optional
 > columns (FE adds the inputs later). See the **🌐 QA** suite `CostCentreQATests` for endpoint coverage.
+
+---
+
+## US-GL05-02 — Profit Centre Master & 2-level Hierarchy
+
+**User story:** As a CFO, I maintain a profit-centre master for revenue segments
+(Segment L1 → Sub-segment L2) linked to a responsible head, so PC-wise gross margin is reportable
+each month. PC codes are unique **across all companies** (group segment reporting).
+
+**Pre-condition (seed):** the `PROFITCENTRELEVEL` MiscType + its 2 level rows (`PCL1`/`PCL2`,
+SortOrder 1/2) must exist in the QA clone; level ids are resolved at runtime via
+`miscmaster/by-name?MiscTypeCode=PROFITCENTRELEVEL` (never hardcoded). The L1 (Segment) lifecycle is
+self-contained (no cross-module FK). `CompanyId` comes from the token (owning company, stored for
+audit only — uniqueness is global). `ResponsibleHeadId` is nullable/optional (resolved via `IUserLookup`).
+Enforcement (current-FY-transaction deactivation guard, PC-mandatory tagging, PC P&L) is journal-engine
+(Sprint 2) / FR-003 / FR-004 — those steps are 🚫.
+
+Base route: `api/finance/ProfitCentre`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| Create → available in parent picker | Given a new L1 Segment is created, When GET `/by-name?level={L1}`, Then it is returned (offered to the L2 parent-segment picker, no code change). | ✅ implementable |
+| Edit | Given an existing PC, When PUT with a new name, Then GET `/{id}` reflects it (code/level immutable). | ✅ implementable |
+| Deactivate | Given an active PC, When PUT with `isActive=0`, Then it is excluded from `/by-name` (picker) but still present in GetAll (`IsDeleted=0`). | ✅ implementable |
+| AC1 — segment links to responsible head | Given segments are created under a group, Then each links to a responsible head and is available for tagging. *(Head FK is optional/nullable until the FE wires the picker.)* | ⚠️ verify live |
+| AC2 — code unique across companies | Given a PC code, When reused (in any company), Then it is rejected (400). | ✅ implementable |
+| AC3 — hierarchy rolls up across families | Given an L2 Sub-segment under an L1 Segment, Then it shows `parentProfitCentreName` (rolls up to its segment). | ✅ implementable |
+| AC4 — mid-year add note | Given a new PC added mid-year (with a justification), When created, Then an audit note records that prior transactions cannot be retro-tagged. | ✅ implementable (audit log) |
+| AC5 — deactivation blocked by current-FY transactions | Given a PC with current-year transactions, When deactivation is attempted, Then 400 "blocked until year-end close". | 🚫 journal engine (Sprint 2) — `HasCurrentYearTransactionsAsync` stubbed to false |
+
+> Single self-referencing `Finance.ProfitCentre` table; `LevelId` → `Finance.MiscMaster`
+> (ordinal from the stable `SortOrder`, never the id). Code unique **globally** (`ProfitCentreCode`,
+> across all companies); `CompanyId` from the JWT (audit only). PC codes allow hyphens
+> (`^[A-Za-z0-9-]+$`) so `PC-SPIN-001` validates. `ResponsibleHeadId` is nullable/optional. See the
+> **🌐 QA** suite `ProfitCentreQATests` for endpoint coverage.
 
 ---
 
