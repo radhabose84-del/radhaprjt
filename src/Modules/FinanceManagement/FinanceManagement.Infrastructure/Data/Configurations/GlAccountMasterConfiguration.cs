@@ -104,6 +104,10 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasColumnName("ImportLogId")
                 .HasColumnType("int");
 
+            // US-GL02-08B (AC3) — non-NULL stamps the account 'Post-Freeze' in COA listings/exports.
+            builder.Property(t => t.LastPostFreezeChangeOn)
+                .HasColumnName("LastPostFreezeChangeOn");
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")

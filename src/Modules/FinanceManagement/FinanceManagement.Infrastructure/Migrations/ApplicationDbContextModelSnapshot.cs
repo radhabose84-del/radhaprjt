@@ -354,6 +354,134 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("ActivityLog", "Finance");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CoaChangeRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountCodeSnapshot")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("AccountCodeSnapshot");
+
+                    b.Property<string>("ChangeType")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ChangeType");
+
+                    b.Property<int?>("CommittedByUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("CommittedByUserId");
+
+                    b.Property<DateTimeOffset?>("CommittedOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CommittedOn");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int?>("ImpactApprovedByUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("ImpactApprovedByUserId");
+
+                    b.Property<DateTimeOffset?>("ImpactApprovedOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ImpactApprovedOn");
+
+                    b.Property<string>("ImpactAssessment")
+                        .IsRequired()
+                        .HasColumnType("varchar(2000)")
+                        .HasColumnName("ImpactAssessment");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsPostFreeze")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsPostFreeze");
+
+                    b.Property<string>("Justification")
+                        .IsRequired()
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("Justification");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("RequestStatus")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("Status");
+
+                    b.Property<int>("RequestedByUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("RequestedByUserId");
+
+                    b.Property<DateTimeOffset?>("RequestedOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("RequestedOn");
+
+                    b.Property<int?>("TargetAccountGroupId")
+                        .HasColumnType("int")
+                        .HasColumnName("TargetAccountGroupId");
+
+                    b.Property<int?>("TargetAccountId")
+                        .HasColumnType("int")
+                        .HasColumnName("TargetAccountId");
+
+                    b.Property<int?>("UnfreezeRequestId")
+                        .HasColumnType("int")
+                        .HasColumnName("UnfreezeRequestId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "RequestStatus");
+
+                    b.HasIndex("UnfreezeRequestId", "RequestStatus");
+
+                    b.ToTable("CoaChangeRequest", "Finance");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.CoaFreezeState", b =>
                 {
                     b.Property<int>("Id")
@@ -430,6 +558,112 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("CoaFreezeState", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CoaUnfreezeRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("CfoApprovedOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CfoApprovedOn");
+
+                    b.Property<int?>("CfoApproverUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("CfoApproverUserId");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("Reason");
+
+                    b.Property<string>("RequestStatus")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("Status");
+
+                    b.Property<int>("RequestedByUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("RequestedByUserId");
+
+                    b.Property<DateTimeOffset?>("RequestedOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("RequestedOn");
+
+                    b.Property<DateTimeOffset?>("SysAdminApprovedOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("SysAdminApprovedOn");
+
+                    b.Property<int?>("SysAdminApproverUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("SysAdminApproverUserId");
+
+                    b.Property<DateTimeOffset?>("WindowExpiry")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("WindowExpiry");
+
+                    b.Property<int>("WindowMinutes")
+                        .HasColumnType("int")
+                        .HasColumnName("WindowMinutes");
+
+                    b.Property<DateTimeOffset?>("WindowOpenedOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("WindowOpenedOn");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "RequestStatus");
+
+                    b.ToTable("CoaUnfreezeRequest", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.CostCentre", b =>
@@ -1561,6 +1795,10 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false)
                         .HasColumnName("IsTaxRelevant");
+
+                    b.Property<DateTimeOffset?>("LastPostFreezeChangeOn")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("LastPostFreezeChangeOn");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -3337,6 +3575,16 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("ScheduleIIISectionItem");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CoaChangeRequest", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.CoaUnfreezeRequest", "UnfreezeRequest")
+                        .WithMany("ChangeRequests")
+                        .HasForeignKey("UnfreezeRequestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("UnfreezeRequest");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.CostCentre", b =>
                 {
                     b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "CentreLevelMaster")
@@ -3757,6 +4005,11 @@ namespace FinanceManagement.Infrastructure.Migrations
             modelBuilder.Entity("FinanceManagement.Domain.Entities.AccountTypeMaster", b =>
                 {
                     b.Navigation("GlAccountMasters");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.CoaUnfreezeRequest", b =>
+                {
+                    b.Navigation("ChangeRequests");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.CostCentre", b =>

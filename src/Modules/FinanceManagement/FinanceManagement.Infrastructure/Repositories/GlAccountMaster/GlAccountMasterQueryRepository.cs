@@ -30,6 +30,9 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             -- Control account type = the GL account's SubLedgerType (SLTYPE) when it isn't 'NONE'.
             CASE WHEN slt.Code <> 'NONE' THEN am.SubLedgerTypeId END AS ControlAccountTypeId,
             CASE WHEN slt.Code <> 'NONE' THEN slt.Description END AS ControlAccountType,
+            -- US-GL02-08B (AC3 / G3): mark accounts touched by a committed post-freeze change.
+            am.LastPostFreezeChangeOn,
+            CASE WHEN am.LastPostFreezeChangeOn IS NOT NULL THEN 1 ELSE 0 END AS IsPostFreeze,
             am.IsActive, am.IsDeleted,
             am.CreatedBy, am.CreatedDate, am.CreatedByName, am.CreatedIP,
             am.ModifiedBy, am.ModifiedDate, am.ModifiedByName, am.ModifiedIP

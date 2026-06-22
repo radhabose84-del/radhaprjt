@@ -31,13 +31,16 @@ namespace FinanceManagement.UnitTests.Application.CoaFreeze
             _mockRepo.Verify(r => r.FreezeAsync(1, 396, _now, It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        // US-GL02-08B (G1): the TEST/ADMIN unfreeze branch is now blocked — unfreeze must go through the
+        // governed dual-approval workflow. The hook may only seal.
         [Fact]
-        public async Task Handle_OpenUnfreezeWindow_CallsOpenWindowWithExpiry()
+        public async Task Handle_OpenUnfreezeWindow_IsBlocked()
         {
-            var result = await CreateSut().Handle(new SetCoaFreezeStateCommand { IsFrozen = false, UnfreezeWindowMinutes = 30 }, CancellationToken.None);
+            var act = async () => await CreateSut().Handle(
+                new SetCoaFreezeStateCommand { IsFrozen = false, UnfreezeWindowMinutes = 30 }, CancellationToken.None);
 
-            result.IsSuccess.Should().BeTrue();
-            _mockRepo.Verify(r => r.OpenUnfreezeWindowAsync(1, _now.AddMinutes(30), It.IsAny<CancellationToken>()), Times.Once);
+            await act.Should().ThrowAsync<ExceptionRules>().WithMessage("*Direct unfreeze is disabled*");
+            _mockRepo.Verify(r => r.OpenUnfreezeWindowAsync(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

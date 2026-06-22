@@ -46,6 +46,9 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("CoaFreezeCollection")]
     public sealed class CoaFreezeCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("CoaChangeRequestCollection")]
+    public sealed class CoaChangeRequestCollection : ICollectionFixture<QAServerFixture> { }
+
     [CollectionDefinition("GstrSectionMasterCollection")]
     public sealed class GstrSectionMasterCollection : ICollectionFixture<QAServerFixture> { }
 

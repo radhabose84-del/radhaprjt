@@ -41,6 +41,10 @@ namespace FinanceManagement.Infrastructure.Data
         // US-GL02-FR-008a — COA freeze flag the DB triggers read (one row per company).
         public DbSet<CoaFreezeState> CoaFreezeState => Set<CoaFreezeState>();
 
+        // US-GL02-08B — change-request + dual-approval unfreeze workflow that drives the 08a freeze state.
+        public DbSet<CoaChangeRequest> CoaChangeRequest => Set<CoaChangeRequest>();
+        public DbSet<CoaUnfreezeRequest> CoaUnfreezeRequest => Set<CoaUnfreezeRequest>();
+
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
         // Cost Centre master & 3-level hierarchy (US-GL05-01)
