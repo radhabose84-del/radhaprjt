@@ -9,8 +9,6 @@ namespace FinanceManagement.Application.CoaFreeze.Commands.SetCoaFreezeState
 {
     public class SetCoaFreezeStateCommandHandler : IRequestHandler<SetCoaFreezeStateCommand, ApiResponseDTO<bool>>
     {
-        private const int DefaultUnfreezeWindowMinutes = 60;
-
         private readonly ICoaFreezeCommandRepository _commandRepository;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
@@ -35,18 +33,15 @@ namespace FinanceManagement.Application.CoaFreeze.Commands.SetCoaFreezeState
             var userId = _ipAddressService.GetUserId();
             var now = _timeZoneService.GetCurrentTime();
 
-            string message;
-            if (request.IsFrozen)
-            {
-                await _commandRepository.FreezeAsync(companyId, userId, now, cancellationToken);
-                message = "Chart of Accounts frozen.";
-            }
-            else
-            {
-                var minutes = request.UnfreezeWindowMinutes is > 0 ? request.UnfreezeWindowMinutes!.Value : DefaultUnfreezeWindowMinutes;
-                await _commandRepository.OpenUnfreezeWindowAsync(companyId, now.AddMinutes(minutes), cancellationToken);
-                message = $"Unfreeze window opened for {minutes} minutes; auto-re-freeze on expiry.";
-            }
+            // US-GL02-08B (gap G1): unfreeze is now governed by the dual-approval workflow. This TEST/ADMIN
+            // hook may only seal — opening an unfreeze window directly would bypass CFO + System Admin
+            // dual approval, defeating the whole control. Sealing here is superseded by SealCoaCommand.
+            if (!request.IsFrozen)
+                throw new ExceptionRules(
+                    "Direct unfreeze is disabled. Raise a change request and obtain dual approval (CFO + System Admin) via the COA unfreeze workflow (US-GL02-08B).");
+
+            await _commandRepository.FreezeAsync(companyId, userId, now, cancellationToken);
+            var message = "Chart of Accounts frozen.";
 
             await _mediator.Publish(new AuditLogsDomainEvent(
                 actionDetail: "Update",

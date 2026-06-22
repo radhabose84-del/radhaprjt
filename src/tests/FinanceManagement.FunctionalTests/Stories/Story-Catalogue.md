@@ -147,6 +147,34 @@ Base route: `api/finance/coa-freeze`.
 
 ---
 
+## US-GL02-08B — COA Change-Request & Dual-Approval Unfreeze Workflow
+
+**User story:** As a CFO, I want post-freeze changes to require a change request with an impact
+assessment and a dual-approval unfreeze by two distinct people, fully logged, so any change to a
+sealed COA is authorised and traceable. Drives the freeze state that US-GL02-08A enforces.
+
+**Pre-condition (config):** the `CoaUnfreeze` section in `appsettings.json` must map `CfoRoleId`,
+`SystemAdminRoleId`, `FcRoleId`, `InternalAuditRoleId` to real `AppSecurity.UserRole` IDs, and the
+unfreeze/approve screen must be registered as a menu (so the `CanApprove` permission gate enforces).
+Until then, role-gated steps refuse by design and are guarded as 🚫.
+
+Base route: `api/finance/coa-change-request`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC5 — impact assessment required | Given a change request, When raised without an impact assessment, Then it is rejected (400); with one it lands in PendingImpactApproval, and the CFO must approve the impact before any unfreeze approval proceeds. | ✅ implementable (raise + 400); ⚠️ CFO impact-approve needs role config |
+| AC3 — post-freeze change log | Given committed post-freeze changes, When GET `/post-freeze-log`, Then each row carries account, change type, BOTH approvers + timestamps, justification, flagged Post-Freeze; accounts also carry the flag in the GL listing. | ⚠️ verify live (report shape) |
+| AC1 — distinct approvers | Given an unfreeze request, When the same person tries both approvals, Then it is blocked: "Dual approval required — approvers must be different users." | 🚫 needs RoleIds + dual-role login |
+| AC2 — dual approval opens window + alerts | Given CFO + System Admin (distinct) approve, When the second approval lands, Then a time-boxed window opens (08A auto-re-freezes) and alerts go to CFO/FC/Internal Audit. | 🚫 needs RoleIds + Worker (email) |
+| AC4 — lapse on auto-re-freeze | Given a window expires with incomplete change requests, When auto-re-freeze runs, Then those requests are cancelled as 'Lapsed' (by the `coa-lapse-expired-requests` job). | 🚫 needs Worker/Hangfire + wait |
+
+> Workflow tables are `Finance.CoaChangeRequest` + `Finance.CoaUnfreezeRequest` (two distinct approver
+> slots). Window-open drives 08A's `OpenUnfreezeWindowAsync`; post-freeze capture is the
+> `CoaPostFreezeCaptureBehavior` (heuristic linkage). Alerts publish `CoaUnfreezeAlertEvent` → BackgroundService
+> `CoaUnfreezeAlertConsumer`. The TEST/ADMIN `set-state` unfreeze branch is now blocked (governed seal = `/seal`).
+
+---
+
 ## US-GL02-12 — Account Currency & Forex Configuration
 
 **User story:** As a Finance Controller, I maintain the currency-type master (INR-only / Forex /

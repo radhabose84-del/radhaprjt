@@ -25,6 +25,10 @@ namespace FinanceManagement.Domain.Entities
         // Lets the import batch be activated in one call (AC3). NULL for manually-created accounts.
         public int? ImportLogId { get; set; }
 
+        // US-GL02-08B (AC3) — stamped when a post-freeze change to this account is committed during an
+        // unfreeze window. Non-NULL marks the account 'Post-Freeze' in COA listings/exports. NULL otherwise.
+        public DateTimeOffset? LastPostFreezeChangeOn { get; set; }
+
         // Same-module FK navigation
         public AccountTypeMaster? AccountTypeMaster { get; set; }
         public AccountGroup? AccountGroup { get; set; }

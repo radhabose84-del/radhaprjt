@@ -289,6 +289,7 @@ namespace UserManagement.Infrastructure
             services.AddScoped<IDepartmentUserLookup, DepartmentUserLookupRepository>();
             services.AddScoped<ICompanyLookup, CompanyLookupRepository>();
             services.AddScoped<IUserLookup, UserLookupRepository>();
+            services.AddScoped<IRoleUserLookup, RoleUserLookupRepository>();
             services.AddScoped<IDepartmentGroupLookup, DepartmentGroupLookupRepository>();
             services.AddScoped<IFinancialYearLookup, FinancialYearLookupRepository>();
             services.AddScoped<ICurrencyLookup, CurrencyLookupRepository>();

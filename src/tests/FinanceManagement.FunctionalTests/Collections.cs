@@ -26,4 +26,7 @@ namespace FinanceManagement.FunctionalTests
 
     [CollectionDefinition("US-GL02-FR-008a")]
     public sealed class CoaFreezeStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL02-08B")]
+    public sealed class CoaChangeRequestStoryCollection : ICollectionFixture<QAServerFixture> { }
 }

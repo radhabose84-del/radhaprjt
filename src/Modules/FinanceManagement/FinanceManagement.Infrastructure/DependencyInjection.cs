@@ -19,6 +19,8 @@ using FinanceManagement.Application.Common.Interfaces.IVoucherTypeMaster;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
 using FinanceManagement.Application.Common.Interfaces.ICoaFreeze;
 using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
+using FinanceManagement.Application.Common.Interfaces.ICoaChangeRequest;
+using FinanceManagement.Infrastructure.Repositories.CoaChangeRequest;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
 using FinanceManagement.Application.Common.Interfaces.ICostCentre;
 using FinanceManagement.Application.Common.Interfaces.IProfitCentre;
@@ -75,6 +77,10 @@ namespace FinanceManagement.Infrastructure
 
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found or is empty.");
+
+            // US-GL02-08B — configurable CFO/SysAdmin/FC/Internal-Audit role mapping + unfreeze window.
+            services.Configure<FinanceManagement.Application.Common.Options.CoaUnfreezeOptions>(
+                configuration.GetSection(FinanceManagement.Application.Common.Options.CoaUnfreezeOptions.SectionName));
 
             // Activity-log interceptor (writes Finance.ActivityLog for IActivityTracked entities)
             services.AddScoped<ActivityLogSaveChangesInterceptor>();
@@ -179,6 +185,10 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<ICoaFreezeQueryRepository, CoaFreezeQueryRepository>();
             services.AddScoped<ICoaFreezeCommandRepository, CoaFreezeCommandRepository>();
             services.AddScoped<ICoaFreezeViolationLog, CoaFreezeViolationLogStore>();
+
+            // COA change-request + dual-approval unfreeze workflow (US-GL02-08B).
+            services.AddScoped<ICoaChangeRequestCommandRepository, CoaChangeRequestCommandRepository>();
+            services.AddScoped<ICoaChangeRequestQueryRepository, CoaChangeRequestQueryRepository>();
 
             // COA bulk import/export (GL02-FR-006)
             services.AddScoped<IGlAccountImportCommandRepository, GlAccountImportCommandRepository>();
