@@ -32,6 +32,7 @@ namespace FinanceManagement.Application.GlAccountMaster.Dto
         public string? SubLedgerTypeName { get; set; }
 
         public bool IsCostCentreMandatory { get; set; }
+        public bool IsProfitCentreMandatory { get; set; }
         public bool IsTaxRelevant { get; set; }
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }
