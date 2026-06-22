@@ -81,6 +81,7 @@ jobs:
           if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL - skipping."; exit 0 }
 
           $failed = @(); $total = 0; $pass = 0; $fail = 0
+          $byModule = @{}
           Get-ChildItem ci-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
             try {
               [xml]$trx = Get-Content $_.FullName
@@ -88,17 +89,27 @@ jobs:
               if ($c) { $total += [int]$c.total; $pass += [int]$c.passed; $fail += [int]$c.failed }
               $trx.TestRun.Results.UnitTestResult |
                 Where-Object { $_.outcome -eq 'Failed' } |
-                ForEach-Object { $failed += $_.testName }
+                ForEach-Object {
+                  $failed += $_.testName
+                  # Module = first segment of the fully-qualified test name (e.g. "FinanceManagement.UnitTests...").
+                  $mod = ($_.testName -split '\.')[0]
+                  if (-not $mod) { $mod = 'Unknown' }
+                  if ($byModule.ContainsKey($mod)) { $byModule[$mod]++ } else { $byModule[$mod] = 1 }
+                }
             } catch {}
           }
 
           $branch = "${{ github.ref_name }}"
           $sha    = "${{ github.sha }}".Substring(0,8)
+          $modLines = ($byModule.GetEnumerator() | Sort-Object Value -Descending |
+                       ForEach-Object { "- $($_.Key): $($_.Value) failed" }) -join "`n"
+          $modCount = $byModule.Keys.Count
           $lines  = ($failed | Select-Object -First 15 | ForEach-Object { "- $_" }) -join "`n"
           if ($failed.Count -gt 15) { $lines += "`n...and $($failed.Count - 15) more" }
 
-          $text = ":x: *CI Gate FAILED* on ``$branch`` ($sha)`n" +
+          $text = ":x: *CI Gate FAILED* on ``$branch`` ($sha) - $fail test(s) across $modCount module(s)`n" +
                   "Passed: $pass  Failed: $fail  Total: $total`n" +
+                  "*Failures by module:*`n$modLines`n" +
                   "*Failed tests:*`n$lines"
 
           $payload = @{ text = $text } | ConvertTo-Json -Depth 4

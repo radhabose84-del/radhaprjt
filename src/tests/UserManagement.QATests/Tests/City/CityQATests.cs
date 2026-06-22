@@ -22,7 +22,9 @@ public sealed class CityQATests
     {
         var resp = await _f.Client.PostAsJsonAsync(CountryRoute, new
         {
-            countryCode = _f.EntityCode[..4],
+            // [..5] ("Q"+4 digits) gives a 10000-value space and, being 5 chars, never
+            // collides with the legacy 4-char QA country codes accumulated on the clone.
+            countryCode = _f.EntityCode[..5],
             countryName = $"QA City Test Country {_f.EntityCode}"
         });
 

@@ -14,7 +14,7 @@
   finishes (and releases its testsales session) before the next logs in.
 
   Usage:
-    dotnet test BSOFT.sln --settings qa.runsettings
+    dotnet test BSOFT.sln  /settings:qa.runsettings
 -->
 <RunSettings>
   <RunConfiguration>

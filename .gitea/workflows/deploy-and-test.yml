@@ -1,11 +1,21 @@
 name: Deploy to QA and Run Tests
 
 on:
-  # MANUAL ONE-CLICK DEPLOY ONLY (no push trigger). When ready to deploy, the designated
-  # developer runs this: Gitea -> Actions -> "Deploy to QA and Run Tests" -> Run workflow
-  # -> branch BSOFTERP_Dev_V0.1. Builds + publishes + deploys to the QA IIS app + runs the
+  # ON-DEMAND DEPLOY. This Gitea (1.22.3) does NOT support manual workflow_dispatch — there is
+  # no "Run workflow" UI button and no dispatch REST API until Gitea 1.24+. So we trigger an
+  # intentional deploy by pushing a tag:
+  #     git tag deploy-qa-1 origin/BSOFTERP_Dev_V0.1
+  #     git push origin deploy-qa-1
+  # Each new deploy-qa-* tag = ONE intentional QA deploy of that tagged commit. Normal dev
+  # pushes do NOT trigger a deploy. Builds + publishes + deploys to the QA IIS app + runs the
   # full QA/Functional suite, replacing the manual build/publish/deploy-to-IIS process.
+  #
+  # workflow_dispatch is kept so the "Run workflow" button + API start working automatically
+  # once this Gitea server is upgraded to 1.24+ (then the deploy-qa-* tag path is optional).
   workflow_dispatch:
+  push:
+    tags:
+      - 'deploy-qa-*'
 
 # Retarget the live-test fixtures at the deployed QA app (overrides appsettings.QA.json,
 # which defaults to localhost:5239). QAServer__Username / __Password can be overridden the
@@ -195,6 +205,45 @@ jobs:
             Write-Host "No backup found - nothing to roll back to (likely the first deploy)."
           }
 
+      # ── Step 9c: Reset QA test data (clean baseline) ────────────────────
+      # Deletes every testsales-created row from BannariERP_QATest so repeated runs do NOT
+      # accumulate QA data. Without this, the sliced unique codes (e.g. Country EntityCode[..5])
+      # slowly fill their finite code space and Create/Setup tests start flaking with
+      # "already exists" 400s. qa-clone-reset.sql self-guards — it ABORTS (RAISERROR) unless
+      # connected to BannariERP_QATest, so it can never touch another DB. Runs AFTER readiness
+      # (app is healthy) and BEFORE the tests. Uses the same DATABASE_* secrets as web.config;
+      # if they are unset it skips (so a creds-less run still works, just without the reset).
+      - name: Reset QA data (testsales rows)
+        shell: powershell
+        env:
+          DB_SERVER: ${{ secrets.DATABASE_SERVER }}
+          DB_USER: ${{ secrets.DATABASE_USERID }}
+          DB_PASS: ${{ secrets.DATABASE_PASSWORD }}
+        run: |
+          if (-not $env:DB_SERVER -or -not $env:DB_USER -or -not $env:DB_PASS) {
+            Write-Host "DB secrets not set - skipping QA data reset. Set DATABASE_SERVER / DATABASE_USERID / DATABASE_PASSWORD secrets to enable the per-run reset."
+          } else {
+            $b = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
+            $b['Server']                 = $env:DB_SERVER
+            $b['Database']               = 'BannariERP_QATest'
+            $b['User Id']                = $env:DB_USER
+            $b['Password']               = $env:DB_PASS
+            $b['Encrypt']                = $false
+            $b['TrustServerCertificate'] = $true
+            $sql  = Get-Content -Raw "src/tests/qa-clone-reset.sql"
+            $conn = New-Object System.Data.SqlClient.SqlConnection $b.ConnectionString
+            $conn.Open()
+            try {
+              $cmd = $conn.CreateCommand()
+              $cmd.CommandText    = $sql
+              $cmd.CommandTimeout = 120
+              [void]$cmd.ExecuteNonQuery()
+              Write-Host "QA data reset complete (BannariERP_QATest)."
+            } finally {
+              $conn.Close()
+            }
+          }
+
       # ── Step 10: SMOKE GATE (fail fast) ─────────────────────────────────
       # If the deployed app can't serve the critical read paths, stop here — no point
       # running the full suite against a broken deploy. A failing step fails the job.
@@ -278,29 +327,28 @@ jobs:
             --logger "trx;LogFileName=maintenance-functional.trx" --logger "console;verbosity=normal" `
             --results-directory qa-reports
 
-      # ── Step 12c: All-module SMOKE (RECONCILING — non-blocking) ─────────
-      # Smoke = the GetAll happy-path per entity (Layer=Smoke) for the 12 modules added after
-      # FAM/Maintenance (Sales/UserManagement Tier 1 + the 11 Tier-2 modules). All are live-green
-      # on the BannariERP_QATest clone, but have NOT yet run in CI against the deployed
-      # BsoftErpDemo app (different DB/seed state), so they run continue-on-error to REPORT first.
-      # PROMOTE each module's smoke line into the blocking gate (Step 10/10a) once it is green
-      # across a few CI runs. UserManagement smoke is already blocking in Step 10.
-      - name: All-module smoke (reconciling)
+      # ── Step 12c: All-module SMOKE (BLOCKING gate) ──────────────────────
+      # Smoke = the GetAll happy-path per entity (Layer=Smoke) across ALL modules (glob-discovered).
+      # This is the deploy gate: smoke is the cheapest, most stable signal (login -> auth -> DB -> read),
+      # so a smoke failure in ANY module fails the job (Slack/JIRA fire). It does NOT roll back the
+      # deploy — the rollback step (9b) is positioned before the tests, so this is a red-signal gate
+      # only. The heavier full-QA (12d) and Functional (12e) suites stay non-blocking/reconciling until
+      # they prove green against the deployed BsoftErpDemo app across a few runs, then promote them too.
+      - name: All-module smoke (blocking)
         if: success()
-        continue-on-error: true
         shell: powershell
         run: |
-          $projects = @(
-            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
-            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
-            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
-            "BackgroundService"
-          )
-          foreach ($p in $projects) {
-            Write-Host "── Smoke: $p ──"
-            dotnet test "src/tests/$p.QATests/$p.QATests.csproj" `
+          # Glob auto-discovery: every *.QATests project is picked up (incl. any future module) — no
+          # hardcoded list to maintain. Skip the modules already run by the blocking gates above
+          # (Steps 10/10a) so they aren't executed twice.
+          $alreadyBlocking = @("UserManagement","FixedAssetManagement","MaintenanceManagement")
+          Get-ChildItem src/tests -Recurse -Filter *.QATests.csproj | Sort-Object FullName | ForEach-Object {
+            $module = $_.BaseName -replace '\.QATests$',''
+            if ($alreadyBlocking -contains $module) { return }
+            Write-Host "── Smoke: $module ──"
+            dotnet test $_.FullName `
               --filter "Layer=Smoke" `
-              --logger "trx;LogFileName=$p-smoke.trx" --logger "console;verbosity=normal" `
+              --logger "trx;LogFileName=$module-smoke.trx" --logger "console;verbosity=normal" `
               --results-directory qa-reports
           }
 
@@ -312,16 +360,14 @@ jobs:
         continue-on-error: true
         shell: powershell
         run: |
-          $projects = @(
-            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
-            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
-            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
-            "BackgroundService"
-          )
-          foreach ($p in $projects) {
-            Write-Host "── QA: $p ──"
-            dotnet test "src/tests/$p.QATests/$p.QATests.csproj" `
-              --logger "trx;LogFileName=$p-qa.trx" --logger "console;verbosity=normal" `
+          # Glob auto-discovery (see Step 12c). Skip the modules already run by the blocking QA step (Step 11).
+          $alreadyBlocking = @("UserManagement","FixedAssetManagement","MaintenanceManagement")
+          Get-ChildItem src/tests -Recurse -Filter *.QATests.csproj | Sort-Object FullName | ForEach-Object {
+            $module = $_.BaseName -replace '\.QATests$',''
+            if ($alreadyBlocking -contains $module) { return }
+            Write-Host "── QA: $module ──"
+            dotnet test $_.FullName `
+              --logger "trx;LogFileName=$module-qa.trx" --logger "console;verbosity=normal" `
               --results-directory qa-reports
           }
 
@@ -332,16 +378,15 @@ jobs:
         continue-on-error: true
         shell: powershell
         run: |
-          $projects = @(
-            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
-            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
-            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
-            "BackgroundService"
-          )
-          foreach ($p in $projects) {
-            Write-Host "── Functional: $p ──"
-            dotnet test "src/tests/$p.FunctionalTests/$p.FunctionalTests.csproj" `
-              --logger "trx;LogFileName=$p-functional.trx" --logger "console;verbosity=normal" `
+          # Glob auto-discovery (see Step 12c). Skip the modules already run by the blocking/named
+          # Functional steps above (Step 12 UserManagement, Step 12b FAM + Maintenance).
+          $alreadyBlocking = @("UserManagement","FixedAssetManagement","MaintenanceManagement")
+          Get-ChildItem src/tests -Recurse -Filter *.FunctionalTests.csproj | Sort-Object FullName | ForEach-Object {
+            $module = $_.BaseName -replace '\.FunctionalTests$',''
+            if ($alreadyBlocking -contains $module) { return }
+            Write-Host "── Functional: $module ──"
+            dotnet test $_.FullName `
+              --logger "trx;LogFileName=$module-functional.trx" --logger "console;verbosity=normal" `
               --results-directory qa-reports
           }
 
@@ -371,6 +416,7 @@ jobs:
           if (-not $env:SLACK_WEBHOOK_URL) { Write-Host "No SLACK_WEBHOOK_URL secret set - skipping."; exit 0 }
 
           $failed = @(); $total = 0; $pass = 0; $fail = 0
+          $byModule = @{}
           Get-ChildItem qa-reports -Filter *.trx -ErrorAction SilentlyContinue | ForEach-Object {
             try {
               [xml]$trx = Get-Content $_.FullName
@@ -378,7 +424,13 @@ jobs:
               if ($c) { $total += [int]$c.total; $pass += [int]$c.passed; $fail += [int]$c.failed }
               $trx.TestRun.Results.UnitTestResult |
                 Where-Object { $_.outcome -eq 'Failed' } |
-                ForEach-Object { $failed += $_.testName }
+                ForEach-Object {
+                  $failed += $_.testName
+                  # Module = first segment of the fully-qualified test name (e.g. "FinanceManagement.QATests...").
+                  $mod = ($_.testName -split '\.')[0]
+                  if (-not $mod) { $mod = 'Unknown' }
+                  if ($byModule.ContainsKey($mod)) { $byModule[$mod]++ } else { $byModule[$mod] = 1 }
+                }
             } catch { Write-Host "Could not parse $($_.Name): $_" }
           }
 
@@ -389,10 +441,15 @@ jobs:
             $text = ":white_check_mark: *QA pipeline passed* on ``$branch`` ($sha)`n" +
                     "Passed: $pass  Failed: $fail  Total: $total"
           } else {
+            # Per-module failure breakdown (most failures first) so the responsible module is obvious at a glance.
+            $modLines = ($byModule.GetEnumerator() | Sort-Object Value -Descending |
+                         ForEach-Object { "- $($_.Key): $($_.Value) failed" }) -join "`n"
+            $modCount = $byModule.Keys.Count
             $lines = ($failed | Select-Object -First 20 | ForEach-Object { "- $_" }) -join "`n"
             if ($failed.Count -gt 20) { $lines += "`n...and $($failed.Count - 20) more" }
-            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha)`n" +
+            $text = ":x: *QA pipeline failed* on ``$branch`` ($sha) - $fail test(s) across $modCount module(s)`n" +
                     "Passed: $pass  Failed: $fail  Total: $total`n" +
+                    "*Failures by module:*`n$modLines`n" +
                     "*Failed tests:*`n$lines"
           }
 
@@ -458,7 +515,9 @@ jobs:
 
           foreach ($t in $failed) {
             $short = ($t.Name -split '\.')[-1]
-            $summary = "[QA] $short failing"
+            # Module = first segment of the fully-qualified test name, so the JIRA board groups by module.
+            $module = ($t.Name -split '\.')[0]
+            $summary = "[QA][$module] $short failing"
             $err = "$($t.Error)"
             if ([string]::IsNullOrWhiteSpace($err)) { $err = "(no error message captured in TRX)" }
             if ($err.Length -gt 2000) { $err = $err.Substring(0,2000) + " ..." }
