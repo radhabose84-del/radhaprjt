@@ -278,29 +278,28 @@ jobs:
             --logger "trx;LogFileName=maintenance-functional.trx" --logger "console;verbosity=normal" `
             --results-directory qa-reports
 
-      # ── Step 12c: All-module SMOKE (RECONCILING — non-blocking) ─────────
-      # Smoke = the GetAll happy-path per entity (Layer=Smoke) for the 12 modules added after
-      # FAM/Maintenance (Sales/UserManagement Tier 1 + the 11 Tier-2 modules). All are live-green
-      # on the BannariERP_QATest clone, but have NOT yet run in CI against the deployed
-      # BsoftErpDemo app (different DB/seed state), so they run continue-on-error to REPORT first.
-      # PROMOTE each module's smoke line into the blocking gate (Step 10/10a) once it is green
-      # across a few CI runs. UserManagement smoke is already blocking in Step 10.
-      - name: All-module smoke (reconciling)
+      # ── Step 12c: All-module SMOKE (BLOCKING gate) ──────────────────────
+      # Smoke = the GetAll happy-path per entity (Layer=Smoke) across ALL modules (glob-discovered).
+      # This is the deploy gate: smoke is the cheapest, most stable signal (login -> auth -> DB -> read),
+      # so a smoke failure in ANY module fails the job (Slack/JIRA fire). It does NOT roll back the
+      # deploy — the rollback step (9b) is positioned before the tests, so this is a red-signal gate
+      # only. The heavier full-QA (12d) and Functional (12e) suites stay non-blocking/reconciling until
+      # they prove green against the deployed BsoftErpDemo app across a few runs, then promote them too.
+      - name: All-module smoke (blocking)
         if: success()
-        continue-on-error: true
         shell: powershell
         run: |
-          $projects = @(
-            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
-            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
-            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
-            "BackgroundService"
-          )
-          foreach ($p in $projects) {
-            Write-Host "── Smoke: $p ──"
-            dotnet test "src/tests/$p.QATests/$p.QATests.csproj" `
+          # Glob auto-discovery: every *.QATests project is picked up (incl. any future module) — no
+          # hardcoded list to maintain. Skip the modules already run by the blocking gates above
+          # (Steps 10/10a) so they aren't executed twice.
+          $alreadyBlocking = @("UserManagement","FixedAssetManagement","MaintenanceManagement")
+          Get-ChildItem src/tests -Recurse -Filter *.QATests.csproj | Sort-Object FullName | ForEach-Object {
+            $module = $_.BaseName -replace '\.QATests$',''
+            if ($alreadyBlocking -contains $module) { return }
+            Write-Host "── Smoke: $module ──"
+            dotnet test $_.FullName `
               --filter "Layer=Smoke" `
-              --logger "trx;LogFileName=$p-smoke.trx" --logger "console;verbosity=normal" `
+              --logger "trx;LogFileName=$module-smoke.trx" --logger "console;verbosity=normal" `
               --results-directory qa-reports
           }
 
@@ -312,16 +311,14 @@ jobs:
         continue-on-error: true
         shell: powershell
         run: |
-          $projects = @(
-            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
-            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
-            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
-            "BackgroundService"
-          )
-          foreach ($p in $projects) {
-            Write-Host "── QA: $p ──"
-            dotnet test "src/tests/$p.QATests/$p.QATests.csproj" `
-              --logger "trx;LogFileName=$p-qa.trx" --logger "console;verbosity=normal" `
+          # Glob auto-discovery (see Step 12c). Skip the modules already run by the blocking QA step (Step 11).
+          $alreadyBlocking = @("UserManagement","FixedAssetManagement","MaintenanceManagement")
+          Get-ChildItem src/tests -Recurse -Filter *.QATests.csproj | Sort-Object FullName | ForEach-Object {
+            $module = $_.BaseName -replace '\.QATests$',''
+            if ($alreadyBlocking -contains $module) { return }
+            Write-Host "── QA: $module ──"
+            dotnet test $_.FullName `
+              --logger "trx;LogFileName=$module-qa.trx" --logger "console;verbosity=normal" `
               --results-directory qa-reports
           }
 
@@ -332,16 +329,15 @@ jobs:
         continue-on-error: true
         shell: powershell
         run: |
-          $projects = @(
-            "SalesManagement","LogisticsManagement","WarehouseManagement","ProjectManagement",
-            "GateEntryManagement","QCManagement","BudgetManagement","PartyManagement",
-            "FinanceManagement","ProductionManagement","InventoryManagement","PurchaseManagement",
-            "BackgroundService"
-          )
-          foreach ($p in $projects) {
-            Write-Host "── Functional: $p ──"
-            dotnet test "src/tests/$p.FunctionalTests/$p.FunctionalTests.csproj" `
-              --logger "trx;LogFileName=$p-functional.trx" --logger "console;verbosity=normal" `
+          # Glob auto-discovery (see Step 12c). Skip the modules already run by the blocking/named
+          # Functional steps above (Step 12 UserManagement, Step 12b FAM + Maintenance).
+          $alreadyBlocking = @("UserManagement","FixedAssetManagement","MaintenanceManagement")
+          Get-ChildItem src/tests -Recurse -Filter *.FunctionalTests.csproj | Sort-Object FullName | ForEach-Object {
+            $module = $_.BaseName -replace '\.FunctionalTests$',''
+            if ($alreadyBlocking -contains $module) { return }
+            Write-Host "── Functional: $module ──"
+            dotnet test $_.FullName `
+              --logger "trx;LogFileName=$module-functional.trx" --logger "console;verbosity=normal" `
               --results-directory qa-reports
           }
 
