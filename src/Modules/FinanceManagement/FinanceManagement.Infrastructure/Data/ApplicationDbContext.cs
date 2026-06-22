@@ -33,10 +33,21 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<MiscMaster> MiscMaster => Set<MiscMaster>();
         public DbSet<AccountTypeMaster> AccountTypeMaster => Set<AccountTypeMaster>();
         public DbSet<GlAccountMaster> GlAccountMaster => Set<GlAccountMaster>();
+
+        // US-GL02-07 type-ahead — per-user favourites + recently-used (relational store).
+        public DbSet<GlAccountFavourite> GlAccountFavourite => Set<GlAccountFavourite>();
+        public DbSet<GlAccountRecentUse> GlAccountRecentUse => Set<GlAccountRecentUse>();
+
+        // US-GL02-FR-008a — COA freeze flag the DB triggers read (one row per company).
+        public DbSet<CoaFreezeState> CoaFreezeState => Set<CoaFreezeState>();
+
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
         // Cost Centre master & 3-level hierarchy (US-GL05-01)
         public DbSet<CostCentre> CostCentre => Set<CostCentre>();
+
+        // Profit Centre master & 2-level hierarchy (US-GL05-02)
+        public DbSet<ProfitCentre> ProfitCentre => Set<ProfitCentre>();
 
         // COA bulk import/export (GL02-FR-006)
         public DbSet<GlAccountImportLog> GlAccountImportLog => Set<GlAccountImportLog>();
@@ -61,6 +72,11 @@ namespace FinanceManagement.Infrastructure.Data
         // GSTR-1 / GSTR-3B section master + account-range mapping
         public DbSet<GstrSectionMaster> GstrSectionMaster => Set<GstrSectionMaster>();
         public DbSet<GstrSectionAccountLinkage> GstrSectionAccountLinkage => Set<GstrSectionAccountLinkage>();
+
+        // Voucher-type configuration master + dedicated number series + allowed account types (US-GL01-02)
+        public DbSet<VoucherTypeMaster> VoucherTypeMaster => Set<VoucherTypeMaster>();
+        public DbSet<VoucherTypeAccountType> VoucherTypeAccountType => Set<VoucherTypeAccountType>();
+        public DbSet<VoucherTypeNumberSeries> VoucherTypeNumberSeries => Set<VoucherTypeNumberSeries>();
 
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();

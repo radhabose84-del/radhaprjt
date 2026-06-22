@@ -31,6 +31,9 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("AccountTypeMasterCollection")]
     public sealed class AccountTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("VoucherTypeMasterCollection")]
+    public sealed class VoucherTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
+
     [CollectionDefinition("TransactionTypeMasterCollection")]
     public sealed class TransactionTypeMasterCollection : ICollectionFixture<QAServerFixture> { }
 
@@ -39,6 +42,9 @@ namespace FinanceManagement.QATests
 
     [CollectionDefinition("GlAccountMasterCollection")]
     public sealed class GlAccountMasterCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("CoaFreezeCollection")]
+    public sealed class CoaFreezeCollection : ICollectionFixture<QAServerFixture> { }
 
     [CollectionDefinition("GstrSectionMasterCollection")]
     public sealed class GstrSectionMasterCollection : ICollectionFixture<QAServerFixture> { }

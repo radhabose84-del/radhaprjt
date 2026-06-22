@@ -29,5 +29,9 @@ namespace FinanceManagement.Application.Common.Interfaces.IAccountGroup
         Task<bool> IsDescendantAsync(int ancestorId, int candidateId);
 
         Task<bool> HasChildrenAsync(int id);
+
+        // Pending Move change requests (Status = Pending) joined to AccountGroup for the approval inbox —
+        // group code/name + current/new parent names. Approver filtering is applied in the handler.
+        Task<(List<AccountGroupMovePendingDto>, int)> GetMovePendingAsync(int pageNumber, int pageSize, string? searchTerm);
     }
 }

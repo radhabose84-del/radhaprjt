@@ -20,7 +20,9 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 v => v ? IsDelete.Deleted : IsDelete.NotDeleted
             );
 
-            builder.ToTable("AccountGroup", "Finance");
+            // HasTrigger: the COA-freeze trigger (US-GL02-FR-008a) lives on this table, so EF Core 8 must
+            // use the trigger-compatible SaveChanges path (no OUTPUT clause) — required even when not frozen.
+            builder.ToTable("AccountGroup", "Finance", t => t.HasTrigger("trg_AccountGroup_CoaFreeze"));
             builder.HasKey(t => t.Id);
 
             builder.Property(t => t.Id)

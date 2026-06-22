@@ -89,7 +89,7 @@ public sealed class US_GL0202_AccountGroupHierarchy_Tests
     {
         _l3.Should().BeGreaterThan(0);
         var resp = await _f.Client.PostAsJsonAsync($"{BaseRoute}/move",
-            new { id = _l3, newParentAccountGroupId = _l1, justification = "wrong level functional test", approverId = 1 });
+            new { id = _l3, newParentAccountGroupId = _l1, justification = "wrong level functional test" });
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest, "AC3 — new parent must be exactly one level above");
     }
 
@@ -99,7 +99,7 @@ public sealed class US_GL0202_AccountGroupHierarchy_Tests
     {
         _l3.Should().BeGreaterThan(0);
         var resp = await _f.Client.PostAsJsonAsync($"{BaseRoute}/move",
-            new { id = _l3, newParentAccountGroupId = _l2b, justification = "FT restructure for FY reporting", approverId = 1 });
+            new { id = _l3, newParentAccountGroupId = _l2b, justification = "FT restructure for FY reporting" });
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = (await ParseAsync(resp)).RootElement;
         body.GetProperty("isSuccess").GetBoolean().Should().BeTrue();

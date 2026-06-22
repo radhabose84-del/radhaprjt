@@ -31,16 +31,16 @@ namespace FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup
 
         public async Task<ApiResponseDTO<int>> Handle(MoveAccountGroupCommand request, CancellationToken cancellationToken)
         {
-            // Circular-reference, level, justification and approver are validated in
+            // Circular-reference, level and justification are validated in
             // MoveAccountGroupCommandValidator before this handler runs. The move is NOT applied
-            // now — it is deferred until the Finance Controller approves. We persist a pending
-            // change request and raise the approval request atomically (same SaveChanges).
+            // now — it is deferred until the multilevel approval chain (Finance Controller → CFO)
+            // completes. We persist a pending change request and raise the approval request
+            // atomically (same SaveChanges). Approvers come from the workflow config, not this command.
             var changeRequest = new Domain.Entities.AccountGroupChangeRequest
             {
                 AccountGroupId = request.Id,
                 NewParentAccountGroupId = request.NewParentAccountGroupId,
                 Justification = request.Justification,
-                ApproverId = request.ApproverId,
                 RequestStatus = MiscEnumEntity.Pending
             };
             await _changeRequestRepository.AddWithoutSaveAsync(changeRequest, cancellationToken);
@@ -60,7 +60,6 @@ namespace FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup
                     request.Id,
                     request.NewParentAccountGroupId,
                     request.Justification,
-                    request.ApproverId,
                     UnitId = unitId
                 }
             });
@@ -84,7 +83,7 @@ namespace FinanceManagement.Application.AccountGroup.Commands.MoveAccountGroup
                 actionCode: "ACCOUNT_GROUP_MOVE_REQUESTED",
                 actionName: request.Id.ToString(),
                 details: $"Account Group {request.Id} move under parent {request.NewParentAccountGroupId} " +
-                         $"submitted for approval. Approver: {request.ApproverId}. Justification: {request.Justification}",
+                         $"submitted for multilevel approval. Justification: {request.Justification}",
                 module: "AccountGroup"
             );
             await _mediator.Publish(auditEvent, cancellationToken);
