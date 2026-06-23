@@ -30,10 +30,12 @@ public sealed class LocationQATests
     [Fact, TestPriority(1)]
     public async Task TC001_Create_HappyPath_Returns200_And_CapturesId()
     {
+        // Uniqueness is composite (LocationName + DepartmentId + UnitId) — see CreateLocationCommandHandler
+        // (GetByLocationNameAsync). A fixed name collides on re-runs without a reset, so make it run-unique.
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
             code = NewCode(),
-            locationName = "QA Location",
+            locationName = "QA Location " + _f.EntityCode[..6],
             description = "Created by QA",
             sortOrder = 1,
             unitId = ValidUnitId,
