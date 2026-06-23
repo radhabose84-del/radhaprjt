@@ -38,6 +38,7 @@ namespace PartyManagement.Domain.Entities
         // matching the per-row nav nullability on TransportDetail.
         public ICollection<TransportDetail>? TransportDetailDefaultProcurementRateBasis { get; set; }
         public ICollection<AgentConfig>? AgentConfigSettlementCycle { get; set; }
+        public ICollection<BrokerConfig>? BrokerConfigSettlementCycle { get; set; }
 
     }
 }

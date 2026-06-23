@@ -59,6 +59,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         public List<UpdatePartyDocumentDto>? PartyDocumentsUpdate { get; set; }
         public List<UpdateSalesTypeDto>? SalesTypesUpdate { get; set; }
         public List<UpdateAgentConfigDto>? AgentConfigsUpdate { get; set; }
+        public List<UpdateBrokerConfigDto>? BrokerConfigsUpdate { get; set; }
         public List<UpdateTransportDetailDto>? TransportDetailsUpdate { get; set; }
 
          public class UpdatePartyUniCompanyDto
@@ -108,6 +109,10 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             public string? City { get; set; }
             public string? State { get; set; }
             public string? Country { get; set; }
+            // Location name (post office) picked from the pincode lookup — reuse-or-inserted to AppData.Location.
+            public string? Location { get; set; }
+            // Station selected from the Station master (AppData.Station).
+            public int? StationId { get; set; }
         }
         public class UpdatePartyBankDto
         {
@@ -159,6 +164,22 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             public DateTimeOffset? AgreementStartDate { get; set; }
             public DateTimeOffset? AgreementEndDate { get; set; }
             public string? AgentPayableControlGl { get; set; }
+            public decimal? TargetAmount { get; set; }
+            public string? TargetPeriod { get; set; }
+            public byte Status { get; set; }
+        }
+
+        public class UpdateBrokerConfigDto
+        {
+            public int Id { get; set; } // PK of BrokerConfig, 0 for new
+            public int PartyId { get; set; } // FK
+            public int? SettlementCycleId { get; set; }
+            public byte TdsApplicable { get; set; }
+            public string? TdsCode { get; set; }
+            public string? DefaultCommissionGl { get; set; }
+            public DateTimeOffset? AgreementStartDate { get; set; }
+            public DateTimeOffset? AgreementEndDate { get; set; }
+            public string? BrokerPayableControlGl { get; set; }
             public decimal? TargetAmount { get; set; }
             public string? TargetPeriod { get; set; }
             public byte Status { get; set; }

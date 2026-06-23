@@ -22,6 +22,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly ILocationLookup _locationLookup;
+        private readonly ILocationMasterLookup _locationMasterLookup;
         private readonly IOutboxEventPublisher _outboxEventPublisher;
 
         public CreatePartyMasterCommandHandler(
@@ -31,6 +32,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             IPartyMasterQueryRepository ipartyMasterQueryRepository,
             IPartyActivityLogCommandRepository ipartyActivityLogCommandRepository,
             ILocationLookup locationLookup,
+            ILocationMasterLookup locationMasterLookup,
             IOutboxEventPublisher outboxEventPublisher)
         {
             _partyMasterCommandRepository = partyMasterCommandRepository;
@@ -39,6 +41,7 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
             _ipartyMasterQueryRepository = ipartyMasterQueryRepository;
             _ipartyActivityLogCommandRepository = ipartyActivityLogCommandRepository;
             _locationLookup = locationLookup;
+            _locationMasterLookup = locationMasterLookup;
             _outboxEventPublisher = outboxEventPublisher;
         }
 
@@ -117,6 +120,17 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
 
                 if (!dto.AgentConfigs.Any())
                     dto.AgentConfigs = null;
+            }
+
+            // ------------------- Clean BrokerConfigs -------------------
+            if (dto.BrokerConfigs != null)
+            {
+                dto.BrokerConfigs = dto.BrokerConfigs
+                    .Where(b => b.SettlementCycleId != 0)
+                    .ToList();
+
+                if (!dto.BrokerConfigs.Any())
+                    dto.BrokerConfigs = null;
             }
 
             // ------------------- Clean TransportDetails -------------------
@@ -211,6 +225,14 @@ namespace PartyManagement.Application.PartyMaster.Command.CreatePartyMaster
                         addressEntity.CityId = location.CityId;
                         addressEntity.StateId = location.StateId;
                         addressEntity.CountryId = location.CountryId;
+                    }
+
+                    // Location (post office) name → reuse-or-insert into AppData.Location → LocationId.
+                    // StationId flows through AutoMapper (selected from the Station master). Both optional.
+                    if (!string.IsNullOrWhiteSpace(addressDto.Location))
+                    {
+                        addressEntity.LocationId = await _locationMasterLookup.GetOrCreateByNameAsync(
+                            addressDto.Location, cancellationToken);
                     }
                 }
             }

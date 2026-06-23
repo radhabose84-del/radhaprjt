@@ -279,6 +279,44 @@ namespace PartyManagement.Presentation.Validation.PartyMaster
                 .MustAsync(async (id, ct) => await _bankAccountLookup.ExistsForOwnerTypeAsync(id.Value, "Party", ct))
                 .WithMessage("BankAccountId is invalid or not a Party bank account.")
                 .When(x => x.PartyMaster.BankAccountId > 0);
+
+            // ------------------- Party-type mutual exclusivity -------------------
+            // A party cannot be both Agent and Broker, nor both Supplier and Ginner.
+            RuleFor(x => x.PartyMaster.PartyTypes)
+                .MustAsync(async (partyTypes, ct) =>
+                {
+                    var codes = await ResolvePartyTypeCodesAsync(partyTypes);
+                    return !(codes.Contains("AGENT") && codes.Contains("BROKER"));
+                })
+                .WithMessage("A party cannot be both Agent and Broker.")
+                .When(x => x.PartyMaster.PartyTypes != null && x.PartyMaster.PartyTypes.Count > 0);
+
+            RuleFor(x => x.PartyMaster.PartyTypes)
+                .MustAsync(async (partyTypes, ct) =>
+                {
+                    var codes = await ResolvePartyTypeCodesAsync(partyTypes);
+                    return !(codes.Contains("SUPPLIER") && codes.Contains("GINNER"));
+                })
+                .WithMessage("A party cannot be both Supplier and Ginner.")
+                .When(x => x.PartyMaster.PartyTypes != null && x.PartyMaster.PartyTypes.Count > 0);
+        }
+
+        private async Task<IReadOnlyList<string>> ResolvePartyTypeCodesAsync(List<CreatePartyMasterDto.PartyTypeDto> partyTypes)
+        {
+            if (partyTypes == null || partyTypes.Count == 0)
+                return new List<string>();
+
+            var ids = partyTypes
+                .Select(p => p.PartyTypeId)
+                .Where(i => i > 0)
+                .Distinct()
+                .ToList();
+
+            if (ids.Count == 0)
+                return new List<string>();
+
+            var codes = await _iPartyMasterQueryRepository.GetPartyTypeCodesByIdsAsync(ids);
+            return codes ?? new List<string>();
         }
 
     }

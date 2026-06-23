@@ -21,6 +21,7 @@ namespace PartyManagement.Application.Common.Interfaces.IPartyMaster
         Task<(IReadOnlyList<int> CompanyIds, IReadOnlyList<int> UnitIds)> GetCompanyUnitMapAsync(int partyId);
 
         Task<IReadOnlyList<string>> GetPartyTypeCodesAsync(int partyId);
+        Task<IReadOnlyList<string>> GetPartyTypeCodesByIdsAsync(IReadOnlyList<int> partyTypeIds);
         Task<RegistrationDto> GetRegistrationDetails(int RegistrationTypeId);
         Task<Dictionary<string, string>> GetDocumentDirectoryPath();
         Task<bool> TransportDetailDuplicateExistsAsync(int? defaultFreightTypeId, int? vehicleTypeId, string vehicleNo, int? excludeId = null);

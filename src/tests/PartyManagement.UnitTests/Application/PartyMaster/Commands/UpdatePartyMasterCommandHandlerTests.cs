@@ -17,12 +17,13 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Commands
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IPartyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<ILocationLookup> _mockLocationLookup = new(MockBehavior.Loose);
+        private readonly Mock<ILocationMasterLookup> _mockLocationMasterLookup = new(MockBehavior.Loose);
         private readonly Mock<IPublishEndpoint> _mockPublishEndpoint = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
 
         private UpdatePartyMasterCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object,
-                _mockQueryRepo.Object, _mockLocationLookup.Object,
+                _mockQueryRepo.Object, _mockLocationLookup.Object, _mockLocationMasterLookup.Object,
                 _mockPublishEndpoint.Object, _mockIp.Object);
 
         private void SetupHappyPath(int id = 1)
