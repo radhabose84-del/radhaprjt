@@ -35,7 +35,12 @@ public sealed class US_GL0102_VoucherType_Tests
         JsonDocument.Parse(await r.Content.ReadAsStringAsync());
 
     // STEP 1 (AC4) — a created voucher type is immediately available, no deployment / code change.
-    [Fact, TestPriority(1)]
+    // BLOCKED (live 2026-06-22): testsales authenticates as CompanyId=0 (first-time user). VoucherType
+    // create requires AllowedAccountTypeIds belonging to the caller's company, but every AccountTypeMaster
+    // row is CompanyId=1 → the create 400s ("AllowedAccountTypeIds is inactive/deleted"). Same blocker as
+    // QA VoucherTypeMaster TC010. Un-skip the whole story once testsales is assigned a real company with
+    // seeded account types (then it passes for real — neither the COA migration nor a re-clone fixes this).
+    [Fact(Skip = "blocked: testsales is CompanyId=0; VoucherType create needs company-scoped AllowedAccountTypeIds (all are CompanyId=1). Same as QA TC010."), TestPriority(1)]
     public async Task Step1_CreateVoucherType_BecomesAvailable_NoDeployment()
     {
         _accountTypeId = await QAHelper.FirstIdAsync(_f.Client, $"/api/finance/accounttypemaster?CompanyId={CompanyId}");
@@ -66,7 +71,7 @@ public sealed class US_GL0102_VoucherType_Tests
     }
 
     // STEP 2 (AC1) — the new type generates numbers from its OWN dedicated series, starting at /0001.
-    [Fact, TestPriority(2)]
+    [Fact(Skip = "blocked: depends on Step1 create, blocked by testsales CompanyId=0 (see Step1)."), TestPriority(2)]
     public async Task Step2_NewType_HasOwnSeries_StartingAtOne()
     {
         _id.Should().BeGreaterThan(0, "Step1 must have created it");
@@ -82,7 +87,7 @@ public sealed class US_GL0102_VoucherType_Tests
     }
 
     // STEP 3 — edit name + padding (code is immutable).
-    [Fact, TestPriority(3)]
+    [Fact(Skip = "blocked: depends on Step1 create, blocked by testsales CompanyId=0 (see Step1)."), TestPriority(3)]
     public async Task Step3_EditVoucherType()
     {
         _id.Should().BeGreaterThan(0);
@@ -104,7 +109,7 @@ public sealed class US_GL0102_VoucherType_Tests
     }
 
     // STEP 4 (AC2) — resetting the series returns the next number to /000…1.
-    [Fact, TestPriority(4)]
+    [Fact(Skip = "blocked: depends on Step1 create, blocked by testsales CompanyId=0 (see Step1)."), TestPriority(4)]
     public async Task Step4_ResetSeries_ReturnsToOne()
     {
         _id.Should().BeGreaterThan(0);
@@ -124,7 +129,7 @@ public sealed class US_GL0102_VoucherType_Tests
     }
 
     // STEP 5 (Deactivate) — inactive type drops out of the selectable list but stays in GetAll.
-    [Fact, TestPriority(5)]
+    [Fact(Skip = "blocked: depends on Step1 create, blocked by testsales CompanyId=0 (see Step1)."), TestPriority(5)]
     public async Task Step5_Deactivate_ExcludesFromList_ButKeepsInGetAll()
     {
         _id.Should().BeGreaterThan(0);

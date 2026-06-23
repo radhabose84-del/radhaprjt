@@ -41,8 +41,13 @@ public sealed class US_GL02FR008a_CoaFreeze_Tests
     }
 
     // AC1 + AC4 — while frozen, a structural write is rejected (DB trigger rolled it back).
-    // Guarded: always unfreezes in finally so the shared QA COA is not left sealed.
-    [Fact, TestPriority(2)]
+    // HAZARD (live 2026-06-23): the `finally` cannot clean up — set-state{isFrozen=false} returns 400
+    // "Direct unfreeze is disabled. Raise a change request and obtain dual approval (CFO + System Admin)".
+    // So freezing here PERMANENTLY SEALS the shared QA COA (structural writes then 500 COA_FREEZE_VIOLATION)
+    // until the governed 08B unfreeze runs — which testsales can't (no CFO/SysAdmin role). Skipped until the
+    // dual-approval unfreeze is available to the QA user; the block itself is proven by GetState (Step1) +
+    // the DB trigger. (Backend note: the trigger's COA_FREEZE_VIOLATION surfaces as a raw 500, not a 400.)
+    [Fact(Skip = "hazard: freezes the shared COA but direct unfreeze is disabled (needs governed CFO+SysAdmin dual approval) → leaves the clone sealed"), TestPriority(2)]
     public async Task Step2_Frozen_BlocksStructuralWrite_ThenUnfreeze()
     {
         var freeze = await _f.Client.PostAsJsonAsync($"{Route}/set-state", new { isFrozen = true });
