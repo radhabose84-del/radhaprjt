@@ -43,12 +43,18 @@ namespace PurchaseManagement.Presentation.Validation.MiscTypeMaster
                             .MaximumLength(DescriptionMaxLength)
                             .WithMessage($"{nameof(CreateMiscTypeMasterCommand.Description)} {rule.Error}");
                         break;
+                    case "Alphanumeric":
+                        RuleFor(x => x.MiscTypeCode)
+                            .Matches(rule.Pattern)
+                            .WithMessage($"{nameof(CreateMiscTypeMasterCommand.MiscTypeCode)} {rule.Error}")
+                            .When(x => !string.IsNullOrWhiteSpace(x.MiscTypeCode));
+                        break;
                     case "AlreadyExists":
                         RuleFor(x => x.MiscTypeCode)
                             .MustAsync(async (miscTypeCode, cancellation) =>
                                 !await _miscTypeMasterQueryRepository.AlreadyExistsAsync(miscTypeCode))
                             .WithMessage("MiscTypeCode already exists.");
-                        break;    
+                        break;
 
 
                 }
