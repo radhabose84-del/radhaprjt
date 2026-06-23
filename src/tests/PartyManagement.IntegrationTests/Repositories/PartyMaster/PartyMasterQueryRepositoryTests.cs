@@ -74,6 +74,8 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
             var module = new Mock<IModuleLookup>(MockBehavior.Loose);
             var salesGroup = new Mock<ISalesGroupLookup>(MockBehavior.Loose);
             var salesOffice = new Mock<ISalesOfficeLookup>(MockBehavior.Loose);
+            var locationMaster = new Mock<ILocationMasterLookup>(MockBehavior.Loose);
+            var station = new Mock<IStationLookup>(MockBehavior.Loose);
 
             var conn = new SqlConnection(_fixture.ConnectionString);
             return new PartyMasterQueryRepository(conn, _fixture.IpMock.Object,
@@ -81,7 +83,8 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
                 dataAccess.Object, salesSegment.Object,
                 sales.Object, purchase.Object, finance.Object, maintenance.Object,
                 freight.Object, agentCustomerMapping.Object,
-                module.Object, salesGroup.Object, salesOffice.Object);
+                module.Object, salesGroup.Object, salesOffice.Object,
+                locationMaster.Object, station.Object);
         }
 
         // Seeds an ApprovalStatus type + Pending row + RegistrationType + Registered row.
@@ -162,6 +165,54 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         }
 
         private async Task ClearPartyAsync() => await _fixture.ClearAllTablesAsync();
+
+        // Seeds a party-type MiscMaster row (e.g. BROKER / GINNER) under a GROUPTYPE MiscType.
+        private async Task<int> SeedPartyTypeCodeAsync(string code)
+        {
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var groupType = await ctx.MiscTypeMaster.FirstOrDefaultAsync(t => t.MiscTypeCode == "GROUPTYPE");
+            if (groupType == null)
+            {
+                groupType = new PartyManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "GROUPTYPE", Description = "GROUPTYPE",
+                    IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(groupType);
+                await ctx.SaveChangesAsync();
+            }
+            var row = new PartyManagement.Domain.Entities.MiscMaster
+            {
+                MiscTypeId = groupType.Id, Code = code, Description = code, SortOrder = 1,
+                IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
+            };
+            await ctx.MiscMaster.AddAsync(row);
+            await ctx.SaveChangesAsync();
+            return row.Id;
+        }
+
+        // --- GetPartyTypeCodesByIdsAsync ---
+
+        [Fact]
+        public async Task GetPartyTypeCodesByIdsAsync_Should_Return_Codes_For_Ids()
+        {
+            await ClearPartyAsync();
+            var brokerId = await SeedPartyTypeCodeAsync("BROKER");
+            var ginnerId = await SeedPartyTypeCodeAsync("GINNER");
+
+            var codes = await CreateRepo().GetPartyTypeCodesByIdsAsync(new List<int> { brokerId, ginnerId });
+
+            codes.Should().Contain("BROKER");
+            codes.Should().Contain("GINNER");
+        }
+
+        [Fact]
+        public async Task GetPartyTypeCodesByIdsAsync_Should_Return_Empty_For_Empty_Input()
+        {
+            var codes = await CreateRepo().GetPartyTypeCodesByIdsAsync(new List<int>());
+
+            codes.Should().BeEmpty();
+        }
 
         // --- NotFoundAsync ---
 

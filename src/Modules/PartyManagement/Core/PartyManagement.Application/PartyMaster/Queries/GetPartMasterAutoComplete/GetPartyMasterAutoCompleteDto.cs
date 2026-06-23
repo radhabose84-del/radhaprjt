@@ -44,6 +44,10 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public string? StateName { get; set; }
         public int? CountryId { get; set; }
         public string? CountryName { get; set; }
+        public int? LocationId { get; set; }
+        public string? LocationName { get; set; }
+        public int? StationId { get; set; }
+        public string? StationName { get; set; }
     }
 
     public class TransportDetailAutoCompleteDto
