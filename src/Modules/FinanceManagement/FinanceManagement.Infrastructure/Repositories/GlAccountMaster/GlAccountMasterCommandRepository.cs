@@ -38,6 +38,7 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             existingEntity.CurrencyTypeId = entity.CurrencyTypeId;
             existingEntity.SubLedgerTypeId = entity.SubLedgerTypeId;
             existingEntity.IsCostCentreMandatory = entity.IsCostCentreMandatory;
+            existingEntity.IsProfitCentreMandatory = entity.IsProfitCentreMandatory;
             existingEntity.IsTaxRelevant = entity.IsTaxRelevant;
             existingEntity.IsInterCompany = entity.IsInterCompany;
             existingEntity.IsReconciliationRequired = entity.IsReconciliationRequired;
