@@ -54,6 +54,25 @@ public sealed class CostCentreQATests
         return 0;
     }
 
+    // The Plant (L1) is a SINGLETON per unit — the create rejects a 2nd L1 ("A Plant (L1) cost centre
+    // already exists for this unit"), counting deactivated-but-not-deleted rows too. The functional
+    // US-GL05-01 lifecycle deactivates its L1 without deleting it, leaving a leftover that blocks this
+    // create. Soft-delete any existing L1 for the unit first so the create has a clean slate — keeps the
+    // suite re-runnable without a DB reset. (GetAll includes inactive rows; by-name autocomplete does not.)
+    private async Task ClearExistingL1Async(int l1Level)
+    {
+        var resp = await _f.Client.GetAsync($"{Route}?PageNumber=1&PageSize=200");
+        if (resp.StatusCode != HttpStatusCode.OK) return;
+        var root = (await QAHelper.ParseAsync(resp)).RootElement;
+        if (!root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return;
+        foreach (var item in data.EnumerateArray())
+        {
+            if (TryInt(item, "centreLevelId") != l1Level) continue;
+            var existingId = TryInt(item, "id");
+            if (existingId > 0) await _f.Client.DeleteAsync($"{Route}?id={existingId}");
+        }
+    }
+
     private object L1Body(string code) => new
     {
         costCentreCode = code,
@@ -118,6 +137,8 @@ public sealed class CostCentreQATests
     {
         var l1Level = await ResolveLevelIdAsync("CCL1");
         if (l1Level == 0) return;    // self-skip: COSTCENTRELEVEL not seeded in this clone
+
+        await ClearExistingL1Async(l1Level);   // singleton slot — clear any leftover L1 first
 
         var code = UniqueCode();
 

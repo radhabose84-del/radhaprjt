@@ -191,7 +191,7 @@ public sealed class AccountGroupQATests
         var root = (await ParseAsync(resp)).RootElement;
         root.TryGetProperty("data", out var data).Should().BeTrue();
         data.ValueKind.Should().Be(JsonValueKind.Array);   // may be empty when nothing is pending for this user
-        root.TryGetProperty("TotalCount", out _).Should().BeTrue();
+        root.TryGetProperty("totalCount", out _).Should().BeTrue();   // API serializes camelCase
     }
 
     [Fact, TestPriority(27)]
