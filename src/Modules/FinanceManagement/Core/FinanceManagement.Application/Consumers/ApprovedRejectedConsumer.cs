@@ -139,8 +139,8 @@ namespace FinanceManagement.Application.Consumers
         private async Task HandleJournalAsync(UpdateApprovedRejectedFinanceCommand msg, bool isApproved, CancellationToken ct)
         {
             // ModuleTransactionId carries the JournalHeader.Id. Approved → APPROVED (now postable);
-            // Rejected → back to DRAFT for the maker to correct and resubmit.
-            var statusId = await _journalQueryRepository.GetStatusIdAsync(isApproved ? "APPROVED" : "DRAFT");
+            // Rejected → REJECTED.
+            var statusId = await _journalQueryRepository.GetStatusIdAsync(isApproved ? "APPROVED" : "REJECTED");
             var now = _timeZoneService.GetCurrentTime();
 
             var ok = await _journalCommandRepository.SetApprovalResultAsync(

@@ -18,6 +18,11 @@ namespace FinanceManagement.Application.JournalMaster.Dto
         public int? AccountingPeriodId { get; set; }
         public string? PeriodName { get; set; }
         public string? Narration { get; set; }
+
+        // Primary line (first debit account) — for grid display without loading every line.
+        public string? AccountCode { get; set; }
+        public string? AccountName { get; set; }
+
         public int StatusId { get; set; }
         public string? StatusName { get; set; }             // MiscMaster (JOURNAL_STATUS)
         public int SourceId { get; set; }

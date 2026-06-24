@@ -149,6 +149,45 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
         }
 
         [Fact]
+        public async Task GetPostingDateAsync_Returns_Date_Without_CastError()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+            int id;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                id = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                await new JournalCommandRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+
+            var postingDate = await CreateQueryRepo().GetPostingDateAsync(id);
+
+            postingDate.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task IsReversedAsync_True_When_ReversalMirrorExists_EvenIfStatusNotFlipped()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            int originalId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                originalId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+
+            // A reversal mirror points back to the original, but the original is left POSTED (orphan/legacy case).
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var mirror = JournalTestSeed.BuildDraftJournal(ids);
+                mirror.IsReversal = true;
+                mirror.ReversalOfId = originalId;
+                await new JournalCommandRepository(ctx).CreateAsync(mirror);
+            }
+
+            var repo = CreateQueryRepo();
+            (await repo.IsReversedAsync(originalId)).Should().BeTrue();   // blocked: a mirror already exists
+        }
+
+        [Fact]
         public async Task GetStatusIdAsync_Should_Resolve_Draft()
         {
             await ClearTableAsync();
@@ -308,6 +347,29 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
 
             items.Should().HaveCount(1);
             total.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Populates_AccountName_And_Filters_By_Status()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+            await SeedDraftAsync(ids);
+
+            var repo = CreateQueryRepo();
+
+            // Primary (debit) line account name is surfaced on the grid row.
+            var (items, _) = await repo.GetAllAsync(1, 10, null, 1);
+            items.Should().ContainSingle().Which.AccountName.Should().Be("Salaries & Wages");
+
+            // Status filter: DRAFT → the row; a different status → none.
+            var (drafts, draftTotal) = await repo.GetAllAsync(1, 10, null, 1, ids.StatusDraftId);
+            drafts.Should().HaveCount(1);
+            draftTotal.Should().Be(1);
+
+            var (posted, postedTotal) = await repo.GetAllAsync(1, 10, null, 1, ids.StatusPostedId);
+            posted.Should().BeEmpty();
+            postedTotal.Should().Be(0);
         }
 
         [Fact]

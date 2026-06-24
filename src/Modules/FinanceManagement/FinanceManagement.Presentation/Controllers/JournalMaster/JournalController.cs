@@ -26,13 +26,15 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
         public async Task<IActionResult> GetAllJournalAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] int? StatusId = null)
         {
             var result = await Mediator.Send(new GetAllJournalQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                StatusId = StatusId
             });
 
             return Ok(new

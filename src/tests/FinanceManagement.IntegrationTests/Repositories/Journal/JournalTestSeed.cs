@@ -13,6 +13,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
         public int StatusPostedId;
         public int StatusReversedId;
         public int StatusApprovedId;
+        public int StatusRejectedId;
         public int SourceManualId;
         public int SourceRecurringId;
         public int VoucherTypeId;
@@ -43,6 +44,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
             var posted = NewMisc(journalStatusType.Id, "POSTED");
             var reversed = NewMisc(journalStatusType.Id, "REVERSED");
             var approved = NewMisc(journalStatusType.Id, "APPROVED");
+            var rejected = NewMisc(journalStatusType.Id, "REJECTED");
             var manual = NewMisc(journalSourceType.Id, "MANUAL");
             var recurring = NewMisc(journalSourceType.Id, "RECURRING");
             var open = NewMisc(periodStatusType.Id, "OPEN");
@@ -50,13 +52,14 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
             var subLedger = NewMisc(glMiscType.Id, "SLT");
             var ccLevel = NewMisc(glMiscType.Id, "CCL");
             var pcLevel = NewMisc(glMiscType.Id, "PCL");
-            ctx.MiscMaster.AddRange(draft, posted, reversed, approved, manual, recurring, open, normalBalance, subLedger, ccLevel, pcLevel);
+            ctx.MiscMaster.AddRange(draft, posted, reversed, approved, rejected, manual, recurring, open, normalBalance, subLedger, ccLevel, pcLevel);
             await ctx.SaveChangesAsync();
 
             ids.StatusDraftId = draft.Id;
             ids.StatusPostedId = posted.Id;
             ids.StatusReversedId = reversed.Id;
             ids.StatusApprovedId = approved.Id;
+            ids.StatusRejectedId = rejected.Id;
             ids.SourceManualId = manual.Id;
             ids.SourceRecurringId = recurring.Id;
 
