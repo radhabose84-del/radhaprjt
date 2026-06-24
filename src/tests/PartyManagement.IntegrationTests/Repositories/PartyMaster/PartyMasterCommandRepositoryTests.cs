@@ -195,12 +195,16 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
             }
 
             // Update with an empty agent-config list → payload-authoritative removal deletes it.
+            // RegistrationTypeId is a NOT NULL FK that UpdateAsync copies from the payload, so the
+            // update entity must carry it (a real update echoes the full header back).
+            var regId = await EnsureMiscSeedAsync();
             await using (var ctx2 = _fixture.CreateFreshDbContext())
             {
                 var updateEntity = new PartyManagement.Domain.Entities.PartyMaster
                 {
                     Id = id,
                     PartyName = "Agent Cfg Remove",
+                    RegistrationTypeId = regId,
                     AgentConfigs = new List<PartyManagement.Domain.Entities.AgentConfig>()
                 };
                 await CreateRepo(ctx2).UpdateAsync(id, updateEntity);
