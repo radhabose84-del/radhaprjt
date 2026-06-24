@@ -204,6 +204,10 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IJournalCommandRepository, JournalCommandRepository>();
             services.AddScoped<IJournalQueryRepository, JournalQueryRepository>();
 
+            // Ledger balance read (period balances + GL/account-type/account-group info)
+            services.AddScoped<FinanceManagement.Application.Common.Interfaces.JournalMaster.ILedgerBalance.ILedgerBalanceQueryRepository,
+                FinanceManagement.Infrastructure.Repositories.JournalMaster.LedgerBalances.LedgerBalanceQueryRepository>();
+
             // Recurring journal template authoring (Header + Detail) — US-GL01-11A
             services.AddScoped<IRecurringJournalTemplateCommandRepository, RecurringJournalTemplateCommandRepository>();
             services.AddScoped<IRecurringJournalTemplateQueryRepository, RecurringJournalTemplateQueryRepository>();

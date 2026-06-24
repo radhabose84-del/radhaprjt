@@ -23,6 +23,9 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
 
         Task<JournalHeaderDto?> GetByIdAsync(int id);
 
+        // Autocomplete (active, non-deleted) by VoucherNo / Narration, optionally filtered by JOURNAL_STATUS id.
+        Task<IReadOnlyList<JournalLookupDto>> AutocompleteAsync(string term, int? companyId, int? statusId, CancellationToken ct);
+
         // Resolves the OPEN accounting period containing the date (returns period id + its fiscal year).
         Task<(int PeriodId, int FinancialYearId)?> GetOpenPeriodByDateAsync(int companyId, DateOnly date);
 
