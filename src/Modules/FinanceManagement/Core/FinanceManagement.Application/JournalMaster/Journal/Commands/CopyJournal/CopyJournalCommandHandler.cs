@@ -1,7 +1,14 @@
+using System.Text.Json;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Users;
+using Contracts.Interfaces.Lookups.Workflow;
 using FinanceManagement.Application.Common.Interfaces;
+using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
+using FinanceManagement.Application.JournalMaster.Dto;
+using FinanceManagement.Domain.Common;
 using FinanceManagement.Domain.Entities;
 using FinanceManagement.Domain.Events;
 using MediatR;
@@ -15,6 +22,9 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CopyJourn
         private readonly IJournalQueryRepository _queryRepository;
         private readonly IIPAddressService _ipAddressService;
         private readonly ITimeZoneService _timeZoneService;
+        private readonly IFinancialYearLookup _financialYearLookup;
+        private readonly IWorkflowLookup _workflowLookup;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
 
         public CopyJournalCommandHandler(
@@ -22,12 +32,18 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CopyJourn
             IJournalQueryRepository queryRepository,
             IIPAddressService ipAddressService,
             ITimeZoneService timeZoneService,
+            IFinancialYearLookup financialYearLookup,
+            IWorkflowLookup workflowLookup,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _ipAddressService = ipAddressService;
             _timeZoneService = timeZoneService;
+            _financialYearLookup = financialYearLookup;
+            _workflowLookup = workflowLookup;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
         }
 
@@ -85,7 +101,12 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CopyJourn
                 }).ToList()
             };
 
-            var newId = await _commandRepository.CreateAsync(copy);
+            // Voucher number allocated at create time (same as a manual draft, US-GL01-01).
+            var fy = await _financialYearLookup.GetByIdAsync(period.FinancialYearId, cancellationToken);
+            if (string.IsNullOrEmpty(fy?.FinancialYearName))
+                throw new ExceptionRules("Financial year could not be resolved for voucher numbering.");
+
+            var newId = await _commandRepository.CreateAsync(copy, fy.FinancialYearName, _ipAddressService.GetUserId());
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Copy",
@@ -96,12 +117,45 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CopyJourn
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 
+            // The copy is a manual draft — route it through approval when a journal approval workflow is
+            // configured for the unit (same as CreateJournalCommandHandler); otherwise it's directly postable.
+            var unitId = copy.UnitId ?? 0;
+            var workflowConfigured = await _workflowLookup.IsApproveWorkflowConfigureAsync(
+                MiscEnumEntity.JournalVoucher, unitId, 0);
+
+            var message = "Journal copied to a new editable draft.";
+            if (workflowConfigured)
+            {
+                await RaiseApprovalRequestAsync(newId, unitId, cancellationToken);
+                message = "Journal copied to a new draft and submitted for approval.";
+            }
+
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Journal copied to a new editable draft.",
+                Message = message,
                 Data = newId
             };
+        }
+
+        private async Task RaiseApprovalRequestAsync(int journalId, int unitId, CancellationToken cancellationToken)
+        {
+            var workFlowEntity = await _queryRepository.GetByIdAsync(journalId);
+            if (workFlowEntity != null)
+                workFlowEntity.UnitId = unitId;   // sp_EvaluateApproval reads $.Header.UnitId
+
+            var reverseMap = new JournalApprovalReverseDto { Header = workFlowEntity, Lines = null };
+            var serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            var correlationId = Guid.NewGuid();
+            var approvalRequest = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.JournalVoucher,
+                ModuleTransactionId = journalId,
+                Payload = serializedPayload
+            };
+            await _outboxEventPublisher.ScheduleAsync(approvalRequest, correlationId, cancellationToken);
         }
     }
 }
