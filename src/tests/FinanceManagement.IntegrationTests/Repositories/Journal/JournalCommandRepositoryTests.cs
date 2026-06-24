@@ -37,6 +37,23 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
         }
 
         [Fact]
+        public async Task CreateAsync_WithFinancialYearName_Assigns_VoucherNo_AtCreate()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            int newId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                newId = await CreateRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+
+            await using var verify = _fixture.CreateFreshDbContext();
+            var header = await verify.JournalHeader.FirstAsync(h => h.Id == newId);
+            header.VoucherNo.Should().NotBeNullOrEmpty();
+            header.VoucherNo.Should().StartWith("JV/2026-27/");
+            header.PostingDate.Should().BeNull();   // numbered but still a draft (not posted)
+        }
+
+        [Fact]
         public async Task UpdateAsync_Should_Replace_Lines()
         {
             await ClearTableAsync();

@@ -1,5 +1,7 @@
 using Contracts.Commands.Workflow;
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
@@ -15,13 +17,14 @@ namespace FinanceManagement.UnitTests.Application.Journal.Commands
         private readonly Mock<IJournalCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IJournalQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
+        private readonly Mock<IFinancialYearLookup> _mockFy = new(MockBehavior.Loose);
         private readonly Mock<IWorkflowLookup> _mockWorkflow = new(MockBehavior.Loose);
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
         private CreateJournalCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockIp.Object, _mockWorkflow.Object,
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockIp.Object, _mockFy.Object, _mockWorkflow.Object,
                 _mockOutbox.Object, _mockMediator.Object, _mockMapper.Object);
 
         private void SetupHappyPath(int newId = 1)
@@ -32,9 +35,12 @@ namespace FinanceManagement.UnitTests.Application.Journal.Commands
                 .ReturnsAsync(((int PeriodId, int FinancialYearId)?)(4, 3));
             _mockQueryRepo.Setup(r => r.GetStatusIdAsync("DRAFT")).ReturnsAsync(101);
             _mockQueryRepo.Setup(r => r.GetSourceIdAsync("MANUAL")).ReturnsAsync(111);
+            _mockFy.Setup(f => f.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FinancialYearLookupDto { FinancialYearId = 3, FinancialYearName = "2026-27" });
             _mockMapper.Setup(m => m.Map<FinanceManagement.Domain.Entities.JournalHeader>(It.IsAny<CreateJournalCommand>()))
                 .Returns(new FinanceManagement.Domain.Entities.JournalHeader());
-            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<FinanceManagement.Domain.Entities.JournalHeader>()))
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                    It.IsAny<FinanceManagement.Domain.Entities.JournalHeader>(), It.IsAny<string?>(), It.IsAny<int>()))
                 .ReturnsAsync(newId);
         }
 
@@ -67,10 +73,13 @@ namespace FinanceManagement.UnitTests.Application.Journal.Commands
                 .ReturnsAsync(((int, int)?)(4, 3));
             _mockQueryRepo.Setup(r => r.GetStatusIdAsync("DRAFT")).ReturnsAsync(101);
             _mockQueryRepo.Setup(r => r.GetSourceIdAsync("MANUAL")).ReturnsAsync(111);
+            _mockFy.Setup(f => f.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FinancialYearLookupDto { FinancialYearId = 3, FinancialYearName = "2026-27" });
             _mockMapper.Setup(m => m.Map<FinanceManagement.Domain.Entities.JournalHeader>(It.IsAny<CreateJournalCommand>()))
                 .Returns(new FinanceManagement.Domain.Entities.JournalHeader());
-            _mockCommandRepo.Setup(r => r.CreateAsync(It.IsAny<FinanceManagement.Domain.Entities.JournalHeader>()))
-                .Callback<FinanceManagement.Domain.Entities.JournalHeader>(e => captured = e)
+            _mockCommandRepo.Setup(r => r.CreateAsync(
+                    It.IsAny<FinanceManagement.Domain.Entities.JournalHeader>(), It.IsAny<string?>(), It.IsAny<int>()))
+                .Callback<FinanceManagement.Domain.Entities.JournalHeader, string?, int>((e, _, _) => captured = e)
                 .ReturnsAsync(1);
 
             await CreateSut().Handle(JournalBuilders.ValidCreateCommand(), CancellationToken.None);
