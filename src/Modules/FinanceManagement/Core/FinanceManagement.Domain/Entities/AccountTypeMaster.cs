@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    public class AccountTypeMaster : BaseEntity
+    public class AccountTypeMaster : BaseEntity, IAuditTrailed
     {
         public int CompanyId { get; set; }
         public string? AccountTypeName { get; set; }

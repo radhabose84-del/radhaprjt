@@ -6,7 +6,7 @@ namespace FinanceManagement.Domain.Entities
     // before it can be attached to a dual-approval unfreeze window (CoaUnfreezeRequest). When the change
     // is committed during an open window it is flagged Post-Freeze (AC3); if the window lapses with the
     // change still uncommitted the request is cancelled as 'Lapsed' (AC4).
-    public class CoaChangeRequest : BaseEntity
+    public class CoaChangeRequest : BaseEntity, IAuditTrailed
     {
         public int CompanyId { get; set; }
 
