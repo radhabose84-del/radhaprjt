@@ -102,6 +102,9 @@ namespace FinanceManagement.Infrastructure
             // Activity-log interceptor (writes Finance.ActivityLog for IActivityTracked entities)
             services.AddScoped<ActivityLogSaveChangesInterceptor>();
 
+            // US-GL02-09 — statutory audit-trail interceptor (writes Finance.AccountAuditTrail for IAuditTrailed entities)
+            services.AddScoped<AccountAuditTrailSaveChangesInterceptor>();
+
             // Register ApplicationDbContext with SQL Server
             services.AddDbContext<ApplicationDbContext>((sp, options) =>
                 options.UseSqlServer(connectionString, sqlOptions =>
@@ -110,7 +113,9 @@ namespace FinanceManagement.Infrastructure
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorNumbersToAdd: null);
-                }).AddInterceptors(sp.GetRequiredService<ActivityLogSaveChangesInterceptor>()));
+                })
+                .AddInterceptors(sp.GetRequiredService<ActivityLogSaveChangesInterceptor>())
+                .AddInterceptors(sp.GetRequiredService<AccountAuditTrailSaveChangesInterceptor>()));
 
             // Register IDbConnection for Dapper
             services.AddTransient<IDbConnection>(sp => new SqlConnection(connectionString));
@@ -232,6 +237,10 @@ namespace FinanceManagement.Infrastructure
             // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
             // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
             services.AddScoped<IGlAccountUserPrefStore, GlAccountUserPrefRepository>();
+
+            // US-GL02-09 — statutory account audit trail (read-only viewer + export).
+            services.AddScoped<FinanceManagement.Application.Common.Interfaces.IAccountAuditTrail.IAccountAuditTrailQueryRepository,
+                FinanceManagement.Infrastructure.Repositories.AccountAuditTrail.AccountAuditTrailQueryRepository>();
 
             // COA Freeze engine (US-GL02-FR-008a) — state read/write + Mongo violation log.
             services.AddScoped<ICoaFreezeQueryRepository, CoaFreezeQueryRepository>();

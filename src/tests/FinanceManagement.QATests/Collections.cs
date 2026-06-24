@@ -69,4 +69,8 @@ namespace FinanceManagement.QATests
 
     [CollectionDefinition("FinAuditLogCollection")]
     public sealed class FinAuditLogCollection : ICollectionFixture<QAServerFixture> { }
+
+    // US-GL02-09 — Account Master Audit Trail & Version History (read-only viewer + export).
+    [CollectionDefinition("AccountAuditTrailCollection")]
+    public sealed class AccountAuditTrailCollection : ICollectionFixture<QAServerFixture> { }
 }

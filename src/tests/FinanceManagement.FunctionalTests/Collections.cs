@@ -29,4 +29,7 @@ namespace FinanceManagement.FunctionalTests
 
     [CollectionDefinition("US-GL02-08B")]
     public sealed class CoaChangeRequestStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL02-09")]
+    public sealed class AccountAuditTrailStoryCollection : ICollectionFixture<QAServerFixture> { }
 }
