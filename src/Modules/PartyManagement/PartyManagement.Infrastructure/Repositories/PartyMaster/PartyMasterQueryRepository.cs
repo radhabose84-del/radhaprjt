@@ -42,6 +42,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
         private readonly IModuleLookup _moduleLookup;
         private readonly ISalesGroupLookup _salesGroupLookup;
         private readonly ISalesOfficeLookup _salesOfficeLookup;
+        private readonly ILocationMasterLookup _locationMasterLookup;
+        private readonly IStationLookup _stationLookup;
 
         public PartyMasterQueryRepository(IDbConnection dbConnection, IIPAddressService ipAddressService,
             IIncotermLookup incotermLookup, IPaymentTermLookup paymentTermLookup,
@@ -55,7 +57,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             IAgentCustomerMappingLookup agentCustomerMappingLookup,
             IModuleLookup moduleLookup,
             ISalesGroupLookup salesGroupLookup,
-            ISalesOfficeLookup salesOfficeLookup)
+            ISalesOfficeLookup salesOfficeLookup,
+            ILocationMasterLookup locationMasterLookup,
+            IStationLookup stationLookup)
         {
             _dbConnection = dbConnection;
             _ipAddressService = ipAddressService;
@@ -75,6 +79,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             _moduleLookup = moduleLookup;
             _salesGroupLookup = salesGroupLookup;
             _salesOfficeLookup = salesOfficeLookup;
+            _locationMasterLookup = locationMasterLookup;
+            _stationLookup = stationLookup;
         }
         public async Task<List<PartyGroupLoadDto>> GetPartyGroupsAsync(List<int> groupTypeIds)
         {
@@ -167,6 +173,23 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             LEFT JOIN Party.MiscMaster mm ON ac.SettlementCycleId = mm.Id AND mm.IsDeleted = 0
             WHERE ac.PartyId = @Id;
             SELECT
+                bc.Id,
+                bc.PartyId,
+                bc.SettlementCycleId,
+                mm.Description AS SettlementCycleName,
+                bc.TdsApplicable,
+                bc.TdsCode,
+                bc.DefaultCommissionGl,
+                bc.AgreementStartDate,
+                bc.AgreementEndDate,
+                bc.BrokerPayableControlGl,
+                bc.TargetAmount,
+                bc.TargetPeriod,
+                bc.Status
+            FROM Party.BrokerConfig bc
+            LEFT JOIN Party.MiscMaster mm ON bc.SettlementCycleId = mm.Id AND mm.IsDeleted = 0
+            WHERE bc.PartyId = @Id;
+            SELECT
                 td.Id,
                 td.PartyId,
                 td.TransporterTypeId,
@@ -213,6 +236,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             partyMaster.PartyUnitCompanyMappings = (await multi.ReadAsync<PartyMasterDto.PartyUnitCompanyMappingDto>()).ToList();
             partyMaster.SalesTypes = (await multi.ReadAsync<PartyMasterDto.SalesTypeDto>()).ToList();
             partyMaster.AgentConfigs = (await multi.ReadAsync<PartyMasterDto.AgentConfigDto>()).ToList();
+            partyMaster.BrokerConfigs = (await multi.ReadAsync<PartyMasterDto.BrokerConfigDto>()).ToList();
             partyMaster.TransportDetails = (await multi.ReadAsync<PartyMasterDto.TransportDetailDto>()).ToList();
 
             // Cross-module name resolution for TransportDetail.ModuleId.
@@ -553,7 +577,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 // Fetch addresses
                 const string addressSql = @"
                     SELECT pa.Id, pa.PartyId, pa.AddressType, pa.AddressLine1, pa.AddressLine2, pa.PostalCode,
-                        pa.CityId, pa.StateId, pa.CountryId
+                        pa.CityId, pa.StateId, pa.CountryId, pa.LocationId, pa.StationId
                     FROM Party.PartyAddress pa
                     WHERE pa.PartyId IN @PartyIds";
 
@@ -564,14 +588,20 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                     var cityIds = flatAddresses.Where(a => a.CityId.HasValue).Select(a => a.CityId.Value).Distinct();
                     var stateIds = flatAddresses.Where(a => a.StateId.HasValue).Select(a => a.StateId.Value).Distinct();
                     var countryIds = flatAddresses.Where(a => a.CountryId.HasValue).Select(a => a.CountryId.Value).Distinct();
+                    var locationIds = flatAddresses.Where(a => a.LocationId.HasValue).Select(a => a.LocationId.Value).Distinct().ToList();
+                    var stationIds = flatAddresses.Where(a => a.StationId.HasValue).Select(a => a.StationId.Value).Distinct().ToList();
 
                     var cities = cityIds.Any() ? await _cityLookup.GetByIdsAsync(cityIds) : [];
                     var states = stateIds.Any() ? await _stateLookup.GetByIdsAsync(stateIds) : [];
                     var countries = countryIds.Any() ? await _countryLookup.GetByIdsAsync(countryIds) : [];
+                    var locations = locationIds.Count > 0 ? await _locationMasterLookup.GetByIdsAsync(locationIds) : [];
+                    var stations = stationIds.Count > 0 ? await _stationLookup.GetByIdsAsync(stationIds) : [];
 
                     var cityDict = cities.ToDictionary(c => c.CityId, c => c.CityName);
                     var stateDict = states.ToDictionary(s => s.StateId, s => s.StateName);
                     var countryDict = countries.ToDictionary(c => c.CountryId, c => c.CountryName);
+                    var locationDict = locations.ToDictionary(l => l.Id, l => l.LocationName);
+                    var stationDict = stations.ToDictionary(s => s.Id, s => s.StationName);
 
                     var addressByParty = flatAddresses.GroupBy(a => a.PartyId).ToDictionary(g => g.Key, g => g.ToList());
 
@@ -592,6 +622,10 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                                 StateName = a.StateId.HasValue && stateDict.TryGetValue(a.StateId.Value, out var sn) ? sn : null,
                                 CountryId = a.CountryId,
                                 CountryName = a.CountryId.HasValue && countryDict.TryGetValue(a.CountryId.Value, out var countryName) ? countryName : null,
+                                LocationId = a.LocationId,
+                                LocationName = a.LocationId.HasValue && locationDict.TryGetValue(a.LocationId.Value, out var ln) ? ln : null,
+                                StationId = a.StationId,
+                                StationName = a.StationId.HasValue && stationDict.TryGetValue(a.StationId.Value, out var stn) ? stn : null,
                             }).ToList();
                         }
                     }
@@ -880,6 +914,30 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
                 return codes;
             }
+
+        // Resolves the party-type codes (e.g. AGENT, BROKER, SUPPLIER, GINNER) for a set of
+        // MiscMaster ids submitted on the party. Used to enforce mutual-exclusivity in validators.
+        public async Task<IReadOnlyList<string>> GetPartyTypeCodesByIdsAsync(IReadOnlyList<int> partyTypeIds)
+        {
+            if (partyTypeIds is null || partyTypeIds.Count == 0)
+                return new List<string>();
+
+            const string sql = @"
+                SELECT mm.Code
+                FROM Party.MiscMaster mm
+                WHERE mm.Id IN @Ids AND mm.IsDeleted = 0;
+            ";
+
+            var rows = await _dbConnection.QueryAsync<string>(sql, new { Ids = partyTypeIds });
+
+            var codes = rows
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s!.Trim().ToUpperInvariant())
+                .Distinct()
+                .ToList();
+
+            return codes;
+        }
 
         public async Task<RegistrationDto> GetRegistrationDetails(int RegistrationTypeId)
         {

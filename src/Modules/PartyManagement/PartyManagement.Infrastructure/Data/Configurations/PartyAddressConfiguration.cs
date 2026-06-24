@@ -56,7 +56,19 @@ namespace PartyManagement.Infrastructure.Data.Configurations
             builder.Property(m => m.CountryId)
                .HasColumnName("CountryId")
                 .HasColumnType("int")
-                .IsRequired(); 
+                .IsRequired();
+
+            // Cross-module FK to AppData.Location — no DB constraint, optional (Ginner addresses).
+            builder.Property(m => m.LocationId)
+               .HasColumnName("LocationId")
+               .HasColumnType("int")
+               .IsRequired(false);
+
+            // Cross-module FK to AppData.Station — no DB constraint, optional.
+            builder.Property(m => m.StationId)
+               .HasColumnName("StationId")
+               .HasColumnType("int")
+               .IsRequired(false);
         }
     }
 }

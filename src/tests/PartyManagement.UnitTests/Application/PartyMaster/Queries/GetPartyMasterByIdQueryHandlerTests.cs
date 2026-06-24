@@ -20,11 +20,14 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Queries
         private readonly Mock<ICompanyLookup> _mockCompanyLookup = new(MockBehavior.Loose);
         private readonly Mock<IUnitLookup> _mockUnitLookup = new(MockBehavior.Loose);
         private readonly Mock<IBankAccountLookup> _mockBankLookup = new(MockBehavior.Loose);
+        private readonly Mock<ILocationMasterLookup> _mockLocationMasterLookup = new(MockBehavior.Loose);
+        private readonly Mock<IStationLookup> _mockStationLookup = new(MockBehavior.Loose);
 
         private GetPartyMasterByIdQueryHandler CreateSut() =>
             new(_mockQueryRepo.Object, _mockMapper.Object, _mockMediator.Object,
                 _mockCityLookup.Object, _mockStateLookup.Object, _mockCountryLookup.Object,
-                _mockCompanyLookup.Object, _mockUnitLookup.Object, _mockBankLookup.Object);
+                _mockCompanyLookup.Object, _mockUnitLookup.Object, _mockBankLookup.Object,
+                _mockLocationMasterLookup.Object, _mockStationLookup.Object);
 
         private void SetupHappyPath(int id = 1)
         {

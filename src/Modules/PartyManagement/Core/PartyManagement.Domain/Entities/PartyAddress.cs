@@ -12,7 +12,10 @@ namespace PartyManagement.Domain.Entities
         public int StateId { get; set; }
         public string? PostalCode { get; set; }
         public int CountryId { get; set; }
-   
- 
+        // Cross-module FK to AppData.Location (no DB constraint). Captured for Ginner addresses;
+        // resolved via ILocationMasterLookup. Optional.
+        public int? LocationId { get; set; }
+        // Cross-module FK to AppData.Station (no DB constraint). Selected from the Station master. Optional.
+        public int? StationId { get; set; }
     }
 }

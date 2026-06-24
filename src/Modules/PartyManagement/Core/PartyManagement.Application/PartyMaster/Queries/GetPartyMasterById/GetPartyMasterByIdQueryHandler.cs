@@ -19,8 +19,10 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         private readonly ICompanyLookup _companyLookup;
         private readonly IUnitLookup _unitLookup;
         private readonly IBankAccountLookup _bankAccountLookup;
+        private readonly ILocationMasterLookup _locationMasterLookup;
+        private readonly IStationLookup _stationLookup;
 
-        public GetPartyMasterByIdQueryHandler(IPartyMasterQueryRepository ipartyMasterQueryRepository, IMapper mapper, IMediator mediator, ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup, ICompanyLookup companyLookup, IUnitLookup unitLookup, IBankAccountLookup bankAccountLookup)
+        public GetPartyMasterByIdQueryHandler(IPartyMasterQueryRepository ipartyMasterQueryRepository, IMapper mapper, IMediator mediator, ICityLookup cityLookup, IStateLookup stateLookup, ICountryLookup countryLookup, ICompanyLookup companyLookup, IUnitLookup unitLookup, IBankAccountLookup bankAccountLookup, ILocationMasterLookup locationMasterLookup, IStationLookup stationLookup)
         {
             _ipartyMasterQueryRepository = ipartyMasterQueryRepository;
             _mapper = mapper;
@@ -31,6 +33,8 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             _companyLookup = companyLookup;
             _unitLookup = unitLookup;
             _bankAccountLookup = bankAccountLookup;
+            _locationMasterLookup = locationMasterLookup;
+            _stationLookup = stationLookup;
         }
         public async Task<PartyMasterDto> Handle(GetPartyMasterByIdQuery request, CancellationToken cancellationToken)
         {
@@ -77,6 +81,17 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
                 // Map address City/State/Country names
             if (dto.PartyAddresses != null && dto.PartyAddresses.Any())
             {
+                // Resolve Location/Station names (cross-module masters) for the addresses that carry them.
+                var locationIds = dto.PartyAddresses.Where(a => a.LocationId.HasValue && a.LocationId > 0).Select(a => a.LocationId!.Value).Distinct().ToList();
+                var stationIds = dto.PartyAddresses.Where(a => a.StationId.HasValue && a.StationId > 0).Select(a => a.StationId!.Value).Distinct().ToList();
+
+                var locationDict = locationIds.Count > 0
+                    ? (await _locationMasterLookup.GetByIdsAsync(locationIds, cancellationToken)).ToDictionary(l => l.Id, l => l.LocationName)
+                    : new Dictionary<int, string>();
+                var stationDict = stationIds.Count > 0
+                    ? (await _stationLookup.GetByIdsAsync(stationIds, cancellationToken)).ToDictionary(s => s.Id, s => s.StationName)
+                    : new Dictionary<int, string>();
+
                 foreach (var addr in dto.PartyAddresses)
                 {
                     if (addr.CityId.HasValue && cityDict.TryGetValue(addr.CityId.Value, out var cityName))
@@ -88,6 +103,11 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
                     if (addr.CountryId.HasValue && countryDict.TryGetValue(addr.CountryId.Value, out var countryName))
                         addr.Country = countryName;
 
+                    if (addr.LocationId.HasValue && locationDict.TryGetValue(addr.LocationId.Value, out var locationName))
+                        addr.LocationName = locationName;
+
+                    if (addr.StationId.HasValue && stationDict.TryGetValue(addr.StationId.Value, out var stationName))
+                        addr.StationName = stationName;
                 }
             }
 

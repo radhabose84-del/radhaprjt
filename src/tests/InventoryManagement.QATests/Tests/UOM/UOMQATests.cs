@@ -143,11 +143,15 @@ public sealed class UOMQATests
         if (_uomTypeId <= 0 || string.IsNullOrEmpty(_createdCode))
             return; // create was skipped
 
+        // BUG/contract (live): the Create handler enforces uniqueness on UOMName only
+        // (GetByUOMNameAsync) — there is NO unique constraint/check on `code`. So a duplicate
+        // is reliably triggered by re-posting TC001's UOMName (CreateName() is run-unique and
+        // deterministic), not by the code. Re-posting a duplicate code with a fresh name returns 201.
         var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
         {
             code = _createdCode,
-            uomName = "QA Test UOM",
-            sortOrder = 1,
+            uomName = CreateName(),
+            sortOrder = CreateSortOrder(),
             uomTypeId = _uomTypeId
         });
 

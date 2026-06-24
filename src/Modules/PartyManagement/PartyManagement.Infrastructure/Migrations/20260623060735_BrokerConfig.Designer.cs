@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PartyManagement.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PartyManagement.Infrastructure.Data;
 namespace PartyManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260623060735_BrokerConfig")]
+    partial class BrokerConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -606,10 +609,6 @@ namespace PartyManagement.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("CountryId");
 
-                    b.Property<int?>("LocationId")
-                        .HasColumnType("int")
-                        .HasColumnName("LocationId");
-
                     b.Property<int>("PartyId")
                         .HasColumnType("int")
                         .HasColumnName("PartyId");
@@ -621,10 +620,6 @@ namespace PartyManagement.Infrastructure.Migrations
                     b.Property<int>("StateId")
                         .HasColumnType("int")
                         .HasColumnName("StateId");
-
-                    b.Property<int?>("StationId")
-                        .HasColumnType("int")
-                        .HasColumnName("StationId");
 
                     b.HasKey("Id");
 

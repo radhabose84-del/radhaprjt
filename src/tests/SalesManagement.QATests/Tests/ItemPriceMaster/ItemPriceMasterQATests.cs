@@ -44,12 +44,15 @@ public sealed class ItemPriceMasterQATests
     private static int _currencyId = 1;
 
     // Date window — ISO "yyyy-MM-dd"; ValidTo strictly after ValidFrom.
-    // FIX (test bug, reconciled 2026-06-16): use a FAR-FUTURE window so the (Item, Segment,
-    // date-range) OverlapExistsAsync check never collides with the clone's seed prices (which
-    // use realistic current-era ranges). This makes the happy-path create re-runnable without
-    // a DB reset. Negative date tests still pass (an earlier ValidTo is still < ValidFrom).
-    private static readonly string ValidFrom = "2090-01-01";
-    private static readonly string ValidTo = "2090-12-31";
+    // FIX (test bug, reconciled 2026-06-22): a fixed far-future window dodged the clone's seed
+    // prices but NOT this suite's own row from an earlier run — OverlapExistsAsync only checks
+    // (Item, Segment, Variant, overlapping dates), so a second run without a DB reset collided
+    // ("An active price record already exists."). Derive a RUN-UNIQUE far-future window from the
+    // run-unique EntityCode: CONSTANT within a run (so TC001 creates and TC010 still collides on
+    // the same window) but DIFFERENT across runs → fully re-runnable without a reset.
+    private int RunOffsetDays() => int.Parse(_f.EntityCode[1..7]) % 60000;
+    private string ValidFrom => new DateOnly(2090, 1, 1).AddDays(RunOffsetDays()).ToString("yyyy-MM-dd");
+    private string ValidTo => new DateOnly(2090, 1, 1).AddDays(RunOffsetDays() + 30).ToString("yyyy-MM-dd");
 
     public ItemPriceMasterQATests(QAServerFixture fixture) => _f = fixture;
 

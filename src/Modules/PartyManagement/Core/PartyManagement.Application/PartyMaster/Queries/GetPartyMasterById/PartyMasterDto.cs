@@ -71,6 +71,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
         public List<PartyUnitCompanyMappingDto>? PartyUnitCompanyMappings { get; set; }
         public List<SalesTypeDto>? SalesTypes { get; set; }
         public List<AgentConfigDto>? AgentConfigs { get; set; }
+        public List<BrokerConfigDto>? BrokerConfigs { get; set; }
         public List<TransportDetailDto>? TransportDetails { get; set; }
 
         public class PartyContactDto
@@ -104,6 +105,10 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public string? PostalCode { get; set; }
             public int? CountryId { get; set; }
             public string? Country { get; set; }
+            public int? LocationId { get; set; }
+            public string? LocationName { get; set; }
+            public int? StationId { get; set; }
+            public string? StationName { get; set; }
         }
 
         public class PartyBankDto
@@ -186,6 +191,23 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartyMasterById
             public DateTimeOffset? AgreementStartDate { get; set; }
             public DateTimeOffset? AgreementEndDate { get; set; }
             public string? AgentPayableControlGl { get; set; }
+            public decimal? TargetAmount { get; set; }
+            public string? TargetPeriod { get; set; }
+            public byte Status { get; set; }
+        }
+
+        public class BrokerConfigDto
+        {
+            public int Id { get; set; }
+            public int? PartyId { get; set; }
+            public int? SettlementCycleId { get; set; }
+            public string? SettlementCycleName { get; set; }
+            public byte TdsApplicable { get; set; }
+            public string? TdsCode { get; set; }
+            public string? DefaultCommissionGl { get; set; }
+            public DateTimeOffset? AgreementStartDate { get; set; }
+            public DateTimeOffset? AgreementEndDate { get; set; }
+            public string? BrokerPayableControlGl { get; set; }
             public decimal? TargetAmount { get; set; }
             public string? TargetPeriod { get; set; }
             public byte Status { get; set; }
