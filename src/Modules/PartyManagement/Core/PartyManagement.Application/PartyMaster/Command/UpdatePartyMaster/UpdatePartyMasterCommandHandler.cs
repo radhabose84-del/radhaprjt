@@ -21,11 +21,13 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly ILocationLookup _locationLookup;  // ✅ add this
+        private readonly ILocationMasterLookup _locationMasterLookup;
 
          private readonly IPublishEndpoint _publishEndpoint;
         private readonly IIPAddressService _ip;               // for audit headers
 
         public UpdatePartyMasterCommandHandler(IPartyMasterCommandRepository partyMasterCommandRepository, IMapper mapper, IMediator mediator, IPartyMasterQueryRepository ipartyMasterQueryRepository, ILocationLookup locationLookup,
+            ILocationMasterLookup locationMasterLookup,
             IPublishEndpoint bus,
             IIPAddressService ipAddressService)
         {
@@ -34,6 +36,7 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
             _mediator = mediator;
             _ipartyMasterQueryRepository = ipartyMasterQueryRepository;
             _locationLookup = locationLookup;
+            _locationMasterLookup = locationMasterLookup;
             _publishEndpoint = bus;
             _ip = ipAddressService;
         }
@@ -112,6 +115,17 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
                     request.UpdatePartyMaster.AgentConfigsUpdate = null;
             }
 
+            // ------------------- Clean BrokerConfigs -------------------
+            if (request.UpdatePartyMaster.BrokerConfigsUpdate != null)
+            {
+                request.UpdatePartyMaster.BrokerConfigsUpdate = request.UpdatePartyMaster.BrokerConfigsUpdate
+                    .Where(b => b.SettlementCycleId != 0)
+                    .ToList();
+
+                if (!request.UpdatePartyMaster.BrokerConfigsUpdate.Any())
+                    request.UpdatePartyMaster.BrokerConfigsUpdate = null;
+            }
+
             // ------------------- Clean TransportDetails -------------------
             if (request.UpdatePartyMaster.TransportDetailsUpdate != null)
             {
@@ -163,6 +177,14 @@ namespace PartyManagement.Application.PartyMaster.Command.UpdatePartyMaster
                         addressEntity.CityId = addressEntity.CityId;
                         addressEntity.StateId = addressEntity.StateId;
                         addressEntity.CountryId = addressEntity.CountryId;
+                    }
+
+                    // Location (post office) name → reuse-or-insert into AppData.Location → LocationId.
+                    // StationId flows through AutoMapper. Both optional.
+                    if (!string.IsNullOrWhiteSpace(addressDto.Location))
+                    {
+                        addressEntity.LocationId = await _locationMasterLookup.GetOrCreateByNameAsync(
+                            addressDto.Location, cancellationToken);
                     }
                 }
             }

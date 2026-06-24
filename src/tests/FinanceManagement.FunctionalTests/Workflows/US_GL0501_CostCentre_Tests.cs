@@ -50,12 +50,33 @@ public sealed class US_GL0501_CostCentre_Tests
         return 0;
     }
 
+    // The Plant (L1) is a SINGLETON per unit — a 2nd create is rejected ("A Plant (L1) cost centre
+    // already exists for this unit"), counting deactivated-but-not-deleted rows. This story deactivates
+    // its L1 (Step3) without deleting it, so a re-run would collide on its own leftover. Soft-delete any
+    // existing L1 for the unit before creating, so the story is re-runnable without a DB reset.
+    private async Task ClearExistingL1Async(int l1Level)
+    {
+        var resp = await _f.Client.GetAsync($"{Route}?PageNumber=1&PageSize=200");
+        if (resp.StatusCode != HttpStatusCode.OK) return;
+        var root = (await ParseAsync(resp)).RootElement;
+        if (!root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return;
+        foreach (var item in data.EnumerateArray())
+        {
+            if (item.TryGetProperty("centreLevelId", out var lvl) && lvl.ValueKind == JsonValueKind.Number
+                && lvl.GetInt32() == l1Level
+                && item.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.Number)
+                await _f.Client.DeleteAsync($"{Route}?id={idEl.GetInt32()}");
+        }
+    }
+
     // STEP 1 — a created L1 Plant is immediately available to the parent-CC picker (autocomplete).
     [Fact, TestPriority(1)]
     public async Task Step1_CreatePlant_BecomesAvailableInParentPicker()
     {
         _l1Level = await ResolveLevelIdAsync("CCL1");
         if (_l1Level == 0) return;   // self-skip: COSTCENTRELEVEL not seeded in this clone
+
+        await ClearExistingL1Async(_l1Level);   // singleton slot — clear any leftover L1 first
 
         _code = $"FT{new string(_f.EntityCode.Where(char.IsLetterOrDigit).Take(14).ToArray())}";
 

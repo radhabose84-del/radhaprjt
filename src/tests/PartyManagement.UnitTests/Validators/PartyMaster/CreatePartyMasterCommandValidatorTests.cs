@@ -2,6 +2,7 @@ using Contracts.Interfaces.Lookups.Party;
 using Contracts.Interfaces.Lookups.Workflow;
 using FluentValidation.TestHelper;
 using PartyManagement.Application.Common.Interfaces.IPartyMaster;
+using PartyManagement.Application.PartyMaster.Command.CreatePartyMaster;
 using PartyManagement.Presentation.Validation.Common;
 using PartyManagement.Presentation.Validation.PartyMaster;
 using PartyManagement.UnitTests.TestData;
@@ -70,6 +71,62 @@ namespace PartyManagement.UnitTests.Validators.PartyMaster
             var result = await CreateValidator().TestValidateAsync(command);
 
             result.Errors.Should().NotBeEmpty();
+        }
+
+        // ------------------- Party-type mutual exclusivity -------------------
+
+        private void SetupPartyTypeCodes(params string[] codes)
+        {
+            _mockQueryRepo
+                .Setup(r => r.GetPartyTypeCodesByIdsAsync(It.IsAny<IReadOnlyList<int>>()))
+                .ReturnsAsync(codes.ToList());
+        }
+
+        private static void WithPartyTypes(CreatePartyMasterCommand command, params int[] partyTypeIds)
+        {
+            command.PartyMaster.PartyTypes = partyTypeIds
+                .Select(id => new CreatePartyMasterDto.PartyTypeDto { PartyTypeId = id, PartyGroupId = 1 })
+                .ToList();
+        }
+
+        [Fact]
+        public async Task Validate_AgentAndBroker_FailsValidation()
+        {
+            SetupHappyPath();
+            SetupPartyTypeCodes("AGENT", "BROKER");
+            var command = PartyMasterBuilders.ValidCreateCommand();
+            WithPartyTypes(command, 3, 79);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().Contain(e => e.ErrorMessage == "A party cannot be both Agent and Broker.");
+        }
+
+        [Fact]
+        public async Task Validate_SupplierAndGinner_FailsValidation()
+        {
+            SetupHappyPath();
+            SetupPartyTypeCodes("SUPPLIER", "GINNER");
+            var command = PartyMasterBuilders.ValidCreateCommand();
+            WithPartyTypes(command, 1, 80);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().Contain(e => e.ErrorMessage == "A party cannot be both Supplier and Ginner.");
+        }
+
+        [Fact]
+        public async Task Validate_BrokerOnly_PassesExclusivity()
+        {
+            SetupHappyPath();
+            SetupPartyTypeCodes("BROKER");
+            var command = PartyMasterBuilders.ValidCreateCommand();
+            WithPartyTypes(command, 79);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().NotContain(e => e.ErrorMessage == "A party cannot be both Agent and Broker.");
+            result.Errors.Should().NotContain(e => e.ErrorMessage == "A party cannot be both Supplier and Ginner.");
         }
     }
 }

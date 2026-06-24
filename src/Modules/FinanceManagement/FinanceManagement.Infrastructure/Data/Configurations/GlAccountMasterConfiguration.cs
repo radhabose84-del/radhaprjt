@@ -80,6 +80,12 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasDefaultValue(false)
                 .IsRequired();
 
+            builder.Property(t => t.IsProfitCentreMandatory)
+                .HasColumnName("IsProfitCentreMandatory")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
             builder.Property(t => t.IsTaxRelevant)
                 .HasColumnName("IsTaxRelevant")
                 .HasColumnType("bit")

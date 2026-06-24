@@ -44,5 +44,19 @@ namespace PurchaseManagement.UnitTests.Validators.MiscTypeMaster
 
             result.Errors.Should().NotBeEmpty();
         }
+
+        [Theory]
+        [InlineData("QA MISC")]   // space        — not alphanumeric (pattern ^[A-Za-z0-9]+$)
+        [InlineData("QA@MISC")]   // special char — not alphanumeric
+        [InlineData("TYP-01")]    // hyphen       — not alphanumeric
+        public async Task Validate_NonAlphanumericCode_FailsValidation(string code)
+        {
+            SetupAllAsyncMocks();
+            var command = MiscTypeMasterBuilders.ValidCreateCommand(code: code);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.ShouldHaveValidationErrorFor(x => x.MiscTypeCode);
+        }
     }
 }

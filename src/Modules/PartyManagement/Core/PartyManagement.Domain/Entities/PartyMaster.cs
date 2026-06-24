@@ -73,6 +73,7 @@ namespace PartyManagement.Domain.Entities
         public ICollection<PartyUnitCompanyMapping>? PartyUnitCompanyMappings { get; set; }
         public ICollection<SalesType>? SalesTypes { get; set; }
         public ICollection<AgentConfig>? AgentConfigs { get; set; }
+        public ICollection<BrokerConfig>? BrokerConfigs { get; set; }
         public ICollection<TransportDetail>? TransportDetails { get; set; }
 
     }

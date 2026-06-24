@@ -14,6 +14,7 @@ namespace FinanceManagement.Application.GlAccountMaster.Commands.CreateGlAccount
         public int CurrencyTypeId { get; set; }
         public int SubLedgerTypeId { get; set; }
         public bool IsCostCentreMandatory { get; set; }
+        public bool IsProfitCentreMandatory { get; set; }
         public bool IsTaxRelevant { get; set; }
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }

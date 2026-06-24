@@ -18,12 +18,13 @@ namespace PartyManagement.UnitTests.Application.PartyMaster.Commands
         private readonly Mock<IPartyMasterQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IPartyActivityLogCommandRepository> _mockActivityLog = new(MockBehavior.Loose);
         private readonly Mock<ILocationLookup> _mockLocationLookup = new(MockBehavior.Loose);
+        private readonly Mock<ILocationMasterLookup> _mockLocationMasterLookup = new(MockBehavior.Loose);
         private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
 
         private CreatePartyMasterCommandHandler CreateSut() =>
             new(_mockCommandRepo.Object, _mockMapper.Object, _mockMediator.Object,
                 _mockQueryRepo.Object, _mockActivityLog.Object,
-                _mockLocationLookup.Object, _mockOutbox.Object);
+                _mockLocationLookup.Object, _mockLocationMasterLookup.Object, _mockOutbox.Object);
 
         private void SetupHappyPath(int newId = 1)
         {
