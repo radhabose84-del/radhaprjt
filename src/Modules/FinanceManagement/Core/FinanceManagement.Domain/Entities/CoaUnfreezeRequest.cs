@@ -6,7 +6,7 @@ namespace FinanceManagement.Domain.Entities
     // approvers are required: a CFO and a System Admin (AC1/AC2). When both slots are filled the handler
     // drives 08A's freeze state open (OpenUnfreezeWindowAsync) and alerts CFO/FC/Internal Audit. The 08A
     // auto-re-freeze job re-seals on WindowExpiry; the lapsing job then cancels any still-open requests.
-    public class CoaUnfreezeRequest : BaseEntity
+    public class CoaUnfreezeRequest : BaseEntity, IAuditTrailed
     {
         public int CompanyId { get; set; }
 

@@ -6,7 +6,7 @@ namespace FinanceManagement.Domain.Entities
     // GlAccountMaster / AccountGroup read IsFrozen to reject structural writes while sealed.
     // Freeze/unfreeze TRANSITIONS are driven by US-GL02-08B (dual approval); this row is the
     // enforced state + the auto-re-freeze window. Auto-re-freeze (system) re-sets IsFrozen on expiry.
-    public class CoaFreezeState : BaseEntity
+    public class CoaFreezeState : BaseEntity, IAuditTrailed
     {
         public int CompanyId { get; set; }
 

@@ -101,6 +101,10 @@ namespace FinanceManagement.Infrastructure.Data
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
+        // US-GL02-09 — immutable, field-level statutory audit trail for the COA structural masters
+        // and governance entities (IAuditTrailed). Written only by AccountAuditTrailSaveChangesInterceptor.
+        public DbSet<AccountAuditTrail> AccountAuditTrails => Set<AccountAuditTrail>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
