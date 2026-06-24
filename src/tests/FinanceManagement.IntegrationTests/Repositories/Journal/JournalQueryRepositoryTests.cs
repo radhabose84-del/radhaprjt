@@ -188,6 +188,66 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
         }
 
         [Fact]
+        public async Task AutocompleteAsync_Matches_VoucherNo_And_Filters_By_Status()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            // One numbered DRAFT (VoucherNo assigned at create).
+            int draftId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                draftId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+
+            // A second voucher flipped to APPROVED.
+            int approvedId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                approvedId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+                var h = await ctx.JournalHeader.FirstAsync(x => x.Id == approvedId);
+                h.StatusId = ids.StatusApprovedId;
+                await ctx.SaveChangesAsync();
+            }
+
+            var repo = CreateQueryRepo();
+
+            // No status filter → both numbered vouchers, matched by the "JV/" prefix.
+            var all = await repo.AutocompleteAsync("JV/", ids.CompanyId, null, CancellationToken.None);
+            all.Select(x => x.Id).Should().BeEquivalentTo(new[] { draftId, approvedId });
+
+            // Status filter = DRAFT → only the draft.
+            var drafts = await repo.AutocompleteAsync("JV/", ids.CompanyId, ids.StatusDraftId, CancellationToken.None);
+            drafts.Should().ContainSingle().Which.Id.Should().Be(draftId);
+
+            // Status filter = APPROVED → only the approved one.
+            var approved = await repo.AutocompleteAsync("JV/", ids.CompanyId, ids.StatusApprovedId, CancellationToken.None);
+            approved.Should().ContainSingle().Which.Id.Should().Be(approvedId);
+        }
+
+        [Fact]
+        public async Task AutocompleteAsync_IsReverseApplicable_TrueOnlyForPosted()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            // Posted voucher (numbered at create) → reverse applicable.
+            int postedId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                postedId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                await new JournalCommandRepository(ctx).PostAsync(postedId, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+
+            // Draft voucher (numbered at create) → NOT reverse applicable.
+            int draftId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                draftId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+
+            var rows = await CreateQueryRepo().AutocompleteAsync("JV/", ids.CompanyId, null, CancellationToken.None);
+
+            rows.First(x => x.Id == postedId).IsReverseApplicable.Should().BeTrue();
+            rows.First(x => x.Id == draftId).IsReverseApplicable.Should().BeFalse();
+        }
+
+        [Fact]
         public async Task GetStatusIdAsync_Should_Resolve_Draft()
         {
             await ClearTableAsync();
