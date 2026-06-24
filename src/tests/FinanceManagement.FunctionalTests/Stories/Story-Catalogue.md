@@ -301,3 +301,32 @@ Base route: `api/finance/VoucherTypeMaster`.
 > `VoucherTypeNumberSeries` per `FinancialYearId`); does NOT touch `TransactionTypeMaster`/`DocumentSequence`.
 > `VoucherTypeCode` doubles as the series prefix. See the **🌐 QA** suite `VoucherTypeMasterQATests` for
 > endpoint coverage and `docs/VoucherType_Specification.md`.
+
+---
+
+## US-GL02-09 — Account Master Audit Trail & Version History
+
+**User story:** As an auditor, I want an immutable per-account change history (who, when, field, old, new,
+role, IP), viewable and exportable and retained 8 years, so every structural change to the chart of
+accounts is traceable for statutory audit.
+
+**Pre-condition (build):** the QA server must run the US-GL02-09 build (the `AccountAuditTrail` interceptor
++ role-in-JWT). The `role` field is populated only after a fresh login on that build. The trail is written
+**only** by the SaveChanges interceptor when an `IAuditTrailed` master is changed — there is no write API.
+The story exercises it via `AccountTypeMaster` (audited, and free of the COA-freeze trigger).
+
+Base route: `api/finance/account-audit` (read-only: `GET {entityName}/{entityId}`, `GET /export`).
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — change captured with full context | Given an audited master field is edited, When saved, Then a row (account, field, old, new, user, **role**, timestamp, IP) is written in the same transaction. | ⚠️ verify live (role needs fresh login on the new build) |
+| AC2 — DELETE/UPDATE rejected by DB | Given any app role incl. System Admin, When UPDATE/DELETE on the audit table is attempted, Then a DB constraint rejects it. | 🚫 no API surface — covered by integration (`AccountAuditTrailImmutabilityTests`) |
+| AC3 — chronological field-level history | Given an auditor opens an account, When GET `/{entityName}/{entityId}`, Then all field-level changes list chronologically. | ✅ implementable |
+| AC4 — export with checksum < 30s | Given a date range, When GET `/export?from=&to=&entityName=`, Then a payload with a record-count checksum (+ SHA-256) returns within 30s. | ✅ implementable |
+| AC5 — 8-year retention | Given the retention policy, When records age, Then they remain (no purge job; immutability trigger prevents deletion). | 🚫 operational guarantee — not runtime-testable |
+
+> New hardened table `Finance.AccountAuditTrail` (separate from the mutable `Finance.ActivityLog`).
+> Capture = `AccountAuditTrailSaveChangesInterceptor` (Insert/Update/Delete, in-transaction). Immutability =
+> `DENY DELETE,UPDATE TO public` + `trg_AccountAuditTrail_Immutable` (in the migration). Scope = COA
+> structure + governance (GlAccountMaster, AccountGroup, AccountTypeMaster, CoaFreezeState,
+> CoaChangeRequest, CoaUnfreezeRequest). See `docs/AccountAuditTrail_Specification.md`.
