@@ -23,13 +23,15 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             _financialYearLookup = financialYearLookup;
         }
 
-        public async Task<(List<JournalHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId = null)
+        public async Task<(List<JournalHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId = null, int? statusId = null)
         {
             var whereClause = "h.IsDeleted = 0";
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 whereClause += " AND (h.VoucherNo LIKE @Search OR h.Narration LIKE @Search)";
             if (companyId.HasValue && companyId.Value > 0)
                 whereClause += " AND h.CompanyId = @CompanyId";
+            if (statusId.HasValue && statusId.Value > 0)
+                whereClause += " AND h.StatusId = @StatusId";
 
             var query = $@"
                 DECLARE @TotalCount INT;
@@ -39,7 +41,8 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
 
                 SELECT h.Id, h.CompanyId, h.UnitId, h.VoucherTypeId, vt.VoucherTypeCode, vt.VoucherTypeName,
                     h.VoucherNo, h.VoucherDate, h.PostingDate, h.FinancialYearId, h.AccountingPeriodId, ap.PeriodName,
-                    h.Narration, h.StatusId, ms.Description AS StatusName, h.SourceId, msrc.Description AS SourceName,
+                    h.Narration, pl.AccountCode, pl.AccountName,
+                    h.StatusId, ms.Description AS StatusName, h.SourceId, msrc.Description AS SourceName,
                     h.TriggerDocType, h.TriggerDocRef, h.AutoApproved, h.TotalDr, h.TotalCr,
                     h.ReversalOfId, h.IsReversal, h.CopiedFromRef, h.ImportBatchId,
                     h.IsActive, h.IsDeleted,
@@ -50,6 +53,13 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
                 LEFT JOIN Finance.AccountingPeriod ap ON ap.Id = h.AccountingPeriodId
                 LEFT JOIN Finance.MiscMaster ms ON ms.Id = h.StatusId
                 LEFT JOIN Finance.MiscMaster msrc ON msrc.Id = h.SourceId
+                OUTER APPLY (
+                    SELECT TOP 1 ga.AccountCode, ga.AccountName
+                    FROM Finance.JournalDetail d
+                    LEFT JOIN Finance.GlAccountMaster ga ON ga.Id = d.GlAccountId
+                    WHERE d.JournalHeaderId = h.Id AND d.IsDeleted = 0
+                    ORDER BY CASE WHEN d.DrAmount > 0 THEN 0 ELSE 1 END, d.[LineNo]
+                ) pl
                 WHERE {whereClause}
                 ORDER BY h.VoucherDate DESC, h.Id DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -61,6 +71,7 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             {
                 Search = $"%{searchTerm}%",
                 CompanyId = companyId,
+                StatusId = statusId,
                 Offset = (pageNumber - 1) * pageSize,
                 PageSize = pageSize
             };
@@ -550,6 +561,8 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
 
         public async Task<bool> IsReversedAsync(int id)
         {
+            // Already reversed if the status is REVERSED OR a (non-deleted) reversal mirror already points back
+            // to it — the latter guards against orphan/legacy rows whose status flip didn't persist.
             const string sql = @"
                 SELECT CASE WHEN EXISTS (
                     SELECT 1
@@ -558,6 +571,9 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
                     INNER JOIN Finance.MiscTypeMaster mt ON mt.Id = mm.MiscTypeId
                     WHERE h.Id = @Id AND h.IsDeleted = 0
                         AND mt.MiscTypeCode = 'JOURNAL_STATUS' AND mm.Code = 'REVERSED'
+                ) OR EXISTS (
+                    SELECT 1 FROM Finance.JournalHeader r
+                    WHERE r.ReversalOfId = @Id AND r.IsDeleted = 0
                 ) THEN 1 ELSE 0 END";
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = id });
         }
@@ -574,8 +590,11 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
 
         public async Task<DateOnly?> GetPostingDateAsync(int id)
         {
+            // Read as DateTime? — Dapper's scalar path returns a boxed DateTime for a SQL 'date' column and
+            // cannot cast it directly to DateOnly?.
             const string sql = "SELECT PostingDate FROM Finance.JournalHeader WHERE Id = @Id AND IsDeleted = 0";
-            return await _dbConnection.ExecuteScalarAsync<DateOnly?>(sql, new { Id = id });
+            var value = await _dbConnection.ExecuteScalarAsync<DateTime?>(sql, new { Id = id });
+            return value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
         }
 
         public async Task<DateOnly?> GetNextOpenPeriodStartAsync(int companyId, DateOnly afterDate)
@@ -589,7 +608,8 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
                     AND ap.StartDate > @AfterDate
                     AND mt.MiscTypeCode = 'PERIOD_STATUS' AND mm.Code = 'OPEN'
                 ORDER BY ap.StartDate ASC";
-            return await _dbConnection.ExecuteScalarAsync<DateOnly?>(sql, new { CompanyId = companyId, AfterDate = afterDate });
+            var value = await _dbConnection.ExecuteScalarAsync<DateTime?>(sql, new { CompanyId = companyId, AfterDate = afterDate });
+            return value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
         }
 
         public async Task<bool> IsBalancedAsync(int id)

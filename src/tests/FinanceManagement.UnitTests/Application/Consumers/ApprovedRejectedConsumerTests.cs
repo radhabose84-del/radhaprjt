@@ -31,7 +31,7 @@ namespace FinanceManagement.UnitTests.Application.Consumers
         private const int LinkageId = 21;
         private const int JournalId = 77;
         private const int JournalApprovedStatusId = 100;
-        private const int JournalDraftStatusId = 101;
+        private const int JournalRejectedStatusId = 102;
 
         private ApprovedRejectedConsumer CreateSut() =>
             new(_changeRepo.Object, _agCommandRepo.Object, _taxCommandRepo.Object, _taxQueryRepo.Object,
@@ -176,14 +176,14 @@ namespace FinanceManagement.UnitTests.Application.Consumers
         }
 
         [Fact]
-        public async Task Consume_JournalRejected_SetsDraftStatus()
+        public async Task Consume_JournalRejected_SetsRejectedStatus()
         {
-            _journalQueryRepo.Setup(r => r.GetStatusIdAsync("DRAFT")).ReturnsAsync(JournalDraftStatusId);
+            _journalQueryRepo.Setup(r => r.GetStatusIdAsync("REJECTED")).ReturnsAsync(JournalRejectedStatusId);
 
             await CreateSut().Consume(JournalCtx(MiscEnumEntity.Rejected));
 
             _journalCommandRepo.Verify(r => r.SetApprovalResultAsync(
-                JournalId, JournalDraftStatusId, false, "Approver Bob", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+                JournalId, JournalRejectedStatusId, false, "Approver Bob", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

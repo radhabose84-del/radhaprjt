@@ -26,7 +26,7 @@ namespace FinanceManagement.UnitTests.Application.Journal.Queries
         public async Task Handle_ReturnsSuccessWithData()
         {
             var dtos = new List<JournalHeaderDto> { JournalBuilders.ValidDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, 1)).ReturnsAsync((dtos, 1));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(1, 10, null, 1, null)).ReturnsAsync((dtos, 1));
             SetupMapper(dtos);
 
             var result = await CreateSut().Handle(new GetAllJournalQuery { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
@@ -39,7 +39,7 @@ namespace FinanceManagement.UnitTests.Application.Journal.Queries
         public async Task Handle_ReturnsPaginationMetadata()
         {
             var dtos = new List<JournalHeaderDto> { JournalBuilders.ValidDto() };
-            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "salary", 1)).ReturnsAsync((dtos, 11));
+            _mockQueryRepo.Setup(r => r.GetAllAsync(2, 5, "salary", 1, null)).ReturnsAsync((dtos, 11));
             SetupMapper(dtos);
 
             var result = await CreateSut().Handle(

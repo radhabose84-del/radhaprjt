@@ -4,7 +4,7 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
 {
     public interface IJournalQueryRepository
     {
-        Task<(List<JournalHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId = null);
+        Task<(List<JournalHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId = null, int? statusId = null);
 
         // Advanced filtered search (Journal List & Search screen) — flat grid rows (header + primary line).
         Task<(List<JournalListItemDto>, int)> SearchAsync(JournalSearchFilter filter, int pageNumber, int pageSize, int? companyId = null);

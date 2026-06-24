@@ -28,7 +28,7 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Queries.GetAllJour
             var companyId = _ipAddressService.GetCompanyId()
                 ?? throw new ExceptionRules("No active company in session.");
 
-            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, companyId);
+            var (data, totalCount) = await _queryRepository.GetAllAsync(request.PageNumber, request.PageSize, request.SearchTerm, companyId, request.StatusId);
 
             var dtos = _mapper.Map<List<JournalHeaderDto>>(data);
 

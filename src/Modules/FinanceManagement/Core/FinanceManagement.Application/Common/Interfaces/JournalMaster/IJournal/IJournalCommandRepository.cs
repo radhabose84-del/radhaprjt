@@ -4,8 +4,9 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
 {
     public interface IJournalCommandRepository
     {
-        // Create header + lines in one save (draft — zero GL impact).
-        Task<int> CreateAsync(FinanceManagement.Domain.Entities.JournalHeader entity);
+        // Create header + lines in one save (draft — zero GL impact). When financialYearName is supplied the
+        // voucher number is allocated here at create time (manual entry); otherwise it is assigned later at post.
+        Task<int> CreateAsync(FinanceManagement.Domain.Entities.JournalHeader entity, string? financialYearName = null, int createdById = 0);
 
         // Update a draft header + reconcile its lines (editable only while Draft).
         Task<int> UpdateAsync(FinanceManagement.Domain.Entities.JournalHeader entity);

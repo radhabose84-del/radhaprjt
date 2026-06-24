@@ -3,6 +3,7 @@ using AutoMapper;
 using Contracts.Commands.Workflow;
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Users;
 using Contracts.Interfaces.Lookups.Workflow;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
@@ -18,6 +19,7 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
         private readonly IJournalCommandRepository _commandRepository;
         private readonly IJournalQueryRepository _queryRepository;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IFinancialYearLookup _financialYearLookup;
         private readonly IWorkflowLookup _workflowLookup;
         private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
@@ -27,6 +29,7 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
             IJournalCommandRepository commandRepository,
             IJournalQueryRepository queryRepository,
             IIPAddressService ipAddressService,
+            IFinancialYearLookup financialYearLookup,
             IWorkflowLookup workflowLookup,
             IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
@@ -35,6 +38,7 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _ipAddressService = ipAddressService;
+            _financialYearLookup = financialYearLookup;
             _workflowLookup = workflowLookup;
             _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
@@ -66,7 +70,12 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
             entity.TotalDr = entity.Details.Sum(l => l.DrAmount);
             entity.TotalCr = entity.Details.Sum(l => l.CrAmount);
 
-            var newId = await _commandRepository.CreateAsync(entity);
+            // Voucher number is allocated at create time (US-GL01-01) — resolve the fiscal-year name for the format.
+            var fy = await _financialYearLookup.GetByIdAsync(period.FinancialYearId, cancellationToken);
+            if (string.IsNullOrEmpty(fy?.FinancialYearName))
+                throw new ExceptionRules("Financial year could not be resolved for voucher numbering.");
+
+            var newId = await _commandRepository.CreateAsync(entity, fy.FinancialYearName, _ipAddressService.GetUserId());
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Create",
