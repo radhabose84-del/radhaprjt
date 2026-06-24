@@ -32,12 +32,15 @@ namespace FinanceManagement.IntegrationTests.Repositories.GlAccountImport
         {
             using var ctx = _fixture.CreateFreshDbContext();
 
-            var miscType = new MiscTypeMaster { MiscTypeCode = "NB", Description = "Normal Balance" };
-            ctx.MiscTypeMaster.Add(miscType);
+            // Normal-balance and sub-ledger-type live under distinct MiscTypes:
+            // LoadReferenceDataAsync keys them by MiscTypeCode ("NB" vs "SLTYPE").
+            var nbType = new MiscTypeMaster { MiscTypeCode = "NB", Description = "Normal Balance" };
+            var sltType = new MiscTypeMaster { MiscTypeCode = "SLTYPE", Description = "Sub Ledger Type" };
+            ctx.MiscTypeMaster.AddRange(nbType, sltType);
             await ctx.SaveChangesAsync();
 
-            var nb = new MiscMaster { MiscTypeId = miscType.Id, Code = "DR", Description = "Debit", SortOrder = 1 };
-            var slt = new MiscMaster { MiscTypeId = miscType.Id, Code = "NONE", Description = "None", SortOrder = 2 };
+            var nb = new MiscMaster { MiscTypeId = nbType.Id, Code = "DR", Description = "Debit", SortOrder = 1 };
+            var slt = new MiscMaster { MiscTypeId = sltType.Id, Code = "NONE", Description = "None", SortOrder = 2 };
             ctx.MiscMaster.AddRange(nb, slt);
 
             var atype = new AccountTypeMaster
