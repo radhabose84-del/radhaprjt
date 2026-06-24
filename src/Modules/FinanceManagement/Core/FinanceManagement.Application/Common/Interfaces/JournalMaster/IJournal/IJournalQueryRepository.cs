@@ -4,7 +4,7 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
 {
     public interface IJournalQueryRepository
     {
-        Task<(List<JournalHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId = null);
+        Task<(List<JournalHeaderDto>, int)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? companyId = null, int? statusId = null);
 
         // Advanced filtered search (Journal List & Search screen) — flat grid rows (header + primary line).
         Task<(List<JournalListItemDto>, int)> SearchAsync(JournalSearchFilter filter, int pageNumber, int pageSize, int? companyId = null);
@@ -22,6 +22,9 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
         Task<int> GetUnitIdAsync(int id);
 
         Task<JournalHeaderDto?> GetByIdAsync(int id);
+
+        // Autocomplete (active, non-deleted) by VoucherNo / Narration, optionally filtered by JOURNAL_STATUS id.
+        Task<IReadOnlyList<JournalLookupDto>> AutocompleteAsync(string term, int? companyId, int? statusId, CancellationToken ct);
 
         // Resolves the OPEN accounting period containing the date (returns period id + its fiscal year).
         Task<(int PeriodId, int FinancialYearId)?> GetOpenPeriodByDateAsync(int companyId, DateOnly date);

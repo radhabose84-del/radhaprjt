@@ -149,6 +149,105 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
         }
 
         [Fact]
+        public async Task GetPostingDateAsync_Returns_Date_Without_CastError()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+            int id;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                id = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                await new JournalCommandRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+
+            var postingDate = await CreateQueryRepo().GetPostingDateAsync(id);
+
+            postingDate.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task IsReversedAsync_True_When_ReversalMirrorExists_EvenIfStatusNotFlipped()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            int originalId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                originalId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+
+            // A reversal mirror points back to the original, but the original is left POSTED (orphan/legacy case).
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var mirror = JournalTestSeed.BuildDraftJournal(ids);
+                mirror.IsReversal = true;
+                mirror.ReversalOfId = originalId;
+                await new JournalCommandRepository(ctx).CreateAsync(mirror);
+            }
+
+            var repo = CreateQueryRepo();
+            (await repo.IsReversedAsync(originalId)).Should().BeTrue();   // blocked: a mirror already exists
+        }
+
+        [Fact]
+        public async Task AutocompleteAsync_Matches_VoucherNo_And_Filters_By_Status()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            // One numbered DRAFT (VoucherNo assigned at create).
+            int draftId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                draftId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+
+            // A second voucher flipped to APPROVED.
+            int approvedId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                approvedId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+                var h = await ctx.JournalHeader.FirstAsync(x => x.Id == approvedId);
+                h.StatusId = ids.StatusApprovedId;
+                await ctx.SaveChangesAsync();
+            }
+
+            var repo = CreateQueryRepo();
+
+            // No status filter → both numbered vouchers, matched by the "JV/" prefix.
+            var all = await repo.AutocompleteAsync("JV/", ids.CompanyId, null, CancellationToken.None);
+            all.Select(x => x.Id).Should().BeEquivalentTo(new[] { draftId, approvedId });
+
+            // Status filter = DRAFT → only the draft.
+            var drafts = await repo.AutocompleteAsync("JV/", ids.CompanyId, ids.StatusDraftId, CancellationToken.None);
+            drafts.Should().ContainSingle().Which.Id.Should().Be(draftId);
+
+            // Status filter = APPROVED → only the approved one.
+            var approved = await repo.AutocompleteAsync("JV/", ids.CompanyId, ids.StatusApprovedId, CancellationToken.None);
+            approved.Should().ContainSingle().Which.Id.Should().Be(approvedId);
+        }
+
+        [Fact]
+        public async Task AutocompleteAsync_IsReverseApplicable_TrueOnlyForPosted()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            // Posted voucher (numbered at create) → reverse applicable.
+            int postedId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                postedId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                await new JournalCommandRepository(ctx).PostAsync(postedId, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+
+            // Draft voucher (numbered at create) → NOT reverse applicable.
+            int draftId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                draftId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids), "2026-27", 1);
+
+            var rows = await CreateQueryRepo().AutocompleteAsync("JV/", ids.CompanyId, null, CancellationToken.None);
+
+            rows.First(x => x.Id == postedId).IsReverseApplicable.Should().BeTrue();
+            rows.First(x => x.Id == draftId).IsReverseApplicable.Should().BeFalse();
+        }
+
+        [Fact]
         public async Task GetStatusIdAsync_Should_Resolve_Draft()
         {
             await ClearTableAsync();
@@ -308,6 +407,29 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
 
             items.Should().HaveCount(1);
             total.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_Populates_AccountName_And_Filters_By_Status()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+            await SeedDraftAsync(ids);
+
+            var repo = CreateQueryRepo();
+
+            // Primary (debit) line account name is surfaced on the grid row.
+            var (items, _) = await repo.GetAllAsync(1, 10, null, 1);
+            items.Should().ContainSingle().Which.AccountName.Should().Be("Salaries & Wages");
+
+            // Status filter: DRAFT → the row; a different status → none.
+            var (drafts, draftTotal) = await repo.GetAllAsync(1, 10, null, 1, ids.StatusDraftId);
+            drafts.Should().HaveCount(1);
+            draftTotal.Should().Be(1);
+
+            var (posted, postedTotal) = await repo.GetAllAsync(1, 10, null, 1, ids.StatusPostedId);
+            posted.Should().BeEmpty();
+            postedTotal.Should().Be(0);
         }
 
         [Fact]

@@ -191,4 +191,15 @@ internal sealed class IPAddressService : IIPAddressService
         if (claim == null) return null;
         return int.TryParse(claim, out int divisionId) && divisionId > 0 ? divisionId : null;
     }
+
+    public string? GetUserRole()
+    {
+        // A user may hold several roles; the JWT carries one ClaimTypes.Role per role (added at login).
+        var roles = _httpContextAccessor.HttpContext?.User?
+            .FindAll(ClaimTypes.Role)
+            .Select(c => c.Value)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .ToList();
+        return roles is { Count: > 0 } ? string.Join(", ", roles) : null;
+    }
 }

@@ -7,7 +7,9 @@ using FinanceManagement.Application.JournalMaster.Journal.Commands.ReverseJourna
 using FinanceManagement.Application.JournalMaster.Journal.Commands.UpdateJournal;
 using FinanceManagement.Application.JournalMaster.JournalThresholdRule.Commands.RunGapScan;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetAllJournal;
+using FinanceManagement.Application.JournalMaster.Journal.Queries.GetJournalAutoComplete;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetJournalById;
+using FinanceManagement.Application.JournalMaster.Journal.Queries.GetJournalPrint;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetPendingApprovalJournals;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetPostableJournals;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.SearchJournal;
@@ -26,13 +28,15 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
         public async Task<IActionResult> GetAllJournalAsync(
             [FromQuery] int PageNumber,
             [FromQuery] int PageSize,
-            [FromQuery] string? SearchTerm = null)
+            [FromQuery] string? SearchTerm = null,
+            [FromQuery] int? StatusId = null)
         {
             var result = await Mediator.Send(new GetAllJournalQuery
             {
                 PageNumber = PageNumber,
                 PageSize = PageSize,
-                SearchTerm = SearchTerm
+                SearchTerm = SearchTerm,
+                StatusId = StatusId
             });
 
             return Ok(new
@@ -103,6 +107,29 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
             });
+        }
+
+        // Autocomplete by VoucherNo / Narration; optional StatusId (JOURNAL_STATUS) filter.
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetJournalAutoCompleteAsync(
+            [FromQuery] string? term = null,
+            [FromQuery] int? StatusId = null)
+        {
+            var result = await Mediator.Send(new GetJournalAutoCompleteQuery(term ?? string.Empty, StatusId));
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Print/PDF model for one voucher (company header + lines + maker/checker + content fingerprint).
+        [HttpGet("{id}/print")]
+        public async Task<IActionResult> GetJournalPrintAsync(int id)
+        {
+            var result = await Mediator.Send(new GetJournalPrintQuery(id));
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 
         [HttpGet("{id}")]
