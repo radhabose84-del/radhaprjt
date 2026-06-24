@@ -1,6 +1,8 @@
 using Contracts.Commands.Finance;
+using FinanceManagement.Application.Common.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.ITaxCode;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
 using FinanceManagement.Application.Consumers;
 using FinanceManagement.Domain.Common;
 using FinanceManagement.Domain.Entities;
@@ -12,20 +14,28 @@ namespace FinanceManagement.UnitTests.Application.Consumers
     // The Finance ApprovedRejectedConsumer routes by ModuleTypeName:
     //   • Account Group Hierarchy → re-parent on approval (US-GL02-02)
     //   • Tax Account Linkage     → activate/reject the pending linkage (US-GL02-05B)
+    //   • Journal Voucher         → approve → APPROVED, reject → back to DRAFT (US-GL01-06B)
     public sealed class ApprovedRejectedConsumerTests
     {
         private readonly Mock<IAccountGroupChangeRequestRepository> _changeRepo = new(MockBehavior.Loose);
         private readonly Mock<IAccountGroupCommandRepository> _agCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<ITaxCodeCommandRepository> _taxCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<ITaxCodeQueryRepository> _taxQueryRepo = new(MockBehavior.Strict);
+        private readonly Mock<IJournalCommandRepository> _journalCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IJournalQueryRepository> _journalQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<ITimeZoneService> _timeZone = new(MockBehavior.Loose);
         private readonly Mock<ILogger<ApprovedRejectedConsumer>> _logger = new();
 
         private const int ApprovedStatusId = 48;
         private const int RejectedStatusId = 50;
         private const int LinkageId = 21;
+        private const int JournalId = 77;
+        private const int JournalApprovedStatusId = 100;
+        private const int JournalDraftStatusId = 101;
 
         private ApprovedRejectedConsumer CreateSut() =>
-            new(_changeRepo.Object, _agCommandRepo.Object, _taxCommandRepo.Object, _taxQueryRepo.Object, _logger.Object);
+            new(_changeRepo.Object, _agCommandRepo.Object, _taxCommandRepo.Object, _taxQueryRepo.Object,
+                _journalCommandRepo.Object, _journalQueryRepo.Object, _timeZone.Object, _logger.Object);
 
         private static Mock<ConsumeContext<UpdateApprovedRejectedFinanceCommand>> BuildContext(UpdateApprovedRejectedFinanceCommand msg)
         {
@@ -140,6 +150,41 @@ namespace FinanceManagement.UnitTests.Application.Consumers
         {
             // Strict tax mocks would throw if any repo were touched.
             await CreateSut().Consume(TaxContext(MiscEnumEntity.Pending).Object);
+        }
+
+        // ── Journal Voucher (US-GL01-06B) ─────────────────────────────────────────
+        private static ConsumeContext<UpdateApprovedRejectedFinanceCommand> JournalCtx(string status) =>
+            BuildContext(new UpdateApprovedRejectedFinanceCommand
+            {
+                CorrelationId = Guid.NewGuid(),
+                ModuleTransactionId = JournalId,
+                ModuleTypeName = MiscEnumEntity.JournalVoucher,
+                Status = status,
+                ModifiedByName = "Approver Bob"
+            }).Object;
+
+        [Fact]
+        public async Task Consume_JournalApproved_SetsApprovedStatusWithApproverName()
+        {
+            _journalQueryRepo.Setup(r => r.GetStatusIdAsync("APPROVED")).ReturnsAsync(JournalApprovedStatusId);
+
+            await CreateSut().Consume(JournalCtx(MiscEnumEntity.Approved));
+
+            _journalCommandRepo.Verify(r => r.SetApprovalResultAsync(
+                JournalId, JournalApprovedStatusId, true, "Approver Bob", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Consume_JournalRejected_SetsDraftStatus()
+        {
+            _journalQueryRepo.Setup(r => r.GetStatusIdAsync("DRAFT")).ReturnsAsync(JournalDraftStatusId);
+
+            await CreateSut().Consume(JournalCtx(MiscEnumEntity.Rejected));
+
+            _journalCommandRepo.Verify(r => r.SetApprovalResultAsync(
+                JournalId, JournalDraftStatusId, false, "Approver Bob", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+                Times.Once);
         }
     }
 }

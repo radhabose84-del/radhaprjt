@@ -34,7 +34,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.JournalThresholdRule
                 id = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
 
             await using (var ctx = _fixture.CreateFreshDbContext())
-                await new JournalCommandRepository(ctx).PostAsync(id, ids.StatusPostedId, fyName, userId, DateTimeOffset.UtcNow, CancellationToken.None);
+                await new JournalCommandRepository(ctx).PostAsync(id, ids.StatusPostedId, fyName, "Tester", userId, DateTimeOffset.UtcNow, CancellationToken.None);
 
             return id;
         }

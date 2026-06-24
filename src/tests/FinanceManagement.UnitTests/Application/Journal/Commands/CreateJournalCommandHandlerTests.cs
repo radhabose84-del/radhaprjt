@@ -1,6 +1,11 @@
+using Contracts.Commands.Workflow;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Workflow;
+using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
+using FinanceManagement.Application.JournalMaster.Dto;
 using FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJournal;
+using FinanceManagement.Domain.Common;
 using FinanceManagement.UnitTests.TestData;
 
 namespace FinanceManagement.UnitTests.Application.Journal.Commands
@@ -10,11 +15,14 @@ namespace FinanceManagement.UnitTests.Application.Journal.Commands
         private readonly Mock<IJournalCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IJournalQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
+        private readonly Mock<IWorkflowLookup> _mockWorkflow = new(MockBehavior.Loose);
+        private readonly Mock<IOutboxEventPublisher> _mockOutbox = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
         private readonly Mock<IMapper> _mockMapper = new(MockBehavior.Loose);
 
         private CreateJournalCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockIp.Object, _mockMediator.Object, _mockMapper.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockIp.Object, _mockWorkflow.Object,
+                _mockOutbox.Object, _mockMediator.Object, _mockMapper.Object);
 
         private void SetupHappyPath(int newId = 1)
         {
@@ -111,6 +119,43 @@ namespace FinanceManagement.UnitTests.Application.Journal.Commands
                     It.Is<AuditLogsDomainEvent>(e => e.ActionDetail == "Create" && e.ActionCode == "JOURNAL_CREATE"),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task Handle_WorkflowConfigured_RaisesApprovalRequest()
+        {
+            SetupHappyPath(newId: 55);
+            _mockWorkflow.Setup(w => w.IsApproveWorkflowConfigureAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(55))
+                .ReturnsAsync(new JournalHeaderDto { Id = 55, UnitId = 1 });
+
+            CreateApprovalRequestCommand? captured = null;
+            _mockOutbox.Setup(o => o.ScheduleAsync(It.IsAny<CreateApprovalRequestCommand>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .Callback<CreateApprovalRequestCommand, Guid, CancellationToken>((c, _, _) => captured = c)
+                .Returns(Task.CompletedTask);
+
+            var result = await CreateSut().Handle(JournalBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            result.Message.Should().Contain("submitted for approval");
+            captured.Should().NotBeNull();
+            captured!.ModuleTypeName.Should().Be(MiscEnumEntity.JournalVoucher);
+            captured.ModuleTransactionId.Should().Be(55);
+        }
+
+        [Fact]
+        public async Task Handle_NoWorkflowConfigured_DoesNotRaiseApprovalRequest()
+        {
+            SetupHappyPath();
+            _mockWorkflow.Setup(w => w.IsApproveWorkflowConfigureAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(false);
+
+            var result = await CreateSut().Handle(JournalBuilders.ValidCreateCommand(), CancellationToken.None);
+
+            result.Message.Should().Be("Journal voucher saved as draft.");
+            _mockOutbox.Verify(
+                o => o.ScheduleAsync(It.IsAny<CreateApprovalRequestCommand>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+                Times.Never);
         }
     }
 }

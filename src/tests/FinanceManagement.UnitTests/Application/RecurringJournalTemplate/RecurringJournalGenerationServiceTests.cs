@@ -63,7 +63,7 @@ namespace FinanceManagement.UnitTests.Application.RecurringJournalTemplate
                 It.IsAny<JournalHeader>(),
                 It.Is<RecurringGenerationLog>(g => g.CompanyId == 1 && g.TemplateId == 1 && g.Period == "2026-06" && !g.AutoPosted),
                 It.IsAny<CancellationToken>()), Times.Once);
-            _mockJournalCmd.Verify(r => r.PostAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockJournalCmd.Verify(r => r.PostAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Never);
             _mockGenRepo.Verify(r => r.MarkLogAutoPostedAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -74,13 +74,13 @@ namespace FinanceManagement.UnitTests.Application.RecurringJournalTemplate
             _mockGenRepo.Setup(r => r.GetDueTemplatesAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<RecurringJournalTemplateHeader> { Template(autoPost: true, lowRisk: true) });
             _mockGenRepo.Setup(r => r.GenerationExistsAsync(1, 1, "2026-06", It.IsAny<CancellationToken>())).ReturnsAsync(false);
-            _mockJournalCmd.Setup(r => r.PostAsync(50, 105, "2026-27", 0, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            _mockJournalCmd.Setup(r => r.PostAsync(50, 105, "2026-27", "System", 0, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PostJournalResultDto { JournalId = 50, VoucherNo = "JV/2026-27/0001" });
 
             var count = await CreateSut().GenerateForPeriodAsync(1, 1, "2026-06", new DateOnly(2026, 6, 1), CancellationToken.None);
 
             count.Should().Be(1);
-            _mockJournalCmd.Verify(r => r.PostAsync(50, 105, "2026-27", 0, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockJournalCmd.Verify(r => r.PostAsync(50, 105, "2026-27", "System", 0, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
             _mockGenRepo.Verify(r => r.MarkLogAutoPostedAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 

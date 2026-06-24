@@ -1,7 +1,13 @@
+using System.Text.Json;
 using AutoMapper;
+using Contracts.Commands.Workflow;
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Workflow;
+using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
+using FinanceManagement.Application.JournalMaster.Dto;
+using FinanceManagement.Domain.Common;
 using FinanceManagement.Domain.Events;
 using MediatR;
 
@@ -12,6 +18,8 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
         private readonly IJournalCommandRepository _commandRepository;
         private readonly IJournalQueryRepository _queryRepository;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IWorkflowLookup _workflowLookup;
+        private readonly IOutboxEventPublisher _outboxEventPublisher;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
@@ -19,12 +27,16 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
             IJournalCommandRepository commandRepository,
             IJournalQueryRepository queryRepository,
             IIPAddressService ipAddressService,
+            IWorkflowLookup workflowLookup,
+            IOutboxEventPublisher outboxEventPublisher,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _ipAddressService = ipAddressService;
+            _workflowLookup = workflowLookup;
+            _outboxEventPublisher = outboxEventPublisher;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -65,12 +77,52 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
             );
             await _mediator.Publish(auditEvent, cancellationToken);
 
+            // A manual voucher routes through approval when a journal approval workflow is configured for the
+            // unit; otherwise the draft is directly postable (US-GL01-06B / 07). The BackgroundService Workflow
+            // module consumes the request and sends back UpdateApprovedRejectedFinanceCommand, which the Finance
+            // ApprovedRejectedConsumer applies (Approved → APPROVED, Rejected → DRAFT).
+            var unitId = entity.UnitId ?? 0;
+            var workflowConfigured = await _workflowLookup.IsApproveWorkflowConfigureAsync(
+                MiscEnumEntity.JournalVoucher, unitId, 0);
+
+            var message = "Journal voucher saved as draft.";
+            if (workflowConfigured)
+            {
+                await RaiseApprovalRequestAsync(newId, unitId, cancellationToken);
+                message = "Journal voucher saved as draft and submitted for approval.";
+            }
+
             return new ApiResponseDTO<int>
             {
                 IsSuccess = true,
-                Message = "Journal voucher saved as draft.",
+                Message = message,
                 Data = newId
             };
+        }
+
+        private async Task RaiseApprovalRequestAsync(int journalId, int unitId, CancellationToken cancellationToken)
+        {
+            // Build the workflow payload from the persisted voucher. sp_EvaluateApproval reads $.Header.UnitId.
+            var workFlowEntity = await _queryRepository.GetByIdAsync(journalId);
+            if (workFlowEntity != null)
+                workFlowEntity.UnitId = unitId;
+
+            var reverseMap = new JournalApprovalReverseDto
+            {
+                Header = workFlowEntity,
+                Lines = null
+            };
+            var serializedPayload = JsonSerializer.Serialize(reverseMap);
+
+            var correlationId = Guid.NewGuid();
+            var approvalRequest = new CreateApprovalRequestCommand
+            {
+                CorrelationId = correlationId,
+                ModuleTypeName = MiscEnumEntity.JournalVoucher,
+                ModuleTransactionId = journalId,
+                Payload = serializedPayload
+            };
+            await _outboxEventPublisher.ScheduleAsync(approvalRequest, correlationId, cancellationToken);
         }
 
         private static List<FinanceManagement.Domain.Entities.JournalDetail> BuildLines(CreateJournalCommand request)

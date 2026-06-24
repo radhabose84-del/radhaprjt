@@ -221,6 +221,7 @@ namespace FinanceManagement.Infrastructure
             // Bulk journal import from Excel (US-GL01-17)
             services.AddScoped<IJournalImportCommandRepository, JournalImportCommandRepository>();
             services.AddScoped<IJournalImportQueryRepository, JournalImportQueryRepository>();
+            services.AddScoped<IJournalImportFileService, FinanceManagement.Application.JournalMaster.JournalImport.Services.JournalImportFileService>();
 
             // Posted-journal immutability — security violation log read (US-GL01-10; rows written by DB triggers)
             services.AddScoped<ISecurityViolationLogQueryRepository, SecurityViolationLogQueryRepository>();

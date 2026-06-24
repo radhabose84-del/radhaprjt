@@ -36,6 +36,7 @@ namespace FinanceManagement.Application.JournalMaster.JournalImport.Commands.Imp
         {
             var companyId = _ipAddressService.GetCompanyId()
                 ?? throw new ExceptionRules("No active company in session.");
+            var unitId = _ipAddressService.GetUnitId();
 
             var importSourceId = await _queryRepository.GetSourceIdAsync("IMPORT");
 
@@ -107,7 +108,7 @@ namespace FinanceManagement.Application.JournalMaster.JournalImport.Commands.Imp
             var draftStatusId = await _queryRepository.GetStatusIdAsync("DRAFT");
 
             var drafts = rows.GroupBy(r => r.GroupNo)
-                .Select(g => BuildDraft(g.ToList(), companyId, draftStatusId, importSourceId, periodByDate))
+                .Select(g => BuildDraft(g.ToList(), companyId, unitId, draftStatusId, importSourceId, periodByDate))
                 .ToList();
 
             var committedBatch = BuildBatch(request, rows.Count, rows.Count, 0, await _queryRepository.GetBatchStatusIdAsync("COMMITTED"), importSourceId);
@@ -141,7 +142,7 @@ namespace FinanceManagement.Application.JournalMaster.JournalImport.Commands.Imp
             };
 
         private static JournalHeader BuildDraft(
-            List<JournalImportRowInputDto> group, int companyId, int draftStatusId, int importSourceId,
+            List<JournalImportRowInputDto> group, int companyId, int? unitId, int draftStatusId, int importSourceId,
             Dictionary<DateOnly, (int PeriodId, int FinancialYearId)?> periodByDate)
         {
             var first = group[0];
@@ -151,6 +152,7 @@ namespace FinanceManagement.Application.JournalMaster.JournalImport.Commands.Imp
             return new JournalHeader
             {
                 CompanyId = companyId,
+                UnitId = unitId,
                 VoucherTypeId = first.VoucherTypeId,
                 VoucherDate = first.VoucherDate,
                 FinancialYearId = period.FinancialYearId,

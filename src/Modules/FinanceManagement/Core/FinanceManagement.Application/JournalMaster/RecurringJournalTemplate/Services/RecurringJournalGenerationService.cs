@@ -72,7 +72,7 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.S
 
                 if (template.AutoPost && template.LowRisk)
                 {
-                    var result = await _journalCommandRepository.PostAsync(journalId, postedStatusId, fyName, SystemUserId, now, ct);
+                    var result = await _journalCommandRepository.PostAsync(journalId, postedStatusId, fyName, "System", SystemUserId, now, ct);
                     if (result != null)
                         await _generationRepository.MarkLogAutoPostedAsync(log.Id, ct);
                 }

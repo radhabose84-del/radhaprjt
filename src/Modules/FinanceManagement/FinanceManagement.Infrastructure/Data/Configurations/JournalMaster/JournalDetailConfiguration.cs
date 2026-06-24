@@ -21,6 +21,9 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.ToTable("JournalDetail", "Finance", t =>
             {
                 t.HasCheckConstraint("CK_JournalDetail_DrCr", "[DrAmount] = 0 OR [CrAmount] = 0");
+                // US-GL01-10 immutability trigger exists on this table — declare it so EF Core emits
+                // trigger-compatible DML (no OUTPUT clause without INTO), per SQL Server's restriction.
+                t.HasTrigger("TR_JournalDetail_Immutable");
             });
 
             builder.HasKey(t => t.Id);

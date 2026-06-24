@@ -64,14 +64,21 @@ namespace FinanceManagement.Application.JournalMaster.JournalThresholdRule.Event
 
         // Extensible rule evaluation. Rules needing extra context (control-account manual, closed-period
         // override) are not evaluable from the posting event alone and are intentionally skipped here.
-        private static bool Breaches(ActiveThresholdRule rule, JournalPostedDomainEvent e) => rule.RuleTypeCode switch
+        private static bool Breaches(ActiveThresholdRule rule, JournalPostedDomainEvent e)
         {
-            "AMT_OVER" => rule.ThresholdValue.HasValue && e.Amount > rule.ThresholdValue.Value,
-            "ROUND_NUM" => e.Amount > 0 && e.Amount % 100000m == 0,
-            "WEEKEND_POST" => e.PostingDate.HasValue &&
-                              (e.PostingDate.Value.DayOfWeek == DayOfWeek.Saturday || e.PostingDate.Value.DayOfWeek == DayOfWeek.Sunday),
-            "SAME_DAY_REV" => e.IsReversal,
-            _ => false
-        };
+            // A reversal just mirrors the original, so amount/pattern rules would double-flag it. Evaluate a
+            // reversal voucher ONLY against the reversal-specific rule.
+            if (e.IsReversal)
+                return rule.RuleTypeCode == "SAME_DAY_REV";
+
+            return rule.RuleTypeCode switch
+            {
+                "AMT_OVER" => rule.ThresholdValue.HasValue && e.Amount > rule.ThresholdValue.Value,
+                "ROUND_NUM" => e.Amount > 0 && e.Amount % 100000m == 0,
+                "WEEKEND_POST" => e.PostingDate.HasValue &&
+                                  (e.PostingDate.Value.DayOfWeek == DayOfWeek.Saturday || e.PostingDate.Value.DayOfWeek == DayOfWeek.Sunday),
+                _ => false
+            };
+        }
     }
 }

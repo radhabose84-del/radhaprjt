@@ -1,6 +1,8 @@
 using FinanceManagement.Application.JournalMaster.JournalImport.Commands.ImportJournals;
+using FinanceManagement.Application.JournalMaster.JournalImport.Commands.ImportJournalsFile;
 using FinanceManagement.Application.JournalMaster.JournalImport.Queries.GetAllJournalImportBatch;
 using FinanceManagement.Application.JournalMaster.JournalImport.Queries.GetJournalImportBatchById;
+using FinanceManagement.Application.JournalMaster.JournalImport.Queries.GetJournalImportTemplate;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +26,29 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
                 message = result.Message,
                 data = result.Data
             });
+        }
+
+        // Browse + upload an Excel/CSV file (multipart/form-data, field name "file").
+        [HttpPost("upload")]
+        public async Task<IActionResult> Upload(IFormFile? file)
+        {
+            var result = await Mediator.Send(new ImportJournalsFileCommand { File = file });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        // Download the import template (.xlsx) with headers + a sample balanced voucher.
+        [HttpGet("template")]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            var file = await Mediator.Send(new GetJournalImportTemplateQuery());
+            return File(file.Content, file.ContentType, file.FileName);
         }
 
         [HttpGet]

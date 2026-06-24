@@ -1,6 +1,7 @@
 using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using FinanceManagement.IntegrationTests.Common;
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal;
 
@@ -42,6 +43,112 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
         }
 
         [Fact]
+        public async Task IsPostingEligibleAsync_ManualMustBeApproved_SystemDraftEligible()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+            var repo = CreateQueryRepo();
+
+            // Manual DRAFT → not eligible (needs approval).
+            int manualDraft;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                manualDraft = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+            (await repo.IsPostingEligibleAsync(manualDraft)).Should().BeFalse();
+
+            // Manual APPROVED → eligible.
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var h = await ctx.JournalHeader.FirstAsync(x => x.Id == manualDraft);
+                h.StatusId = ids.StatusApprovedId;
+                await ctx.SaveChangesAsync();
+            }
+            (await repo.IsPostingEligibleAsync(manualDraft)).Should().BeTrue();
+
+            // System (source != MANUAL) DRAFT → eligible (bypasses approval).
+            int systemDraft;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var j = JournalTestSeed.BuildDraftJournal(ids);
+                j.SourceId = ids.SourceRecurringId;
+                systemDraft = await new JournalCommandRepository(ctx).CreateAsync(j);
+            }
+            (await repo.IsPostingEligibleAsync(systemDraft)).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GetPostableAsync_Returns_Only_Approved_And_System_Drafts()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            // Manual DRAFT → excluded (needs approval).
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+
+            // Manual APPROVED → included.
+            int approvedId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                approvedId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+                var h = await ctx.JournalHeader.FirstAsync(x => x.Id == approvedId);
+                h.StatusId = ids.StatusApprovedId;
+                await ctx.SaveChangesAsync();
+            }
+
+            // System (RECURRING) DRAFT → included (bypasses approval).
+            int systemDraftId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var j = JournalTestSeed.BuildDraftJournal(ids);
+                j.SourceId = ids.SourceRecurringId;
+                systemDraftId = await new JournalCommandRepository(ctx).CreateAsync(j);
+            }
+
+            var (items, total) = await CreateQueryRepo().GetPostableAsync(1, 50, ids.CompanyId);
+
+            total.Should().Be(2);
+            items.Select(i => i.Id).Should().BeEquivalentTo(new[] { approvedId, systemDraftId });
+        }
+
+        [Fact]
+        public async Task GetPendingApprovalAsync_Returns_Only_Manual_Drafts()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            // Manual DRAFT → included.
+            int manualDraftId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                manualDraftId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+
+            // Manual APPROVED → excluded (already approved).
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var approvedId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
+                var h = await ctx.JournalHeader.FirstAsync(x => x.Id == approvedId);
+                h.StatusId = ids.StatusApprovedId;
+                await ctx.SaveChangesAsync();
+            }
+
+            // System (RECURRING) DRAFT → excluded (not manual).
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var j = JournalTestSeed.BuildDraftJournal(ids);
+                j.SourceId = ids.SourceRecurringId;
+                await new JournalCommandRepository(ctx).CreateAsync(j);
+            }
+
+            var repo = CreateQueryRepo();
+            var (items, total) = await repo.GetPendingApprovalAsync(1, 50, ids.CompanyId);
+
+            total.Should().Be(1);
+            items.Should().ContainSingle().Which.Id.Should().Be(manualDraftId);
+
+            (await repo.IsManualDraftAsync(manualDraftId)).Should().BeTrue();
+            (await repo.GetUnitIdAsync(manualDraftId)).Should().Be(1);
+        }
+
+        [Fact]
         public async Task GetStatusIdAsync_Should_Resolve_Draft()
         {
             await ClearTableAsync();
@@ -50,6 +157,80 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
             var statusId = await CreateQueryRepo().GetStatusIdAsync("DRAFT");
 
             statusId.Should().Be(ids.StatusDraftId);
+        }
+
+        [Fact]
+        public async Task SearchAsync_FiltersByAmountAndStatus()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids, amount: 1000m));
+                await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids, amount: 5000m));
+            }
+
+            var repo = CreateQueryRepo();
+
+            // No filter → both.
+            var (all, allTotal) = await repo.SearchAsync(new FinanceManagement.Application.JournalMaster.Dto.JournalSearchFilter(), 1, 10, ids.CompanyId);
+            all.Should().HaveCount(2);
+            allTotal.Should().Be(2);
+
+            // AmountMin → only the 5000 voucher.
+            var (big, _) = await repo.SearchAsync(
+                new FinanceManagement.Application.JournalMaster.Dto.JournalSearchFilter { AmountMin = 2000m }, 1, 10, ids.CompanyId);
+            big.Should().ContainSingle().Which.TotalDr.Should().Be(5000m);
+
+            // Status = Draft → both.
+            var (drafts, _) = await repo.SearchAsync(
+                new FinanceManagement.Application.JournalMaster.Dto.JournalSearchFilter { StatusId = ids.StatusDraftId }, 1, 10, ids.CompanyId);
+            drafts.Should().HaveCount(2);
+
+            // Line-level: account filter matches the debit GL account.
+            var (byAccount, _) = await repo.SearchAsync(
+                new FinanceManagement.Application.JournalMaster.Dto.JournalSearchFilter { AccountId = ids.GlAccountDrId }, 1, 10, ids.CompanyId);
+            byAccount.Should().HaveCount(2);
+
+            // Non-matching voucher no → none.
+            var (none, noneTotal) = await repo.SearchAsync(
+                new FinanceManagement.Application.JournalMaster.Dto.JournalSearchFilter { VoucherNo = "NOPE" }, 1, 10, ids.CompanyId);
+            none.Should().BeEmpty();
+            noneTotal.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task IsPotentialDuplicateAsync_DetectsMatchingVoucher_AndRespectsExclude()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+            var existingId = await SeedDraftAsync(ids);   // amount 1000, 2026-06-15
+
+            var repo = CreateQueryRepo();
+            var date = new DateOnly(2026, 6, 15);
+            var sameLines = new List<(int, decimal, decimal)>
+            {
+                (ids.GlAccountDrId, 1000m, 0m),
+                (ids.GlAccountCrId, 0m, 1000m)
+            };
+
+            // Identical signature → flagged as a potential duplicate.
+            (await repo.IsPotentialDuplicateAsync(ids.CompanyId, ids.VoucherTypeId, date, 1000m, 1000m, sameLines, null))
+                .Should().BeTrue();
+
+            // Excluding the only candidate (e.g. updating itself) → not a duplicate.
+            (await repo.IsPotentialDuplicateAsync(ids.CompanyId, ids.VoucherTypeId, date, 1000m, 1000m, sameLines, existingId))
+                .Should().BeFalse();
+
+            // Different amount → not a duplicate.
+            var diffLines = new List<(int, decimal, decimal)>
+            {
+                (ids.GlAccountDrId, 2000m, 0m),
+                (ids.GlAccountCrId, 0m, 2000m)
+            };
+            (await repo.IsPotentialDuplicateAsync(ids.CompanyId, ids.VoucherTypeId, date, 2000m, 2000m, diffLines, null))
+                .Should().BeFalse();
         }
 
         [Fact]
@@ -143,7 +324,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
             (await repo.IsPostedAsync(id)).Should().BeFalse();
 
             await using (var ctx = _fixture.CreateFreshDbContext())
-                await new JournalCommandRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+                await new JournalCommandRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
 
             (await repo.IsPostedAsync(id)).Should().BeTrue();
             (await repo.IsDraftAsync(id)).Should().BeFalse();

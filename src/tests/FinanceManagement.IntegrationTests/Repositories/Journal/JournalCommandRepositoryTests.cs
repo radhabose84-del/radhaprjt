@@ -90,7 +90,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
             var now = DateTimeOffset.UtcNow;
             FinanceManagement.Application.JournalMaster.Dto.PostJournalResultDto? result;
             await using (var ctx = _fixture.CreateFreshDbContext())
-                result = await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", 1, now, CancellationToken.None);
+                result = await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, now, CancellationToken.None);
 
             result.Should().NotBeNull();
             result!.VoucherNo.Should().Be("JV/2026-27/0001");
@@ -112,7 +112,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
                 id = await CreateRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids, amount: 1000m));
 
             await using (var ctx = _fixture.CreateFreshDbContext())
-                await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+                await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
 
             await using var verify = _fixture.CreateFreshDbContext();
             var balances = await verify.LedgerBalance.ToListAsync();
@@ -139,12 +139,46 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
                 id = await CreateRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
 
             await using (var ctx = _fixture.CreateFreshDbContext())
-                await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+                await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
 
             await using var verify = _fixture.CreateFreshDbContext();
             var series = await verify.VoucherTypeNumberSeries
                 .FirstAsync(s => s.VoucherTypeId == ids.VoucherTypeId && s.FinancialYearId == ids.FinancialYearId);
             series.LastUsedNumber.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task PostAsync_ConcurrentPosts_AssignDistinctSequentialNumbers()
+        {
+            await ClearTableAsync();
+            var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
+
+            // Create N drafts up front.
+            const int n = 5;
+            var draftIds = new List<int>();
+            for (var i = 0; i < n; i++)
+            {
+                await using var ctx = _fixture.CreateFreshDbContext();
+                draftIds.Add(await CreateRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids)));
+            }
+
+            // Post them all at once, each on its own context/connection (real concurrency).
+            var now = DateTimeOffset.UtcNow;
+            var results = await Task.WhenAll(draftIds.Select(id => Task.Run(async () =>
+            {
+                await using var ctx = _fixture.CreateFreshDbContext();
+                return await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, now, CancellationToken.None);
+            })));
+
+            var voucherNos = results.Select(r => r!.VoucherNo!).ToList();
+            voucherNos.Should().OnlyHaveUniqueItems();                                   // no two share a number
+            voucherNos.Select(v => int.Parse(v.Split('/').Last())).OrderBy(x => x)
+                .Should().Equal(Enumerable.Range(1, n));                                 // contiguous 1..n, none lost
+
+            await using var verify = _fixture.CreateFreshDbContext();
+            var series = await verify.VoucherTypeNumberSeries
+                .FirstAsync(s => s.VoucherTypeId == ids.VoucherTypeId && s.FinancialYearId == ids.FinancialYearId);
+            series.LastUsedNumber.Should().Be(n);
         }
 
         [Fact]
@@ -157,11 +191,11 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
                 id = await CreateRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
 
             await using (var ctx = _fixture.CreateFreshDbContext())
-                await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+                await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
 
             FinanceManagement.Application.JournalMaster.Dto.PostJournalResultDto? second;
             await using (var ctx = _fixture.CreateFreshDbContext())
-                second = await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+                second = await CreateRepository(ctx).PostAsync(id, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
 
             second.Should().BeNull();
         }

@@ -36,11 +36,12 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.PostJourn
                 ?? throw new ExceptionRules("Journal voucher not found.");
 
             var postedStatusId = await _queryRepository.GetStatusIdAsync("POSTED");
-            var postedBy = _ipAddressService.GetUserId();
+            var postedById = _ipAddressService.GetUserId();
+            var postedByName = _ipAddressService.GetUserName();
             var now = _timeZoneService.GetCurrentTime();
 
             var result = await _commandRepository.PostAsync(
-                request.Id, postedStatusId, journal.FinancialYearName, postedBy, now, cancellationToken)
+                request.Id, postedStatusId, journal.FinancialYearName, postedByName, postedById, now, cancellationToken)
                 ?? throw new ExceptionRules("Journal voucher could not be posted (missing or already posted).");
 
             var auditEvent = new AuditLogsDomainEvent(

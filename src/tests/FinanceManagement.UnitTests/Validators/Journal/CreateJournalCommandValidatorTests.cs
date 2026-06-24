@@ -25,6 +25,39 @@ namespace FinanceManagement.UnitTests.Validators.Journal
             _mockQueryRepo.Setup(r => r.GlAccountExistsAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.GetCostCentreMandatoryAccountIdsAsync(It.IsAny<IEnumerable<int>>()))
                 .ReturnsAsync(Array.Empty<int>());
+            _mockQueryRepo.Setup(r => r.IsPotentialDuplicateAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<decimal>(), It.IsAny<decimal>(),
+                It.IsAny<IReadOnlyList<(int, decimal, decimal)>>(), It.IsAny<int?>())).ReturnsAsync(false);
+        }
+
+        [Fact]
+        public async Task Validate_DuplicateVoucher_Fails()
+        {
+            SetupHappyPath();
+            _mockQueryRepo.Setup(r => r.IsPotentialDuplicateAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<decimal>(), It.IsAny<decimal>(),
+                It.IsAny<IReadOnlyList<(int, decimal, decimal)>>(), It.IsAny<int?>())).ReturnsAsync(true);
+
+            var result = await CreateValidator().TestValidateAsync(JournalBuilders.ValidCreateCommand());
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.ErrorMessage.Contains("already exists"));
+        }
+
+        [Fact]
+        public async Task Validate_DuplicateVoucher_WithOverride_Passes()
+        {
+            SetupHappyPath();
+            _mockQueryRepo.Setup(r => r.IsPotentialDuplicateAsync(
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<decimal>(), It.IsAny<decimal>(),
+                It.IsAny<IReadOnlyList<(int, decimal, decimal)>>(), It.IsAny<int?>())).ReturnsAsync(true);
+
+            var cmd = JournalBuilders.ValidCreateCommand();
+            cmd.OverrideDuplicate = true;
+
+            var result = await CreateValidator().TestValidateAsync(cmd);
+
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact]
@@ -57,6 +90,39 @@ namespace FinanceManagement.UnitTests.Validators.Journal
 
             var result = await CreateValidator().TestValidateAsync(cmd);
             result.IsValid.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task Validate_BalancedInTxnButNotInBaseCurrency_Fails()
+        {
+            SetupHappyPath();
+            // 5000 @1 (Dr) vs 5000 @2 (Cr): balances in transaction currency but base is 5000 vs 10000.
+            var cmd = JournalBuilders.ValidCreateCommand(lines: new List<JournalLineInputDto>
+            {
+                new() { GlAccountId = 5200101, DrAmount = 5000m, CrAmount = 0m, CurrencyId = 1, ExchangeRate = 1m, CostCentreId = 1, ProfitCentreId = 1 },
+                new() { GlAccountId = 2200101, DrAmount = 0m, CrAmount = 5000m, CurrencyId = 1, ExchangeRate = 2m, CostCentreId = null, ProfitCentreId = 1 }
+            });
+
+            var result = await CreateValidator().TestValidateAsync(cmd);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.ErrorMessage.Contains("base currency"));
+        }
+
+        [Fact]
+        public async Task Validate_BalancedInBaseCurrency_Passes()
+        {
+            SetupHappyPath();
+            // Same rate on both sides: 5000 @2 vs 5000 @2 → base 10000 == 10000.
+            var cmd = JournalBuilders.ValidCreateCommand(lines: new List<JournalLineInputDto>
+            {
+                new() { GlAccountId = 5200101, DrAmount = 5000m, CrAmount = 0m, CurrencyId = 1, ExchangeRate = 2m, CostCentreId = 1, ProfitCentreId = 1 },
+                new() { GlAccountId = 2200101, DrAmount = 0m, CrAmount = 5000m, CurrencyId = 1, ExchangeRate = 2m, CostCentreId = null, ProfitCentreId = 1 }
+            });
+
+            var result = await CreateValidator().TestValidateAsync(cmd);
+
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact]

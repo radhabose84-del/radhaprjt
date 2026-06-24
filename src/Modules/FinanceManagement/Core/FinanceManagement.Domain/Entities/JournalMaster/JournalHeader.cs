@@ -32,17 +32,15 @@ namespace FinanceManagement.Domain.Entities
         public string? CopiedFromRef { get; set; }      // US-13: display only — no FK
         public int? ImportBatchId { get; set; }         // same-module FK -> JournalImportBatch (source = IMPORT)
 
-        public DateTimeOffset? DraftSavedAt { get; set; }
         public DateTimeOffset? CleanupAlertedAt { get; set; }   // stale-draft alert stamp (replaces DraftCleanupLog)
 
-        public int? SubmittedBy { get; set; }
-        public DateTimeOffset? SubmittedAt { get; set; }
-        public int? ApprovedBy { get; set; }
+        // Workflow stamps store the actor's NAME (not the user id) for direct display.
+        public string? ApprovedBy { get; set; }
         public DateTimeOffset? ApprovedAt { get; set; }
-        public int? RejectedBy { get; set; }
+        public string? RejectedBy { get; set; }
         public DateTimeOffset? RejectedAt { get; set; }
         public string? RejectReason { get; set; }
-        public int? PostedBy { get; set; }
+        public string? PostedBy { get; set; }
         public DateTimeOffset? PostedAt { get; set; }
 
         // Same-module FK navigation

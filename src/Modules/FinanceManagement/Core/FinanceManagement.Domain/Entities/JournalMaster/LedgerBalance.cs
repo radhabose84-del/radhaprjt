@@ -17,9 +17,6 @@ namespace FinanceManagement.Domain.Entities
         public decimal CrTotal { get; set; }
         public decimal Balance { get; set; }            // DrTotal - CrTotal
 
-        // Persisted computed key so a single "no cost centre" row is unique per account/period.
-        public int CostCentreKey { get; private set; }
-
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();   // optimistic-concurrency token (US-09 AC-2)
 
         // Same-module FK navigation

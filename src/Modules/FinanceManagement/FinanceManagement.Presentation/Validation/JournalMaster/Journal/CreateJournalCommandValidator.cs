@@ -51,6 +51,13 @@ namespace FinanceManagement.Presentation.Validation.JournalMaster.Journal
                     .Must(x => x.Lines.Sum(l => l.DrAmount) == x.Lines.Sum(l => l.CrAmount) && x.Lines.Sum(l => l.DrAmount) > 0)
                     .WithMessage("Total debit must equal total credit and be greater than zero.");
 
+                // Base-currency balance: lines post to the ledger in base currency (amount * exchange rate),
+                // so a multi-rate voucher that balances in transaction currency can still be unbalanced in base.
+                RuleFor(x => x)
+                    .Must(x => x.Lines.Sum(l => l.DrAmount * (l.ExchangeRate ?? 1m))
+                            == x.Lines.Sum(l => l.CrAmount * (l.ExchangeRate ?? 1m)))
+                    .WithMessage("Total debit must equal total credit in base currency (check the line exchange rates).");
+
                 RuleForEach(x => x.Lines).ChildRules(line =>
                 {
                     line.RuleFor(l => l.GlAccountId).GreaterThan(0).WithMessage("Line GL account is required.");
@@ -69,6 +76,16 @@ namespace FinanceManagement.Presentation.Validation.JournalMaster.Journal
                 RuleFor(x => x)
                     .MustAsync(PAndLLinesHaveCostCentreAsync)
                     .WithMessage("A cost centre is required on lines whose account is cost-centre mandatory (P&L).");
+
+                // Duplicate-entry control (warning + explicit override): block a voucher that matches an existing
+                // one (same company/type/date/totals + identical lines) unless OverrideDuplicate is set.
+                RuleFor(x => x)
+                    .MustAsync(async (x, ct) => !await _queryRepository.IsPotentialDuplicateAsync(
+                        CompanyId(), x.VoucherTypeId, x.VoucherDate,
+                        x.Lines.Sum(l => l.DrAmount), x.Lines.Sum(l => l.CrAmount),
+                        x.Lines.Select(l => (l.GlAccountId, l.DrAmount, l.CrAmount)).ToList(), null))
+                    .WithMessage("A voucher with the same date, amount and lines already exists. Resend with overrideDuplicate = true to save it anyway.")
+                    .When(x => !x.OverrideDuplicate);
             });
         }
 

@@ -29,9 +29,15 @@ BEGIN
     DECLARE @v TABLE (Id INT);   -- table variables survive ROLLBACK
     INSERT INTO @v (Id)
     SELECT d.Id FROM deleted d
-        INNER JOIN Finance.MiscMaster m  ON m.Id  = d.StatusId
-        INNER JOIN Finance.MiscTypeMaster mt ON mt.Id = m.MiscTypeId
-        WHERE mt.MiscTypeCode = 'JOURNAL_STATUS' AND m.Code IN ('POSTED', 'REVERSED');
+        INNER JOIN Finance.MiscMaster dm  ON dm.Id  = d.StatusId
+        INNER JOIN Finance.MiscTypeMaster dmt ON dmt.Id = dm.MiscTypeId AND dmt.MiscTypeCode = 'JOURNAL_STATUS'
+        WHERE dm.Code IN ('POSTED', 'REVERSED')
+          AND NOT EXISTS (
+              SELECT 1 FROM inserted i
+              INNER JOIN Finance.MiscMaster im  ON im.Id  = i.StatusId
+              INNER JOIN Finance.MiscTypeMaster imt ON imt.Id = im.MiscTypeId AND imt.MiscTypeCode = 'JOURNAL_STATUS'
+              WHERE i.Id = d.Id AND dm.Code = 'POSTED' AND im.Code = 'REVERSED'
+          );
 
     IF EXISTS (SELECT 1 FROM @v)
     BEGIN
@@ -79,7 +85,7 @@ END";
             await using (var ctx = _fixture.CreateFreshDbContext())
                 journalId = await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
             await using (var ctx = _fixture.CreateFreshDbContext())
-                await new JournalCommandRepository(ctx).PostAsync(journalId, ids.StatusPostedId, "2026-27", 1, DateTimeOffset.UtcNow, CancellationToken.None);
+                await new JournalCommandRepository(ctx).PostAsync(journalId, ids.StatusPostedId, "2026-27", "Tester", 1, DateTimeOffset.UtcNow, CancellationToken.None);
 
             await using var conn = new SqlConnection(_fixture.ConnectionString);
             await conn.OpenAsync();
@@ -115,6 +121,24 @@ END";
                 logs.Should().Contain(l => l.TableName == "JournalHeader" && l.AttemptedAction == "UPDATE");
                 logs.Should().Contain(l => l.TableName == "JournalDetail" && l.AttemptedAction == "DELETE");
                 logs.Should().OnlyContain(l => l.Channel == "DB" && !string.IsNullOrEmpty(l.UserName));
+
+                // Sanctioned exception: flipping a POSTED voucher to REVERSED (the reversal flow) is allowed.
+                var reverseFlip = async () => await conn.ExecuteAsync(
+                    "UPDATE Finance.JournalHeader SET StatusId = @Rev WHERE Id = @Id",
+                    new { Rev = ids.StatusReversedId, Id = journalId });
+                await reverseFlip.Should().NotThrowAsync();
+                (await conn.ExecuteScalarAsync<int>(
+                    "SELECT StatusId FROM Finance.JournalHeader WHERE Id = @Id", new { Id = journalId }))
+                    .Should().Be(ids.StatusReversedId);
+
+                // Lines of a REVERSED voucher remain immutable — soft-deleting them is blocked (reversal keeps
+                // the original's lines intact for the audit trail).
+                var softDeleteLines = async () => await conn.ExecuteAsync(
+                    "UPDATE Finance.JournalDetail SET IsDeleted = 1 WHERE JournalHeaderId = @Id", new { Id = journalId });
+                await softDeleteLines.Should().ThrowAsync<SqlException>();
+                (await conn.ExecuteScalarAsync<int>(
+                    "SELECT COUNT(1) FROM Finance.JournalDetail WHERE JournalHeaderId = @Id AND IsDeleted = 1", new { Id = journalId }))
+                    .Should().Be(0);
             }
             finally
             {

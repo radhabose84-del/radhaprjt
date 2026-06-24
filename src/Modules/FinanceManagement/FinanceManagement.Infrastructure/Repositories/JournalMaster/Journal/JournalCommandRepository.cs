@@ -56,6 +56,24 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             return existing.Id;
         }
 
+        public async Task<bool> SetApprovalResultAsync(int id, int statusId, bool approved, string? actorName, DateTimeOffset at, CancellationToken ct)
+        {
+            // The journal is DRAFT (pending approval) here, so this status change is not blocked by the
+            // posted-immutability trigger.
+            var header = await _dbContext.JournalHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+            if (header == null)
+                return false;
+
+            header.StatusId = statusId;
+            if (approved) { header.ApprovedBy = actorName; header.ApprovedAt = at; }
+            else { header.RejectedBy = actorName; header.RejectedAt = at; }
+
+            _dbContext.JournalHeader.Update(header);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
+
         public async Task<bool> SoftDeleteAsync(int id, CancellationToken ct)
         {
             var existing = await _dbContext.JournalHeader
@@ -71,8 +89,13 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
         }
 
         public async Task<PostJournalResultDto?> PostAsync(
-            int journalId, int postedStatusId, string? financialYearName, int postedBy, DateTimeOffset postedAt, CancellationToken ct)
+            int journalId, int postedStatusId, string? financialYearName, string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct)
         {
+            // DbContext uses EnableRetryOnFailure, so a user-initiated transaction must run inside the
+            // execution strategy (which retries the whole unit on a transient fault).
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
             await using var tx = await _dbContext.Database.BeginTransactionAsync(ct);
 
             var header = await _dbContext.JournalHeader
@@ -83,41 +106,87 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             if (header == null || !string.IsNullOrEmpty(header.VoucherNo) || header.AccountingPeriodId == null)
                 return null;
 
-            var voucherType = await _dbContext.VoucherTypeMaster
-                .FirstOrDefaultAsync(v => v.Id == header.VoucherTypeId, ct);
-            if (voucherType == null)
+            var result = await ApplyPostingAsync(header, postedStatusId, financialYearName, postedByName, postedById, postedAt, ct);
+            if (result == null)
                 return null;
 
-            // 1) Assign the next voucher number from the per-(type, FY) series (create the counter if absent).
-            var series = await _dbContext.VoucherTypeNumberSeries
-                .FirstOrDefaultAsync(s => s.VoucherTypeId == header.VoucherTypeId
-                    && s.FinancialYearId == header.FinancialYearId
-                    && s.IsDeleted == IsDelete.NotDeleted, ct);
+            await _dbContext.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return result;
+            });
+        }
 
-            if (series == null)
+        public async Task<PostJournalResultDto?> ReverseAsync(
+            FinanceManagement.Domain.Entities.JournalHeader reversal, int originalId, int postedStatusId,
+            int reversedStatusId, string? financialYearName, string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct)
+        {
+            // Atomic reversal: create the mirror, post it (number + ledger), and flip the original to REVERSED
+            // — all in ONE transaction, so a failure can never leave an orphaned posted reversal.
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                series = new VoucherTypeNumberSeries
-                {
-                    VoucherTypeId = header.VoucherTypeId,
-                    FinancialYearId = header.FinancialYearId,
-                    LastUsedNumber = 0
-                };
-                await _dbContext.VoucherTypeNumberSeries.AddAsync(series, ct);
-            }
+                await using var tx = await _dbContext.Database.BeginTransactionAsync(ct);
 
-            series.LastUsedNumber += 1;
+                await _dbContext.JournalHeader.AddAsync(reversal, ct);
+                await _dbContext.SaveChangesAsync(ct);   // reversal.Id assigned
+
+                var result = await ApplyPostingAsync(reversal, postedStatusId, financialYearName, postedByName, postedById, postedAt, ct);
+                if (result == null)
+                    return null;
+
+                var original = await _dbContext.JournalHeader
+                    .FirstOrDefaultAsync(h => h.Id == originalId && h.IsDeleted == IsDelete.NotDeleted, ct);
+                if (original == null)
+                    return null;
+
+                // Flip the original to REVERSED (sanctioned POSTED -> REVERSED; trigger allows it). The original's
+                // lines are kept intact for the audit trail; the mirror voucher contra-posts so the two net to zero.
+                original.StatusId = reversedStatusId;
+                _dbContext.JournalHeader.Update(original);
+                await _dbContext.SaveChangesAsync(ct);
+
+                await tx.CommitAsync(ct);
+                return result;
+            });
+        }
+
+        // Shared posting core: assign the next number atomically, stamp the header Posted, and upsert
+        // LedgerBalance. Assumes the header is tracked and a transaction is already open; the caller saves
+        // and commits. Returns null only if the voucher type is missing.
+        private async Task<PostJournalResultDto?> ApplyPostingAsync(
+            FinanceManagement.Domain.Entities.JournalHeader header, int postedStatusId, string? financialYearName,
+            string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct)
+        {
+            var voucherType = await _dbContext.VoucherTypeMaster
+                .FirstOrDefaultAsync(v => v.Id == header.VoucherTypeId, ct);
+            if (voucherType == null || header.AccountingPeriodId == null)
+                return null;
+
+            // Allocate the next number ATOMICALLY — a single MERGE…OUTPUT under HOLDLOCK increments the
+            // per-(type, FY) counter (creating it on first use) and returns the new value, so concurrent
+            // posts serialize on this row and each gets a distinct sequential number.
+            var nextNumber = (await _dbContext.Database.SqlQueryRaw<int>(
+                @"MERGE Finance.VoucherTypeNumberSeries WITH (HOLDLOCK) AS t
+                  USING (SELECT {0} AS VoucherTypeId, {1} AS FinancialYearId) AS s
+                      ON t.VoucherTypeId = s.VoucherTypeId AND t.FinancialYearId = s.FinancialYearId AND t.IsDeleted = 0
+                  WHEN MATCHED THEN
+                      UPDATE SET LastUsedNumber = t.LastUsedNumber + 1
+                  WHEN NOT MATCHED THEN
+                      INSERT (VoucherTypeId, FinancialYearId, LastUsedNumber, IsActive, IsDeleted, CreatedBy, CreatedDate)
+                      VALUES (s.VoucherTypeId, s.FinancialYearId, 1, 1, 0, {2}, SYSDATETIMEOFFSET())
+                  OUTPUT INSERTED.LastUsedNumber AS [Value];",
+                header.VoucherTypeId, header.FinancialYearId, postedById).ToListAsync(ct)).Single();
+
             var padding = voucherType.NumberPadding > 0 ? voucherType.NumberPadding : 4;
-            var voucherNo = $"{voucherType.VoucherTypeCode}/{financialYearName ?? "????"}/{series.LastUsedNumber.ToString().PadLeft(padding, '0')}";
+            var voucherNo = $"{voucherType.VoucherTypeCode}/{financialYearName ?? "????"}/{nextNumber.ToString().PadLeft(padding, '0')}";
 
-            // 2) Stamp the header as posted.
             header.VoucherNo = voucherNo;
             header.StatusId = postedStatusId;
             header.PostingDate = DateOnly.FromDateTime(postedAt.DateTime);
-            header.PostedBy = postedBy;
+            header.PostedBy = postedByName;
             header.PostedAt = postedAt;
             _dbContext.JournalHeader.Update(header);
 
-            // 3) Upsert LedgerBalance per (account, period, cost-centre) in base currency.
             var periodId = header.AccountingPeriodId.Value;
             var updated = new List<PostedBalanceDto>();
 
@@ -169,10 +238,6 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
                     Balance = existing.Balance
                 });
             }
-
-            // One transaction: number + header + balances. RowVersion on LedgerBalance guards concurrent posts.
-            await _dbContext.SaveChangesAsync(ct);
-            await tx.CommitAsync(ct);
 
             return new PostJournalResultDto
             {

@@ -25,7 +25,7 @@ namespace FinanceManagement.UnitTests.Application.Journal.Commands
             _mockIp.Setup(s => s.GetUserId()).Returns(1);
             _mockTz.Setup(t => t.GetCurrentTime(It.IsAny<string?>())).Returns(DateTimeOffset.UtcNow);
             _mockCommandRepo
-                .Setup(r => r.PostAsync(1, 105, It.IsAny<string?>(), 1, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.PostAsync(1, 105, It.IsAny<string?>(), It.IsAny<string?>(), 1, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(JournalBuilders.ValidPostResult(voucherNo));
         }
 
@@ -66,7 +66,7 @@ namespace FinanceManagement.UnitTests.Application.Journal.Commands
             _mockIp.Setup(s => s.GetUserId()).Returns(1);
             _mockTz.Setup(t => t.GetCurrentTime(It.IsAny<string?>())).Returns(DateTimeOffset.UtcNow);
             _mockCommandRepo
-                .Setup(r => r.PostAsync(1, 105, It.IsAny<string?>(), 1, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.PostAsync(1, 105, It.IsAny<string?>(), It.IsAny<string?>(), 1, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((PostJournalResultDto?)null);
 
             var act = async () => await CreateSut().Handle(new PostJournalCommand(1), CancellationToken.None);

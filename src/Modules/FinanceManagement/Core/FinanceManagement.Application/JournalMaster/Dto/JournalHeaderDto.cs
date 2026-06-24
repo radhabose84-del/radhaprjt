@@ -33,14 +33,12 @@ namespace FinanceManagement.Application.JournalMaster.Dto
         public string? CopiedFromRef { get; set; }
         public int? ImportBatchId { get; set; }
 
-        public int? SubmittedBy { get; set; }
-        public DateTimeOffset? SubmittedAt { get; set; }
-        public int? ApprovedBy { get; set; }
+        public string? ApprovedBy { get; set; }   // actor name
         public DateTimeOffset? ApprovedAt { get; set; }
-        public int? RejectedBy { get; set; }
+        public string? RejectedBy { get; set; }   // actor name
         public DateTimeOffset? RejectedAt { get; set; }
         public string? RejectReason { get; set; }
-        public int? PostedBy { get; set; }
+        public string? PostedBy { get; set; }      // actor name
         public DateTimeOffset? PostedAt { get; set; }
 
         public List<JournalDetailDto> Lines { get; set; } = new();

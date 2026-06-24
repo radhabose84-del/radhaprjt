@@ -18,7 +18,9 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
                 v => v == IsDelete.Deleted,
                 v => v ? IsDelete.Deleted : IsDelete.NotDeleted);
 
-            builder.ToTable("JournalHeader", "Finance");
+            // US-GL01-10 immutability triggers exist on this table — declare them so EF Core emits
+            // trigger-compatible DML (no OUTPUT clause without INTO), per SQL Server's restriction.
+            builder.ToTable("JournalHeader", "Finance", t => t.HasTrigger("TR_JournalHeader_Immutable"));
             builder.HasKey(t => t.Id);
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
@@ -42,16 +44,13 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.Property(t => t.IsReversal).HasColumnName("IsReversal").HasColumnType("bit").HasDefaultValue(false).IsRequired();
             builder.Property(t => t.CopiedFromRef).HasColumnName("CopiedFromRef").HasColumnType("varchar(30)").IsRequired(false);
             builder.Property(t => t.ImportBatchId).HasColumnName("ImportBatchId").HasColumnType("int").IsRequired(false);
-            builder.Property(t => t.DraftSavedAt).HasColumnName("DraftSavedAt").IsRequired(false);
             builder.Property(t => t.CleanupAlertedAt).HasColumnName("CleanupAlertedAt").IsRequired(false);
-            builder.Property(t => t.SubmittedBy).HasColumnName("SubmittedBy").HasColumnType("int").IsRequired(false);
-            builder.Property(t => t.SubmittedAt).HasColumnName("SubmittedAt").IsRequired(false);
-            builder.Property(t => t.ApprovedBy).HasColumnName("ApprovedBy").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.ApprovedBy).HasColumnName("ApprovedBy").HasColumnType("varchar(100)").IsRequired(false);
             builder.Property(t => t.ApprovedAt).HasColumnName("ApprovedAt").IsRequired(false);
-            builder.Property(t => t.RejectedBy).HasColumnName("RejectedBy").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.RejectedBy).HasColumnName("RejectedBy").HasColumnType("varchar(100)").IsRequired(false);
             builder.Property(t => t.RejectedAt).HasColumnName("RejectedAt").IsRequired(false);
             builder.Property(t => t.RejectReason).HasColumnName("RejectReason").HasColumnType("varchar(500)").IsRequired(false);
-            builder.Property(t => t.PostedBy).HasColumnName("PostedBy").HasColumnType("int").IsRequired(false);
+            builder.Property(t => t.PostedBy).HasColumnName("PostedBy").HasColumnType("varchar(100)").IsRequired(false);
             builder.Property(t => t.PostedAt).HasColumnName("PostedAt").IsRequired(false);
 
             builder.Property(b => b.IsActive)

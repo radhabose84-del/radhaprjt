@@ -88,6 +88,26 @@ namespace FinanceManagement.UnitTests.Application.JournalThresholdRule
         }
 
         [Fact]
+        public async Task Reversal_OnlyRaises_SameDayRev_NotAmountRules()
+        {
+            SetupRules(
+                new ActiveThresholdRule { RuleTypeId = 131, RuleTypeCode = "AMT_OVER", ThresholdValue = 5000000m },
+                new ActiveThresholdRule { RuleTypeId = 133, RuleTypeCode = "ROUND_NUM" },
+                new ActiveThresholdRule { RuleTypeId = 137, RuleTypeCode = "SAME_DAY_REV" });
+
+            List<JournalFlag>? captured = null;
+            _mockRepo.Setup(r => r.AddFlagsAsync(It.IsAny<IEnumerable<JournalFlag>>(), It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<JournalFlag>, CancellationToken>((f, _) => captured = f.ToList())
+                .Returns(Task.CompletedTask);
+
+            // 6,000,000 is both over-threshold AND a round lakh, but it's a reversal → only SAME_DAY_REV fires.
+            await CreateSut().Handle(Posted(6000000m, reversal: true), CancellationToken.None);
+
+            captured.Should().ContainSingle();
+            captured![0].RuleTypeId.Should().Be(137);
+        }
+
+        [Fact]
         public async Task NoActiveRules_NoFlag()
         {
             SetupRules();   // empty

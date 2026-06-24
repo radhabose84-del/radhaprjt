@@ -22,14 +22,11 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.Property(t => t.CrTotal).HasColumnName("CrTotal").HasColumnType("decimal(18,2)").HasDefaultValue(0m).IsRequired();
             builder.Property(t => t.Balance).HasColumnName("Balance").HasColumnType("decimal(18,2)").HasDefaultValue(0m).IsRequired();
 
-            // Persisted computed key so a single "no cost centre" row is unique per account/period.
-            builder.Property(t => t.CostCentreKey)
-                .HasColumnName("CostCentreKey")
-                .HasComputedColumnSql("ISNULL([CostCentreId], 0)", stored: true);
-
             builder.Property(t => t.RowVersion).HasColumnName("RowVersion").IsRowVersion();
 
-            builder.HasIndex(t => new { t.CompanyId, t.GlAccountId, t.AccountingPeriodId, t.CostCentreKey })
+            // One balance bucket per account/period/cost-centre. SQL Server treats NULLs as equal in a
+            // unique index, so a single "no cost centre" (NULL) row is allowed per (company, account, period).
+            builder.HasIndex(t => new { t.CompanyId, t.GlAccountId, t.AccountingPeriodId, t.CostCentreId })
                 .IsUnique()
                 .HasDatabaseName("UX_LedgerBalance");
 

@@ -35,17 +35,22 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.RecurringJ
         {
             // One transaction so the journal and its idempotency-log row commit together — a crash between
             // them can never leave an orphan draft that the next scheduled run would regenerate.
-            await using var tx = await _dbContext.Database.BeginTransactionAsync(ct);
+            // DbContext uses EnableRetryOnFailure, so the transaction must run inside the execution strategy.
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var tx = await _dbContext.Database.BeginTransactionAsync(ct);
 
-            await _dbContext.JournalHeader.AddAsync(header, ct);
-            await _dbContext.SaveChangesAsync(ct);   // header.Id assigned
+                await _dbContext.JournalHeader.AddAsync(header, ct);
+                await _dbContext.SaveChangesAsync(ct);   // header.Id assigned
 
-            log.GeneratedVoucherId = header.Id;
-            await _dbContext.RecurringGenerationLog.AddAsync(log, ct);
-            await _dbContext.SaveChangesAsync(ct);
+                log.GeneratedVoucherId = header.Id;
+                await _dbContext.RecurringGenerationLog.AddAsync(log, ct);
+                await _dbContext.SaveChangesAsync(ct);
 
-            await tx.CommitAsync(ct);
-            return header.Id;
+                await tx.CommitAsync(ct);
+                return header.Id;
+            });
         }
 
         public async Task MarkLogAutoPostedAsync(int logId, CancellationToken ct)

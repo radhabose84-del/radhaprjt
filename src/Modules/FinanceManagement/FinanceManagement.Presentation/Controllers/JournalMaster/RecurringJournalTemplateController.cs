@@ -1,5 +1,6 @@
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.CreateRecurringJournalTemplate;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.DeleteRecurringJournalTemplate;
+using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.GenerateRecurringJournals;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.UpdateRecurringJournalTemplate;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Queries.GetAllRecurringJournalTemplate;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Queries.GetRecurringJournalTemplateAutoComplete;
@@ -70,6 +71,20 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
 
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] UpdateRecurringJournalTemplateCommand command)
+        {
+            var result = await Mediator.Send(command);
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
+            });
+        }
+
+        [HttpPost("generate")]
+        public async Task<IActionResult> Generate([FromBody] GenerateRecurringJournalsCommand command)
         {
             var result = await Mediator.Send(command);
 

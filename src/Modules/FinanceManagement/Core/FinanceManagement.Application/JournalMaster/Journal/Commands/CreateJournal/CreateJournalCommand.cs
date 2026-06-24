@@ -12,6 +12,9 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
         public string? Narration { get; set; }
         public List<JournalLineInputDto> Lines { get; set; } = new();
 
+        // Set true to bypass the "possible duplicate voucher" check (same date/amount/lines already exist).
+        public bool OverrideDuplicate { get; set; }
+
         public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }
