@@ -44,7 +44,7 @@ namespace UserManagement.Infrastructure.Repositories
             } 
         }
 
-      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId,string FirstName,string LastName,int? PartyId,int? EmpId,int UnitTypeId,string UnitTypeName, out string jti)
+      public string GenerateToken(string username,int userid,string Mobile,string EmailId,string IsFirstTimeUser,int EntityId,string GroupCode,int CompanyId,int DivisionId,int UnitId,string OldUnitId,string FirstName,string LastName,int? PartyId,int? EmpId,int UnitTypeId,string UnitTypeName,IEnumerable<string> roles, out string jti)
         {
             jti = Guid.NewGuid().ToString();
             var systemTimeZoneId = _timeZoneService.GetSystemTimeZone();
@@ -74,10 +74,15 @@ namespace UserManagement.Infrastructure.Repositories
                 new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(currentTime).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
 
-            // foreach (var role in roles)
-            // {
-            //     claims.Add(new Claim(ClaimTypes.Role, role));
-            // }
+            // Role claims drive CreatedByRole on the statutory audit trail (US-GL02-09).
+            if (roles != null)
+            {
+                foreach (var role in roles)
+                {
+                    if (!string.IsNullOrWhiteSpace(role))
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+            }
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
             var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
