@@ -43,6 +43,7 @@ namespace PartyManagement.Application.Common.Mappings
             .ForMember(dest => dest.IsUpdate, opt => opt.MapFrom(src => 0))
             .ForMember(dest => dest.SalesTypes, opt => opt.MapFrom(src => src.SalesTypes))
             .ForMember(dest => dest.AgentConfigs, opt => opt.MapFrom(src => src.AgentConfigs))
+            .ForMember(dest => dest.BrokerConfigs, opt => opt.MapFrom(src => src.BrokerConfigs))
             .ForMember(dest => dest.TransportDetails, opt => opt.MapFrom(src => src.TransportDetails));
             CreateMap<PartyContactDto, PartyManagement.Domain.Entities.PartyContact>();
             CreateMap<PartyAddressDto, PartyManagement.Domain.Entities.PartyAddress>();
@@ -52,6 +53,7 @@ namespace PartyManagement.Application.Common.Mappings
             CreateMap<PartyUnitCompanyDto, PartyManagement.Domain.Entities.PartyUnitCompanyMapping>();
             CreateMap<CreatePartyMasterDto.SalesTypeDto, PartyManagement.Domain.Entities.SalesType>();
             CreateMap<CreatePartyMasterDto.AgentConfigDto, PartyManagement.Domain.Entities.AgentConfig>();
+            CreateMap<CreatePartyMasterDto.BrokerConfigDto, PartyManagement.Domain.Entities.BrokerConfig>();
             CreateMap<CreatePartyMasterDto.TransportDetailDto, PartyManagement.Domain.Entities.TransportDetail>();
 
             //Update DTO
@@ -81,6 +83,7 @@ namespace PartyManagement.Application.Common.Mappings
             .ForMember(dest => dest.IsUpdate, opt => opt.MapFrom(src => 1))
             .ForMember(dest => dest.SalesTypes, opt => opt.MapFrom(src => src.SalesTypesUpdate))
             .ForMember(dest => dest.AgentConfigs, opt => opt.MapFrom(src => src.AgentConfigsUpdate))
+            .ForMember(dest => dest.BrokerConfigs, opt => opt.MapFrom(src => src.BrokerConfigsUpdate))
             .ForMember(dest => dest.TransportDetails, opt => opt.MapFrom(src => src.TransportDetailsUpdate));
             CreateMap<UpdatePartyMasterDto.UpdatePartyTypeDto, PartyType>();
             CreateMap<UpdatePartyMasterDto.UpdatePartyContactDto, PartyContact>();
@@ -90,6 +93,7 @@ namespace PartyManagement.Application.Common.Mappings
             CreateMap<UpdatePartyMasterDto.UpdatePartyUniCompanyDto, PartyUnitCompanyMapping>();
             CreateMap<UpdatePartyMasterDto.UpdateSalesTypeDto, PartyManagement.Domain.Entities.SalesType>();
             CreateMap<UpdatePartyMasterDto.UpdateAgentConfigDto, PartyManagement.Domain.Entities.AgentConfig>();
+            CreateMap<UpdatePartyMasterDto.UpdateBrokerConfigDto, PartyManagement.Domain.Entities.BrokerConfig>();
             CreateMap<UpdatePartyMasterDto.UpdateTransportDetailDto, PartyManagement.Domain.Entities.TransportDetail>();
 
             //Delete

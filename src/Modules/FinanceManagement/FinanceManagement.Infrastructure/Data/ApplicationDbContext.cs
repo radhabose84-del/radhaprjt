@@ -82,8 +82,28 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<VoucherTypeAccountType> VoucherTypeAccountType => Set<VoucherTypeAccountType>();
         public DbSet<VoucherTypeNumberSeries> VoucherTypeNumberSeries => Set<VoucherTypeNumberSeries>();
 
+        // Journal Voucher (GL01) — core transaction, masters & operational logs (US-GL01-*)
+        public DbSet<AccountingPeriod> AccountingPeriod => Set<AccountingPeriod>();
+        public DbSet<RecurringJournalTemplateHeader> RecurringJournalTemplateHeader => Set<RecurringJournalTemplateHeader>();
+        public DbSet<RecurringJournalTemplateDetail> RecurringJournalTemplateDetail => Set<RecurringJournalTemplateDetail>();
+        public DbSet<JournalThresholdRule> JournalThresholdRule => Set<JournalThresholdRule>();
+        public DbSet<JournalHeader> JournalHeader => Set<JournalHeader>();
+        public DbSet<JournalDetail> JournalDetail => Set<JournalDetail>();
+        public DbSet<LedgerBalance> LedgerBalance => Set<LedgerBalance>();
+        public DbSet<SequenceGapScanLog> SequenceGapScanLog => Set<SequenceGapScanLog>();
+        public DbSet<RecurringGenerationLog> RecurringGenerationLog => Set<RecurringGenerationLog>();
+        public DbSet<SecurityViolationLog> SecurityViolationLog => Set<SecurityViolationLog>();
+        public DbSet<JournalFlag> JournalFlag => Set<JournalFlag>();
+        public DbSet<JournalSavedFilter> JournalSavedFilter => Set<JournalSavedFilter>();
+        public DbSet<JournalImportBatch> JournalImportBatch => Set<JournalImportBatch>();
+        public DbSet<JournalImportError> JournalImportError => Set<JournalImportError>();
+
         // Property-level change trail (IActivityTracked entities)
         public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+
+        // US-GL02-09 — immutable, field-level statutory audit trail for the COA structural masters
+        // and governance entities (IAuditTrailed). Written only by AccountAuditTrailSaveChangesInterceptor.
+        public DbSet<AccountAuditTrail> AccountAuditTrails => Set<AccountAuditTrail>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

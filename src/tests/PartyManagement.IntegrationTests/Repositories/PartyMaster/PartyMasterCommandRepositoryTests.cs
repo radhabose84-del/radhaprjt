@@ -119,6 +119,100 @@ namespace PartyManagement.IntegrationTests.Repositories.PartyMaster
         }
 
         [Fact]
+        public async Task CreateAsync_Should_Persist_BrokerConfig_Child()
+        {
+            await ClearPartyAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var party = await BuildPartyAsync("PBRK1", "Broker Party");
+            party.BrokerConfigs = new List<PartyManagement.Domain.Entities.BrokerConfig>
+            {
+                new()
+                {
+                    SettlementCycleId = null,
+                    TdsApplicable = 0,
+                    BrokerPayableControlGl = "GL99",
+                    TargetAmount = 5000m,
+                    Status = 1
+                }
+            };
+
+            var id = await CreateRepo(ctx).CreateAsync(party);
+
+            await using var verifyCtx = _fixture.CreateFreshDbContext();
+            var saved = await verifyCtx.BrokerConfig.Where(b => b.PartyId == id).ToListAsync();
+            saved.Should().HaveCount(1);
+            saved[0].BrokerPayableControlGl.Should().Be("GL99");
+            saved[0].TargetAmount.Should().Be(5000m);
+        }
+
+        [Fact]
+        public async Task CreateAsync_Should_Persist_Address_Location_And_Station()
+        {
+            await ClearPartyAsync();
+            await using var ctx = _fixture.CreateFreshDbContext();
+            var party = await BuildPartyAsync("PADR1", "Addr LocStn");
+            party.PartyAddressTypes = new List<PartyManagement.Domain.Entities.PartyAddress>
+            {
+                new()
+                {
+                    AddressType = "Primary",
+                    AddressLine1 = "Mill Road",
+                    CityId = 1, StateId = 1, CountryId = 1,
+                    PostalCode = "641012",
+                    LocationId = 45, StationId = 12
+                }
+            };
+
+            var id = await CreateRepo(ctx).CreateAsync(party);
+
+            await using var verify = _fixture.CreateFreshDbContext();
+            var addr = await verify.PartyAddress.FirstOrDefaultAsync(a => a.PartyId == id);
+            addr.Should().NotBeNull();
+            addr!.LocationId.Should().Be(45);
+            addr.StationId.Should().Be(12);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_Should_Remove_AgentConfig_When_EmptyListSent()
+        {
+            await ClearPartyAsync();
+
+            // Create a party carrying one agent config.
+            int id;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+            {
+                var party = await BuildPartyAsync("PACR1", "Agent Cfg Remove");
+                party.AgentConfigs = new List<PartyManagement.Domain.Entities.AgentConfig>
+                {
+                    new() { SettlementCycleId = null, TdsApplicable = 0, Status = 1 }
+                };
+                id = await CreateRepo(ctx).CreateAsync(party);
+            }
+
+            await using (var verify1 = _fixture.CreateFreshDbContext())
+            {
+                (await verify1.AgentConfig.CountAsync(a => a.PartyId == id)).Should().Be(1);
+            }
+
+            // Update with an empty agent-config list → payload-authoritative removal deletes it.
+            await using (var ctx2 = _fixture.CreateFreshDbContext())
+            {
+                var updateEntity = new PartyManagement.Domain.Entities.PartyMaster
+                {
+                    Id = id,
+                    PartyName = "Agent Cfg Remove",
+                    AgentConfigs = new List<PartyManagement.Domain.Entities.AgentConfig>()
+                };
+                await CreateRepo(ctx2).UpdateAsync(id, updateEntity);
+            }
+
+            await using (var verify2 = _fixture.CreateFreshDbContext())
+            {
+                (await verify2.AgentConfig.CountAsync(a => a.PartyId == id)).Should().Be(0);
+            }
+        }
+
+        [Fact]
         public async Task CreateAsync_Should_Set_StatusId_To_Pending_MiscMasterId()
         {
             await ClearPartyAsync();

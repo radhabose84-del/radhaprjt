@@ -107,6 +107,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
             .Include(p => p.PartyUnitCompanyMappings)
             .Include(p => p.SalesTypes)
             .Include(p => p.AgentConfigs)
+            .Include(p => p.BrokerConfigs)
             .Include(p => p.TransportDetails)
             .FirstOrDefaultAsync(p => p.Id == Id);
 
@@ -176,6 +177,7 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 (partyMaster.PartyUnitCompanyMappings?.Any() ?? false) ||
                 (partyMaster.SalesTypes?.Any() ?? false) ||
                 (partyMaster.AgentConfigs?.Any() ?? false) ||
+                (partyMaster.BrokerConfigs?.Any() ?? false) ||
                 (partyMaster.TransportDetails?.Any() ?? false);
 
             if (hasRelatedRecords)
@@ -186,10 +188,29 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
 
 
 
-            // PartyTypes - Update if exists, else Insert
+            // PartyTypes - Remove if dropped from payload, Update if exists, else Insert
 
             if (partyMaster.PartyTypes != null)
             {
+                // Make the submitted list authoritative: any existing party-type link whose Id is NOT
+                // in the incoming payload was deselected on screen, so remove it. This keeps the
+                // mutual-exclusivity rules (Agent/Broker, Supplier/Ginner) reliable on update.
+                var incomingPartyTypeIds = partyMaster.PartyTypes
+                    .Where(pt => pt.Id > 0)
+                    .Select(pt => pt.Id)
+                    .ToHashSet();
+
+                var partyTypesToRemove = existingParty.PartyTypes?
+                    .Where(pt => !incomingPartyTypeIds.Contains(pt.Id))
+                    .ToList() ?? new List<PartyType>();
+
+                foreach (var removed in partyTypesToRemove)
+                {
+                    _applicationDbContext.PartyType.Remove(removed);
+                    await LogChange(existingParty.Id, "PartyType", "PartyTypeId-PartyGroupId",
+                        removed.PartyTypeId + "," + removed.PartyGroupId, "", "Delete");
+                }
+
                 foreach (var incoming in partyMaster.PartyTypes)
                 {
                     if (incoming.Id > 0 && incoming.PartyId > 0)
@@ -338,6 +359,8 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             existingChildpartyaddress.StateId = incoming.StateId;
                             existingChildpartyaddress.PostalCode = incoming.PostalCode;
                             existingChildpartyaddress.CountryId = incoming.CountryId;
+                            existingChildpartyaddress.LocationId = incoming.LocationId;
+                            existingChildpartyaddress.StationId = incoming.StationId;
 
 
                         }
@@ -353,7 +376,9 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                             CityId = incoming.CityId,
                             StateId = incoming.StateId,
                             PostalCode = incoming.PostalCode,
-                            CountryId = incoming.CountryId
+                            CountryId = incoming.CountryId,
+                            LocationId = incoming.LocationId,
+                            StationId = incoming.StationId
                         });
 
                         // Insert Log - PartyAddress
@@ -511,9 +536,28 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                 }
             }
 
-            // AgentConfigs - Update if exists, else Insert
+            // AgentConfigs - Remove if dropped from payload, Update if exists, else Insert
             if (partyMaster.AgentConfigs != null)
             {
+                // Payload-authoritative removal: any existing agent config not echoed back in the
+                // payload was dropped (e.g. the party switched away from the Agent type). Send an
+                // empty array to clear the tab entirely.
+                var incomingAgentConfigIds = partyMaster.AgentConfigs
+                    .Where(a => a.Id > 0)
+                    .Select(a => a.Id)
+                    .ToHashSet();
+
+                var agentConfigsToRemove = existingParty.AgentConfigs?
+                    .Where(ac => !incomingAgentConfigIds.Contains(ac.Id))
+                    .ToList() ?? new List<AgentConfig>();
+
+                foreach (var removed in agentConfigsToRemove)
+                {
+                    _applicationDbContext.AgentConfig.Remove(removed);
+                    await LogChange(existingParty.Id, "AgentConfig", "SettlementCycleId",
+                        removed.SettlementCycleId?.ToString() ?? "", "", "Delete");
+                }
+
                 foreach (var incoming in partyMaster.AgentConfigs)
                 {
                     if (incoming.Id > 0 && incoming.PartyId > 0)
@@ -554,6 +598,73 @@ namespace PartyManagement.Infrastructure.Repositories.PartyMaster
                         });
 
                         await LogChange(existingParty.Id, "AgentConfig", "SettlementCycleId", "",
+                            incoming.SettlementCycleId?.ToString() ?? "", "Insert");
+                    }
+                }
+            }
+
+            // BrokerConfigs - Remove if dropped from payload, Update if exists, else Insert
+            if (partyMaster.BrokerConfigs != null)
+            {
+                // Payload-authoritative removal: any existing broker config not echoed back in the
+                // payload was dropped (e.g. the party switched away from the Broker type). Send an
+                // empty array to clear the tab entirely.
+                var incomingBrokerConfigIds = partyMaster.BrokerConfigs
+                    .Where(b => b.Id > 0)
+                    .Select(b => b.Id)
+                    .ToHashSet();
+
+                var brokerConfigsToRemove = existingParty.BrokerConfigs?
+                    .Where(bc => !incomingBrokerConfigIds.Contains(bc.Id))
+                    .ToList() ?? new List<BrokerConfig>();
+
+                foreach (var removed in brokerConfigsToRemove)
+                {
+                    _applicationDbContext.BrokerConfig.Remove(removed);
+                    await LogChange(existingParty.Id, "BrokerConfig", "SettlementCycleId",
+                        removed.SettlementCycleId?.ToString() ?? "", "", "Delete");
+                }
+
+                foreach (var incoming in partyMaster.BrokerConfigs)
+                {
+                    if (incoming.Id > 0 && incoming.PartyId > 0)
+                    {
+                        var existingChildBrokerConfig = existingParty.BrokerConfigs
+                            ?.FirstOrDefault(bc => bc.Id == incoming.Id && bc.PartyId == Id);
+
+                        if (existingChildBrokerConfig != null)
+                        {
+                            existingChildBrokerConfig.SettlementCycleId = incoming.SettlementCycleId;
+                            existingChildBrokerConfig.TdsApplicable = incoming.TdsApplicable;
+                            existingChildBrokerConfig.TdsCode = incoming.TdsCode;
+                            existingChildBrokerConfig.DefaultCommissionGl = incoming.DefaultCommissionGl;
+                            existingChildBrokerConfig.AgreementStartDate = incoming.AgreementStartDate;
+                            existingChildBrokerConfig.AgreementEndDate = incoming.AgreementEndDate;
+                            existingChildBrokerConfig.BrokerPayableControlGl = incoming.BrokerPayableControlGl;
+                            existingChildBrokerConfig.TargetAmount = incoming.TargetAmount;
+                            existingChildBrokerConfig.TargetPeriod = incoming.TargetPeriod;
+                            existingChildBrokerConfig.Status = incoming.Status;
+                        }
+                    }
+                    else
+                    {
+                        existingParty.BrokerConfigs ??= new List<BrokerConfig>();
+                        existingParty.BrokerConfigs.Add(new BrokerConfig
+                        {
+                            PartyId = existingParty.Id,
+                            SettlementCycleId = incoming.SettlementCycleId,
+                            TdsApplicable = incoming.TdsApplicable,
+                            TdsCode = incoming.TdsCode,
+                            DefaultCommissionGl = incoming.DefaultCommissionGl,
+                            AgreementStartDate = incoming.AgreementStartDate,
+                            AgreementEndDate = incoming.AgreementEndDate,
+                            BrokerPayableControlGl = incoming.BrokerPayableControlGl,
+                            TargetAmount = incoming.TargetAmount,
+                            TargetPeriod = incoming.TargetPeriod,
+                            Status = incoming.Status
+                        });
+
+                        await LogChange(existingParty.Id, "BrokerConfig", "SettlementCycleId", "",
                             incoming.SettlementCycleId?.ToString() ?? "", "Insert");
                     }
                 }

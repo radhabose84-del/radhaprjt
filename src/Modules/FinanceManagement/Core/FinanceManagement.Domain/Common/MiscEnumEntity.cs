@@ -13,6 +13,10 @@ namespace FinanceManagement.Domain.Common
         // MUST equal the configured Menu / WorkflowType name so sp_EvaluateApproval resolves it.
         public const string TaxAccountLinkage = "Tax Linkage";
 
+        // Approval workflow ModuleTypeName / Menu name for journal voucher approval (US-GL01-06B).
+        // MUST equal the configured Menu / WorkflowType name so the workflow resolves it.
+        public const string JournalVoucher = "Journal Voucher";
+
         // ApprovalStatus misc-type code + lifecycle status values.
         public const string ApprovalStatus = "ApprovalStatus";
         public const string Pending = "Pending";

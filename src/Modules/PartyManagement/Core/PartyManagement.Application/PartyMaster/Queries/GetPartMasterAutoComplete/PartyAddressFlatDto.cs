@@ -11,5 +11,7 @@ namespace PartyManagement.Application.PartyMaster.Queries.GetPartMasterAutoCompl
         public int? CityId { get; set; }
         public int? StateId { get; set; }
         public int? CountryId { get; set; }
+        public int? LocationId { get; set; }
+        public int? StationId { get; set; }
     }
 }

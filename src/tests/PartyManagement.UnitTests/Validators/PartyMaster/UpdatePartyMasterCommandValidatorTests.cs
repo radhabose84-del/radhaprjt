@@ -62,5 +62,61 @@ namespace PartyManagement.UnitTests.Validators.PartyMaster
 
             result.Errors.Should().NotBeEmpty();
         }
+
+        // ------------------- Party-type mutual exclusivity -------------------
+
+        private void SetupPartyTypeCodes(params string[] codes)
+        {
+            _mockQueryRepo
+                .Setup(r => r.GetPartyTypeCodesByIdsAsync(It.IsAny<IReadOnlyList<int>>()))
+                .ReturnsAsync(codes.ToList());
+        }
+
+        private static void WithPartyTypes(UpdatePartyMasterCommand command, params int[] partyTypeIds)
+        {
+            command.UpdatePartyMaster!.PartyTypesUpdate = partyTypeIds
+                .Select(id => new UpdatePartyMasterDto.UpdatePartyTypeDto { PartyTypeId = id, PartyGroupId = 1 })
+                .ToList();
+        }
+
+        [Fact]
+        public async Task Validate_AgentAndBroker_FailsValidation()
+        {
+            SetupNoDuplicate();
+            SetupPartyTypeCodes("AGENT", "BROKER");
+            var command = PartyMasterBuilders.ValidUpdateCommand();
+            WithPartyTypes(command, 3, 79);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().Contain(e => e.ErrorMessage == "A party cannot be both Agent and Broker.");
+        }
+
+        [Fact]
+        public async Task Validate_SupplierAndGinner_FailsValidation()
+        {
+            SetupNoDuplicate();
+            SetupPartyTypeCodes("SUPPLIER", "GINNER");
+            var command = PartyMasterBuilders.ValidUpdateCommand();
+            WithPartyTypes(command, 1, 80);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().Contain(e => e.ErrorMessage == "A party cannot be both Supplier and Ginner.");
+        }
+
+        [Fact]
+        public async Task Validate_BrokerOnly_PassesExclusivity()
+        {
+            SetupNoDuplicate();
+            SetupPartyTypeCodes("BROKER");
+            var command = PartyMasterBuilders.ValidUpdateCommand();
+            WithPartyTypes(command, 79);
+
+            var result = await CreateValidator().TestValidateAsync(command);
+
+            result.Errors.Should().NotContain(e => e.ErrorMessage == "A party cannot be both Agent and Broker.");
+            result.Errors.Should().NotContain(e => e.ErrorMessage == "A party cannot be both Supplier and Ginner.");
+        }
     }
 }
