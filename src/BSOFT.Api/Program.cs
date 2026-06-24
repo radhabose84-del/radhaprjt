@@ -107,7 +107,7 @@ builder.Services.AddCorsPolicy();
 builder.Services.AddHangfireServer(options =>
 {
     options.ServerName  = "BSOFT.Api";
-    options.Queues      = ["maintenance-jobs", "coa-refreeze-queue"];
+    options.Queues      = ["maintenance-jobs", "coa-refreeze-queue", "journal-jobs-queue"];
     options.WorkerCount = 5;
 });
 
@@ -175,6 +175,13 @@ RecurringJob.AddOrUpdate<CoaLapseExpiredRequestsJob>(
     "coa-refreeze-queue",
     job => job.ProcessAsync(CancellationToken.None),
     Cron.Minutely());
+
+// US-GL01-03B — nightly voucher-number gap scan (writes Finance.SequenceGapScanLog per series).
+RecurringJob.AddOrUpdate<JournalGapScanJob>(
+    "journal-gap-scan",
+    "journal-jobs-queue",
+    job => job.ProcessAsync(CancellationToken.None),
+    Cron.Daily());
 
 app.UseMiddleware<TokenValidationMiddleware>();
 

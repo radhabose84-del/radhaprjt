@@ -463,6 +463,7 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<SqlOutboxProcessorJob>();
             services.AddScoped<CoaAutoReFreezeJob>();   // US-GL02-FR-008a auto-re-freeze (recurring, scheduled by the Hangfire host)
             services.AddScoped<CoaLapseExpiredRequestsJob>();   // US-GL02-08B lapse expired unfreeze requests (recurring)
+            services.AddScoped<JournalGapScanJob>();   // US-GL01-03B nightly voucher-number gap scan (recurring)
 
             // Inbox/Dedup — prevents duplicate message processing on MassTransit redelivery
             services.AddScoped<IInboxRepository, InboxRepository>();

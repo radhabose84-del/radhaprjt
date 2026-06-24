@@ -74,7 +74,8 @@ CREATE DATABASE [{DbName}];
         private async Task CreateDbContextAsync()
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(_testDbConnection)
+                .UseSqlServer(_testDbConnection, sql => sql.EnableRetryOnFailure(
+                    maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null))
                 .Options;
 
             DbContext = new ApplicationDbContext(options, _ip.Object, _tz.Object);
@@ -109,7 +110,8 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Finance')
             tzMock.Setup(x => x.GetCurrentTime(It.IsAny<string>())).Returns(DateTimeOffset.UtcNow);
 
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(_testDbConnection)
+                .UseSqlServer(_testDbConnection, sql => sql.EnableRetryOnFailure(
+                    maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null))
                 .Options;
 
             return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
