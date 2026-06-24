@@ -9,6 +9,7 @@ using PurchaseManagement.Application.OCREntry.Queries.GetAllOCREntry;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryAutoComplete;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryById;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryPending;
+using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryReport;
 using PurchaseManagement.Presentation.Controllers;
 using PurchaseManagement.UnitTests.TestData;
 
@@ -69,6 +70,17 @@ namespace PurchaseManagement.UnitTests.Controllers
                 .ReturnsAsync(new List<OCREntryLookupDto>());
 
             var result = await CreateSut().GetOCREntryAutoCompleteAsync("OCR");
+            result.Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetReport_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetOCREntryReportQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new OcrReportDto());
+
+            var result = await CreateSut().GetOCREntryReportAsync(1);
             result.Should().BeOfType<OkObjectResult>();
         }
 

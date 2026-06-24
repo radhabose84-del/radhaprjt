@@ -6,6 +6,9 @@ namespace PurchaseManagement.Application.Common.Interfaces.IOCREntry
     {
         Task<(List<OCREntryDto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, int? statusId = null, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null);
         Task<OCREntryDto?> GetByIdAsync(int id);
+
+        /// <summary>The most recently issued OcrNumber (newest non-deleted row), or null when none exist.</summary>
+        Task<string?> GetLastOcrNumberAsync();
         Task<(List<OCREntryDto> Items, int Total)> GetPendingAsync(int pageNumber, int pageSize);
         /// <summary>
         /// Autocomplete list of OCRs. When <paramref name="showAll"/> is false (default), OCRs that are
@@ -24,6 +27,14 @@ namespace PurchaseManagement.Application.Common.Interfaces.IOCREntry
 
         /// <summary>True when the OCR is linked to a Raw Material PO (blocks delete — Rule #25).</summary>
         Task<bool> SoftDeleteValidationAsync(int id);
+
+        /// <summary>
+        /// Approved freight for the OCR — per-bale rate + total value — resolved via the latest
+        /// non-deleted Freight RFQ linked through the OCR's Raw Material PO
+        /// (OCR → RawMaterialPOHeader.OcrId → FreightRfqHeader.PoReferenceId).
+        /// Both are null until a PO and an approved Freight RFQ exist.
+        /// </summary>
+        Task<(decimal? PerBale, decimal? Total)> GetFreightForOcrAsync(int ocrId);
 
         // FK existence (same-module)
         Task<bool> MiscMasterExistsAsync(int id);

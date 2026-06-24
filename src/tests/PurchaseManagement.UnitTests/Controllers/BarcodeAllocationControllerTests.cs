@@ -10,6 +10,7 @@ using PurchaseManagement.Application.BarcodeAllocation.Queries.GetAllocationEmpl
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocation;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationAutoComplete;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationById;
+using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationLabels;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetNextAllocationFrom;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetNextAllocationNumber;
 using PurchaseManagement.Presentation.Controllers;
@@ -41,6 +42,16 @@ namespace PurchaseManagement.UnitTests.Controllers
                 .ReturnsAsync(BarcodeAllocationBuilders.ValidDto());
 
             (await CreateSut().GetByIdAsync(1)).Should().BeOfType<OkObjectResult>();
+        }
+
+        [Fact]
+        public async Task GetLabels_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetBarcodeAllocationLabelsQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BarcodeLabelReportDto());
+
+            (await CreateSut().GetLabelsAsync(7)).Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]

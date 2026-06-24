@@ -201,6 +201,40 @@ namespace UserManagement.IntegrationTests.Repositories.Lookups.Users
         }
 
         [Fact]
+        public async Task GetByUnitIdAsync_Should_Build_LogoUrl_From_CompanyLogoPath()
+        {
+            await ClearAsync();
+            var (_, unitId) = await SeedCompanyAndUnitAsync("LogoCo", "LogoUnit"); // Logo = "logo.png"
+
+            await using (var ctx = CreateDbContext())
+            {
+                await ctx.MiscTypeMaster.AddAsync(new UserManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "CompanyLogoPath",
+                    Description = "http://test/Resources/AllFiles",
+                    IsActive = Enums.Status.Active,
+                    IsDeleted = Enums.IsDelete.NotDeleted
+                });
+                await ctx.SaveChangesAsync();
+            }
+
+            var result = await CreateLookupRepo().GetByUnitIdAsync(unitId);
+
+            result!.LogoUrl.Should().Be("http://test/Resources/AllFiles/logo.png");
+        }
+
+        [Fact]
+        public async Task GetByUnitIdAsync_Should_Null_LogoUrl_When_No_Base_Configured()
+        {
+            await ClearAsync();
+            var (_, unitId) = await SeedCompanyAndUnitAsync(); // Logo set, but no CompanyLogoPath misc type
+
+            var result = await CreateLookupRepo().GetByUnitIdAsync(unitId);
+
+            result!.LogoUrl.Should().BeNull();
+        }
+
+        [Fact]
         public async Task GetByUnitIdAsync_Should_Return_Null_For_Unknown_Unit()
         {
             await ClearAsync();

@@ -13,3 +13,6 @@ public sealed class ReturnPolicyChainCollection : ICollectionFixture<QAServerFix
 
 [CollectionDefinition("US-PUR-04-ProcureToReceiptReadiness")]
 public sealed class ProcureToReceiptReadinessCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-PUR-05-DocumentNumberingPreview")]
+public sealed class DocumentNumberingPreviewCollection : ICollectionFixture<QAServerFixture> { }

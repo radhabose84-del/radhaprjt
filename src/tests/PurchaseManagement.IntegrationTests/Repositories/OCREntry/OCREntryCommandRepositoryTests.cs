@@ -35,7 +35,6 @@ namespace PurchaseManagement.IntegrationTests.Repositories.OCREntry
                 OcrDate = DateTimeOffset.UtcNow,
                 ProcurementSourceId = miscId,
                 ProcurementTypeId = miscId,
-                BrokerDirectId = miscId,
                 GradeId = miscId,
                 StatusId = miscId,
                 PaymentTermId = paymentTermId,

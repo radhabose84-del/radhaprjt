@@ -121,6 +121,30 @@ public sealed class OCREntryQATests
         ((int)resp.StatusCode).Should().BeOneOf(200, 404);
     }
 
+    // next-number = peek of the OCR document sequence (last + next). 500 tolerated when the
+    // 'OCR' doc-numbering series is not seeded on the QA clone.
+    [Fact, TestPriority(34)]
+    public async Task TC034_NextNumber_Reachable_AndShapeWhenOk()
+    {
+        var resp = await _f.Client.GetAsync($"{BaseRoute}/next-number");
+        ((int)resp.StatusCode).Should().BeOneOf(200, 400, 404, 500);
+
+        if (resp.StatusCode == HttpStatusCode.OK)
+        {
+            var doc = await QAHelper.ParseAsync(resp);
+            var data = doc.RootElement.GetProperty("data");
+            data.TryGetProperty("nextNumber", out _).Should().BeTrue();
+            data.TryGetProperty("lastNumber", out _).Should().BeTrue();
+        }
+    }
+
+    [Fact, TestPriority(35)]
+    public async Task TC035_NextNumber_NoAuthToken_Returns401()
+    {
+        var resp = await _f.AnonymousClient.GetAsync($"{BaseRoute}/next-number");
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
     // ── SECTION 4 — UPDATE / DELETE (lifecycle BLOCKED; negatives ACTIVE) ───────
 
     [Fact, TestPriority(50)]

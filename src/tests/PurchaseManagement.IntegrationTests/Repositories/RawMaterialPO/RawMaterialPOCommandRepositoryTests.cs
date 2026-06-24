@@ -90,7 +90,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.RawMaterialPO
             var ocr = new PurchaseManagement.Domain.Entities.OCREntry
             {
                 OcrNumber = "OCR-2025-0004", OcrDate = DateTimeOffset.UtcNow,
-                ProcurementSourceId = misc.Id, ProcurementTypeId = misc.Id, BrokerDirectId = misc.Id,
+                ProcurementSourceId = misc.Id, ProcurementTypeId = misc.Id,
                 StatusId = misc.Id, PaymentTermId = paymentTerm.Id,
                 SupplierId = 10, LocationId = 11, StationId = 12, ItemId = 13, CountId = 14,
                 Quantity = 800m, Rate = 68500m,

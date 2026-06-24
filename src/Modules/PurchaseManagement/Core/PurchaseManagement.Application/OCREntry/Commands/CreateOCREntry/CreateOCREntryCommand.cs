@@ -11,7 +11,6 @@ namespace PurchaseManagement.Application.OCREntry.Commands.CreateOCREntry
         // Same-module (MiscMaster / PaymentTermMaster)
         public int ProcurementSourceId { get; set; }
         public int ProcurementTypeId { get; set; }
-        public int BrokerDirectId { get; set; }
         public string? BrokerName { get; set; }
         public int? GradeId { get; set; }
         public int PaymentTermId { get; set; }
