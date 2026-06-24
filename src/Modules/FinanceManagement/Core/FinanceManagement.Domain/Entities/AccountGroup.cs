@@ -2,7 +2,7 @@ using FinanceManagement.Domain.Common;
 
 namespace FinanceManagement.Domain.Entities
 {
-    public class AccountGroup : BaseEntity
+    public class AccountGroup : BaseEntity, IAuditTrailed
     {
         // Maximum hierarchy depth. Groups may nest up to 6 levels; creating a child below
         // a Level 6 node is blocked. Accounts attach at the leaf (a node with no children).
