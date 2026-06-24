@@ -8,6 +8,7 @@ using PurchaseManagement.Application.RawMaterialPO.Commands.UpdateRawMaterialPO;
 using PurchaseManagement.Application.RawMaterialPO.Commands.UploadDocument;
 using PurchaseManagement.Application.RawMaterialPO.Queries.GetAllRawMaterialPO;
 using PurchaseManagement.Application.RawMaterialPO.Queries.GetRawMaterialPOAutoComplete;
+using PurchaseManagement.Application.RawMaterialPO.Queries.GetNextRawMaterialPONumber;
 using PurchaseManagement.Application.RawMaterialPO.Queries.GetRawMaterialPOById;
 using PurchaseManagement.Application.RawMaterialPO.Queries.GetRawMaterialPOFromOcr;
 
@@ -59,6 +60,18 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetRawMaterialPOAutoCompleteAsync([FromQuery] string term = "", [FromQuery] bool showAll = false)
         {
             var result = await Mediator.Send(new GetRawMaterialPOAutoCompleteQuery(term, showAll));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Peek the last-issued + next Raw Material PO number for the OCR→PO conversion screen (no increment).
+        [HttpGet("next-number")]
+        public async Task<IActionResult> GetNextRawMaterialPONumberAsync()
+        {
+            var result = await Mediator.Send(new GetNextRawMaterialPONumberQuery());
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

@@ -6,6 +6,9 @@ namespace PurchaseManagement.Application.Common.Interfaces.IRawMaterialPO
     {
         Task<(List<RawMaterialPODto> Items, int Total)> GetAllAsync(int pageNumber, int pageSize, string? searchTerm, DateTimeOffset? fromDate = null, DateTimeOffset? toDate = null);
         Task<RawMaterialPODto?> GetByIdAsync(int id);
+
+        /// <summary>The most recently issued PONumber (newest non-deleted header), or null when none exist.</summary>
+        Task<string?> GetLastPONumberAsync();
         /// <summary>
         /// Autocomplete list of Raw Material POs. When <paramref name="showAll"/> is false (default),
         /// POs that are fully arrived — an arrival exists and total arrived qty has reached the PO

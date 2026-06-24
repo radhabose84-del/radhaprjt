@@ -134,7 +134,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var ocr = new PurchaseManagement.Domain.Entities.OCREntry
             {
                 OcrNumber = "OCR-2025-0004", OcrDate = DateTimeOffset.UtcNow,
-                ProcurementSourceId = status.Id, ProcurementTypeId = status.Id, BrokerDirectId = status.Id,
+                ProcurementSourceId = status.Id, ProcurementTypeId = status.Id,
                 StatusId = qc.Id, PaymentTermId = paymentTerm.Id,
                 SupplierId = 10, LocationId = 11, StationId = 12, ItemId = 13, CountId = 14,
                 Quantity = 800m, Rate = 68500m, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted

@@ -9,6 +9,7 @@ using PurchaseManagement.Application.BarcodeAllocation.Queries.GetAllocationEmpl
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocation;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationAutoComplete;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationById;
+using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationLabels;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetNextAllocationFrom;
 using PurchaseManagement.Application.BarcodeAllocation.Queries.GetNextAllocationNumber;
 
@@ -46,6 +47,14 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetByIdAsync(int id)
         {
             var result = await Mediator.Send(new GetBarcodeAllocationByIdQuery { Id = id });
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        // Print-ready bale-barcode labels (letterhead + expanded barcode list + QR payload).
+        [HttpGet("{id}/labels")]
+        public async Task<IActionResult> GetLabelsAsync(int id)
+        {
+            var result = await Mediator.Send(new GetBarcodeAllocationLabelsQuery(id));
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 

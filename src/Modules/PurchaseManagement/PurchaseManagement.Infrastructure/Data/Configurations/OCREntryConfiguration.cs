@@ -75,11 +75,6 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Purchase
                 .HasForeignKey(x => x.ProcurementTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            b.HasOne(x => x.BrokerDirect)
-                .WithMany()
-                .HasForeignKey(x => x.BrokerDirectId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             b.HasOne(x => x.Grade)
                 .WithMany()
                 .HasForeignKey(x => x.GradeId)

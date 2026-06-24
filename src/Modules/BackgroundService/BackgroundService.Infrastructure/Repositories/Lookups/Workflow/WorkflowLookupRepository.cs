@@ -171,5 +171,31 @@ namespace BackgroundService.Infrastructure.Repositories.Lookups.Workflow
                     ApprovalRuleId      = approvalRuleId
                 });
         }
+
+        public async Task<ApprovalInfoDto?> GetApprovalInfoAsync(
+            string workflowType,
+            int moduleTransactionId,
+            CancellationToken cancellationToken = default)
+        {
+            // Final approval = the most recent ApprovalRequest row whose status is 'Approved'.
+            const string sql = @"
+                SELECT TOP 1
+                    ar.ModifiedByName AS ApproverName,
+                    ar.ModifiedDate   AS ApprovedDate
+                FROM AppData.ApprovalRequest ar
+                INNER JOIN AppData.MiscMaster mm ON ar.StatusId = mm.Id
+                WHERE ar.WorkflowType        = @WorkflowType
+                  AND ar.ModuleTransactionId = @ModuleTransactionId
+                  AND mm.Code                = 'Approved'
+                ORDER BY ar.ModifiedDate DESC;
+            ";
+
+            var cmd = new CommandDefinition(
+                sql,
+                new { WorkflowType = workflowType, ModuleTransactionId = moduleTransactionId },
+                cancellationToken: cancellationToken);
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<ApprovalInfoDto>(cmd);
+        }
     }
 }

@@ -15,5 +15,11 @@ namespace Contracts.Dtos.Lookups.Users
         public string? PinCode { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
+
+        /// <summary>
+        /// Public URL of the company logo, built from the 'CompanyLogoPath' base
+        /// (AppData.MiscTypeMaster) + the stored logo file name. Null when no logo is set.
+        /// </summary>
+        public string? LogoUrl { get; set; }
     }
 }

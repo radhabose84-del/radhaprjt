@@ -45,12 +45,6 @@ namespace PurchaseManagement.Presentation.Validation.OCREntry
                 .WithMessage("ProcurementTypeId is inactive/deleted.")
                 .When(x => x.ProcurementTypeId > 0);
 
-            RuleFor(x => x.BrokerDirectId)
-                .GreaterThan(0).WithMessage("BrokerDirectId is required.")
-                .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
-                .WithMessage("BrokerDirectId is inactive/deleted.")
-                .When(x => x.BrokerDirectId > 0);
-
             RuleFor(x => x.GradeId!.Value)
                 .MustAsync(async (id, ct) => await queryRepo.MiscMasterExistsAsync(id))
                 .WithMessage("GradeId is inactive/deleted.")

@@ -67,6 +67,22 @@ QUERY `?id=`. GST is an external-service proxy (tolerant).
 
 ---
 
+## US-PTY-04 — Broker / Ginner types + Ginner Location & Station  *(PARTIAL — exclusivity + reads active; full create blocked)*
+
+> As a party administrator I type a party as BROKER (peer of AGENT, own config tab) or GINNER
+> (peer of SUPPLIER, with a Location + Station on its address that OCR reads to prefill), under the
+> rule that a party can never be both Agent and Broker, nor both Supplier and Ginner.
+
+| # | Acceptance criterion | Status |
+|---|---|---|
+| 1 | A party submitted as both AGENT and BROKER is rejected (400) | ✅ (exclusivity when BROKER seeded; nested-chain validation otherwise — either way 400) |
+| 2 | A party submitted as both SUPPLIER and GINNER is rejected (400) | ✅ |
+| 3 | The Ginner / Supplier+Ginner `by-name` list + Ginner group `load` (OCR prefill source) are reachable | ✅ |
+| 4 | A full Broker (config tab) + Ginner (Location+Station on address) can be created | 🚫 needs BROKER/GINNER party-type + group seed + nested cross-module party chain |
+| 5 | The picker reads reject anonymous callers (401) | ✅ |
+
+---
+
 ### Implementation status summary
 
 | Story | Implementable now | Blocked |
@@ -74,3 +90,4 @@ QUERY `?id=`. GST is an external-service proxy (tolerant).
 | US-PTY-01 Reference & bank masters | ✅ misc + bank | — |
 | US-PTY-02 Party onboarding | ⚠️ PartyGroup + reads | PartyMaster nested chain; BankAccount branchId |
 | US-PTY-03 Audit & GST lookup | ✅ read-only | — |
+| US-PTY-04 Broker/Ginner + Location/Station | ✅ exclusivity negatives + reads | full Broker/Ginner create (party-type/group seed + nested chain) |

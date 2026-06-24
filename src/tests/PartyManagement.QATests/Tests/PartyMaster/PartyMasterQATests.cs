@@ -77,6 +77,60 @@ public sealed class PartyMasterQATests
         await QAHelper.Assert400Async(resp);
     }
 
+    // Mutual exclusivity (added 2026-06-23): a party cannot be both AGENT(3) and BROKER(79).
+    // On a clone where BROKER is seeded the rejection is the exclusivity rule; otherwise the
+    // incomplete nested payload still fails validation — either way the create is rejected (400).
+    [Fact, TestPriority(4)]
+    public async Task TC004_Create_AgentAndBroker_Returns400()
+    {
+        var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
+        {
+            partyMaster = new
+            {
+                partyName = "QA Excl AB " + _f.EntityCode[..6],
+                registrationTypeId = 1,
+                pan = "ABCPA1234A",
+                unitId = 1,
+                partyTypes = new[]
+                {
+                    new { partyTypeId = 3,  partyGroupId = 1 },   // AGENT
+                    new { partyTypeId = 79, partyGroupId = 1 }    // BROKER
+                },
+                partyUnitCompanies = new[] { new { companyId = 1, unitId = 1 } },
+                partyContacts = new[] { new { firstName = "QA", mobileNo = "9000000001", emailID = "qa.ab@example.com", contactBy = "Primary" } },
+                partyAddresses = new[] { new { addressType = "Primary", city = "Coimbatore", state = "Tamil Nadu", country = "India" } }
+            }
+        });
+
+        await QAHelper.Assert400Async(resp);
+    }
+
+    // Mutual exclusivity: a party cannot be both SUPPLIER(1) and GINNER(80).
+    [Fact, TestPriority(5)]
+    public async Task TC005_Create_SupplierAndGinner_Returns400()
+    {
+        var resp = await _f.Client.PostAsJsonAsync(BaseRoute, new
+        {
+            partyMaster = new
+            {
+                partyName = "QA Excl SG " + _f.EntityCode[..6],
+                registrationTypeId = 1,
+                pan = "ABCPA1234A",
+                unitId = 1,
+                partyTypes = new[]
+                {
+                    new { partyTypeId = 1,  partyGroupId = 1 },   // SUPPLIER
+                    new { partyTypeId = 80, partyGroupId = 1 }    // GINNER
+                },
+                partyUnitCompanies = new[] { new { companyId = 1, unitId = 1 } },
+                partyContacts = new[] { new { firstName = "QA", mobileNo = "9000000002", emailID = "qa.sg@example.com", contactBy = "Primary" } },
+                partyAddresses = new[] { new { addressType = "Primary", city = "Coimbatore", state = "Tamil Nadu", country = "India" } }
+            }
+        });
+
+        await QAHelper.Assert400Async(resp);
+    }
+
     [Fact(Skip = "needs seeded data: PartyMaster nested cross-module chain (company/unit + registrationType/partyType misc + partyGroup + unique contact email/mobile)"), TestPriority(50)]
     public async Task TC050_Update_HappyPath_Returns200()
     {
@@ -186,6 +240,15 @@ public sealed class PartyMasterQATests
     public async Task TC037_PartActivityLog_Reachable_Returns200Or404()
     {
         var resp = await _f.Client.GetAsync($"{BaseRoute}/PartActivityLog/999999");
+        ((int)resp.StatusCode).Should().BeOneOf(200, 404);
+    }
+
+    // by-name?partyTypeIds=1,80 (Supplier + Ginner) — the list OCR's "Supplier / Ginner" dropdown
+    // consumes; ginner rows carry locationId/locationName/stationId/stationName for OCR prefill. Reachable.
+    [Fact, TestPriority(38)]
+    public async Task TC038_ByName_SupplierAndGinner_Reachable_Returns200Or404()
+    {
+        var resp = await _f.Client.GetAsync($"{BaseRoute}/by-name?partyTypeIds=1,80");
         ((int)resp.StatusCode).Should().BeOneOf(200, 404);
     }
 }
