@@ -330,3 +330,68 @@ Base route: `api/finance/account-audit` (read-only: `GET {entityName}/{entityId}
 > `DENY DELETE,UPDATE TO public` + `trg_AccountAuditTrail_Immutable` (in the migration). Scope = COA
 > structure + governance (GlAccountMaster, AccountGroup, AccountTypeMaster, CoaFreezeState,
 > CoaChangeRequest, CoaUnfreezeRequest). See `docs/AccountAuditTrail_Specification.md`.
+
+---
+
+## US-GL03-01 — Fiscal Year & Period Calendar Setup
+
+**User story:** As a System Administrator, I configure company-specific fiscal calendars that auto-generate
+12 monthly periods plus Period 13 (adjustment), so each entity can close on its own cycle and the posting
+engine has a calendar to validate every JE against.
+
+**Pre-condition (seed):** `Finance.MiscMaster` rows for `MiscTypeCode='FYS'` (`OPEN`, `CLOSED`) and
+`MiscTypeCode='FPS'` (`OPEN`, `SOFTCLOSED`, `HARDCLOSED`) must exist in the QA clone before the Create
+endpoint will succeed. The handler throws a clear error if they're missing.
+
+Base routes: `api/finance/FinancialYearMaster`, `api/finance/FinancialYearMaster/{companyId}/periods`,
+`api/finance/FinancialYearMaster/period-for-date`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — independent calendars per company | Given two companies onboard with different fiscal-year starts, When each creates their year, Then each has its own 13-period set scoped by `CompanyId`. | 🚫 needs a second QA user bound to a real CompanyId (cross-company assert blocked) |
+| AC2 — 13 periods auto-generated | Given a fiscal year `2100-01`, When POST `/api/finance/FinancialYearMaster` is OK, Then GET `/{id}` shows 12 monthly + Period 13 (`IsAdjustmentPeriod=true`) all `Status=OPEN`. | ✅ implementable |
+| AC3 — Period 13 same dates as Period 12 | Given Period 13 (Indian accounting convention), When examined, Then its StartDate/EndDate equal Period 12 (March) — adjustment posts to the close month. | ✅ implementable |
+| AC4 — duplicate `(CompanyId, FinancialYearCode)` rejected | Given a year already exists, When POSTed again with the same code, Then 400 "already exists". | ✅ implementable |
+| AC4b — date-range overlap rejected | Given a year covers Apr-Mar, When a new year overlaps any day in that range, Then 400 "overlaps an existing fiscal year". | ✅ implementable |
+| AC5 — auto-create next year before EndDate | Given a year ends within 3 months, When the Hangfire `AutoCreateNextFinancialYearMasterJob` runs, Then the next year + its 13 periods are created. | 🚫 background-job — cannot be triggered via the QA HTTP surface; verified by unit test |
+| Posting engine — read APIs | Given a calendar exists, When GET `/{companyId}/periods` and GET `/period-for-date?date=`, Then both return the calendar correctly (date-resolver skips `IsAdjustmentPeriod` so March dates resolve to Period 12, not Period 13). | ✅ implementable |
+| Update — date immutability | Given an existing year, When PUT updates `StartDate`/`EndDate`, Then those values are silently kept at create-time values (handler accepts only code + IsActive). | ⚠️ verify live |
+| Delete — soft-delete cascades to periods | Given a year, When DELETE, Then `IsDeleted=1` propagates to all 13 periods (period FK is `Cascade` so the rows are tombstoned via the year). | ✅ implementable |
+
+> Schema: `Finance.FinancialYearMaster` (header) + `Finance.FinancialPeriodMaster` (detail, `Cascade` on year delete).
+> Status FK → `Finance.MiscMaster` keyed by `(MiscTypeCode, Code)`. See unit tests in
+> `FinanceManagement.UnitTests/Application/FinancialYearMaster/Commands/CreateFinancialYearMasterCommandHandlerTests` for the
+> 13-period generation contract.
+
+---
+
+## US-GL03-02 — Period Status & Posting Controls
+
+**User story:** As a Finance Manager, I enforce three-state one-way period status (Open → SoftClosed → HardClosed)
+at both the API and DB layers, so postings are controlled as the close progresses; reversals are gated behind
+CFO + SysAdmin dual approval and an automatic second-approval auto-apply.
+
+**Pre-condition (seed):** `Finance.MiscMaster` rows for `MiscTypeCode='PSO'` (`PENDING`, `FULLYAPPROVED`,
+`APPLIED`, `REJECTED`) must exist (in addition to the FYS/FPS rows from US-GL03-01). The `testsales` QA user
+must hold the `CFO` and `SysAdmin` roles in the QA clone for the dual-approval flow to land green; absent that,
+approval steps Skip with a precise reason.
+
+Base routes: `api/finance/FinancialPeriodStatus`, `api/finance/PeriodStatusOverride`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — HARDCLOSED blocks everyone | Given a hard-closed period, When any source posts a JE, Then it's rejected by both the API gate (`IPeriodPostingGate`) and the DB trigger on `Finance.JournalLine`. | 🚫 needs `Finance.JournalLine` table (GL-01-FR-009) — DB trigger is a no-op until JournalLine exists |
+| AC2 — SOFTCLOSED restricts to Finance Manager+ | Given a soft-closed period, When a Finance Manager posts, Then 200; for any role below, Then 403/blocked. | 🚫 needs JournalLine + role-gated test users |
+| AC3 — reversal needs CFO + SysAdmin | Given a period reversal request (`SOFTCLOSED → OPEN` or `HARDCLOSED → SOFTCLOSED`), When both CFO **and** SysAdmin approve (any order), Then the period status auto-flips immediately on the 2nd approval; single approval keeps it PENDING. | ⚠️ verify live (needs the dual-role test user) |
+| AC4 — `PeriodStatusChangedDomainEvent` published on every flip | Given any successful status change, When committed, Then the event fires (`IsReversal=true` for the override path, `OverrideId` populated) and `GET /{periodId}/status` reflects the new status. | ✅ implementable |
+| State machine — forward-only | Given current status, When a forward transition is attempted, Then `OPEN→SOFTCLOSED` and `SOFTCLOSED→HARDCLOSED` are 200, every other forward direction is 400 "Illegal status transition". | ✅ implementable |
+| Override — single pending at a time | Given a PENDING override on a period, When a 2nd reversal is requested, Then 400 "already in progress". | ✅ implementable |
+| Override — segregation of duties | Given an override Requested by user X, When user X attempts `/approve` or `/reject`, Then 400 "self-approve" / "self-reject". | ⚠️ verify live (needs a separate test user for approvers) |
+
+> Schema: `Finance.PeriodStatusOverride` + `LastStatusChangedBy/At` columns on `Finance.FinancialPeriodMaster`.
+> `IPeriodPostingGate` is the single security service consumed by GL-01-FR-009 posting middleware.
+> Status / Override-status FKs → `Finance.MiscMaster` (`FPS`, `PSO`). State machine lives in
+> `FinanceManagement.Application.Common.PeriodStatus.PeriodStatusStateMachine`. The auto-apply path
+> (CFO + SysAdmin → period flip + override APPLIED) is atomic in one transaction
+> (`PeriodStatusOverrideCommandRepository.ApplyPeriodStatusChangeAsync`) — proven in the integration
+> tests under `FinanceManagement.IntegrationTests/Repositories/PeriodStatusOverride`.

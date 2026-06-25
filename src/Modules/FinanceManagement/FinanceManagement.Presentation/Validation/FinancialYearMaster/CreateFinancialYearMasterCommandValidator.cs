@@ -92,10 +92,12 @@ namespace FinanceManagement.Presentation.Validation.FinancialYearMaster
                 .When(x => x.IsTransitionYear && x.StartDate != default && x.EndDate != default);
 
             // Code suffix must equal (StartDate.Year + 1) % 100 — e.g. StartDate 2024-04-01 → code "2024-25"
+            // (Skip if format is wrong — the regex rule above already errors that out.)
             RuleFor(x => x)
                 .Must(cmd =>
                 {
                     if (string.IsNullOrWhiteSpace(cmd.FinancialYearCode) || cmd.StartDate == default) return true;
+                    if (cmd.FinancialYearCode.Length != 7 || cmd.FinancialYearCode[4] != '-') return true;
                     if (!int.TryParse(cmd.FinancialYearCode.Substring(0, 4), out var year)) return true;
                     if (!int.TryParse(cmd.FinancialYearCode.Substring(5, 2), out var suffix)) return true;
                     return year == cmd.StartDate.Year && suffix == (cmd.StartDate.Year + 1) % 100;

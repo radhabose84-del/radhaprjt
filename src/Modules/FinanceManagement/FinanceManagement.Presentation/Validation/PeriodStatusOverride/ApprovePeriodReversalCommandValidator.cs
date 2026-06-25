@@ -11,9 +11,13 @@ namespace FinanceManagement.Presentation.Validation.PeriodStatusOverride
                 .GreaterThan(0)
                 .WithMessage("Override Id is required.");
 
+            // NotEmpty must be in its own RuleFor — putting it before the .When chain causes
+            // FluentValidation to skip ALL rules including NotEmpty when the When predicate is false.
             RuleFor(x => x.Role)
                 .NotEmpty()
-                .WithMessage("Approver role is required.")
+                .WithMessage("Approver role is required.");
+
+            RuleFor(x => x.Role)
                 .Must(r =>
                     string.Equals(r, "CFO",      StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(r, "SysAdmin", StringComparison.OrdinalIgnoreCase))
