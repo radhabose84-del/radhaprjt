@@ -19,10 +19,7 @@ namespace PurchaseManagement.Domain.Entities
         public int ProcurementTypeId { get; set; }
         public MiscMaster ProcurementType { get; set; } = default!;
 
-        public int BrokerDirectId { get; set; }
-        public MiscMaster BrokerDirect { get; set; } = default!;
-
-        // Free-text broker name (no FK); null for Direct procurement
+        // Free-text broker name (no FK); prefilled from the selected Supplier/Ginner party, or typed
         public string? BrokerName { get; set; }
 
         public int? GradeId { get; set; }

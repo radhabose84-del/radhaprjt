@@ -8,8 +8,10 @@ using PurchaseManagement.Application.OCREntry.Commands.UpdateOCREntry;
 using PurchaseManagement.Application.OCREntry.Commands.UploadDocument;
 using PurchaseManagement.Application.OCREntry.Queries.GetAllOCREntry;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryAutoComplete;
+using PurchaseManagement.Application.OCREntry.Queries.GetNextOcrNumber;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryById;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryPending;
+using PurchaseManagement.Application.OCREntry.Queries.GetOCREntryReport;
 using PurchaseManagement.Application.OCREntry.Queries.GetOCRQualityTemplateParameters;
 
 namespace PurchaseManagement.Presentation.Controllers
@@ -58,6 +60,18 @@ namespace PurchaseManagement.Presentation.Controllers
             });
         }
 
+        // Dynamic Order Confirmation Report payload (sectioned key/label/value) for printing.
+        [HttpGet("{id}/report")]
+        public async Task<IActionResult> GetOCREntryReportAsync(int id)
+        {
+            var result = await Mediator.Send(new GetOCREntryReportQuery(id));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
         [HttpGet("by-name")]
         public async Task<IActionResult> GetOCREntryAutoCompleteAsync([FromQuery] string term = "", [FromQuery] bool approved = true, [FromQuery] bool showAll = false)
         {
@@ -75,6 +89,18 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetQualityTemplateParametersAsync(int templateId)
         {
             var result = await Mediator.Send(new GetOCRQualityTemplateParametersQuery(templateId));
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result
+            });
+        }
+
+        // Peek the last-issued + next OCR number for the OCR Management screen (no increment).
+        [HttpGet("next-number")]
+        public async Task<IActionResult> GetNextOcrNumberAsync()
+        {
+            var result = await Mediator.Send(new GetNextOcrNumberQuery());
             return Ok(new
             {
                 StatusCode = StatusCodes.Status200OK,

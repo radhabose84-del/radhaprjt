@@ -5,3 +5,6 @@ global using System.Threading;
 global using System.Threading.Tasks;
 global using System.Collections.Generic;
 global using System.Linq;
+global using Microsoft.EntityFrameworkCore;
+global using FinanceManagement.IntegrationTests.Common;
+global using static FinanceManagement.Domain.Common.BaseEntity;

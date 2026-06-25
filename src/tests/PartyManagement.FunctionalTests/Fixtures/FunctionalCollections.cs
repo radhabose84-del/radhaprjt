@@ -10,3 +10,6 @@ public sealed class PartyOnboardingCollection : ICollectionFixture<QAServerFixtu
 
 [CollectionDefinition("US-PTY-03-AuditAndGst")]
 public sealed class AuditAndGstCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-PTY-04-BrokerGinnerLocationStation")]
+public sealed class BrokerGinnerLocationStationCollection : ICollectionFixture<QAServerFixture> { }

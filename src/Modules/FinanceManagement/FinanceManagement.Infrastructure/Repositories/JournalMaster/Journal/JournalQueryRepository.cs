@@ -341,6 +341,29 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             return dto;
         }
 
+        public async Task<IReadOnlyList<JournalLookupDto>> AutocompleteAsync(string term, int? companyId, int? statusId, CancellationToken ct)
+        {
+            var where = new List<string> { "h.IsDeleted = 0", "h.IsActive = 1" };
+            if (!string.IsNullOrWhiteSpace(term))
+                where.Add("(h.VoucherNo LIKE @Term OR h.Narration LIKE @Term)");
+            if (companyId is > 0) where.Add("h.CompanyId = @CompanyId");
+            if (statusId is > 0) where.Add("h.StatusId = @StatusId");
+
+            var sql = $@"
+                SELECT TOP 20 h.Id, h.VoucherNo, h.VoucherDate, h.StatusId, ms.Description AS StatusName, h.TotalDr,
+                    CAST(CASE WHEN ms.Code = 'POSTED' AND h.IsReversal = 0
+                              AND NOT EXISTS (SELECT 1 FROM Finance.JournalHeader r WHERE r.ReversalOfId = h.Id AND r.IsDeleted = 0)
+                         THEN 1 ELSE 0 END AS bit) AS IsReverseApplicable
+                FROM Finance.JournalHeader h
+                LEFT JOIN Finance.MiscMaster ms ON ms.Id = h.StatusId
+                WHERE {string.Join(" AND ", where)}
+                ORDER BY h.VoucherDate DESC, h.Id DESC";
+
+            var result = await _dbConnection.QueryAsync<JournalLookupDto>(
+                new CommandDefinition(sql, new { Term = $"%{term}%", CompanyId = companyId, StatusId = statusId }, cancellationToken: ct));
+            return result.ToList();
+        }
+
         private async Task PopulateLookupNamesAsync(List<JournalHeaderDto> list)
         {
             var companies = await _companyLookup.GetAllCompanyAsync();

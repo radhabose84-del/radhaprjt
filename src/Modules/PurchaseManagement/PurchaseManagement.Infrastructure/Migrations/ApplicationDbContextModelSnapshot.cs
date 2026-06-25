@@ -3104,9 +3104,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BrokerDirectId")
-                        .HasColumnType("int");
-
                     b.Property<string>("BrokerName")
                         .HasColumnType("varchar(100)");
 
@@ -3245,8 +3242,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasColumnType("decimal(18,3)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BrokerDirectId");
 
                     b.HasIndex("GradeId");
 
@@ -8205,12 +8200,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("PurchaseManagement.Domain.Entities.OCREntry", b =>
                 {
-                    b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "BrokerDirect")
-                        .WithMany()
-                        .HasForeignKey("BrokerDirectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("PurchaseManagement.Domain.Entities.MiscMaster", "Grade")
                         .WithMany()
                         .HasForeignKey("GradeId")
@@ -8264,8 +8253,6 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("WeighmentId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("BrokerDirect");
 
                     b.Navigation("Grade");
 

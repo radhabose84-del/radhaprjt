@@ -22,6 +22,17 @@ namespace PurchaseManagement.Infrastructure.Repositories.RawMaterialPO
             _hsnLookup = hsnLookup;
         }
 
+        public async Task<string?> GetLastPONumberAsync()
+        {
+            const string sql = @"
+                SELECT TOP 1 PONumber
+                FROM Purchase.RawMaterialPOHeader
+                WHERE IsDeleted = 0
+                ORDER BY Id DESC;";
+
+            return await _conn.QueryFirstOrDefaultAsync<string?>(sql);
+        }
+
         private const string HeaderSelect = @"
             SELECT
                 h.Id, h.UnitId, h.PONumber, h.PODate,

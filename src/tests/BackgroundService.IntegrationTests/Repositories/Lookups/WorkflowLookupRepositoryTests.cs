@@ -81,5 +81,18 @@ namespace BackgroundService.IntegrationTests.Repositories.Lookups
         // Skipped: source SQL references `ar.IsDeleted = 0`, but the ApprovalRequest
         // entity/table does not define an IsDeleted column (not a BaseEntity). A test
         // against the real schema surfaces "Invalid column name 'IsDeleted'".
+
+        // --- GetApprovalInfoAsync ---
+        // Deliberately does NOT filter ar.IsDeleted (the column does not exist — see note above).
+        // This test executes the real SQL against the schema; a no-match returns null and a bad
+        // column name would surface here.
+
+        [Fact]
+        public async Task GetApprovalInfoAsync_Should_Return_Null_When_Not_Approved()
+        {
+            var result = await CreateRepo().GetApprovalInfoAsync("OCR", 999999);
+
+            result.Should().BeNull();
+        }
     }
 }

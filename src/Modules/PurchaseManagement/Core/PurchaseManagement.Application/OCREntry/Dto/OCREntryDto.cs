@@ -13,9 +13,6 @@ namespace PurchaseManagement.Application.OCREntry.Dto
         public int ProcurementTypeId { get; set; }
         public string? ProcurementTypeName { get; set; }
 
-        public int BrokerDirectId { get; set; }
-        public string? BrokerDirectName { get; set; }
-
         public string? BrokerName { get; set; }
 
         public int? GradeId { get; set; }

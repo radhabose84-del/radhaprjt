@@ -67,7 +67,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             existing.OcrDate = entity.OcrDate;
             existing.ProcurementSourceId = entity.ProcurementSourceId;
             existing.ProcurementTypeId = entity.ProcurementTypeId;
-            existing.BrokerDirectId = entity.BrokerDirectId;
             existing.BrokerName = entity.BrokerName;
             existing.GradeId = entity.GradeId;
             existing.PaymentTermId = entity.PaymentTermId;

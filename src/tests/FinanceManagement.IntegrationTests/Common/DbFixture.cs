@@ -2,8 +2,10 @@ using Contracts.Interfaces;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using FinanceManagement.Application.Common.Interfaces;
 using FinanceManagement.Infrastructure.Data;
+using FinanceManagement.Infrastructure.Logging;
 using Shared.TestInfrastructure;
 
 namespace FinanceManagement.IntegrationTests.Common
@@ -152,6 +154,77 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'Finance')
             ";
 
             await conn.ExecuteAsync(sql, commandTimeout: 60);
+        }
+
+        // ---- US-GL02-09 audit-trail helpers ----
+
+        public const string AuditTable = "Finance.AccountAuditTrail";
+        public const string ImmutabilityTrigger = "trg_AccountAuditTrail_Immutable";
+
+        // Context with the audit-trail interceptor wired in (as production registers it). No retry
+        // strategy here — the interceptor's insert path does a nested SaveChanges in SavedChanges.
+        public ApplicationDbContext CreateAuditingDbContext()
+        {
+            var ipMock = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ipMock.Setup(x => x.GetSystemIPAddress()).Returns("127.0.0.1");
+            ipMock.Setup(x => x.GetUserIPAddress()).Returns("127.0.0.1");
+            ipMock.Setup(x => x.GetUserId()).Returns(372);
+            ipMock.Setup(x => x.GetUserName()).Returns("test-user");
+            ipMock.Setup(x => x.GetUserRole()).Returns("Finance Controller");
+            ipMock.Setup(x => x.GetCompanyId()).Returns(1);
+
+            var tzMock = new Mock<ITimeZoneService>(MockBehavior.Loose);
+            tzMock.Setup(x => x.GetSystemTimeZone()).Returns("UTC");
+            tzMock.Setup(x => x.GetCurrentTime(It.IsAny<string>())).Returns(DateTimeOffset.UtcNow);
+
+            var interceptor = new AccountAuditTrailSaveChangesInterceptor(ipMock.Object, tzMock.Object);
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseSqlServer(_testDbConnection)
+                .AddInterceptors((IInterceptor)interceptor)
+                .Options;
+
+            return new ApplicationDbContext(options, ipMock.Object, tzMock.Object);
+        }
+
+        public async Task ClearAuditTrailAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+            await conn.ExecuteAsync($"DELETE FROM {AuditTable};");
+        }
+
+        public async Task<int> CountAuditRowsAsync(string entityName, int entityId)
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+            return await conn.ExecuteScalarAsync<int>(
+                $"SELECT COUNT(1) FROM {AuditTable} WHERE EntityName=@e AND EntityId=@id",
+                new { e = entityName, id = entityId });
+        }
+
+        public async Task InstallImmutabilityTriggerAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+            await conn.ExecuteAsync($@"
+IF OBJECT_ID('Finance.{ImmutabilityTrigger}') IS NOT NULL DROP TRIGGER Finance.{ImmutabilityTrigger};
+EXEC('
+CREATE TRIGGER Finance.{ImmutabilityTrigger}
+ON {AuditTable}
+INSTEAD OF UPDATE, DELETE
+AS
+BEGIN
+    RAISERROR(''AUDIT_TRAIL_IMMUTABLE: Account audit records cannot be modified or deleted.'', 16, 1);
+    ROLLBACK TRANSACTION;
+END');");
+        }
+
+        public async Task DropImmutabilityTriggerAsync()
+        {
+            await using var conn = new SqlConnection(_testDbConnection);
+            await conn.OpenAsync();
+            await conn.ExecuteAsync(
+                $"IF OBJECT_ID('Finance.{ImmutabilityTrigger}') IS NOT NULL DROP TRIGGER Finance.{ImmutabilityTrigger};");
         }
 
         public async Task DisposeAsync()

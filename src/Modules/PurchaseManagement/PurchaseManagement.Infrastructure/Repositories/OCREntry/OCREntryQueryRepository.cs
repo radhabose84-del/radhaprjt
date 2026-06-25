@@ -44,12 +44,22 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             _qualityTemplateLookup = qualityTemplateLookup;
         }
 
+        public async Task<string?> GetLastOcrNumberAsync()
+        {
+            const string sql = @"
+                SELECT TOP 1 OcrNumber
+                FROM Purchase.OCREntry
+                WHERE IsDeleted = 0
+                ORDER BY Id DESC;";
+
+            return await _conn.QueryFirstOrDefaultAsync<string?>(sql);
+        }
+
         private const string BaseSelect = @"
             SELECT
                 o.Id, o.OcrNumber, o.OcrDate,
                 o.ProcurementSourceId, ps.Description AS ProcurementSourceName,
                 o.ProcurementTypeId, pt.Description AS ProcurementTypeName,
-                o.BrokerDirectId, bd.Description AS BrokerDirectName,
                 o.BrokerName,
                 o.GradeId, gr.Description AS GradeName,
                 o.PaymentTermId, pm.Description AS PaymentTermName,
@@ -74,7 +84,6 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             FROM Purchase.OCREntry o
             LEFT JOIN Purchase.MiscMaster ps ON o.ProcurementSourceId = ps.Id AND ps.IsDeleted = 0
             LEFT JOIN Purchase.MiscMaster pt ON o.ProcurementTypeId = pt.Id AND pt.IsDeleted = 0
-            LEFT JOIN Purchase.MiscMaster bd ON o.BrokerDirectId = bd.Id AND bd.IsDeleted = 0
             LEFT JOIN Purchase.MiscMaster gr ON o.GradeId = gr.Id AND gr.IsDeleted = 0
             LEFT JOIN Purchase.PaymentTermMaster pm ON o.PaymentTermId = pm.Id AND pm.IsDeleted = 0
             LEFT JOIN Purchase.MiscMaster st ON o.StatusId = st.Id AND st.IsDeleted = 0
@@ -295,6 +304,27 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
             const string sql = "SELECT COUNT(1) FROM Purchase.PaymentTermMaster WHERE Id = @Id AND IsActive = 1 AND IsDeleted = 0;";
             var count = await _conn.ExecuteScalarAsync<int>(sql, new { Id = id });
             return count > 0;
+        }
+
+        public async Task<(decimal? PerBale, decimal? Total)> GetFreightForOcrAsync(int ocrId)
+        {
+            // OCR → RawMaterialPOHeader (OcrId) → FreightRfqHeader (PoReferenceId).
+            // ApprovedRate / ApprovedFreightValue are null until the Freight RFQ is approved.
+            const string sql = @"
+                SELECT TOP 1 frh.ApprovedRate, frh.ApprovedFreightValue
+                FROM Purchase.RawMaterialPOHeader rmph
+                INNER JOIN Purchase.FreightRfqHeader frh ON frh.PoReferenceId = rmph.Id
+                WHERE rmph.OcrId = @OcrId AND rmph.IsDeleted = 0 AND frh.IsDeleted = 0
+                ORDER BY frh.Id DESC;";
+
+            var row = await _conn.QueryFirstOrDefaultAsync<FreightRow>(sql, new { OcrId = ocrId });
+            return (row?.ApprovedRate, row?.ApprovedFreightValue);
+        }
+
+        private sealed class FreightRow
+        {
+            public decimal? ApprovedRate { get; set; }
+            public decimal? ApprovedFreightValue { get; set; }
         }
 
         private async Task PopulateCrossModuleNamesAsync(List<OCREntryDto> items)

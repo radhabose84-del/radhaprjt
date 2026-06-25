@@ -23,5 +23,15 @@ namespace Contracts.Interfaces.Lookups.Workflow
             int unitId,
             int approvalRuleId,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns the final approver name + approved date for a transaction, taken from the
+        /// most recent AppData.ApprovalRequest row whose status is 'Approved'. Returns null
+        /// when the transaction has not been approved yet.
+        /// </summary>
+        Task<ApprovalInfoDto?> GetApprovalInfoAsync(
+            string workflowType,
+            int moduleTransactionId,
+            CancellationToken cancellationToken = default);
     }
 }
