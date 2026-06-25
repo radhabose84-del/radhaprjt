@@ -34,6 +34,8 @@ using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalThresho
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalImport;
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.SecurityViolationLog;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.ICoaReport;
+using FinanceManagement.Infrastructure.Repositories.CoaReport;
 using FinanceManagement.Application.Common.Interfaces.ICoaFreeze;
 using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
 using FinanceManagement.Application.Common.Interfaces.ICoaChangeRequest;
@@ -244,6 +246,12 @@ namespace FinanceManagement.Infrastructure
 
             // US-GL02-10 — multi-company COA inheritance + propagation of the global template.
             services.AddScoped<IGlobalCoaPropagationService, GlobalCoaPropagationService>();
+
+            // US-GL02-15 — COA listing & structure reports (read-only) + QuestPDF listing export.
+            // QuestPDF Community license is set once here (free under the Community terms).
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            services.AddScoped<ICoaReportQueryRepository, CoaReportQueryRepository>();
+            services.AddScoped<ICoaListingPdfBuilder, CoaListingPdfBuilder>();
 
             // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
             // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
