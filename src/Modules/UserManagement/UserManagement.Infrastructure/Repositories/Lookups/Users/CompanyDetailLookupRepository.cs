@@ -24,7 +24,7 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                     ca.AddressLine1, ca.AddressLine2,
                     ca.CityId, ca.StateId, ca.PinCode,
                     ca.Phone, cc.Email,
-                    c.Logo AS LogoUrl
+                    c.Logo AS Logo
                 FROM AppData.Unit u
                 INNER JOIN AppData.Company c ON u.CompanyId = c.Id AND c.IsDeleted = 0
                 LEFT JOIN AppData.CompanyAddress ca ON ca.CompanyId = c.Id
@@ -44,7 +44,7 @@ namespace UserManagement.Infrastructure.Repositories.Lookups.Users
                 var baseUrl = await _dbConnection.QueryFirstOrDefaultAsync<string?>(
                     new CommandDefinition(baseSql, cancellationToken: ct));
 
-                dto.LogoUrl = BuildLogoUrl(dto.LogoUrl, baseUrl);
+                dto.LogoUrl = BuildLogoUrl(dto.Logo, baseUrl);
             }
 
             return dto;

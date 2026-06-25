@@ -84,4 +84,8 @@ namespace FinanceManagement.QATests
 
     [CollectionDefinition("PeriodStatusOverrideCollection")]
     public sealed class PeriodStatusOverrideCollection : ICollectionFixture<QAServerFixture> { }
+
+    // US-GL02-15 — COA Listing & Structure Reports (read-only + PDF export).
+    [CollectionDefinition("CoaReportCollection")]
+    public sealed class CoaReportCollection : ICollectionFixture<QAServerFixture> { }
 }

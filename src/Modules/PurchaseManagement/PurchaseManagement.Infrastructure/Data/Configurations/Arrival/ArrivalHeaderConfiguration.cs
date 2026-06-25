@@ -57,6 +57,7 @@ namespace PurchaseManagement.Infrastructure.Data.Configurations.Arrival
             b.Property(x => x.PartyWeight).HasPrecision(18, 3);
             b.Property(x => x.WeightDifference).HasPrecision(18, 3);
             b.Property(x => x.MoisturePercentage).HasPrecision(5, 2);
+            b.Property(x => x.GstPercentage).HasPrecision(5, 2);
 
             // ── PR range ──
             b.Property(x => x.PRFrom).IsRequired(false);

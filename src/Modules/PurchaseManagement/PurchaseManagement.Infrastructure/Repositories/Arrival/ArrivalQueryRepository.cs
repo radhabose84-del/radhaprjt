@@ -74,6 +74,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
                 h.LorryIn, h.LorryOut,
                 h.GrossWeight, h.TareWeight, h.NetWeight, h.PartyWeight, h.WeightDifference,
                 h.MoisturePercentage,
+                h.GstPercentage,
                 h.PRFrom, h.PRTo,
                 h.QcStatusId,
                 h.Remarks, h.IsActive, h.IsDeleted,

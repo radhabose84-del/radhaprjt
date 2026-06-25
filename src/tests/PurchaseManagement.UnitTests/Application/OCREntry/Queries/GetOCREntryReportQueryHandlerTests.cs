@@ -119,6 +119,38 @@ namespace PurchaseManagement.UnitTests.Application.OCREntry.Queries
         }
 
         [Fact]
+        public async Task Handle_ReadsLogoBase64FromCompanyLogoFile()
+        {
+            SetupOcr(OCREntryBuilders.ValidDto(1));
+            var tempFile = Path.GetTempFileName();
+            var bytes = new byte[] { 1, 2, 3, 4, 5 };
+            await File.WriteAllBytesAsync(tempFile, bytes);
+            try
+            {
+                _mockCompany.Setup(c => c.GetByUnitIdAsync(37, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new CompanyDetailLookupDto { Logo = tempFile });
+
+                var result = await CreateSut().Handle(new GetOCREntryReportQuery(1), CancellationToken.None);
+
+                Find(result!, "logoBase64")!.Value.Should().Be(Convert.ToBase64String(bytes));
+            }
+            finally
+            {
+                File.Delete(tempFile);
+            }
+        }
+
+        [Fact]
+        public async Task Handle_NoLogoFile_LeavesLogoBase64Blank()
+        {
+            SetupOcr(OCREntryBuilders.ValidDto(1));
+
+            var result = await CreateSut().Handle(new GetOCREntryReportQuery(1), CancellationToken.None);
+
+            Find(result!, "logoBase64")!.Value.Should().BeEmpty();
+        }
+
+        [Fact]
         public async Task Handle_NotApproved_LeavesApprovalFieldsBlank()
         {
             SetupOcr(OCREntryBuilders.ValidDto(1));

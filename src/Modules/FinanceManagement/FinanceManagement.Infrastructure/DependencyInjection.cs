@@ -34,6 +34,8 @@ using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalThresho
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalImport;
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.SecurityViolationLog;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.ICoaReport;
+using FinanceManagement.Infrastructure.Repositories.CoaReport;
 using FinanceManagement.Application.Common.Interfaces.ICoaFreeze;
 using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
 using FinanceManagement.Application.Common.Interfaces.ICoaChangeRequest;
@@ -102,6 +104,10 @@ namespace FinanceManagement.Infrastructure
             // US-GL02-08B — configurable CFO/SysAdmin/FC/Internal-Audit role mapping + unfreeze window.
             services.Configure<FinanceManagement.Application.Common.Options.CoaUnfreezeOptions>(
                 configuration.GetSection(FinanceManagement.Application.Common.Options.CoaUnfreezeOptions.SectionName));
+
+            // US-GL02-10 — multi-company COA template company (binds "MultiCompanyCoa"; 0 if unset).
+            services.Configure<FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions>(
+                configuration.GetSection(FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions.SectionName));
 
             // Activity-log interceptor (writes Finance.ActivityLog for IActivityTracked entities)
             services.AddScoped<ActivityLogSaveChangesInterceptor>();
@@ -246,6 +252,15 @@ namespace FinanceManagement.Infrastructure
             // (Hangfire job lives in BackgroundService.Infrastructure.Jobs — registered there.)
             services.AddScoped<IFinancialYearMasterCommandRepository, FinancialYearMasterCommandRepository>();
             services.AddScoped<IFinancialYearMasterQueryRepository, FinancialYearMasterQueryRepository>();
+
+            // US-GL02-10 — multi-company COA inheritance + propagation of the global template.
+            services.AddScoped<IGlobalCoaPropagationService, GlobalCoaPropagationService>();
+
+            // US-GL02-15 — COA listing & structure reports (read-only) + QuestPDF listing export.
+            // QuestPDF Community license is set once here (free under the Community terms).
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            services.AddScoped<ICoaReportQueryRepository, CoaReportQueryRepository>();
+            services.AddScoped<ICoaListingPdfBuilder, CoaListingPdfBuilder>();
 
             // US-GL03-02 — Period status state machine + dual-approval reversal flow
             services.AddScoped<IPeriodStatusOverrideCommandRepository, PeriodStatusOverrideCommandRepository>();

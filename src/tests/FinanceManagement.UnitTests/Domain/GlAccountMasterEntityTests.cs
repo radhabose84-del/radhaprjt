@@ -82,5 +82,40 @@ namespace FinanceManagement.UnitTests.Domain
             entity.ImportLogId.Should().BeNull();
             entity.LastPostFreezeChangeOn.Should().BeNull();
         }
+
+        // ── US-GL02-10 Multi-Company COA ───────────────────────────────────────
+        [Fact]
+        public void GlAccountMaster_DefaultMultiCompanyFlags_ShouldBeFalse()
+        {
+            var entity = new GlAccountMaster();
+            entity.IsGlobal.Should().BeFalse();
+            entity.IsCompanyRestricted.Should().BeFalse();
+            entity.IsLocalOverride.Should().BeFalse();
+        }
+
+        [Fact]
+        public void GlAccountMaster_GlobalAccountId_ShouldDefaultNull_AndAcceptValue()
+        {
+            var entity = new GlAccountMaster();
+            entity.GlobalAccountId.Should().BeNull();
+
+            entity.GlobalAccountId = 99;
+            entity.GlobalAccountId.Should().Be(99);
+        }
+
+        [Fact]
+        public void GlAccountMaster_MultiCompanyFlags_ShouldBeAssignable()
+        {
+            var entity = new GlAccountMaster
+            {
+                IsGlobal = true,
+                IsCompanyRestricted = true,
+                IsLocalOverride = true
+            };
+
+            entity.IsGlobal.Should().BeTrue();
+            entity.IsCompanyRestricted.Should().BeTrue();
+            entity.IsLocalOverride.Should().BeTrue();
+        }
     }
 }

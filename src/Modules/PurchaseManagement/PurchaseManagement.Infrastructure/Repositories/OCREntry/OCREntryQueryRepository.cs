@@ -342,10 +342,11 @@ namespace PurchaseManagement.Infrastructure.Repositories.OCREntry
                 .ToDictionary(x => x.Id, x => x.StationName);
 
             // ISupplierLookup has no batch API — resolve distinct suppliers individually.
+            // OCR sources from a Supplier OR a Ginner, so resolve names for either party type.
             var supplierMap = new Dictionary<int, string?>();
             foreach (var supplierId in items.Select(x => x.SupplierId).Distinct())
             {
-                var supplier = await _supplierLookup.GetActiveSupplierByIdAsync(supplierId);
+                var supplier = await _supplierLookup.GetActiveSupplierOrGinnerByIdAsync(supplierId);
                 supplierMap[supplierId] = supplier?.VendorName;
             }
 

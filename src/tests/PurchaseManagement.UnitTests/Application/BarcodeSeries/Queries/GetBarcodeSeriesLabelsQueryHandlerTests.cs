@@ -2,15 +2,15 @@ using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
-using PurchaseManagement.Application.BarcodeAllocation.Dto;
-using PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationLabels;
-using PurchaseManagement.Application.Common.Interfaces.IBarcodeAllocation;
+using PurchaseManagement.Application.BarcodeSeries.Dto;
+using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesLabels;
+using PurchaseManagement.Application.Common.Interfaces.IBarcodeSeries;
 
-namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
+namespace PurchaseManagement.UnitTests.Application.BarcodeSeries.Queries
 {
-    public sealed class GetBarcodeAllocationLabelsQueryHandlerTests
+    public sealed class GetBarcodeSeriesLabelsQueryHandlerTests
     {
-        private readonly Mock<IBarcodeAllocationQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IBarcodeSeriesQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<ICompanyDetailLookup> _mockCompany = new(MockBehavior.Loose);
         private readonly Mock<IDivisionUnitLookup> _mockDivision = new(MockBehavior.Loose);
         private readonly Mock<ICityLookup> _mockCity = new(MockBehavior.Loose);
@@ -18,22 +18,21 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
-        private GetBarcodeAllocationLabelsQueryHandler CreateSut() => new(
+        private GetBarcodeSeriesLabelsQueryHandler CreateSut() => new(
             _mockQueryRepo.Object, _mockCompany.Object, _mockDivision.Object, _mockCity.Object,
             _mockState.Object, _mockIp.Object, _mockMediator.Object);
 
-        private static BarcodeAllocationDto Allocation(string prefix = "CTN", long from = 100002198, long to = 100002199) =>
+        private static BarcodeSeriesDto Series(string prefix = "BLC", long from = 100002211, long to = 100002212) =>
             new()
             {
-                Id = 7,
-                AllocationNumber = "BBA-2026-0007",
-                BarcodeSeriesNumber = "BCS-2026-0007",
+                Id = 10,
+                BarcodeSeriesNumber = "BCS-2026-0010",
                 Prefix = prefix,
-                BarcodeFrom = from,
-                BarcodeTo = to
+                BarcodeStartNumber = from,
+                BarcodeEndNumber = to
             };
 
-        private void SetupAllocation(BarcodeAllocationDto dto)
+        private void SetupSeries(BarcodeSeriesDto dto)
         {
             _mockQueryRepo.Setup(r => r.GetByIdAsync(dto.Id)).ReturnsAsync(dto);
             _mockIp.Setup(s => s.GetUnitId()).Returns(37);
@@ -44,9 +43,9 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         [Fact]
         public async Task Handle_NotFound_ReturnsNull()
         {
-            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((BarcodeAllocationDto?)null);
+            _mockQueryRepo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((BarcodeSeriesDto?)null);
 
-            var result = await CreateSut().Handle(new GetBarcodeAllocationLabelsQuery(99), CancellationToken.None);
+            var result = await CreateSut().Handle(new GetBarcodeSeriesLabelsQuery(99), CancellationToken.None);
 
             result.Should().BeNull();
         }
@@ -54,13 +53,14 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         [Fact]
         public async Task Handle_ExpandsRangeWithPrefix()
         {
-            SetupAllocation(Allocation("CTN", 100002198, 100002199));
+            SetupSeries(Series("BLC", 100002211, 100002212));
 
-            var result = await CreateSut().Handle(new GetBarcodeAllocationLabelsQuery(7), CancellationToken.None);
+            var result = await CreateSut().Handle(new GetBarcodeSeriesLabelsQuery(10), CancellationToken.None);
 
             result!.Labels.Should().HaveCount(2);
-            result.Labels[0].Barcode.Should().Be("CTN100002198");
-            result.Labels[1].Barcode.Should().Be("CTN100002199");
+            result.Labels[0].Barcode.Should().Be("BLC100002211");
+            result.Labels[1].Barcode.Should().Be("BLC100002212");
+            result.SeriesNumber.Should().Be("BCS-2026-0010");
             result.TotalCount.Should().Be(2);
             result.Truncated.Should().BeFalse();
         }
@@ -68,9 +68,9 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         [Fact]
         public async Task Handle_QrPayloadEqualsBarcode()
         {
-            SetupAllocation(Allocation("CTN", 100002198, 100002198));
+            SetupSeries(Series("BLC", 100002211, 100002211));
 
-            var result = await CreateSut().Handle(new GetBarcodeAllocationLabelsQuery(7), CancellationToken.None);
+            var result = await CreateSut().Handle(new GetBarcodeSeriesLabelsQuery(10), CancellationToken.None);
 
             result!.Labels[0].QrPayload.Should().Be(result.Labels[0].Barcode);
         }
@@ -78,7 +78,7 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         [Fact]
         public async Task Handle_PopulatesLetterheadFromJwt()
         {
-            SetupAllocation(Allocation());
+            SetupSeries(Series());
             _mockCompany.Setup(c => c.GetByUnitIdAsync(37, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CompanyDetailLookupDto
                 {
@@ -96,7 +96,7 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
             _mockState.Setup(s => s.GetByIdAsync(9, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new StateLookupDto { StateId = 9, StateName = "Tamil Nadu" });
 
-            var result = await CreateSut().Handle(new GetBarcodeAllocationLabelsQuery(7), CancellationToken.None);
+            var result = await CreateSut().Handle(new GetBarcodeSeriesLabelsQuery(10), CancellationToken.None);
 
             result!.Letterhead.CompanyName.Should().Be("BANNARI AMMAN SPINNING MILLS LTD");
             result.Letterhead.DivisionName.Should().Be("Spinning Division");
@@ -106,9 +106,9 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         [Fact]
         public async Task Handle_AgentDefaultIsDirect()
         {
-            SetupAllocation(Allocation());
+            SetupSeries(Series());
 
-            var result = await CreateSut().Handle(new GetBarcodeAllocationLabelsQuery(7), CancellationToken.None);
+            var result = await CreateSut().Handle(new GetBarcodeSeriesLabelsQuery(10), CancellationToken.None);
 
             result!.AgentDefault.Should().Be("DIRECT");
         }
@@ -116,9 +116,9 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         [Fact]
         public async Task Handle_LargeRange_TruncatesAtCap()
         {
-            SetupAllocation(Allocation("CTN", 1, 10000));
+            SetupSeries(Series("BLC", 1, 10000));
 
-            var result = await CreateSut().Handle(new GetBarcodeAllocationLabelsQuery(7), CancellationToken.None);
+            var result = await CreateSut().Handle(new GetBarcodeSeriesLabelsQuery(10), CancellationToken.None);
 
             result!.TotalCount.Should().Be(10000);
             result.Labels.Should().HaveCount(5000);
@@ -128,9 +128,9 @@ namespace PurchaseManagement.UnitTests.Application.BarcodeAllocation.Queries
         [Fact]
         public async Task Handle_PublishesAuditEvent()
         {
-            SetupAllocation(Allocation());
+            SetupSeries(Series());
 
-            await CreateSut().Handle(new GetBarcodeAllocationLabelsQuery(7), CancellationToken.None);
+            await CreateSut().Handle(new GetBarcodeSeriesLabelsQuery(10), CancellationToken.None);
 
             _mockMediator.Verify(
                 m => m.Publish(It.IsAny<INotification>(), It.IsAny<CancellationToken>()),

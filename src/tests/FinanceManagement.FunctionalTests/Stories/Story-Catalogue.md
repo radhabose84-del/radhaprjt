@@ -395,3 +395,61 @@ Base routes: `api/finance/FinancialPeriodStatus`, `api/finance/PeriodStatusOverr
 > (CFO + SysAdmin → period flip + override APPLIED) is atomic in one transaction
 > (`PeriodStatusOverrideCommandRepository.ApplyPeriodStatusChangeAsync`) — proven in the integration
 > tests under `FinanceManagement.IntegrationTests/Repositories/PeriodStatusOverride`.
+
+---
+
+## US-GL02-10 — Multi-Company COA (shared global template + entity-specific overrides)
+
+**User story:** As a Group Finance Controller, I want a global COA shared across entities with
+entity-specific overrides and company-restricted accounts, so group consistency is maintained while
+each entity keeps its specific accounts.
+
+**Pre-condition (seed):** `MultiCompanyCoa:TemplateCompanyId` configured to the group company, and
+≥2 companies sharing one `Company.EntityId` on the QA clone. Deep propagation (AC3) and restricted-
+posting (AC2) also need a coherent GL/journal seed, so they are exercised by the integration suite
+(`GlAccountMasterMultiCompanyTests`), not live. Model: per-company copies of `Finance.GlAccountMaster`
+linked by `GlobalAccountId`; `IsGlobal` / `IsCompanyRestricted` / `IsLocalOverride` flags.
+
+Base route: `api/finance/glaccountmaster`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — new subsidiary inherits template | Given a global COA, When POST `/inherit-global/{companyId}`, Then the subsidiary gains a linked copy of each non-restricted global account (idempotent; entity-specific accounts may also be added directly). | ⚠️ verify live (idempotent no-op without template config) |
+| AC2 — restricted account not postable cross-entity | Given a company-restricted account in entity A, When a user in entity B posts a journal line to it, Then 400 "restricted to another company". | 🚫 needs restricted account + cross-entity journal seed (integration-covered) |
+| AC3 — global change propagates except overrides | Given a global account with subsidiary copies, When the template is edited, Then non-overridden copies update and `IsLocalOverride` copies are skipped. | 🚫 needs template config + ≥2 companies (integration-covered) |
+| AC4 — consistency report flags single-entity accounts | Given the entity group, When GET `/consistency-report`, Then account codes present in only one company are returned, each with a flag (e.g. 'in Processing only'). | ✅ implementable (reachable; rows depend on data) |
+| AC5 — mandatory, profile-scoped company selector | Given the account screen, When GET `/selectable-companies`, Then only the user's assigned companies are returned; create blocks server-side when no active company is in session. | ✅ implementable |
+
+> **Implementation note:** Approach = global template + per-company copies (not shared rows), layered on
+> the existing per-company `GlAccountMaster`. Entity group = companies sharing `Company.EntityId`.
+> Propagation/inheritance via `IGlobalCoaPropagationService`. Config: `MultiCompanyCoa:TemplateCompanyId`
+> (0 = feature dormant). See memory `project_multicompany_coa_10`.
+
+---
+
+## US-GL02-15 — COA Listing & Structure Reports (read-only + PDF export)
+
+**User story:** As a Finance Controller / Auditor, I want a COA listing with hierarchy and attributes,
+an account-usage report, an FS-mapping validation report, and PDF export, so I can review structure
+and submit a clean COA to auditors.
+
+**Pre-condition (seed):** Read-only over existing COA / journal / Schedule III data; company from
+session. No configuration changes. PDF via QuestPDF (in-process). Posted = MiscMaster
+JOURNAL_STATUS/POSTED; balance-sheet = Schedule III Section.StatementType code 'BS'; balance from
+`Finance.LedgerBalance` (SUM(DrTotal-CrTotal)). AC3's BS-with-balance exclusion is data-specific and
+proven by the integration suite.
+
+Base route: `api/finance/coa-report`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — listing PDF with hierarchy + attributes | Given the COA, When GET `/listing/pdf`, Then a `%PDF` (application/pdf) renders (<10s target). | ✅ implementable (timing: ⚠️ verify live) |
+| AC2 — usage report performance | Given ~2,000 accounts, When GET `/account-usage`, Then it completes (<30s target). | ✅ implementable (timing: ⚠️ verify live) |
+| AC3 — exclude BS accounts with non-zero balance | Given a 'no posting in 12 months' run, When evaluated, Then balance-sheet accounts with a non-zero balance are NOT deactivation candidates. | 🚫 needs seeded stale BS+balance (integration-covered) |
+| AC4 — FS-mapping shows zero/lists remaining | Given the validator, When GET `/fs-mapping-validation`, Then `isClean` iff `unmappedCount = 0`, else the unmapped leaf groups are listed. | ✅ implementable |
+| AC5 — PDF suitable for auditor submission | Given the listing, When exported, Then the PDF carries company, generated-on, hierarchy indentation, attributes, posting counts and page numbers. | ✅ implementable |
+
+> **Implementation note:** Read-only Dapper aggregates (`CoaReportQueryRepository`) mirroring the
+> LedgerBalance read pattern; posting counts pre-aggregated on `JournalDetail.GlAccountId`. PDF =
+> `CoaListingPdfBuilder` (QuestPDF Community). Endpoints: `/listing`, `/listing/pdf`, `/account-usage`,
+> `/fs-mapping-validation`. No migration. See memory `project_coa_reports_15`.

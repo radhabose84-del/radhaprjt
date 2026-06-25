@@ -1,19 +1,19 @@
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Users;
 using MediatR;
-using PurchaseManagement.Application.BarcodeAllocation.Dto;
-using PurchaseManagement.Application.Common.Interfaces.IBarcodeAllocation;
+using PurchaseManagement.Application.BarcodeSeries.Dto;
+using PurchaseManagement.Application.Common.Interfaces.IBarcodeSeries;
 using PurchaseManagement.Domain.Events;
 
-namespace PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAllocationLabels
+namespace PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesLabels
 {
-    public class GetBarcodeAllocationLabelsQueryHandler
-        : IRequestHandler<GetBarcodeAllocationLabelsQuery, BarcodeLabelReportDto?>
+    public class GetBarcodeSeriesLabelsQueryHandler
+        : IRequestHandler<GetBarcodeSeriesLabelsQuery, BarcodeLabelReportDto?>
     {
         // Safety guard: never expand an unbounded range into one response.
         private const int MaxLabels = 5000;
 
-        private readonly IBarcodeAllocationQueryRepository _queryRepository;
+        private readonly IBarcodeSeriesQueryRepository _queryRepository;
         private readonly ICompanyDetailLookup _companyDetail;
         private readonly IDivisionUnitLookup _divisionLookup;
         private readonly ICityLookup _cityLookup;
@@ -21,8 +21,8 @@ namespace PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAll
         private readonly IIPAddressService _ipService;
         private readonly IMediator _mediator;
 
-        public GetBarcodeAllocationLabelsQueryHandler(
-            IBarcodeAllocationQueryRepository queryRepository,
+        public GetBarcodeSeriesLabelsQueryHandler(
+            IBarcodeSeriesQueryRepository queryRepository,
             ICompanyDetailLookup companyDetail,
             IDivisionUnitLookup divisionLookup,
             ICityLookup cityLookup,
@@ -39,10 +39,10 @@ namespace PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAll
             _mediator = mediator;
         }
 
-        public async Task<BarcodeLabelReportDto?> Handle(GetBarcodeAllocationLabelsQuery request, CancellationToken cancellationToken)
+        public async Task<BarcodeLabelReportDto?> Handle(GetBarcodeSeriesLabelsQuery request, CancellationToken cancellationToken)
         {
-            var allocation = await _queryRepository.GetByIdAsync(request.Id);
-            if (allocation == null)
+            var series = await _queryRepository.GetByIdAsync(request.Id);
+            if (series == null)
                 return null;
 
             // Letterhead — resolved from the logged-in company / division / unit (no schema link on the pool).
@@ -66,14 +66,14 @@ namespace PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAll
             }
 
             // Expand the range into individual barcodes (prefix + number), capped for safety.
-            long from = allocation.BarcodeFrom;
-            long to = allocation.BarcodeTo;
+            long from = series.BarcodeStartNumber;
+            long to = series.BarcodeEndNumber;
             long fullCount = to >= from ? to - from + 1 : 0;
 
             var labels = new List<BarcodeLabelItemDto>();
             for (long n = from; n <= to && labels.Count < MaxLabels; n++)
             {
-                var code = $"{allocation.Prefix}{n}";
+                var code = $"{series.Prefix}{n}";
                 labels.Add(new BarcodeLabelItemDto { Barcode = code, QrPayload = code });
             }
 
@@ -85,9 +85,8 @@ namespace PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAll
                     DivisionName = divisionName,
                     Address = BuildAddress(company?.AddressLine1, company?.AddressLine2, cityName, company?.PinCode, stateName)
                 },
-                AllocationNumber = allocation.AllocationNumber,
-                SeriesNumber = allocation.BarcodeSeriesNumber,
-                Prefix = allocation.Prefix,
+                SeriesNumber = series.BarcodeSeriesNumber,
+                Prefix = series.Prefix,
                 TotalCount = fullCount,
                 Truncated = fullCount > MaxLabels,
                 Labels = labels
@@ -95,10 +94,10 @@ namespace PurchaseManagement.Application.BarcodeAllocation.Queries.GetBarcodeAll
 
             var domainEvent = new AuditLogsDomainEvent(
                 actionDetail: "GetLabels",
-                actionCode: "GetBarcodeAllocationLabelsQuery",
-                actionName: allocation.Id.ToString(),
-                details: $"Barcode allocation labels {allocation.Id} were generated.",
-                module: "BarcodeAllocation");
+                actionCode: "GetBarcodeSeriesLabelsQuery",
+                actionName: series.Id.ToString(),
+                details: $"Barcode series labels {series.Id} were generated.",
+                module: "BarcodeSeries");
             await _mediator.Publish(domainEvent, cancellationToken);
 
             return report;

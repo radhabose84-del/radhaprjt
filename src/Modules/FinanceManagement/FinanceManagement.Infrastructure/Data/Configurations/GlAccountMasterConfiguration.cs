@@ -114,6 +114,29 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.LastPostFreezeChangeOn)
                 .HasColumnName("LastPostFreezeChangeOn");
 
+            // ── US-GL02-10 Multi-Company COA (Shared vs Entity-specific) ──────────────
+            builder.Property(t => t.IsGlobal)
+                .HasColumnName("IsGlobal")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            builder.Property(t => t.IsCompanyRestricted)
+                .HasColumnName("IsCompanyRestricted")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            builder.Property(t => t.GlobalAccountId)
+                .HasColumnName("GlobalAccountId")
+                .HasColumnType("int");
+
+            builder.Property(t => t.IsLocalOverride)
+                .HasColumnName("IsLocalOverride")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")
@@ -141,6 +164,8 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasIndex(t => t.AccountTypeId);
             builder.HasIndex(t => t.AccountGroupId);
             builder.HasIndex(t => t.ImportLogId);
+            // US-GL02-10 — propagation looks copies up by their template (AC3)
+            builder.HasIndex(t => t.GlobalAccountId);
 
             // Same-module FK relationships (with reverse navigation collections)
             builder.HasOne(t => t.AccountTypeMaster)
@@ -168,6 +193,13 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasOne(t => t.CurrencyTypeConfig)
                 .WithMany()
                 .HasForeignKey(t => t.CurrencyTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // US-GL02-10 self-reference: a global template row (parent) -> its per-company copies.
+            // Restrict so a template in use by subsidiaries cannot be deleted out from under them.
+            builder.HasOne(t => t.GlobalAccount)
+                .WithMany(g => g.CompanyCopies)
+                .HasForeignKey(t => t.GlobalAccountId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

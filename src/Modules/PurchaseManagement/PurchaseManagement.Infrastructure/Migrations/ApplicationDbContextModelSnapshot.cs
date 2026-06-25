@@ -192,6 +192,10 @@ namespace PurchaseManagement.Infrastructure.Migrations
                         .HasPrecision(18, 3)
                         .HasColumnType("decimal(18,3)");
 
+                    b.Property<decimal?>("GstPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("InvoiceGstNo")
                         .HasColumnType("varchar(20)");
 
