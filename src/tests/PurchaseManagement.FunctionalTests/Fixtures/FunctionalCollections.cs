@@ -16,3 +16,9 @@ public sealed class ProcureToReceiptReadinessCollection : ICollectionFixture<QAS
 
 [CollectionDefinition("US-PUR-05-DocumentNumberingPreview")]
 public sealed class DocumentNumberingPreviewCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-PUR-06-OcrOrderConfirmationReport")]
+public sealed class OcrOrderConfirmationReportCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-PUR-07-BarcodeSeriesLabels")]
+public sealed class BarcodeSeriesLabelsCollection : ICollectionFixture<QAServerFixture> { }

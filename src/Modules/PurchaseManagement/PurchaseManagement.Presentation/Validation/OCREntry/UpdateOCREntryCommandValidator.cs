@@ -58,7 +58,7 @@ namespace PurchaseManagement.Presentation.Validation.OCREntry
 
             RuleFor(x => x.SupplierId)
                 .GreaterThan(0).WithMessage("SupplierId is required.")
-                .MustAsync(async (id, ct) => await supplierLookup.GetActiveSupplierByIdAsync(id, ct) != null)
+                .MustAsync(async (id, ct) => await supplierLookup.GetActiveSupplierOrGinnerByIdAsync(id, ct) != null)
                 .WithMessage("SupplierId is inactive/deleted.")
                 .When(x => x.SupplierId > 0);
 
