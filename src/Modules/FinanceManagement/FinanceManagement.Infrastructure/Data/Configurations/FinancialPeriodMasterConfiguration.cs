@@ -51,6 +51,14 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
                 .HasDefaultValue(false)
                 .IsRequired();
 
+            // US-GL03-02 — denormalised last-status-change audit pointers
+            builder.Property(t => t.LastStatusChangedBy)
+                .HasColumnName("LastStatusChangedBy")
+                .HasColumnType("int");
+
+            builder.Property(t => t.LastStatusChangedAt)
+                .HasColumnName("LastStatusChangedAt");
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")

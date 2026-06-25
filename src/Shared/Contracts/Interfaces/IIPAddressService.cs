@@ -25,4 +25,10 @@ public interface IIPAddressService
     // (US-GL02-09). Default returns null so implementations that don't surface roles (design-time
     // stubs, etc.) need no change; the real IPAddressService reads the role claims from the JWT.
     string? GetUserRole() => null;
+
+    // Role-comparison helpers used by authorization checks (US-GL03-02 posting gate, period-status
+    // dual-approval). Default implementations stay safe for design-time stubs / non-HTTP contexts.
+    IReadOnlyList<string> GetRoles() => Array.Empty<string>();
+    bool IsInRole(string roleName) => false;
+    bool IsInAnyRole(IEnumerable<string> roleNames) => false;
 }

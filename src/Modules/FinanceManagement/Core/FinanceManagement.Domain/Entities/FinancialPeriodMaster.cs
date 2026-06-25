@@ -16,8 +16,15 @@ namespace FinanceManagement.Domain.Entities
 
         public bool IsAdjustmentPeriod { get; set; }        // true for Period 13
 
+        // US-GL03-02 — denormalised audit-trail snapshot for fast /status reads
+        public int? LastStatusChangedBy { get; set; }
+        public DateTimeOffset? LastStatusChangedAt { get; set; }
+
         // Same-module FK navigation
         public FinancialYearMaster? FinancialYear { get; set; }
         public MiscMaster? StatusMaster { get; set; }
+
+        // Reverse navigation — US-GL03-02 override history
+        public ICollection<PeriodStatusOverride>? Overrides { get; set; }
     }
 }

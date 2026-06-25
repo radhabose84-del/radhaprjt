@@ -20,5 +20,12 @@ namespace FinanceManagement.Domain.Entities
         // for Status (MiscTypeCode = 'FYS' for years; 'FPS' for periods)
         public ICollection<FinancialYearMaster>?   FinancialYearsAsStatus   { get; set; }
         public ICollection<FinancialPeriodMaster>? FinancialPeriodsAsStatus { get; set; }
+
+        // Reverse navigation — PeriodStatusOverride uses MiscMaster three times
+        //   FromStatusId / ToStatusId  (MiscTypeCode = 'FPS')
+        //   OverrideStatusId           (MiscTypeCode = 'PSO')
+        public ICollection<PeriodStatusOverride>? PeriodStatusOverridesAsFrom         { get; set; }
+        public ICollection<PeriodStatusOverride>? PeriodStatusOverridesAsTo           { get; set; }
+        public ICollection<PeriodStatusOverride>? PeriodStatusOverridesAsOverrideState { get; set; }
     }
 }

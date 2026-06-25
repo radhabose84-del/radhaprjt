@@ -41,6 +41,8 @@ using FinanceManagement.Infrastructure.Repositories.CoaChangeRequest;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
 using FinanceManagement.Application.Common.Interfaces.IFinancialYearMaster;
 using FinanceManagement.Infrastructure.Repositories.FinancialYearMaster;
+using FinanceManagement.Application.Common.Interfaces.IPeriodStatusOverride;
+using FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride;
 using FinanceManagement.Application.Common.Interfaces.ICostCentre;
 using FinanceManagement.Application.Common.Interfaces.IProfitCentre;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
@@ -244,6 +246,11 @@ namespace FinanceManagement.Infrastructure
             // (Hangfire job lives in BackgroundService.Infrastructure.Jobs — registered there.)
             services.AddScoped<IFinancialYearMasterCommandRepository, FinancialYearMasterCommandRepository>();
             services.AddScoped<IFinancialYearMasterQueryRepository, FinancialYearMasterQueryRepository>();
+
+            // US-GL03-02 — Period status state machine + dual-approval reversal flow
+            services.AddScoped<IPeriodStatusOverrideCommandRepository, PeriodStatusOverrideCommandRepository>();
+            services.AddScoped<IPeriodStatusOverrideQueryRepository, PeriodStatusOverrideQueryRepository>();
+            services.AddScoped<IPeriodPostingGate, FinanceManagement.Infrastructure.Services.PeriodPostingGate>();
 
             // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
             // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
