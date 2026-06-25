@@ -22,3 +22,6 @@ public sealed class OcrOrderConfirmationReportCollection : ICollectionFixture<QA
 
 [CollectionDefinition("US-PUR-07-BarcodeSeriesLabels")]
 public sealed class BarcodeSeriesLabelsCollection : ICollectionFixture<QAServerFixture> { }
+
+[CollectionDefinition("US-PUR-08-ArrivalInward")]
+public sealed class ArrivalInwardCollection : ICollectionFixture<QAServerFixture> { }
