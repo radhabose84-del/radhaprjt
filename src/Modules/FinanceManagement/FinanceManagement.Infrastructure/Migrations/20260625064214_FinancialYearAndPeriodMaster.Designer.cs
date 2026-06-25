@@ -4,6 +4,7 @@ using FinanceManagement.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625064214_FinancialYearAndPeriodMaster")]
+    partial class FinancialYearAndPeriodMaster
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2124,10 +2127,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(500)")
                         .HasColumnName("Description");
 
-                    b.Property<int?>("GlobalAccountId")
-                        .HasColumnType("int")
-                        .HasColumnName("GlobalAccountId");
-
                     b.Property<int?>("ImportLogId")
                         .HasColumnType("int")
                         .HasColumnName("ImportLogId");
@@ -2135,12 +2134,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsCompanyRestricted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IsCompanyRestricted");
 
                     b.Property<bool>("IsCostCentreMandatory")
                         .ValueGeneratedOnAdd()
@@ -2152,23 +2145,11 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
-                    b.Property<bool>("IsGlobal")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IsGlobal");
-
                     b.Property<bool>("IsInterCompany")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false)
                         .HasColumnName("IsInterCompany");
-
-                    b.Property<bool>("IsLocalOverride")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IsLocalOverride");
 
                     b.Property<bool>("IsProfitCentreMandatory")
                         .ValueGeneratedOnAdd()
@@ -2225,8 +2206,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("CurrencyTypeId");
-
-                    b.HasIndex("GlobalAccountId");
 
                     b.HasIndex("ImportLogId");
 
@@ -5137,11 +5116,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FinanceManagement.Domain.Entities.GlAccountMaster", "GlobalAccount")
-                        .WithMany("CompanyCopies")
-                        .HasForeignKey("GlobalAccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "NormalBalanceMaster")
                         .WithMany("GlAccountsAsNormalBalance")
                         .HasForeignKey("NormalBalanceId")
@@ -5159,8 +5133,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("AccountTypeMaster");
 
                     b.Navigation("CurrencyTypeConfig");
-
-                    b.Navigation("GlobalAccount");
 
                     b.Navigation("NormalBalanceMaster");
 
@@ -5757,11 +5729,6 @@ namespace FinanceManagement.Infrastructure.Migrations
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportLog", b =>
                 {
                     b.Navigation("Errors");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountMaster", b =>
-                {
-                    b.Navigation("CompanyCopies");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GstrSectionMaster", b =>
