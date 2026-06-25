@@ -15,5 +15,10 @@ namespace FinanceManagement.Domain.Entities
         // Reverse navigation — GlAccountMaster uses MiscMaster twice (NormalBalance + SubLedgerType)
         public ICollection<GlAccountMaster>? GlAccountsAsNormalBalance { get; set; }
         public ICollection<GlAccountMaster>? GlAccountsAsSubLedgerType { get; set; }
+
+        // Reverse navigation — FinancialYearMaster / FinancialPeriodMaster use MiscMaster
+        // for Status (MiscTypeCode = 'FYS' for years; 'FPS' for periods)
+        public ICollection<FinancialYearMaster>?   FinancialYearsAsStatus   { get; set; }
+        public ICollection<FinancialPeriodMaster>? FinancialPeriodsAsStatus { get; set; }
     }
 }
