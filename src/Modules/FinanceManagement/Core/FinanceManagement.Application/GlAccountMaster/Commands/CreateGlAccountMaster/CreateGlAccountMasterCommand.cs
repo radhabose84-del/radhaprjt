@@ -19,6 +19,14 @@ namespace FinanceManagement.Application.GlAccountMaster.Commands.CreateGlAccount
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }
 
+        // US-GL02-10 — when true the Group FC is authoring a global/template account (must be on the
+        // template company); it fans out to every subsidiary of the entity (AC1/AC3).
+        public bool IsGlobal { get; set; }
+
+        // US-GL02-10 (AC2) — restricts the account to its owning entity: never inherited/propagated and
+        // not postable from another entity. Mutually exclusive with IsGlobal.
+        public bool IsCompanyRestricted { get; set; }
+
         public PermissionType RequiredPermission => PermissionType.CanAdd;
     }
 }

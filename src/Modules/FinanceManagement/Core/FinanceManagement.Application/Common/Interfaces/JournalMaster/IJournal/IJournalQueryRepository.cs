@@ -36,6 +36,9 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
         // FK validation helpers (same-module direct SQL).
         Task<bool> VoucherTypeExistsAsync(int voucherTypeId, int companyId);
         Task<bool> GlAccountExistsAsync(int glAccountId, int companyId);
+        // US-GL02-10 (AC2) — of the given accounts, those flagged IsCompanyRestricted that belong to a
+        // company OTHER than the posting company (they may not be posted to from another entity).
+        Task<IReadOnlyCollection<int>> GetForeignRestrictedAccountIdsAsync(IEnumerable<int> glAccountIds, int companyId);
         Task<IReadOnlyCollection<int>> GetCostCentreMandatoryAccountIdsAsync(IEnumerable<int> glAccountIds);
         Task<bool> CostCentreExistsAsync(int costCentreId);
         Task<bool> ProfitCentreExistsAsync(int profitCentreId);

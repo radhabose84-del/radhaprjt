@@ -114,4 +114,61 @@ public sealed class GlAccountMasterQATests
     {
         await Task.CompletedTask;
     }
+
+    // ── US-GL02-10 Multi-Company COA ──────────────────────────────────────────
+    // AC5 — the mandatory, profile-scoped company selector.
+    [Fact, TestPriority(20)]
+    [Trait("Layer", "Smoke")]
+    public async Task TC020_SelectableCompanies_HappyPath_Returns200()
+    {
+        var resp = await _f.Client.GetAsync($"{Route}/selectable-companies");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var root = (await ParseAsync(resp)).RootElement;
+        root.TryGetProperty("data", out var data).Should().BeTrue();
+        data.ValueKind.Should().Be(JsonValueKind.Array);
+    }
+
+    [Fact, TestPriority(21)]
+    public async Task TC021_SelectableCompanies_NoAuth_Returns401()
+    {
+        var resp = await _f.AnonymousClient.GetAsync($"{Route}/selectable-companies");
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    // AC4 — single-entity consistency report.
+    [Fact, TestPriority(22)]
+    [Trait("Layer", "Smoke")]
+    public async Task TC022_ConsistencyReport_HappyPath_Returns200()
+    {
+        var resp = await _f.Client.GetAsync($"{Route}/consistency-report");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var root = (await ParseAsync(resp)).RootElement;
+        root.TryGetProperty("data", out var data).Should().BeTrue();
+        data.ValueKind.Should().Be(JsonValueKind.Array);
+    }
+
+    [Fact, TestPriority(23)]
+    public async Task TC023_ConsistencyReport_NoAuth_Returns401()
+    {
+        var resp = await _f.AnonymousClient.GetAsync($"{Route}/consistency-report");
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    // AC1 — inherit the global template into a subsidiary (idempotent; no-op when no template company
+    // is configured on the clone, so the count is simply >= 0).
+    [Fact, TestPriority(24)]
+    public async Task TC024_InheritGlobal_NoAuth_Returns401()
+    {
+        var resp = await _f.AnonymousClient.PostAsync($"{Route}/inherit-global/1", content: null);
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact, TestPriority(25)]
+    public async Task TC025_InheritGlobal_HappyPath_Returns200_WithCount()
+    {
+        var resp = await _f.Client.PostAsync($"{Route}/inherit-global/1", content: null);
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        var root = (await ParseAsync(resp)).RootElement;
+        root.GetProperty("data").GetInt32().Should().BeGreaterThanOrEqualTo(0);
+    }
 }

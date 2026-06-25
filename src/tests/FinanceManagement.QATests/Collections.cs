@@ -73,4 +73,8 @@ namespace FinanceManagement.QATests
     // US-GL02-09 — Account Master Audit Trail & Version History (read-only viewer + export).
     [CollectionDefinition("AccountAuditTrailCollection")]
     public sealed class AccountAuditTrailCollection : ICollectionFixture<QAServerFixture> { }
+
+    // US-GL02-15 — COA Listing & Structure Reports (read-only + PDF export).
+    [CollectionDefinition("CoaReportCollection")]
+    public sealed class CoaReportCollection : ICollectionFixture<QAServerFixture> { }
 }

@@ -80,6 +80,11 @@ namespace FinanceManagement.Presentation.Validation.JournalMaster.Journal
                     .MustAsync(AllAccountsExistAsync)
                     .WithMessage("One or more GL accounts do not exist or are inactive.");
 
+                // US-GL02-10 (AC2) — block posting to an account that is restricted to another entity.
+                RuleFor(x => x)
+                    .MustAsync(NoForeignRestrictedAccountsAsync)
+                    .WithMessage("One or more GL accounts are restricted to another company and cannot be posted to from this entity.");
+
                 RuleFor(x => x)
                     .MustAsync(PAndLLinesHaveCostCentreAsync)
                     .WithMessage("A cost centre is required on lines whose account is cost-centre mandatory (P&L).");
@@ -107,6 +112,13 @@ namespace FinanceManagement.Presentation.Validation.JournalMaster.Journal
                     return false;
             }
             return true;
+        }
+
+        private async Task<bool> NoForeignRestrictedAccountsAsync(UpdateJournalCommand command, CancellationToken ct)
+        {
+            var accIds = command.Lines.Select(l => l.GlAccountId).Distinct().Where(i => i > 0).ToList();
+            var foreignRestricted = await _queryRepository.GetForeignRestrictedAccountIdsAsync(accIds, CompanyId());
+            return foreignRestricted.Count == 0;
         }
 
         private async Task<bool> PAndLLinesHaveCostCentreAsync(UpdateJournalCommand command, CancellationToken ct)

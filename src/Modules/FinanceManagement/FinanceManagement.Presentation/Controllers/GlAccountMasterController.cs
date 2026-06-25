@@ -1,14 +1,17 @@
 using FinanceManagement.Application.GlAccountMaster.Commands.AddGlAccountFavourite;
 using FinanceManagement.Application.GlAccountMaster.Commands.CreateGlAccountMaster;
 using FinanceManagement.Application.GlAccountMaster.Commands.DeleteGlAccountMaster;
+using FinanceManagement.Application.GlAccountMaster.Commands.InitializeSubsidiaryCoa;
 using FinanceManagement.Application.GlAccountMaster.Commands.RecordGlAccountRecent;
 using FinanceManagement.Application.GlAccountMaster.Commands.RemoveGlAccountFavourite;
 using FinanceManagement.Application.GlAccountMaster.Commands.UpdateGlAccountMaster;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetAllGlAccountMaster;
+using FinanceManagement.Application.GlAccountMaster.Queries.GetCoaConsistencyReport;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountFavourites;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountMasterAutoComplete;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountMasterById;
 using FinanceManagement.Application.GlAccountMaster.Queries.GetGlAccountSearch;
+using FinanceManagement.Application.GlAccountMaster.Queries.GetSelectableCompanies;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -161,6 +164,37 @@ namespace FinanceManagement.Presentation.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
                 message = result ? "GL Account deleted successfully." : "Failed to delete GL Account."
+            });
+        }
+
+        // ── US-GL02-10 Multi-Company COA ───────────────────────────────────────
+        // AC5 — companies the current user may pick in the mandatory company selector.
+        [HttpGet("selectable-companies")]
+        public async Task<IActionResult> GetSelectableCompaniesAsync()
+        {
+            var result = await Mediator.Send(new GetSelectableCompaniesQuery());
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data });
+        }
+
+        // AC4 — accounts present in only one company of the current entity group.
+        [HttpGet("consistency-report")]
+        public async Task<IActionResult> GetConsistencyReportAsync()
+        {
+            var result = await Mediator.Send(new GetCoaConsistencyReportQuery());
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result.Data, TotalCount = result.TotalCount });
+        }
+
+        // AC1 — seed a subsidiary's COA from the global template (FC-invoked).
+        [HttpPost("inherit-global/{companyId}")]
+        public async Task<IActionResult> InheritGlobalCoaAsync(int companyId)
+        {
+            var result = await Mediator.Send(new InitializeSubsidiaryCoaCommand { CompanyId = companyId });
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data
             });
         }
     }

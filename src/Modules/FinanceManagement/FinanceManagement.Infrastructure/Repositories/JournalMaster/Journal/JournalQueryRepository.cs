@@ -430,6 +430,20 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = glAccountId, CompanyId = companyId });
         }
 
+        // US-GL02-10 (AC2) — a company-restricted account may only be posted to from its owning entity.
+        public async Task<IReadOnlyCollection<int>> GetForeignRestrictedAccountIdsAsync(IEnumerable<int> glAccountIds, int companyId)
+        {
+            var ids = glAccountIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return Array.Empty<int>();
+
+            const string sql = @"
+                SELECT Id FROM Finance.GlAccountMaster
+                WHERE Id IN @Ids AND IsCompanyRestricted = 1 AND CompanyId <> @CompanyId AND IsDeleted = 0";
+            var result = await _dbConnection.QueryAsync<int>(sql, new { Ids = ids, CompanyId = companyId });
+            return result.ToList();
+        }
+
         public async Task<IReadOnlyCollection<int>> GetCostCentreMandatoryAccountIdsAsync(IEnumerable<int> glAccountIds)
         {
             var ids = glAccountIds.Distinct().ToList();
