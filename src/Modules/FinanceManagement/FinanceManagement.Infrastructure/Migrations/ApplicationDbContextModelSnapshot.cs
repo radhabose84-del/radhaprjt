@@ -1653,6 +1653,14 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
 
+                    b.Property<DateTimeOffset?>("LastStatusChangedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("LastStatusChangedAt");
+
+                    b.Property<int?>("LastStatusChangedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("LastStatusChangedBy");
+
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
                         .HasColumnName("ModifiedBy");
@@ -3380,6 +3388,127 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasFilter("[Status] = 0");
 
                     b.ToTable("OutboxMessages", "Finance");
+                });
+
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.PeriodStatusOverride", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("AppliedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("AppliedAt");
+
+                    b.Property<DateTimeOffset?>("CfoApprovedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CfoApprovedAt");
+
+                    b.Property<int?>("CfoApproverId")
+                        .HasColumnType("int")
+                        .HasColumnName("CfoApproverId");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("CompanyId");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedBy");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("CreatedByName");
+
+                    b.Property<DateTimeOffset?>("CreatedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<string>("CreatedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("CreatedIP");
+
+                    b.Property<int>("FinancialPeriodId")
+                        .HasColumnType("int")
+                        .HasColumnName("FinancialPeriodId");
+
+                    b.Property<int>("FromStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("FromStatusId");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<int?>("ModifiedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("ModifiedBy");
+
+                    b.Property<string>("ModifiedByName")
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ModifiedByName");
+
+                    b.Property<DateTimeOffset?>("ModifiedDate")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ModifiedDate");
+
+                    b.Property<string>("ModifiedIP")
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ModifiedIP");
+
+                    b.Property<int>("OverrideStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("OverrideStatusId");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("RejectionReason");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("RequestedAt");
+
+                    b.Property<int>("RequestedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("RequestedBy");
+
+                    b.Property<string>("RequestedReason")
+                        .IsRequired()
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("RequestedReason");
+
+                    b.Property<DateTimeOffset?>("SysAdminApprovedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("SysAdminApprovedAt");
+
+                    b.Property<int?>("SysAdminApproverId")
+                        .HasColumnType("int")
+                        .HasColumnName("SysAdminApproverId");
+
+                    b.Property<int>("ToStatusId")
+                        .HasColumnType("int")
+                        .HasColumnName("ToStatusId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("FinancialPeriodId");
+
+                    b.HasIndex("FromStatusId");
+
+                    b.HasIndex("OverrideStatusId");
+
+                    b.HasIndex("ToStatusId");
+
+                    b.ToTable("PeriodStatusOverride", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ProfitCentre", b =>
@@ -5386,6 +5515,41 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("MiscTypeMaster");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.PeriodStatusOverride", b =>
+                {
+                    b.HasOne("FinanceManagement.Domain.Entities.FinancialPeriodMaster", "FinancialPeriod")
+                        .WithMany("Overrides")
+                        .HasForeignKey("FinancialPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "FromStatusMaster")
+                        .WithMany("PeriodStatusOverridesAsFrom")
+                        .HasForeignKey("FromStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "OverrideStatusMaster")
+                        .WithMany("PeriodStatusOverridesAsOverrideState")
+                        .HasForeignKey("OverrideStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "ToStatusMaster")
+                        .WithMany("PeriodStatusOverridesAsTo")
+                        .HasForeignKey("ToStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FinancialPeriod");
+
+                    b.Navigation("FromStatusMaster");
+
+                    b.Navigation("OverrideStatusMaster");
+
+                    b.Navigation("ToStatusMaster");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.ProfitCentre", b =>
                 {
                     b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "LevelMaster")
@@ -5749,6 +5913,11 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("EWaybillDetails");
                 });
 
+            modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialPeriodMaster", b =>
+                {
+                    b.Navigation("Overrides");
+                });
+
             modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialYearMaster", b =>
                 {
                     b.Navigation("Periods");
@@ -5788,6 +5957,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("GlAccountsAsNormalBalance");
 
                     b.Navigation("GlAccountsAsSubLedgerType");
+
+                    b.Navigation("PeriodStatusOverridesAsFrom");
+
+                    b.Navigation("PeriodStatusOverridesAsOverrideState");
+
+                    b.Navigation("PeriodStatusOverridesAsTo");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscTypeMaster", b =>

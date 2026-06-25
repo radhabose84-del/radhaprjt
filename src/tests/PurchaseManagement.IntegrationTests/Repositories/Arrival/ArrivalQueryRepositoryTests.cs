@@ -98,6 +98,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
                 RawMaterialPOId = rmpoId, VehicleNumber = "TN-38-BC-4521",
                 SupplierId = 10, StationId = 12, GodownId = 5, TransporterId = 7,
                 GrossWeight = 30000m, TareWeight = 10000m, NetWeight = 20000m, PartyWeight = 19900m, WeightDifference = -100m,
+                GstPercentage = 5m,
                 QcStatusId = qcId, IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted,
                 ArrivalDetails = new List<ArrivalDetail>
                 {
@@ -165,6 +166,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
 
             dto.Should().NotBeNull();
             dto!.ArrivalNumber.Should().Be("ARV-Q-0001");
+            dto.GstPercentage.Should().Be(5m);
             dto.PONumber.Should().Be("PO-2025-0012");
             dto.SupplierName.Should().Be("Sree Lakshmi Cotton");
             dto.TransporterName.Should().Be("TCI Freight");

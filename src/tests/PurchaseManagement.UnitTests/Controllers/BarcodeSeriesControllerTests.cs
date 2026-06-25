@@ -8,6 +8,7 @@ using PurchaseManagement.Application.BarcodeSeries.Dto;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeries;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesAutoComplete;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesById;
+using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesLabels;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetNextBarcodeSeriesNumber;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetNextBarcodeStartNumber;
 using PurchaseManagement.Presentation.Controllers;
@@ -42,6 +43,16 @@ namespace PurchaseManagement.UnitTests.Controllers
             await CreateSut().GetAllBarcodeSeriesAsync(1, 10);
 
             _mockMediator.Verify(m => m.Send(It.IsAny<GetBarcodeSeriesQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetLabels_ReturnsOkResult()
+        {
+            _mockMediator
+                .Setup(m => m.Send(It.IsAny<GetBarcodeSeriesLabelsQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new BarcodeLabelReportDto());
+
+            (await CreateSut().GetLabelsAsync(10)).Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]

@@ -46,6 +46,11 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                 .InclusiveBetween(0m, 100m).WithMessage("Moisture % must be between 0 and 100.")
                 .When(x => x.MoisturePercentage.HasValue);
 
+            RuleFor(x => x.GstPercentage)
+                .NotNull().WithMessage("GST % is required.")
+                .InclusiveBetween(0m, 100m).WithMessage("GST % must be between 0 and 100.")
+                .When(x => x.GstPercentage.HasValue);
+
             RuleFor(x => x.SupplierId)
                 .GreaterThan(0).WithMessage("Supplier is required.")
                 .MustAsync(async (id, ct) => await supplierLookup.GetActiveSupplierByIdAsync(id, ct) != null)

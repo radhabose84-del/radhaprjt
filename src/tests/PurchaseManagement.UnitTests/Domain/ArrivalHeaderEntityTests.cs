@@ -36,13 +36,15 @@ namespace PurchaseManagement.UnitTests.Domain
                 TareWeight = 10000m,
                 NetWeight = 20000m,
                 PartyWeight = 19900m,
-                WeightDifference = -100m
+                WeightDifference = -100m,
+                GstPercentage = 5m
             };
 
             entity.Id.Should().Be(1);
             entity.ArrivalNumber.Should().Be("ARV-2025-0006");
             entity.NetWeight.Should().Be(20000m);
             entity.WeightDifference.Should().Be(-100m);
+            entity.GstPercentage.Should().Be(5m);
         }
     }
 }

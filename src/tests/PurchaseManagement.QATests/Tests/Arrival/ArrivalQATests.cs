@@ -43,6 +43,7 @@ public sealed class ArrivalQATests
             stationId = 1,
             godownId = 1,
             transporterId = 1,
+            gstPercentage = 5,
             lotNo = "QA-LOT-001"
         });
 

@@ -16,6 +16,9 @@ namespace Contracts.Dtos.Lookups.Users
         public string? Phone { get; set; }
         public string? Email { get; set; }
 
+        /// <summary>Stored logo path/file name (raw). Used server-side to read the file for base64.</summary>
+        public string? Logo { get; set; }
+
         /// <summary>
         /// Public URL of the company logo, built from the 'CompanyLogoPath' base
         /// (AppData.MiscTypeMaster) + the stored logo file name. Null when no logo is set.

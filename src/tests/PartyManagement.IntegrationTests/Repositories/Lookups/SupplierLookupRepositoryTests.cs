@@ -225,5 +225,57 @@ namespace PartyManagement.IntegrationTests.Repositories.Lookups
             var result = await CreateRepo().GetActiveSupplierByIdAsync(0);
             result.Should().BeNull();
         }
+
+        // OCR sources cotton from a Supplier OR a Ginner — GetActiveSupplierOrGinnerByIdAsync accepts both.
+
+        [Fact]
+        public async Task GetActiveSupplierOrGinnerById_ReturnsSupplier_WhenActive()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var supplierMiscId = await SeedSupplierMiscAsync("Supplier");
+            var groupId = await SeedPartyGroupAsync(supplierMiscId);
+            var partyId = await SeedPartyAsync(supplierMiscId, groupId, "SUP020", "Delta Supply Co");
+
+            var result = await CreateRepo().GetActiveSupplierOrGinnerByIdAsync(partyId);
+
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(partyId);
+            result.VendorName.Should().Be("Delta Supply Co");
+        }
+
+        [Fact]
+        public async Task GetActiveSupplierOrGinnerById_ReturnsGinner_WhenActive()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var ginnerMiscId = await SeedSupplierMiscAsync("Ginner");
+            var groupId = await SeedPartyGroupAsync(ginnerMiscId);
+            var partyId = await SeedPartyAsync(ginnerMiscId, groupId, "GIN001", "Annamalai Ginning Mills");
+
+            var result = await CreateRepo().GetActiveSupplierOrGinnerByIdAsync(partyId);
+
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(partyId);
+            result.VendorName.Should().Be("Annamalai Ginning Mills");
+        }
+
+        [Fact]
+        public async Task GetActiveSupplierOrGinnerById_ReturnsNull_WhenNeitherSupplierNorGinner()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var customerMiscId = await SeedSupplierMiscAsync("Customer");
+            var groupId = await SeedPartyGroupAsync(customerMiscId);
+            var partyId = await SeedPartyAsync(customerMiscId, groupId, "CUS002", "Some Customer");
+
+            var result = await CreateRepo().GetActiveSupplierOrGinnerByIdAsync(partyId);
+
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetActiveSupplierOrGinnerById_ReturnsNull_ForZeroId()
+        {
+            var result = await CreateRepo().GetActiveSupplierOrGinnerByIdAsync(0);
+            result.Should().BeNull();
+        }
     }
 }
