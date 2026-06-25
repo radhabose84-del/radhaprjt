@@ -34,4 +34,11 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <!-- Companion SQL scripts loaded by EF migrations at runtime. -->
+  <ItemGroup>
+    <None Update="Migrations\Scripts\*.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
