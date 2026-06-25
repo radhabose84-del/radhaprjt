@@ -12,9 +12,12 @@ namespace FinanceManagement.Presentation.Validation.PeriodStatusOverride
                 .GreaterThan(0)
                 .WithMessage("Period Id is required.");
 
+            // NotEmpty must be in its own RuleFor — otherwise the .When predicate skips it.
             RuleFor(x => x.TargetStatusCode)
                 .NotEmpty()
-                .WithMessage("Target Status Code is required.")
+                .WithMessage("Target Status Code is required.");
+
+            RuleFor(x => x.TargetStatusCode)
                 .Must(code =>
                     string.Equals(code, PeriodStatusConstants.Open,       StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(code, PeriodStatusConstants.SoftClosed, StringComparison.OrdinalIgnoreCase))
