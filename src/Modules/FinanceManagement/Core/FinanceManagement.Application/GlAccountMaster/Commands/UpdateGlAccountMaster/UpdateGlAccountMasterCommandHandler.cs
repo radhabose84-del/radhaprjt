@@ -10,17 +10,20 @@ namespace FinanceManagement.Application.GlAccountMaster.Commands.UpdateGlAccount
     {
         private readonly IGlAccountMasterCommandRepository _commandRepository;
         private readonly IGlAccountMasterQueryRepository _queryRepository;
+        private readonly IGlobalCoaPropagationService _propagationService;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateGlAccountMasterCommandHandler(
             IGlAccountMasterCommandRepository commandRepository,
             IGlAccountMasterQueryRepository queryRepository,
+            IGlobalCoaPropagationService propagationService,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
+            _propagationService = propagationService;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -38,6 +41,10 @@ namespace FinanceManagement.Application.GlAccountMaster.Commands.UpdateGlAccount
             var entity = _mapper.Map<Domain.Entities.GlAccountMaster>(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);
+
+            // US-GL02-10 (AC3) — if this is a global template account, push the edit to its per-company
+            // copies (skipping any that carry a local override). No-op for non-global accounts.
+            await _propagationService.PropagateUpdateAsync(request.Id, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",

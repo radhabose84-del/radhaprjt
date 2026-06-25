@@ -26,6 +26,10 @@ namespace FinanceManagement.Application.Common.Interfaces.IGlAccountMaster
         Task<bool> SoftDeleteValidationAsync(int id);
         Task<bool> IsGlAccountLinkedAsync(int id);
 
+        // US-GL02-10 (AC4) — account codes that exist in exactly one of the given entity-group companies.
+        // Returns AccountCode + AccountName + the single owning CompanyId (CompanyName/Flag filled by handler).
+        Task<List<CoaConsistencyReportItemDto>> GetSingleEntityAccountsAsync(IReadOnlyCollection<int> companyIds);
+
         // US-GL02-07 type-ahead: prefix/contains match across code, name, description, group & type names;
         // optional type filter + group-subtree filter; activeOnly excludes inactive. TOP @take.
         Task<IReadOnlyList<AccountSearchResultDto>> SearchAsync(

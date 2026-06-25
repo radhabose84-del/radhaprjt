@@ -296,6 +296,27 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
 
         public Task<bool> IsGlAccountLinkedAsync(int id) => Task.FromResult(false);
 
+        // US-GL02-10 (AC4) — group account codes across the entity-group companies and keep only those
+        // present in exactly one company. MIN(...) is safe because the HAVING guarantees a single company.
+        public async Task<List<CoaConsistencyReportItemDto>> GetSingleEntityAccountsAsync(IReadOnlyCollection<int> companyIds)
+        {
+            if (companyIds == null || companyIds.Count == 0)
+                return new List<CoaConsistencyReportItemDto>();
+
+            const string sql = @"
+                SELECT am.AccountCode,
+                       MIN(am.AccountName) AS AccountName,
+                       MIN(am.CompanyId)   AS CompanyId
+                FROM Finance.GlAccountMaster am
+                WHERE am.IsDeleted = 0 AND am.CompanyId IN @CompanyIds
+                GROUP BY am.AccountCode
+                HAVING COUNT(DISTINCT am.CompanyId) = 1
+                ORDER BY am.AccountCode ASC";
+
+            var rows = await _dbConnection.QueryAsync<CoaConsistencyReportItemDto>(sql, new { CompanyIds = companyIds });
+            return rows.ToList();
+        }
+
         // ── US-GL02-07 type-ahead ──────────────────────────────────────────────
         private const string SearchSelect = @"
             am.Id, am.AccountCode, am.AccountName,

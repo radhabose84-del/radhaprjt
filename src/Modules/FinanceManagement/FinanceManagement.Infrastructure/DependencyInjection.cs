@@ -99,6 +99,10 @@ namespace FinanceManagement.Infrastructure
             services.Configure<FinanceManagement.Application.Common.Options.CoaUnfreezeOptions>(
                 configuration.GetSection(FinanceManagement.Application.Common.Options.CoaUnfreezeOptions.SectionName));
 
+            // US-GL02-10 — multi-company COA template company (binds "MultiCompanyCoa"; 0 if unset).
+            services.Configure<FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions>(
+                configuration.GetSection(FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions.SectionName));
+
             // Activity-log interceptor (writes Finance.ActivityLog for IActivityTracked entities)
             services.AddScoped<ActivityLogSaveChangesInterceptor>();
 
@@ -237,6 +241,9 @@ namespace FinanceManagement.Infrastructure
 
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
+
+            // US-GL02-10 — multi-company COA inheritance + propagation of the global template.
+            services.AddScoped<IGlobalCoaPropagationService, GlobalCoaPropagationService>();
 
             // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
             // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
