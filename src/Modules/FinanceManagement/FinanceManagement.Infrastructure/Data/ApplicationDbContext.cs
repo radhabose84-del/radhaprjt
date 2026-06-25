@@ -47,6 +47,10 @@ namespace FinanceManagement.Infrastructure.Data
 
         public DbSet<CurrencyForexConfig> CurrencyForexConfig => Set<CurrencyForexConfig>();
 
+        // US-GL03-01 — Financial Year + auto-generated 13 periods (12 monthly + Period 13 adjustment).
+        public DbSet<FinancialYearMaster> FinancialYearMaster => Set<FinancialYearMaster>();
+        public DbSet<FinancialPeriodMaster> FinancialPeriodMaster => Set<FinancialPeriodMaster>();
+
         // Cost Centre master & 3-level hierarchy (US-GL05-01)
         public DbSet<CostCentre> CostCentre => Set<CostCentre>();
 
