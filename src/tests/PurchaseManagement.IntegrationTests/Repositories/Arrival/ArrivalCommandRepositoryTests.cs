@@ -53,6 +53,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
                 PartyWeight = 19900m,
                 WeightDifference = -100m,
                 MoisturePercentage = 7.5m,
+                GstPercentage = 5m,
                 QcStatusId = qcStatusId,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted,
@@ -153,6 +154,7 @@ namespace PurchaseManagement.IntegrationTests.Repositories.Arrival
             var saved = await ctx.Set<ArrivalHeader>().Include(h => h.ArrivalDetails).FirstAsync(x => x.Id == newId);
             saved.ArrivalNumber.Should().Be("ARV-2025-0007");
             saved.NetWeight.Should().Be(20000m);
+            saved.GstPercentage.Should().Be(5m);
             saved.ArrivalDetails.Should().HaveCount(1);
             saved.ArrivalDetails!.First().BalanceQty.Should().Be(350m);
         }

@@ -29,6 +29,7 @@ namespace PurchaseManagement.UnitTests.TestData
                 PartyWeight = 19900m,
                 WeightDifference = -100m,
                 MoisturePercentage = 7.5m,
+                GstPercentage = 5m,
                 Details = new List<CreateArrivalDetailDto>
                 {
                     new()
@@ -58,6 +59,7 @@ namespace PurchaseManagement.UnitTests.TestData
                 NetWeight = 20000m,
                 PartyWeight = 19900m,
                 WeightDifference = -100m,
+                GstPercentage = 5m,
                 QcStatusId = 1,
                 IsActive = isActive,
                 Details = new List<UpdateArrivalDetailDto>
@@ -90,6 +92,7 @@ namespace PurchaseManagement.UnitTests.TestData
                 NetWeight = 20000m,
                 PartyWeight = 19900m,
                 WeightDifference = -100m,
+                GstPercentage = 5m,
                 QcStatusId = 1,
                 IsActive = Status.Active,
                 IsDeleted = IsDelete.NotDeleted,
@@ -118,6 +121,7 @@ namespace PurchaseManagement.UnitTests.TestData
                 NetWeight = 20000m,
                 PartyWeight = 19900m,
                 WeightDifference = -100m,
+                GstPercentage = 5m,
                 IsActive = true,
                 IsDeleted = false,
                 Details = new List<ArrivalDetailDto>

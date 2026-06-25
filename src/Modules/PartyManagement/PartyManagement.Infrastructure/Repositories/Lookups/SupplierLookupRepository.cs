@@ -85,5 +85,34 @@ namespace PartyManagement.Infrastructure.Repositories.Lookups
             return await _dbConnection.QueryFirstOrDefaultAsync<SupplierLookupDto>(
                 new CommandDefinition(sql, new { PartyId = partyId, UnitId = unitId }, cancellationToken: ct));
         }
+
+        public async Task<SupplierLookupDto?> GetActiveSupplierOrGinnerByIdAsync(
+            int partyId, CancellationToken ct = default)
+        {
+            if (partyId <= 0)
+                return null;
+
+            var unitId = _ipAddressService.GetUnitId() ?? 0;
+
+            // OCR sources cotton from a Supplier OR a Ginner — accept either party type.
+            const string sql = @"
+                SELECT TOP 1
+                       a.Id,
+                       a.PartyCode AS VendorCode,
+                       a.PartyName AS VendorName
+                FROM Party.PartyMaster a
+                INNER JOIN Party.PartyType pt ON pt.PartyId = a.Id
+                INNER JOIN Party.MiscMaster mm ON mm.Id = pt.PartyTypeId
+                INNER JOIN Party.PartyUnitCompanyMapping uc ON uc.PartyId = a.Id AND uc.UnitId = @UnitId
+                WHERE a.Id = @PartyId
+                  AND a.IsActive = 1
+                  AND a.IsDeleted = 0
+                  AND mm.IsActive = 1
+                  AND mm.IsDeleted = 0
+                  AND UPPER(mm.Code) IN ('SUPPLIER', 'GINNER');";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<SupplierLookupDto>(
+                new CommandDefinition(sql, new { PartyId = partyId, UnitId = unitId }, cancellationToken: ct));
+        }
     }
 }

@@ -129,6 +129,28 @@ namespace PurchaseManagement.UnitTests.Validators.Arrival
         }
 
         [Fact]
+        public async Task Validate_MissingGstPercentage_FailsValidation()
+        {
+            SetupAllValid();
+            var command = ArrivalBuilders.ValidCreateCommand();
+            command.GstPercentage = null;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldHaveValidationErrorFor(x => x.GstPercentage);
+        }
+
+        [Fact]
+        public async Task Validate_GstPercentageAbove100_FailsValidation()
+        {
+            SetupAllValid();
+            var command = ArrivalBuilders.ValidCreateCommand();
+            command.GstPercentage = 150m;
+
+            var result = await CreateValidator().TestValidateAsync(command);
+            result.ShouldHaveValidationErrorFor(x => x.GstPercentage);
+        }
+
+        [Fact]
         public async Task Validate_NonOverlappingBaleRanges_WithinPayload_PassesValidation()
         {
             SetupAllValid();

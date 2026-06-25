@@ -36,7 +36,7 @@ namespace PurchaseManagement.UnitTests.Validators.OCREntry
         {
             _mockQueryRepo.Setup(r => r.MiscMasterExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.PaymentTermExistsAsync(It.IsAny<int>())).ReturnsAsync(true);
-            _mockSupplier.Setup(s => s.GetActiveSupplierByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            _mockSupplier.Setup(s => s.GetActiveSupplierOrGinnerByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SupplierLookupDto { Id = 10, VendorName = "Ginner" });
             _mockLocation.Setup(l => l.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new LocationMasterLookupDto { Id = 11, LocationName = "CBE" });
@@ -77,7 +77,7 @@ namespace PurchaseManagement.UnitTests.Validators.OCREntry
         public async Task Validate_InvalidSupplier_FailsValidation()
         {
             SetupAllValid();
-            _mockSupplier.Setup(s => s.GetActiveSupplierByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            _mockSupplier.Setup(s => s.GetActiveSupplierOrGinnerByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((SupplierLookupDto?)null);
 
             var result = await CreateValidator().TestValidateAsync(OCREntryBuilders.ValidCreateCommand());

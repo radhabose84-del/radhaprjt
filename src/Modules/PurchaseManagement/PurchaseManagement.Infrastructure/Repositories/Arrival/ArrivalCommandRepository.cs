@@ -82,6 +82,7 @@ namespace PurchaseManagement.Infrastructure.Repositories.Arrival
             existing.PartyWeight = entity.PartyWeight;
             existing.WeightDifference = entity.WeightDifference;
             existing.MoisturePercentage = entity.MoisturePercentage;
+            existing.GstPercentage = entity.GstPercentage;
             existing.QcStatusId = entity.QcStatusId;
             existing.Remarks = entity.Remarks;
             existing.IsActive = entity.IsActive;

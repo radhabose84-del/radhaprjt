@@ -7,6 +7,7 @@ using PurchaseManagement.Application.BarcodeSeries.Command.UpdateBarcodeSeries;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeries;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesAutoComplete;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesById;
+using PurchaseManagement.Application.BarcodeSeries.Queries.GetBarcodeSeriesLabels;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetNextBarcodeSeriesNumber;
 using PurchaseManagement.Application.BarcodeSeries.Queries.GetNextBarcodeStartNumber;
 
@@ -51,6 +52,14 @@ namespace PurchaseManagement.Presentation.Controllers
         public async Task<IActionResult> GetAutoCompleteAsync([FromQuery] string? term = null)
         {
             var result = await Mediator.Send(new GetBarcodeSeriesAutoCompleteQuery(term));
+            return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
+        }
+
+        // Print-ready bale-barcode labels (letterhead + expanded barcode list + QR payload).
+        [HttpGet("{id}/labels")]
+        public async Task<IActionResult> GetLabelsAsync(int id)
+        {
+            var result = await Mediator.Send(new GetBarcodeSeriesLabelsQuery(id));
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 
