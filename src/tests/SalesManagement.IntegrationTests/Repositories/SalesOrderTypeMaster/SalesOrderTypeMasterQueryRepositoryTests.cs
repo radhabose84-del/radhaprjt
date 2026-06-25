@@ -1,5 +1,6 @@
 using Contracts.Dtos.Lookups.Finance;
 using Contracts.Dtos.Lookups.Users;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
@@ -17,7 +18,9 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderTypeMaster
         private readonly DbFixture _fixture;
         public SalesOrderTypeMasterQueryRepositoryTests(DbFixture fixture) => _fixture = fixture;
 
-        private SalesOrderTypeMasterQueryRepository CreateRepo()
+        // allowedIds: null (default) -> unrestricted (existing tests are unaffected);
+        // empty -> deny all; [ids] -> restrict to those SalesOrderTypeMaster.Id values.
+        private SalesOrderTypeMasterQueryRepository CreateRepo(IReadOnlyList<int>? allowedIds = null)
         {
             var tx = new Mock<ITransactionTypeLookup>(MockBehavior.Loose);
             tx.Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>()))
@@ -27,8 +30,12 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderTypeMaster
             ccy.Setup(l => l.GetByIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<CurrencyLookupDto>());
 
+            var policy = new Mock<IAccessPolicyService>(MockBehavior.Loose);
+            policy.Setup(p => p.GetAllowedValueIdsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(allowedIds);
+
             return new SalesOrderTypeMasterQueryRepository(
-                new SqlConnection(_fixture.ConnectionString), tx.Object, ccy.Object);
+                new SqlConnection(_fixture.ConnectionString), tx.Object, ccy.Object, policy.Object);
         }
 
         private async Task<int> EnsureSoTypeIdAsync(string code = MiscMasterCodes.SO_NORMAL)
@@ -164,6 +171,48 @@ namespace SalesManagement.IntegrationTests.Repositories.SalesOrderTypeMaster
 
             result.Should().HaveCount(1);
             result[0].TypeName.Should().Be("AC Active");
+        }
+
+        [Fact]
+        public async Task AutocompleteAsync_Policy_Null_Should_Return_All()
+        {
+            await ClearAsync();
+            await SeedAsync("POL Alpha", taxTypeId: 1);
+            await SeedAsync("POL Beta", taxTypeId: 2);
+
+            // null allowedIds -> unrestricted (bypass/admin or policy not configured)
+            var result = await CreateRepo(allowedIds: null).AutocompleteAsync("POL", CancellationToken.None);
+
+            result.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public async Task AutocompleteAsync_Policy_Empty_Should_Deny_All()
+        {
+            await ClearAsync();
+            await SeedAsync("POL Alpha", taxTypeId: 1);
+            await SeedAsync("POL Beta", taxTypeId: 2);
+
+            // empty allowedIds -> policy configured but no values assigned to the user's roles
+            var result = await CreateRepo(allowedIds: new List<int>()).AutocompleteAsync("POL", CancellationToken.None);
+
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task AutocompleteAsync_Policy_Restricted_Should_Return_Only_Allowed()
+        {
+            await ClearAsync();
+            var allowedId = await SeedAsync("POL Alpha", taxTypeId: 1);
+            await SeedAsync("POL Beta", taxTypeId: 2);
+
+            // [ids] -> restrict to the assigned SalesOrderTypeMaster.Id values
+            var result = await CreateRepo(allowedIds: new List<int> { allowedId })
+                .AutocompleteAsync("POL", CancellationToken.None);
+
+            result.Should().ContainSingle();
+            result[0].Id.Should().Be(allowedId);
+            result[0].TypeName.Should().Be("POL Alpha");
         }
 
         [Fact]

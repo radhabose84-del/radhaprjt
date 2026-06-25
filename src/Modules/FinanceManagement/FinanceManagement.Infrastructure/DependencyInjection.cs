@@ -39,6 +39,8 @@ using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
 using FinanceManagement.Application.Common.Interfaces.ICoaChangeRequest;
 using FinanceManagement.Infrastructure.Repositories.CoaChangeRequest;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
+using FinanceManagement.Application.Common.Interfaces.IFinancialYearMaster;
+using FinanceManagement.Infrastructure.Repositories.FinancialYearMaster;
 using FinanceManagement.Application.Common.Interfaces.ICostCentre;
 using FinanceManagement.Application.Common.Interfaces.IProfitCentre;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
@@ -238,6 +240,11 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
 
+            // US-GL03-01 — Financial Year + auto-generated 13 periods
+            // (Hangfire job lives in BackgroundService.Infrastructure.Jobs — registered there.)
+            services.AddScoped<IFinancialYearMasterCommandRepository, FinancialYearMasterCommandRepository>();
+            services.AddScoped<IFinancialYearMasterQueryRepository, FinancialYearMasterQueryRepository>();
+
             // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
             // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
             services.AddScoped<IGlAccountUserPrefStore, GlAccountUserPrefRepository>();
@@ -290,6 +297,7 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
             services.AddScoped<ITaxCodeLookup, TaxCodeLookupRepository>();
+            services.AddScoped<IFinancialPeriodMasterLookup, FinancialPeriodMasterLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically
