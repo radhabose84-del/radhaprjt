@@ -3,7 +3,7 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Dto
     public class PeriodStatusOverrideDto
     {
         public int Id { get; set; }
-        public int FinancialPeriodId { get; set; }
+        public int AccountingPeriodId { get; set; }
         public string? FinancialYearCode { get; set; }
         public string? PeriodName { get; set; }
         public int CompanyId { get; set; }

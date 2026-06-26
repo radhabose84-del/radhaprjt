@@ -15,11 +15,9 @@ namespace UserManagement.Domain.Entities
         public IList<CustomField> CustomFieldDataTypes { get; set; } = new List<CustomField>();
         public IList<CustomField> CustomFieldLabelTypes { get; set; } = new List<CustomField>();
         public IList<Unit>? Units { get; set; }
-        // public IList<CustomField> CustomFieldDataTypes { get; set; }
-        // public IList<CustomField> CustomFieldLabelTypes { get; set; }
 
-
-
-
+        // US-GL03-01 refactor (2026-06-26) — FinancialYear.StatusId references this table for the
+        // Open/Closed FYS lifecycle. Reverse navigation lets EF Core map the FK without ambiguity.
+        public ICollection<FinancialYear>? FinancialYearsAsStatus { get; set; }
     }
 }

@@ -16,13 +16,8 @@ namespace FinanceManagement.Domain.Entities
         public ICollection<GlAccountMaster>? GlAccountsAsNormalBalance { get; set; }
         public ICollection<GlAccountMaster>? GlAccountsAsSubLedgerType { get; set; }
 
-        // Reverse navigation — FinancialYearMaster / FinancialPeriodMaster use MiscMaster
-        // for Status (MiscTypeCode = 'FYS' for years; 'FPS' for periods)
-        public ICollection<FinancialYearMaster>?   FinancialYearsAsStatus   { get; set; }
-        public ICollection<FinancialPeriodMaster>? FinancialPeriodsAsStatus { get; set; }
-
         // Reverse navigation — PeriodStatusOverride uses MiscMaster three times
-        //   FromStatusId / ToStatusId  (MiscTypeCode = 'FPS')
+        //   FromStatusId / ToStatusId  (MiscTypeCode = 'FPS' — OPEN/SOFTCLOSED/HARDCLOSED)
         //   OverrideStatusId           (MiscTypeCode = 'PSO')
         public ICollection<PeriodStatusOverride>? PeriodStatusOverridesAsFrom         { get; set; }
         public ICollection<PeriodStatusOverride>? PeriodStatusOverridesAsTo           { get; set; }

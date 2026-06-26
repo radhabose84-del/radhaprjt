@@ -41,8 +41,6 @@ using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
 using FinanceManagement.Application.Common.Interfaces.ICoaChangeRequest;
 using FinanceManagement.Infrastructure.Repositories.CoaChangeRequest;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
-using FinanceManagement.Application.Common.Interfaces.IFinancialYearMaster;
-using FinanceManagement.Infrastructure.Repositories.FinancialYearMaster;
 using FinanceManagement.Application.Common.Interfaces.IPeriodStatusOverride;
 using FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride;
 using FinanceManagement.Application.Common.Interfaces.ICostCentre;
@@ -252,10 +250,10 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
 
-            // US-GL03-01 — Financial Year + auto-generated 13 periods
-            // (Hangfire job lives in BackgroundService.Infrastructure.Jobs — registered there.)
-            services.AddScoped<IFinancialYearMasterCommandRepository, FinancialYearMasterCommandRepository>();
-            services.AddScoped<IFinancialYearMasterQueryRepository, FinancialYearMasterQueryRepository>();
+            // US-GL03-01..05 (refactor 2026-06-26) — Financial Year management moved to UserManagement
+            // (AppData.FinancialYear). The Finance.FinancialYearMaster + FinancialPeriodMaster tables
+            // were dropped; period state now lives on Finance.AccountingPeriod (with IsAdjustmentPeriod
+            // for Period 13).
 
             // US-GL02-10 — multi-company COA inheritance + propagation of the global template.
             services.AddScoped<IGlobalCoaPropagationService, GlobalCoaPropagationService>();
@@ -271,7 +269,7 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IPeriodStatusOverrideQueryRepository, PeriodStatusOverrideQueryRepository>();
             services.AddScoped<IPeriodPostingGate, FinanceManagement.Infrastructure.Services.PeriodPostingGate>();
 
-            // US-GL03-04 — backdate enforcement service (pure decision; reads FinancialPeriodMaster).
+            // US-GL03-04 — backdate enforcement service (pure decision; reads Finance.AccountingPeriod).
             services.AddScoped<
                 FinanceManagement.Application.Common.Interfaces.JournalMaster.IBackdateEnforcement.IBackdateEnforcementService,
                 FinanceManagement.Infrastructure.Services.BackdateEnforcementService>();
@@ -328,7 +326,8 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
             services.AddScoped<ITaxCodeLookup, TaxCodeLookupRepository>();
-            services.AddScoped<IFinancialPeriodMasterLookup, FinancialPeriodMasterLookupRepository>();
+            // US-GL03-01..05 (refactor 2026-06-26) — period lookup against Finance.AccountingPeriod.
+            services.AddScoped<IAccountingPeriodLookup, AccountingPeriodLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically

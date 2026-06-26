@@ -24,7 +24,7 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.HasKey(t => t.Id);
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
-            builder.Property(t => t.FinancialPeriodId).HasColumnName("FinancialPeriodId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.AccountingPeriodId).HasColumnName("AccountingPeriodId").HasColumnType("int").IsRequired();
             builder.Property(t => t.CompanyId).HasColumnName("CompanyId").HasColumnType("int").IsRequired();
 
             builder.Property(t => t.FromStatusId).HasColumnName("FromStatusId").HasColumnType("int").IsRequired();
@@ -63,14 +63,14 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.ModifiedByName).HasColumnName("ModifiedByName").HasColumnType("varchar(100)");
             builder.Property(t => t.ModifiedIP).HasColumnName("ModifiedIP").HasColumnType("varchar(50)");
 
-            builder.HasIndex(t => t.FinancialPeriodId);
+            builder.HasIndex(t => t.AccountingPeriodId);
             builder.HasIndex(t => t.OverrideStatusId);
             builder.HasIndex(t => t.CompanyId);
 
-            // FinancialPeriodMaster (Restrict — keep override history even if period soft-deleted)
-            builder.HasOne(t => t.FinancialPeriod)
-                .WithMany(fp => fp.Overrides)
-                .HasForeignKey(t => t.FinancialPeriodId)
+            // AccountingPeriod (Restrict — keep override history even if period soft-deleted)
+            builder.HasOne(t => t.AccountingPeriod)
+                .WithMany()
+                .HasForeignKey(t => t.AccountingPeriodId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Three FKs to MiscMaster — each binds to its own reverse collection

@@ -55,7 +55,7 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Commands.RejectPeri
             var entity = new Domain.Entities.PeriodStatusOverride
             {
                 Id                  = ovr.Id,
-                FinancialPeriodId   = ovr.FinancialPeriodId,
+                AccountingPeriodId   = ovr.AccountingPeriodId,
                 CompanyId           = ovr.CompanyId,
                 FromStatusId        = ovr.FromStatusId,
                 ToStatusId          = ovr.ToStatusId,

@@ -55,6 +55,27 @@ namespace UserManagement.Infrastructure.Data.Configurations
             .HasColumnType("varchar(50)")
             .IsRequired();
 
+            // US-GL03-01 (refactor 2026-06-26): FY is GLOBAL (not per-company — period-level
+            // CompanyId on Finance.AccountingPeriod scopes consumption). FY carries an Open/Closed
+            // lifecycle (StatusId → AppData.MiscMaster) + a transition-year flag.
+            builder.Property(u => u.StatusId)
+                .HasColumnName("StatusId")
+                .HasColumnType("int")
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            builder.Property(u => u.IsTransitionYear)
+                .HasColumnName("IsTransitionYear")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            // Same-module FK to AppData.MiscMaster (StatusId → 'FYS' MiscType: OPEN / CLOSED).
+            builder.HasOne(u => u.StatusMaster)
+                .WithMany(mm => mm.FinancialYearsAsStatus)
+                .HasForeignKey(u => u.StatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Property(u => u.IsActive)
                 .HasColumnName("IsActive")
                 .HasColumnType("bit")

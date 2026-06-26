@@ -19,9 +19,9 @@ namespace FinanceManagement.Infrastructure.Services
     /// </summary>
     public class BackdateEnforcementService : IBackdateEnforcementService
     {
-        private readonly IFinancialPeriodMasterLookup _periodLookup;
+        private readonly IAccountingPeriodLookup _periodLookup;
 
-        public BackdateEnforcementService(IFinancialPeriodMasterLookup periodLookup)
+        public BackdateEnforcementService(IAccountingPeriodLookup periodLookup)
         {
             _periodLookup = periodLookup;
         }
