@@ -1,5 +1,6 @@
 using Contracts.Common;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Users;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournalImport;
 using FinanceManagement.Application.JournalMaster.Dto;
 using FinanceManagement.Domain.Entities;
@@ -18,17 +19,20 @@ namespace FinanceManagement.Application.JournalMaster.JournalImport.Commands.Imp
         private readonly IJournalImportCommandRepository _commandRepository;
         private readonly IJournalImportQueryRepository _queryRepository;
         private readonly IIPAddressService _ipAddressService;
+        private readonly IFinancialYearLookup _financialYearLookup;
         private readonly IMediator _mediator;
 
         public ImportJournalsCommandHandler(
             IJournalImportCommandRepository commandRepository,
             IJournalImportQueryRepository queryRepository,
             IIPAddressService ipAddressService,
+            IFinancialYearLookup financialYearLookup,
             IMediator mediator)
         {
             _commandRepository = commandRepository;
             _queryRepository = queryRepository;
             _ipAddressService = ipAddressService;
+            _financialYearLookup = financialYearLookup;
             _mediator = mediator;
         }
 
@@ -111,8 +115,17 @@ namespace FinanceManagement.Application.JournalMaster.JournalImport.Commands.Imp
                 .Select(g => BuildDraft(g.ToList(), companyId, unitId, draftStatusId, importSourceId, periodByDate))
                 .ToList();
 
+            // Resolve the financial-year names so CommitAsync can format the voucher number (allocated at import).
+            var fyNames = new Dictionary<int, string>();
+            foreach (var fyId in drafts.Select(d => d.FinancialYearId).Distinct())
+            {
+                var name = (await _financialYearLookup.GetByIdAsync(fyId, cancellationToken))?.FinancialYearName;
+                if (!string.IsNullOrEmpty(name))
+                    fyNames[fyId] = name;
+            }
+
             var committedBatch = BuildBatch(request, rows.Count, rows.Count, 0, await _queryRepository.GetBatchStatusIdAsync("COMMITTED"), importSourceId);
-            var (committedBatchId, journalIds) = await _commandRepository.CommitAsync(committedBatch, drafts, cancellationToken);
+            var (committedBatchId, journalIds) = await _commandRepository.CommitAsync(committedBatch, drafts, fyNames, cancellationToken);
 
             await PublishAudit("Import", "JOURNAL_IMPORT_COMMITTED", committedBatchId, $"Import '{request.FileName}' committed {journalIds.Count} draft journal(s).", cancellationToken);
 
