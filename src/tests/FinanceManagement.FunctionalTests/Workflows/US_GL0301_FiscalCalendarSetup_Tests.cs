@@ -28,9 +28,13 @@ public sealed class US_GL0301_FiscalCalendarSetup_Tests
     // Cross-step state (collection runs serially).
     private static int _yearId;
 
-    // Run-unique year far enough into the future to avoid colliding with seeded data
-    // or other workflows. EntityCode-derived → stable across re-runs.
-    private int StartYear => 2150 + (RunUniqueInt(_f.EntityCode) % 50);
+    // Run-unique year in band 9000-9399 (400 slots; this suite also creates a secondary StartYear+1
+    // year, so it effectively touches up to ~9400). Disjoint from every other year-creating Finance
+    // suite — QA FinancialYearMaster (2100-5099), FinancialPeriodStatus (5100-8099), PeriodStatusOverride
+    // (8100-8999) and Functional US_GL0302 (9500-9899) — so suites never collide on the shared clone,
+    // and wide enough to stay re-runnable without a DB reset (the old 2150 + %50 left only 50 years that
+    // saturate and collide). EntityCode-derived → stable within a run.
+    private int StartYear => 9000 + (RunUniqueInt(_f.EntityCode) % 400);
     private string Code         => $"{StartYear}-{(StartYear + 1) % 100:D2}";
     private string StartDateStr => $"{StartYear}-04-01";
     private string EndDateStr   => $"{StartYear + 1}-03-31";
@@ -172,8 +176,10 @@ public sealed class US_GL0301_FiscalCalendarSetup_Tests
     [Fact, TestPriority(7)]
     public async Task Step7_GetPeriodsForCompany_Returns200_WithGeneratedPeriods()
     {
-        // CompanyId 1 is the conventional QA seed
-        var resp = await _f.Client.GetAsync($"{YearRoute}/1/periods");
+        // testsales operates under CompanyId 0 (first-time-login placeholder) and Step 1 creates the
+        // year + periods under that company, so the period calendar lives under company 0 on the
+        // isolated clone — not the shared-DB "company 1" convention.
+        var resp = await _f.Client.GetAsync($"{YearRoute}/0/periods");
         await AssertOkAsync(resp);
 
         using var doc = await ParseAsync(resp);
