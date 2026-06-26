@@ -45,11 +45,10 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.C
                     Data = 0
                 };
 
-            // Manual "Generate" button → autoPost: false (low-risk journals are created APPROVED and posted
-            // manually later; only the unattended Hangfire job auto-posts). The accounting period is resolved
-            // from the voucher date inside the service.
+            // Generate the JV — never auto-posted; low-risk → APPROVED, high-risk → DRAFT + approval. The
+            // accounting period is resolved from the voucher date inside the service.
             var journalId = await _generationService.GenerateForTemplateAsync(
-                companyId, request.TemplateId, request.VoucherDate, autoPost: false, cancellationToken);
+                companyId, request.TemplateId, request.VoucherDate, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "GenerateNow",

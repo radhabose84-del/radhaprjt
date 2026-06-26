@@ -51,32 +51,38 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
             int? appliedStatusIdForOverride,
             CancellationToken ct)
         {
-            await using var tx = await _applicationDbContext.Database.BeginTransactionAsync(ct);
-
-            var period = await _applicationDbContext.FinancialPeriodMaster
-                .FirstOrDefaultAsync(p => p.Id == financialPeriodId && p.IsDeleted == IsDelete.NotDeleted, ct);
-            if (period == null) return false;
-
-            period.StatusId            = newStatusId;
-            period.LastStatusChangedBy = changedBy;
-            period.LastStatusChangedAt = changedAt;
-            _applicationDbContext.FinancialPeriodMaster.Update(period);
-
-            if (overrideIdToMarkApplied.HasValue && appliedStatusIdForOverride.HasValue)
+            // DbContext uses EnableRetryOnFailure, so a user-initiated transaction must run inside the
+            // execution strategy (which retries the whole unit on a transient fault).
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                var ovr = await _applicationDbContext.PeriodStatusOverride
-                    .FirstOrDefaultAsync(x => x.Id == overrideIdToMarkApplied.Value && x.IsDeleted == IsDelete.NotDeleted, ct);
-                if (ovr != null)
-                {
-                    ovr.OverrideStatusId = appliedStatusIdForOverride.Value;
-                    ovr.AppliedAt        = changedAt;
-                    _applicationDbContext.PeriodStatusOverride.Update(ovr);
-                }
-            }
+                await using var tx = await _applicationDbContext.Database.BeginTransactionAsync(ct);
 
-            await _applicationDbContext.SaveChangesAsync(ct);
-            await tx.CommitAsync(ct);
-            return true;
+                var period = await _applicationDbContext.FinancialPeriodMaster
+                    .FirstOrDefaultAsync(p => p.Id == financialPeriodId && p.IsDeleted == IsDelete.NotDeleted, ct);
+                if (period == null) return false;
+
+                period.StatusId            = newStatusId;
+                period.LastStatusChangedBy = changedBy;
+                period.LastStatusChangedAt = changedAt;
+                _applicationDbContext.FinancialPeriodMaster.Update(period);
+
+                if (overrideIdToMarkApplied.HasValue && appliedStatusIdForOverride.HasValue)
+                {
+                    var ovr = await _applicationDbContext.PeriodStatusOverride
+                        .FirstOrDefaultAsync(x => x.Id == overrideIdToMarkApplied.Value && x.IsDeleted == IsDelete.NotDeleted, ct);
+                    if (ovr != null)
+                    {
+                        ovr.OverrideStatusId = appliedStatusIdForOverride.Value;
+                        ovr.AppliedAt        = changedAt;
+                        _applicationDbContext.PeriodStatusOverride.Update(ovr);
+                    }
+                }
+
+                await _applicationDbContext.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+                return true;
+            });
         }
     }
 }

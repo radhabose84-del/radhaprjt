@@ -28,7 +28,7 @@ namespace FinanceManagement.UnitTests.Application.RecurringJournalTemplate
             _ip.Setup(s => s.GetCompanyId()).Returns(1);
             SetupApprovedTemplate(5);
             // generate-now passes autoPost: false; the period is resolved inside the service from the voucher date.
-            _service.Setup(s => s.GenerateForTemplateAsync(1, 5, new DateOnly(2026, 7, 15), false, It.IsAny<CancellationToken>()))
+            _service.Setup(s => s.GenerateForTemplateAsync(1, 5, new DateOnly(2026, 7, 15), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(99);
 
             var result = await CreateSut().Handle(new GenerateRecurringTemplateNowCommand
@@ -45,7 +45,7 @@ namespace FinanceManagement.UnitTests.Application.RecurringJournalTemplate
         {
             _ip.Setup(s => s.GetCompanyId()).Returns(1);
             SetupApprovedTemplate(5);
-            _service.Setup(s => s.GenerateForTemplateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            _service.Setup(s => s.GenerateForTemplateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(0);
 
             var result = await CreateSut().Handle(new GenerateRecurringTemplateNowCommand { TemplateId = 5, VoucherDate = new DateOnly(2026, 7, 15) }, CancellationToken.None);
@@ -66,7 +66,7 @@ namespace FinanceManagement.UnitTests.Application.RecurringJournalTemplate
             result.Message.Should().Contain("not approved");
             result.Data.Should().Be(0);
             // The generation service is never called for a non-approved template (Strict mock → no setup needed).
-            _service.Verify(s => s.GenerateForTemplateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+            _service.Verify(s => s.GenerateForTemplateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace FinanceManagement.UnitTests.Application.RecurringJournalTemplate
 
             result.IsSuccess.Should().BeFalse();
             result.Message.Should().Contain("not found");
-            _service.Verify(s => s.GenerateForTemplateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+            _service.Verify(s => s.GenerateForTemplateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]

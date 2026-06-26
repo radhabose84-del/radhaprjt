@@ -8,11 +8,11 @@ using Microsoft.Extensions.Logging;
 namespace BackgroundService.Infrastructure.Jobs;
 
 /// <summary>
-/// US-GL01-11 — per-template auto-post job. Scheduled (by <c>RecurringTemplateScheduler</c>) ONLY for an
-/// Approved + AutoPost template, with a cron derived from its frequency/start date. On each fire it generates
-/// the template's JV for the current period and (because the template is AutoPost+LowRisk) auto-posts it.
-/// Idempotent per company+template+period, so a missed/duplicate run is harmless. Company comes from the
-/// template (CompanyId) and currency from each line — an unattended job has no session.
+/// US-GL01-11 — per-template recurring generation job. Scheduled (by <c>RecurringTemplateScheduler</c>) ONLY for an
+/// Approved + AutoPost template, with a cron derived from its frequency/start date. On each fire it generates the
+/// template's JV for the current period — NEVER auto-posting it (low-risk → APPROVED, high-risk → DRAFT + approval);
+/// posting is always a separate manual/approval step. Idempotent per company+template+period, so a missed/duplicate
+/// run is harmless. Company comes from the template (CompanyId) and currency from each line — no session.
 /// </summary>
 public class RecurringTemplateAutoPostJob
 {
@@ -46,9 +46,9 @@ public class RecurringTemplateAutoPostJob
 
         var today = DateOnly.FromDateTime(_timeZoneService.GetCurrentTime().DateTime);
 
-        // Unattended auto-post job → autoPost: true (low-risk journals are posted immediately; high-risk ones
-        // are created DRAFT and routed to approval). The accounting period is resolved from the date in the service.
-        var journalId = await _generationService.GenerateForTemplateAsync(info.CompanyId, templateId, today, autoPost: true, cancellationToken);
+        // Generate only — never auto-posts. Low-risk → APPROVED; high-risk → DRAFT + approval.
+        // The accounting period is resolved from the date inside the service.
+        var journalId = await _generationService.GenerateForTemplateAsync(info.CompanyId, templateId, today, cancellationToken);
 
         _logger.LogInformation("RecurringTemplateAutoPostJob: template {Id} ({Date}) → journal {JournalId}.",
             templateId, today, journalId);

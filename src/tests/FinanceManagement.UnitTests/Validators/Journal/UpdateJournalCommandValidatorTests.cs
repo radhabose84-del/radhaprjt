@@ -25,6 +25,8 @@ namespace FinanceManagement.UnitTests.Validators.Journal
             _mockQueryRepo.Setup(r => r.GlAccountExistsAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.GetCostCentreMandatoryAccountIdsAsync(It.IsAny<IEnumerable<int>>()))
                 .ReturnsAsync(Array.Empty<int>());
+            _mockQueryRepo.Setup(r => r.GetForeignRestrictedAccountIdsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<int>()))
+                .ReturnsAsync(Array.Empty<int>());
             _mockQueryRepo.Setup(r => r.NotFoundAsync(It.IsAny<int>())).ReturnsAsync(false);
             _mockQueryRepo.Setup(r => r.IsManualDraftAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.IsPotentialDuplicateAsync(

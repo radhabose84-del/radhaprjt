@@ -40,7 +40,12 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     private static int _periodForHardClose;    // we close this one all the way to HARDCLOSED for the reversal test
     private static int _overrideId;
 
-    private int StartYear => 2160 + (RunUniqueInt(_f.EntityCode) % 40);   // offset from US-GL03-01 base year to avoid collision
+    // Run-unique year in band 9500-9899 (400 slots). Disjoint from every other year-creating Finance
+    // suite — QA FinancialYearMaster (2100-5099), FinancialPeriodStatus (5100-8099), PeriodStatusOverride
+    // (8100-8999) and Functional US_GL0301 (9000-~9400) — so suites never collide on the shared clone,
+    // and wide enough to stay re-runnable without a DB reset (the old 2160 + %40 left only 40 years that
+    // saturate and collide, and overlapped US_GL0301's range).
+    private int StartYear => 9500 + (RunUniqueInt(_f.EntityCode) % 400);
     private string Code         => $"{StartYear}-{(StartYear + 1) % 100:D2}";
     private string StartDateStr => $"{StartYear}-04-01";
     private string EndDateStr   => $"{StartYear + 1}-03-31";
