@@ -12,8 +12,8 @@ using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Servi
 
 namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTemplate
 {
-    // US-GL01-11B — end-to-end generation against the real DB: due template -> generated + auto-posted journal,
-    // generation logged, idempotent on re-run.
+    // US-GL01-11B — end-to-end generation against the real DB: template -> generated APPROVED (never auto-posted)
+    // journal, generation logged, idempotent on re-run.
     [Collection("DatabaseCollection")]
     public sealed class RecurringJournalGenerationServiceTests
     {
@@ -43,7 +43,6 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
 
             return new RecurringJournalGenerationService(
                 new RecurringGenerationRepository(ctx),
-                new JournalCommandRepository(ctx),
                 journalQuery,
                 fy.Object,
                 tz.Object,
@@ -52,7 +51,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
         }
 
         [Fact]
-        public async Task GenerateForTemplate_AutoPosts_Template_AndIsIdempotent()
+        public async Task GenerateForTemplate_LowRisk_CreatesApproved_NotPosted_AndIsIdempotent()
         {
             await _fixture.ClearAllTablesAsync();
             var ids = await RecurringTemplateSeed.SeedAsync(_fixture);
@@ -65,7 +64,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
 
             int journalId;
             await using (var ctx = _fixture.CreateFreshDbContext())
-                journalId = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, autoPost: true, CancellationToken.None);
+                journalId = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, CancellationToken.None);
 
             journalId.Should().BeGreaterThan(0);
 
@@ -73,19 +72,21 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
             {
                 var log = await verify.RecurringGenerationLog.FirstAsync(g => g.TemplateId == templateId);
                 log.GeneratedVoucherId.Should().NotBeNull();
-                log.AutoPosted.Should().BeTrue();   // template is AutoPost + LowRisk
+                log.AutoPosted.Should().BeFalse();   // recurring vouchers are NEVER auto-posted
 
                 var journal = await verify.JournalHeader.FirstAsync(h => h.Id == log.GeneratedVoucherId);
-                journal.VoucherNo.Should().NotBeNull();          // auto-posted → number assigned
+                journal.VoucherNo.Should().NotBeNull();          // number allocated at create time
+                journal.IsPosted.Should().BeFalse();             // low-risk → APPROVED, not posted
+                journal.PostingDate.Should().BeNull();
                 journal.TotalDr.Should().Be(journal.TotalCr);
                 (await verify.JournalDetail.CountAsync(d => d.JournalHeaderId == journal.Id)).Should().Be(2);
-                (await verify.LedgerBalance.CountAsync()).Should().BeGreaterThan(0);   // posting updated balances
+                (await verify.LedgerBalance.CountAsync()).Should().Be(0);   // not posted → no ledger impact
             }
 
             // Re-run for the same period → idempotent (nothing new).
             int second;
             await using (var ctx = _fixture.CreateFreshDbContext())
-                second = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, autoPost: true, CancellationToken.None);
+                second = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, CancellationToken.None);
 
             second.Should().Be(0);
             await using (var verify = _fixture.CreateFreshDbContext())
@@ -138,7 +139,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
 
             int journalId;
             await using (var ctx = _fixture.CreateFreshDbContext())
-                journalId = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, autoPost: true, CancellationToken.None);
+                journalId = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, CancellationToken.None);
 
             journalId.Should().BeGreaterThan(0);
 

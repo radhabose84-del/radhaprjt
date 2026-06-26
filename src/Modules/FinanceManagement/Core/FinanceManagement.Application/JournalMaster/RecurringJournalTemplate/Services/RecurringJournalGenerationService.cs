@@ -13,17 +13,14 @@ using static FinanceManagement.Domain.Common.BaseEntity;
 
 namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Services
 {
-    // US-GL01-11B — generates journals from due recurring templates for a period.
-    // Idempotent per (template, period). Approval routing follows the template's LowRisk flag:
-    //   • LowRisk        → journal created APPROVED (postable); AutoPost templates are posted immediately.
-    //   • NOT LowRisk    → journal created DRAFT and submitted for approval (JournalVoucher workflow).
+    // US-GL01-11B — generates journals from recurring templates. Idempotent per (template, period).
+    // Recurring vouchers are NEVER auto-posted — status follows the template's LowRisk flag:
+    //   • LowRisk     → journal created APPROVED (posted manually later via /post or the postable list).
+    //   • NOT LowRisk → journal created DRAFT and submitted for approval (JournalVoucher workflow).
     // Each generated journal is linked back to its template via RecurringGenerationLog.
     public class RecurringJournalGenerationService : IRecurringJournalGenerationService
     {
-        private const int SystemUserId = 0;
-
         private readonly IRecurringGenerationRepository _generationRepository;
-        private readonly IJournalCommandRepository _journalCommandRepository;
         private readonly IJournalQueryRepository _journalQueryRepository;
         private readonly IFinancialYearLookup _financialYearLookup;
         private readonly ITimeZoneService _timeZoneService;
@@ -32,7 +29,6 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.S
 
         public RecurringJournalGenerationService(
             IRecurringGenerationRepository generationRepository,
-            IJournalCommandRepository journalCommandRepository,
             IJournalQueryRepository journalQueryRepository,
             IFinancialYearLookup financialYearLookup,
             ITimeZoneService timeZoneService,
@@ -40,7 +36,6 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.S
             IWorkflowLookup workflowLookup)
         {
             _generationRepository = generationRepository;
-            _journalCommandRepository = journalCommandRepository;
             _journalQueryRepository = journalQueryRepository;
             _financialYearLookup = financialYearLookup;
             _timeZoneService = timeZoneService;
@@ -48,7 +43,7 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.S
             _workflowLookup = workflowLookup;
         }
 
-        public async Task<int> GenerateForTemplateAsync(int companyId, int templateId, DateOnly voucherDate, bool autoPost, CancellationToken ct)
+        public async Task<int> GenerateForTemplateAsync(int companyId, int templateId, DateOnly voucherDate, CancellationToken ct)
         {
             var periodInfo = await _journalQueryRepository.GetOpenPeriodByDateAsync(companyId, voucherDate);
             if (periodInfo == null)
@@ -66,11 +61,10 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.S
             if (template == null)
                 return 0;
 
-            // Approval routing by LowRisk: low-risk → create APPROVED (postable); high-risk → create DRAFT and
-            // submit for approval. (sp_EvaluateApproval reads $.Header.UnitId — supplied from the template.)
+            // Status by LowRisk: low-risk → APPROVED (posted manually later); high-risk → DRAFT + approval.
+            // Recurring vouchers are NEVER auto-posted.
             var approvedStatusId = await _journalQueryRepository.GetStatusIdAsync("APPROVED");
             var draftStatusId = await _journalQueryRepository.GetStatusIdAsync("DRAFT");
-            var postedStatusId = await _journalQueryRepository.GetStatusIdAsync("POSTED");
             var sourceId = await _journalQueryRepository.GetSourceIdAsync("RECURRING");
             var fyName = (await _financialYearLookup.GetByIdAsync(financialYearId, ct))?.FinancialYearName;
             var now = _timeZoneService.GetCurrentTime();
@@ -79,17 +73,16 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.S
 
             // baseCurrencyId = 0 → each line's own CurrencyId is used (templates carry currency per detail line).
             return await GenerateOneAsync(template, companyId, 0, period, voucherDate,
-                financialYearId, periodId, createStatusId, postedStatusId, sourceId, fyName, autoPost, now, ct);
+                financialYearId, periodId, createStatusId, sourceId, fyName, now, ct);
         }
 
-        // Build + atomically commit one template's journal (+ log).
-        //   • LowRisk + autoPost (Hangfire job)  → post immediately (POSTED).
-        //   • LowRisk + !autoPost (Generate btn) → leave APPROVED (posted manually later).
-        //   • NOT LowRisk                        → DRAFT + raise the JournalVoucher approval request.
+        // Build + atomically commit one template's journal (+ log). NEVER auto-posts:
+        //   • LowRisk     → leave APPROVED (posted manually later).
+        //   • NOT LowRisk → DRAFT + raise the JournalVoucher approval request (when a workflow is configured).
         private async Task<int> GenerateOneAsync(
             RecurringJournalTemplateHeader template, int companyId, int baseCurrencyId, string period, DateOnly voucherDate,
-            int financialYearId, int periodId, int createStatusId, int postedStatusId, int sourceId, string? fyName,
-            bool autoPost, DateTimeOffset now, CancellationToken ct)
+            int financialYearId, int periodId, int createStatusId, int sourceId, string? fyName,
+            DateTimeOffset now, CancellationToken ct)
         {
             var header = BuildJournal(template, companyId, baseCurrencyId, voucherDate, financialYearId, periodId, createStatusId, sourceId);
             var log = new RecurringGenerationLog
@@ -103,30 +96,21 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.S
 
             // Journal + log commit atomically — the log is the idempotency guard, so it must never lag the
             // journal it guards. The voucher number is allocated here at create time (so even non-posted
-            // recurring JVs carry a number). AutoPosted is flipped only after a confirmed post below.
+            // recurring JVs carry a number).
             var journalId = await _generationRepository.CreateJournalWithLogAsync(header, log, fyName, ct);
 
-            if (template.LowRisk)
+            if (!template.LowRisk)
             {
-                // Low-risk → already APPROVED; only the unattended Hangfire auto-post job posts it (autoPost).
-                if (autoPost)
-                {
-                    var result = await _journalCommandRepository.PostAsync(journalId, postedStatusId, fyName, "System", SystemUserId, now, ct);
-                    if (result != null)
-                        await _generationRepository.MarkLogAutoPostedAsync(log.Id, ct);
-                }
-            }
-            else
-            {
-                // High-risk → created DRAFT and left DRAFT. Route to approval ONLY when a JournalVoucher workflow is
-                // configured for the unit (mirrors CreateJournalCommandHandler); otherwise raising the request would
-                // be auto-approved by the engine. The status flips to APPROVED only when the voucher is approved via
+                // High-risk → created DRAFT. Route to approval ONLY when a JournalVoucher workflow is configured
+                // for the unit (mirrors CreateJournalCommandHandler); otherwise raising the request would be
+                // auto-approved by the engine. The status flips to APPROVED only when the voucher is approved via
                 // /api/ApprovalRequest/approve → the Finance ApprovedRejectedConsumer.
                 var workflowConfigured = await _workflowLookup.IsApproveWorkflowConfigureAsync(
                     MiscEnumEntity.JournalVoucher, template.UnitId, 0);
                 if (workflowConfigured)
                     await RaiseApprovalRequestAsync(journalId, template.UnitId, ct);
             }
+            // Low-risk → leave APPROVED; never auto-posted.
 
             return journalId;
         }
