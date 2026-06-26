@@ -41,9 +41,9 @@ public sealed class US_GL0304_BackdatingLatePosting_Tests
         using var doc = await ParseAsync(resp);
         var root = doc.RootElement;
         root.TryGetProperty("data",        out _).Should().BeTrue("data array must always be present");
-        root.TryGetProperty("TotalCount",  out _).Should().BeTrue();
-        root.TryGetProperty("PageNumber",  out _).Should().BeTrue();
-        root.TryGetProperty("PageSize",    out _).Should().BeTrue();
+        root.TryGetProperty("totalCount",  out _).Should().BeTrue();
+        root.TryGetProperty("pageNumber",  out _).Should().BeTrue();
+        root.TryGetProperty("pageSize",    out _).Should().BeTrue();
     }
 
     [Fact, TestPriority(2)]

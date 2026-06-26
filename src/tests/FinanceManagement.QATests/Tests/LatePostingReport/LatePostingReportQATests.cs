@@ -160,8 +160,8 @@ public sealed class LatePostingReportQATests
 
         root.TryGetProperty("isSuccess", out _).Should().BeTrue();
         root.TryGetProperty("data", out _).Should().BeTrue();
-        root.TryGetProperty("TotalCount", out _).Should().BeTrue();
-        root.TryGetProperty("PageNumber", out _).Should().BeTrue();
-        root.TryGetProperty("PageSize", out _).Should().BeTrue();
+        root.TryGetProperty("totalCount", out _).Should().BeTrue();
+        root.TryGetProperty("pageNumber", out _).Should().BeTrue();
+        root.TryGetProperty("pageSize", out _).Should().BeTrue();
     }
 }

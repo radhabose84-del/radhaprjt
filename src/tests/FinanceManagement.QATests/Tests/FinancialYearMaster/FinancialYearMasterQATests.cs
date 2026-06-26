@@ -20,9 +20,12 @@ public sealed class FinancialYearMasterQATests
     private readonly QAServerFixture _f;
     private const string BaseRoute = "/api/finance/FinancialYearMaster";
 
-    // Run-unique year derived from the fixture EntityCode — far-future to avoid
-    // collisions with real seed data or other QA suites.
-    private int StartYear => 2100 + (RunUniqueInt(_f.EntityCode) % 100);
+    // Run-unique year derived from the fixture EntityCode — far-future to avoid collisions with
+    // real seed data. Band 2100-5099 (3000 slots) keeps the suite re-runnable without a DB reset
+    // (a % 100 here left only 100 years, which fill up and collide on a non-reset clone). The band
+    // is disjoint from FinancialPeriodStatusQATests (5100-8099) so the two year-creating suites
+    // never pick the same fiscal year on a shared clone.
+    private int StartYear => 2100 + (RunUniqueInt(_f.EntityCode) % 3000);
     private string Code         => $"{StartYear}-{(StartYear + 1) % 100:D2}";
     private string StartDateStr => $"{StartYear}-04-01";
     private string EndDateStr   => $"{StartYear + 1}-03-31";
@@ -297,8 +300,10 @@ public sealed class FinancialYearMasterQATests
     [Fact, TestPriority(40)]
     public async Task TC040_GetPeriodsForCompany_Returns200()
     {
-        // CompanyId 1 is conventional in QA seed
-        var resp = await _f.Client.GetAsync($"{BaseRoute}/1/periods");
+        // testsales operates under CompanyId 0 (first-time-login placeholder), and this suite's
+        // TC001 creates the financial year + 13 periods under that company — so the period calendar
+        // lives under company 0 on the isolated clone, not the shared-DB "company 1" convention.
+        var resp = await _f.Client.GetAsync($"{BaseRoute}/0/periods");
         await AssertOkAsync(resp);
 
         using var doc = await ParseAsync(resp);

@@ -20,7 +20,12 @@ public sealed class PeriodStatusOverrideQATests
     private const string StatusRoute   = "/api/finance/FinancialPeriodStatus";
     private const string YearRoute     = "/api/finance/FinancialYearMaster";
 
-    private int StartYear => 2100 + (RunUniqueInt(_f.EntityCode) % 100) + 7;   // +7 to isolate from other suites
+    // Run-unique year in band 8100-8999 (900 slots) — disjoint from FinancialYearMasterQATests
+    // (2100-5099) and FinancialPeriodStatusQATests (5100-8099) so the three year-creating suites
+    // never pick the same fiscal year on a shared clone, and wide enough to stay re-runnable without
+    // a DB reset (a % 100 left only 100 years that fill up and collide — the old "+7" shift kept the
+    // 100-slot space and still collided).
+    private int StartYear => 8100 + (RunUniqueInt(_f.EntityCode) % 900);
     private string Code         => $"{StartYear}-{(StartYear + 1) % 100:D2}";
     private string StartDateStr => $"{StartYear}-04-01";
     private string EndDateStr   => $"{StartYear + 1}-03-31";
