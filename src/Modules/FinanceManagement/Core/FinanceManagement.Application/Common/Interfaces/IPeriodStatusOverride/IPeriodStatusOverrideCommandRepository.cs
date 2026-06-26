@@ -7,12 +7,12 @@ namespace FinanceManagement.Application.Common.Interfaces.IPeriodStatusOverride
         Task<int> UpdateAsync(Domain.Entities.PeriodStatusOverride entity, CancellationToken ct);
 
         /// <summary>
-        /// Transitions a FinancialPeriodMaster's StatusId, updates LastStatusChangedBy/At,
-        /// and (when calledFromOverrideId is set) flips the override to APPLIED + sets AppliedAt.
-        /// Single transaction.
+        /// Transitions an AccountingPeriod's StatusId (the 3-state FPS code: OPEN/SOFTCLOSED/HARDCLOSED),
+        /// updates LastStatusChangedBy/At, and (when calledFromOverrideId is set) flips the override to
+        /// APPLIED + sets AppliedAt. Single transaction.
         /// </summary>
         Task<bool> ApplyPeriodStatusChangeAsync(
-            int financialPeriodId,
+            int accountingPeriodId,
             int newStatusId,
             int changedBy,
             DateTimeOffset changedAt,

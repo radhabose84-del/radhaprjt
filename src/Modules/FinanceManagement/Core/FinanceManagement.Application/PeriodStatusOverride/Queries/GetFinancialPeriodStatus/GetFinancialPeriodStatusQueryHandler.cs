@@ -33,8 +33,8 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Queries.GetFinancia
 
             await _mediator.Publish(new AuditLogsDomainEvent(
                 "GetById", "GetFinancialPeriodStatusQuery", dto.PeriodId.ToString(),
-                $"FinancialPeriodMaster status {dto.PeriodId} was fetched.",
-                "FinancialPeriodMaster"), cancellationToken);
+                $"AccountingPeriod status {dto.PeriodId} was fetched.",
+                "AccountingPeriod"), cancellationToken);
 
             return dto;
         }

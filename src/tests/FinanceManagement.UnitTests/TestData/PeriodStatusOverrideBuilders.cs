@@ -61,7 +61,7 @@ namespace FinanceManagement.UnitTests.TestData
             new()
             {
                 Id = id,
-                FinancialPeriodId = periodId,
+                AccountingPeriodId = periodId,
                 CompanyId = 1,
                 FromStatusId = 300,
                 FromStatusCode = fromCode,

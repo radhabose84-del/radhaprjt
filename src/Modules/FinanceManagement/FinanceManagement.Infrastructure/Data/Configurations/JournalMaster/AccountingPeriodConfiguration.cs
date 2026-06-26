@@ -30,6 +30,23 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.Property(t => t.EndDate).HasColumnName("EndDate").HasColumnType("date").IsRequired();
             builder.Property(t => t.StatusId).HasColumnName("StatusId").HasColumnType("int").IsRequired();
 
+            // US-GL03-05 (Q3=a) — adjustment-period flag for Period 13 (year-end close JV target).
+            builder.Property(t => t.IsAdjustmentPeriod)
+                .HasColumnName("IsAdjustmentPeriod")
+                .HasColumnType("bit")
+                .HasDefaultValue(false)
+                .IsRequired();
+
+            // US-GL03-02 — denormalised status-change audit stamps (last who/when).
+            builder.Property(t => t.LastStatusChangedBy)
+                .HasColumnName("LastStatusChangedBy")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.LastStatusChangedAt)
+                .HasColumnName("LastStatusChangedAt")
+                .IsRequired(false);
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();
             builder.Property(b => b.IsDeleted)
@@ -51,6 +68,11 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.HasIndex(t => new { t.CompanyId, t.FinancialYearId });
             builder.HasIndex(t => new { t.StartDate, t.EndDate });
             builder.HasIndex(t => t.StatusId);
+
+            // US-GL03-05 — fast lookup of "Period 13 for this FY" used by the year-end-close handler.
+            builder.HasIndex(t => new { t.FinancialYearId, t.IsAdjustmentPeriod })
+                .HasFilter("[IsAdjustmentPeriod] = 1 AND [IsDeleted] = 0")
+                .HasDatabaseName("IX_AccountingPeriod_AdjustmentPerFY");
 
             // StatusId -> Finance.MiscMaster (PERIOD_STATUS)
             builder.HasOne(t => t.PeriodStatus)

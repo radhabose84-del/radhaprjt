@@ -6,6 +6,11 @@ using FinanceManagement.Application.PeriodStatusOverride.Dto;
 
 namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
 {
+    /// <summary>
+    /// US-GL03-02 — read side of the period-status workflow. Reads from Finance.AccountingPeriod
+    /// (after the 2026-06-26 refactor that retired the parallel FinancialPeriodMaster table).
+    /// FY metadata comes from the cross-schema AppData.FinancialYear table (UserManagement).
+    /// </summary>
     public class PeriodStatusOverrideQueryRepository : IPeriodStatusOverrideQueryRepository
     {
         private readonly IDbConnection _dbConnection;
@@ -15,18 +20,21 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
             _dbConnection = dbConnection;
         }
 
+        // CAST PeriodNo to TINYINT because FinancialPeriodStatusDto.PeriodNumber is byte (legacy
+        // contract). FinYearName is the canonical FY label in the AppData table; we surface it as
+        // FinancialYearCode to keep the DTO shape stable for the screen.
         private const string PeriodStatusSelect = @"
-            fp.Id AS PeriodId, fp.FinancialYearId, fy.FinancialYearCode, fp.CompanyId,
-            fp.PeriodNumber, fp.PeriodName, fp.StartDate, fp.EndDate,
-            fp.StatusId, fps.Code AS StatusCode, fps.Description AS StatusName,
-            fp.IsAdjustmentPeriod, fp.LastStatusChangedBy, fp.LastStatusChangedAt
-            FROM Finance.FinancialPeriodMaster fp
-            LEFT JOIN Finance.FinancialYearMaster fy ON fp.FinancialYearId = fy.Id AND fy.IsDeleted = 0
-            LEFT JOIN Finance.MiscMaster fps ON fp.StatusId = fps.Id AND fps.IsDeleted = 0
+            ap.Id AS PeriodId, ap.FinancialYearId, fy.FinYearName AS FinancialYearCode, ap.CompanyId,
+            CAST(ap.PeriodNo AS TINYINT) AS PeriodNumber, ap.PeriodName, ap.StartDate, ap.EndDate,
+            ap.StatusId, fps.Code AS StatusCode, fps.Description AS StatusName,
+            ap.IsAdjustmentPeriod, ap.LastStatusChangedBy, ap.LastStatusChangedAt
+            FROM Finance.AccountingPeriod ap
+            LEFT JOIN AppData.FinancialYear fy ON ap.FinancialYearId = fy.Id AND fy.IsDeleted = 0
+            LEFT JOIN Finance.MiscMaster fps ON ap.StatusId = fps.Id AND fps.IsDeleted = 0
         ";
 
         private const string OverrideSelect = @"
-            pso.Id, pso.FinancialPeriodId, fy.FinancialYearCode, fp.PeriodName, pso.CompanyId,
+            pso.Id, pso.AccountingPeriodId, fy.FinYearName AS FinancialYearCode, ap.PeriodName, pso.CompanyId,
             pso.FromStatusId,    frs.Code  AS FromStatusCode,    frs.Description  AS FromStatusName,
             pso.ToStatusId,      tos.Code  AS ToStatusCode,      tos.Description  AS ToStatusName,
             pso.RequestedBy, pso.RequestedAt, pso.RequestedReason,
@@ -38,8 +46,8 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
             pso.CreatedBy, pso.CreatedDate, pso.CreatedByName,
             pso.ModifiedBy, pso.ModifiedDate, pso.ModifiedByName
             FROM Finance.PeriodStatusOverride pso
-            LEFT JOIN Finance.FinancialPeriodMaster fp ON pso.FinancialPeriodId = fp.Id AND fp.IsDeleted = 0
-            LEFT JOIN Finance.FinancialYearMaster fy ON fp.FinancialYearId = fy.Id AND fy.IsDeleted = 0
+            LEFT JOIN Finance.AccountingPeriod ap ON pso.AccountingPeriodId = ap.Id AND ap.IsDeleted = 0
+            LEFT JOIN AppData.FinancialYear fy ON ap.FinancialYearId = fy.Id AND fy.IsDeleted = 0
             LEFT JOIN Finance.MiscMaster frs ON pso.FromStatusId     = frs.Id AND frs.IsDeleted = 0
             LEFT JOIN Finance.MiscMaster tos ON pso.ToStatusId       = tos.Id AND tos.IsDeleted = 0
             LEFT JOIN Finance.MiscMaster ost ON pso.OverrideStatusId = ost.Id AND ost.IsDeleted = 0
@@ -49,7 +57,7 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
         {
             var sql = $@"
                 SELECT {PeriodStatusSelect}
-                WHERE fp.Id = @Id AND fp.CompanyId = @CompanyId AND fp.IsDeleted = 0";
+                WHERE ap.Id = @Id AND ap.CompanyId = @CompanyId AND ap.IsDeleted = 0";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<FinancialPeriodStatusDto>(
                 new CommandDefinition(sql, new { Id = periodId, CompanyId = companyId }, cancellationToken: ct));
@@ -59,7 +67,7 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
         {
             var sql = $@"
                 SELECT {OverrideSelect}
-                WHERE pso.FinancialPeriodId = @Id AND pso.CompanyId = @CompanyId AND pso.IsDeleted = 0
+                WHERE pso.AccountingPeriodId = @Id AND pso.CompanyId = @CompanyId AND pso.IsDeleted = 0
                 ORDER BY pso.RequestedAt DESC, pso.Id DESC";
 
             var result = await _dbConnection.QueryAsync<PeriodStatusOverrideDto>(
@@ -95,7 +103,7 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
                 SELECT COUNT(1)
                 FROM Finance.PeriodStatusOverride pso
                 INNER JOIN Finance.MiscMaster ost ON pso.OverrideStatusId = ost.Id AND ost.IsDeleted = 0
-                WHERE pso.FinancialPeriodId = @Id AND pso.IsDeleted = 0
+                WHERE pso.AccountingPeriodId = @Id AND pso.IsDeleted = 0
                   AND ost.Code IN (@Pending, @FullyApproved)";
 
             var count = await _dbConnection.ExecuteScalarAsync<int>(sql, new
@@ -123,11 +131,11 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
         public async Task<PeriodSnapshotDto?> GetPeriodSnapshotAsync(int periodId, CancellationToken ct)
         {
             const string sql = @"
-                SELECT fp.Id, fp.CompanyId, fp.FinancialYearId, fp.StatusId,
-                       fps.Code AS StatusCode, fp.IsAdjustmentPeriod
-                FROM Finance.FinancialPeriodMaster fp
-                LEFT JOIN Finance.MiscMaster fps ON fp.StatusId = fps.Id AND fps.IsDeleted = 0
-                WHERE fp.Id = @Id AND fp.IsDeleted = 0";
+                SELECT ap.Id, ap.CompanyId, ap.FinancialYearId, ap.StatusId,
+                       fps.Code AS StatusCode, ap.IsAdjustmentPeriod
+                FROM Finance.AccountingPeriod ap
+                LEFT JOIN Finance.MiscMaster fps ON ap.StatusId = fps.Id AND fps.IsDeleted = 0
+                WHERE ap.Id = @Id AND ap.IsDeleted = 0";
 
             return await _dbConnection.QueryFirstOrDefaultAsync<PeriodSnapshotDto>(
                 new CommandDefinition(sql, new { Id = periodId }, cancellationToken: ct));

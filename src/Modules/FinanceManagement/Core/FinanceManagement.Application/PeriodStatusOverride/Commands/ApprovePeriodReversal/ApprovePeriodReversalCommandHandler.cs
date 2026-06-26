@@ -63,7 +63,7 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Commands.ApprovePer
             var entity = new Domain.Entities.PeriodStatusOverride
             {
                 Id                  = ovr.Id,
-                FinancialPeriodId   = ovr.FinancialPeriodId,
+                AccountingPeriodId   = ovr.AccountingPeriodId,
                 CompanyId           = ovr.CompanyId,
                 FromStatusId        = ovr.FromStatusId,
                 ToStatusId          = ovr.ToStatusId,
@@ -102,17 +102,17 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Commands.ApprovePer
             if (bothApproved)
             {
                 var ok = await _commandRepository.ApplyPeriodStatusChangeAsync(
-                    entity.FinancialPeriodId, entity.ToStatusId, userId, now,
+                    entity.AccountingPeriodId, entity.ToStatusId, userId, now,
                     overrideIdToMarkApplied:        overrideIdForApply,
                     appliedStatusIdForOverride:     finalOverrideStatusForApply,
                     cancellationToken);
                 if (!ok)
                     throw new ExceptionRules("Failed to apply period status — concurrent modification.");
 
-                var snap = await _queryRepository.GetPeriodSnapshotAsync(entity.FinancialPeriodId, cancellationToken);
+                var snap = await _queryRepository.GetPeriodSnapshotAsync(entity.AccountingPeriodId, cancellationToken);
 
                 await _mediator.Publish(new PeriodStatusChangedDomainEvent(
-                    FinancialPeriodId: entity.FinancialPeriodId,
+                    AccountingPeriodId: entity.AccountingPeriodId,
                     CompanyId:         entity.CompanyId,
                     FinancialYearId:   snap?.FinancialYearId ?? 0,
                     FromStatusId:      entity.FromStatusId,
@@ -126,7 +126,7 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Commands.ApprovePer
 
                 await _mediator.Publish(new AuditLogsDomainEvent(
                     "Update", "PERIOD_REVERSAL_APPLIED", entity.Id.ToString(),
-                    $"Override {entity.Id} applied: Period {entity.FinancialPeriodId} reverted {ovr.FromStatusCode} -> {toCode}.",
+                    $"Override {entity.Id} applied: Period {entity.AccountingPeriodId} reverted {ovr.FromStatusCode} -> {toCode}.",
                     "PeriodStatusOverride"), cancellationToken);
             }
             else
