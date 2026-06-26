@@ -492,3 +492,31 @@ Base routes:
 > means a client cannot ship `isBackdated=false` in the payload to dodge the report. The Hangfire job
 > lives in `BackgroundService.Infrastructure.Jobs.WeeklyBackdatedJournalDigestJob` and uses the
 > existing `IRoleUserLookup` (US-GL02-08B pattern) + `SendEmailCommand` channel.
+
+---
+
+## US-GL02-16 — COA Read API (downstream modules)
+
+**User story:** As a downstream-module developer (AP/AR/FA), I want a REST read API to query the
+account master (get-by-code, search by type/group, validate-for-posting) with deactivation events,
+so Phase-2 modules integrate reliably.
+
+**Pre-condition (seed):** Read-only over GlAccountMaster; company from JWT. The deactivation event is
+published via direct bus publish (sub-second) with the Finance transactional outbox as a durable
+fallback. No write endpoints, no migration.
+
+Base route: `api/finance/coa`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — single lookup < 100ms | Given a code, When GET `/accounts/by-code/{code}`, Then it responds < 100ms (unique CompanyId+AccountCode index). | ✅ implementable (timing: ⚠️ verify live; <100ms proven in integration) |
+| AC2 — validate-for-posting fails with reason | Given an inactive account or a currency mismatch (or missing mandatory cost centre), When GET `/accounts/validate-for-posting`, Then `isValid=false` with `reasons[]`. | ✅ implementable |
+| AC3 — deactivation event within 1s | Given an account goes active→inactive, When saved, Then `GlAccountDeactivatedEvent` is published within 1s (direct bus + outbox fallback). | 🚫 async/bus — no HTTP surface (unit-covered) |
+| AC4 — authenticated + logged | Given any call, Then it requires a token (401 without) and writes an audit log. | ✅ implementable |
+| AC5 — search returns status | Given a type/group search, When GET `/accounts`, Then matching accounts return with `isActive`. | ✅ implementable |
+
+> **Implementation note:** Read-only Dapper repo `CoaReadQueryRepository` (get-by-code on the unique
+> index for <100ms); `ValidateForPostingQuery` assembles active + currency + cost-centre rules; the
+> deactivation event is published from `UpdateGlAccountMasterCommandHandler` on the active→inactive
+> transition via `IIntegrationEventPublisher` (direct `IPublishEndpoint`, Finance outbox fallback).
+> Event contract: `Contracts.Events.Coa.GlAccountDeactivatedEvent`. See memory `project_coa_read_api_16`.

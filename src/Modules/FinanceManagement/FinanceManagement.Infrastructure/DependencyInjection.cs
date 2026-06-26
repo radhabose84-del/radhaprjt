@@ -276,6 +276,12 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<ICoaReportQueryRepository, CoaReportQueryRepository>();
             services.AddScoped<ICoaListingPdfBuilder, CoaListingPdfBuilder>();
 
+            // US-GL02-16 — COA Read API for downstream modules + account-deactivated integration event.
+            services.AddScoped<FinanceManagement.Application.Common.Interfaces.ICoaRead.ICoaReadQueryRepository,
+                FinanceManagement.Infrastructure.Repositories.CoaRead.CoaReadQueryRepository>();
+            services.AddScoped<FinanceManagement.Application.Common.Interfaces.IIntegrationEvents.IIntegrationEventPublisher,
+                IntegrationEventPublisher>();
+
             // US-GL03-02 — Period status state machine + dual-approval reversal flow
             services.AddScoped<IPeriodStatusOverrideCommandRepository, PeriodStatusOverrideCommandRepository>();
             services.AddScoped<IPeriodStatusOverrideQueryRepository, PeriodStatusOverrideQueryRepository>();
