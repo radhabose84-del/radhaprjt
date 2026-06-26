@@ -1,4 +1,6 @@
+using Contracts.Dtos.Lookups.Users;
 using Contracts.Interfaces;
+using Contracts.Interfaces.Lookups.Users;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournalImport;
 using FinanceManagement.Application.JournalMaster.Dto;
 using FinanceManagement.Application.JournalMaster.JournalImport.Commands.ImportJournals;
@@ -12,15 +14,18 @@ namespace FinanceManagement.UnitTests.Application.JournalImport
         private readonly Mock<IJournalImportCommandRepository> _mockCommandRepo = new(MockBehavior.Strict);
         private readonly Mock<IJournalImportQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
+        private readonly Mock<IFinancialYearLookup> _mockFy = new(MockBehavior.Loose);
         private readonly Mock<IMediator> _mockMediator = new(MockBehavior.Loose);
 
         private ImportJournalsCommandHandler CreateSut() =>
-            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockIp.Object, _mockMediator.Object);
+            new(_mockCommandRepo.Object, _mockQueryRepo.Object, _mockIp.Object, _mockFy.Object, _mockMediator.Object);
 
         private void SetupLookups(bool accountsExist = true)
         {
             _mockIp.Setup(s => s.GetCompanyId()).Returns(1);
             _mockIp.Setup(s => s.GetUserId()).Returns(1);
+            _mockFy.Setup(f => f.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FinancialYearLookupDto { FinancialYearId = 3, FinancialYearName = "2026-27" });
             _mockQueryRepo.Setup(r => r.GetSourceIdAsync("IMPORT")).ReturnsAsync(116);
             _mockQueryRepo.Setup(r => r.GetStatusIdAsync("DRAFT")).ReturnsAsync(101);
             _mockQueryRepo.Setup(r => r.GetBatchStatusIdAsync("COMMITTED")).ReturnsAsync(163);
@@ -39,7 +44,7 @@ namespace FinanceManagement.UnitTests.Application.JournalImport
         {
             SetupLookups();
             _mockCommandRepo
-                .Setup(r => r.CommitAsync(It.IsAny<JournalImportBatch>(), It.IsAny<List<JournalHeader>>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.CommitAsync(It.IsAny<JournalImportBatch>(), It.IsAny<List<JournalHeader>>(), It.IsAny<IReadOnlyDictionary<int, string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((50, new List<int> { 101 }));
 
             var result = await CreateSut().Handle(JournalImportBuilders.ValidCommand(), CancellationToken.None);
@@ -56,8 +61,8 @@ namespace FinanceManagement.UnitTests.Application.JournalImport
             SetupLookups();
             List<JournalHeader>? captured = null;
             _mockCommandRepo
-                .Setup(r => r.CommitAsync(It.IsAny<JournalImportBatch>(), It.IsAny<List<JournalHeader>>(), It.IsAny<CancellationToken>()))
-                .Callback<JournalImportBatch, List<JournalHeader>, CancellationToken>((_, d, _) => captured = d)
+                .Setup(r => r.CommitAsync(It.IsAny<JournalImportBatch>(), It.IsAny<List<JournalHeader>>(), It.IsAny<IReadOnlyDictionary<int, string>>(), It.IsAny<CancellationToken>()))
+                .Callback<JournalImportBatch, List<JournalHeader>, IReadOnlyDictionary<int, string>, CancellationToken>((_, d, _, _) => captured = d)
                 .ReturnsAsync((50, new List<int> { 101 }));
 
             await CreateSut().Handle(JournalImportBuilders.ValidCommand(), CancellationToken.None);
@@ -81,7 +86,7 @@ namespace FinanceManagement.UnitTests.Application.JournalImport
             result.IsSuccess.Should().BeFalse();
             result.Data!.Committed.Should().BeFalse();
             result.Data.Errors.Should().NotBeEmpty();
-            _mockCommandRepo.Verify(r => r.CommitAsync(It.IsAny<JournalImportBatch>(), It.IsAny<List<JournalHeader>>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockCommandRepo.Verify(r => r.CommitAsync(It.IsAny<JournalImportBatch>(), It.IsAny<List<JournalHeader>>(), It.IsAny<IReadOnlyDictionary<int, string>>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]

@@ -48,7 +48,24 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalImp
                 SELECT e.RowNo, e.ColumnName, e.Message
                 FROM Finance.JournalImportError e
                 WHERE e.ImportBatchId = @Id
-                ORDER BY e.RowNo ASC, e.Id ASC;";
+                ORDER BY e.RowNo ASC, e.Id ASC;
+
+                -- Journals created by this batch (header).
+                SELECT h.Id, h.VoucherNo, h.VoucherDate, h.Narration, h.StatusId, ms.Description AS StatusName,
+                       h.TotalDr, h.TotalCr, h.IsPosted
+                FROM Finance.JournalHeader h
+                LEFT JOIN Finance.MiscMaster ms ON ms.Id = h.StatusId
+                WHERE h.ImportBatchId = @Id AND h.IsDeleted = 0
+                ORDER BY h.Id ASC;
+
+                -- Their line items.
+                SELECT d.JournalHeaderId, d.[LineNo], d.GlAccountId, ga.AccountCode, ga.AccountName,
+                       d.DrAmount, d.CrAmount, d.CurrencyId, d.CostCentreId, d.ProfitCentreId, d.LineNarration, d.ReferenceDocNo
+                FROM Finance.JournalDetail d
+                LEFT JOIN Finance.GlAccountMaster ga ON ga.Id = d.GlAccountId
+                WHERE d.IsDeleted = 0
+                    AND d.JournalHeaderId IN (SELECT Id FROM Finance.JournalHeader WHERE ImportBatchId = @Id AND IsDeleted = 0)
+                ORDER BY d.JournalHeaderId ASC, d.[LineNo] ASC;";
 
             var multi = await _dbConnection.QueryMultipleAsync(sql, new { Id = id });
             var dto = await multi.ReadFirstOrDefaultAsync<JournalImportBatchDto>();
@@ -56,6 +73,14 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalImp
                 return null;
 
             dto.Errors = (await multi.ReadAsync<JournalImportErrorDto>()).ToList();
+            dto.Journals = (await multi.ReadAsync<JournalImportJournalDto>()).ToList();
+            var lines = (await multi.ReadAsync<JournalImportJournalLineDto>()).ToList();
+
+            var linesByJournal = lines.GroupBy(l => l.JournalHeaderId).ToDictionary(g => g.Key, g => g.ToList());
+            foreach (var journal in dto.Journals)
+                if (linesByJournal.TryGetValue(journal.Id, out var jLines))
+                    journal.Lines = jLines;
+
             return dto;
         }
 

@@ -60,12 +60,15 @@ namespace FinanceManagement.IntegrationTests.Repositories.JournalImport
             var draft = JournalTestSeed.BuildDraftJournal(ids);
             draft.SourceId = importSourceId;
 
+            var fyNames = new Dictionary<int, string> { [draft.FinancialYearId] = "2026-27" };
+
             int batchId;
             List<int> journalIds;
             await using (var ctx = _fixture.CreateFreshDbContext())
                 (batchId, journalIds) = await CreateCommandRepo(ctx).CommitAsync(
                     BuildBatch(committedId, importSourceId, 2, 2, 0),
                     new List<JournalHeader> { draft },
+                    fyNames,
                     CancellationToken.None);
 
             batchId.Should().BeGreaterThan(0);
@@ -76,6 +79,17 @@ namespace FinanceManagement.IntegrationTests.Repositories.JournalImport
             savedJournal.ImportBatchId.Should().Be(batchId);
             savedJournal.SourceId.Should().Be(importSourceId);
             (await verify.JournalDetail.CountAsync(d => d.JournalHeaderId == journalIds[0])).Should().Be(2);
+
+            // GetBatchByIdAsync returns the created journal header + its line items.
+            var dto = await CreateQueryRepo().GetBatchByIdAsync(batchId);
+            dto.Should().NotBeNull();
+            dto!.Journals.Should().ContainSingle();
+            var jrnl = dto.Journals[0];
+            jrnl.Id.Should().Be(journalIds[0]);
+            jrnl.VoucherNo.Should().NotBeNull();    // voucher number allocated at import (like manual create)
+            jrnl.IsPosted.Should().BeFalse();        // still a DRAFT until posted
+            jrnl.Lines.Should().HaveCount(2);
+            jrnl.Lines.Should().OnlyContain(l => l.JournalHeaderId == journalIds[0]);
         }
 
         [Fact]
