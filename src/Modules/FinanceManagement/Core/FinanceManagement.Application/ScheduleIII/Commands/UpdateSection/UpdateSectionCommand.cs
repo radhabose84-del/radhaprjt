@@ -9,6 +9,7 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.UpdateSection
         public string? SectionName { get; set; }
         public int StatementTypeId { get; set; }
         public int NatureId { get; set; }
+        public int DisplayOrder { get; set; }        // statutory Schedule III sequence
         public int IsActive { get; set; }           // 1 = Active, 0 = Inactive
     }
 }

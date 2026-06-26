@@ -8,6 +8,7 @@ namespace FinanceManagement.Application.ScheduleIII.Dto
         public string? StatementTypeName { get; set; }        // MiscMaster JOIN
         public int NatureId { get; set; }
         public string? NatureName { get; set; }               // MiscMaster JOIN
+        public int DisplayOrder { get; set; }                 // statutory Schedule III sequence
 
         public List<ScheduleIIISectionItemDto> LineItems { get; set; } = new();
     }

@@ -71,6 +71,27 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             return true;
         }
 
+        // Reverts a locked structure back to DRAFT so it can be edited again. Only a currently-locked
+        // header is unlocked; a header that is not locked returns false (nothing changes).
+        public async Task<bool> UnlockStructureAsync(int scheduleIIIHeaderId)
+        {
+            var draftStatusId = await ResolveMiscIdAsync("S3_STATUS", "DRAFT");
+            var lockedStatusId = await ResolveMiscIdAsync("S3_STATUS", "LOCKED");
+            if (draftStatusId == 0 || lockedStatusId == 0)
+                return false;
+
+            var header = await _applicationDbContext.ScheduleIIIHeader
+                .FirstOrDefaultAsync(h => h.Id == scheduleIIIHeaderId && h.IsDeleted == IsDelete.NotDeleted);
+
+            if (header == null || header.StatusId != lockedStatusId)
+                return false;
+
+            header.StatusId = draftStatusId;
+            _applicationDbContext.ScheduleIIIHeader.Update(header);
+            await _applicationDbContext.SaveChangesAsync();
+            return true;
+        }
+
         // ── Detail (included lines) ──────────────────────────────────────────
 
         public async Task<int> CreateDetailAsync(ScheduleIIIDetail entity)
@@ -223,11 +244,45 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             existing.SectionName = entity.SectionName;
             existing.StatementTypeId = entity.StatementTypeId;
             existing.NatureId = entity.NatureId;
+            existing.DisplayOrder = entity.DisplayOrder;
             existing.IsActive = entity.IsActive;
 
             _applicationDbContext.ScheduleIIISection.Update(existing);
             await _applicationDbContext.SaveChangesAsync();
             return existing.Id;
+        }
+
+        // Moves a section up (direction = 1) or down (direction = -1) within its statement type by
+        // swapping DisplayOrder with the adjacent section. DisplayOrder isn't unique on the section
+        // table, so a direct swap is safe (no temporary parking needed).
+        public async Task<bool> ReorderSectionAsync(int sectionId, int direction, CancellationToken ct)
+        {
+            var row = await _applicationDbContext.ScheduleIIISection
+                .FirstOrDefaultAsync(x => x.Id == sectionId && x.IsDeleted == IsDelete.NotDeleted, ct);
+
+            if (row == null)
+                return false;
+
+            // Siblings = same statement type (BS/PL), excluding self, not deleted.
+            var siblings = _applicationDbContext.ScheduleIIISection
+                .Where(x => x.StatementTypeId == row.StatementTypeId
+                         && x.Id != row.Id
+                         && x.IsDeleted == IsDelete.NotDeleted);
+
+            ScheduleIIISection? neighbour = direction == 1
+                ? await siblings.Where(x => x.DisplayOrder < row.DisplayOrder)
+                                .OrderByDescending(x => x.DisplayOrder).FirstOrDefaultAsync(ct)
+                : await siblings.Where(x => x.DisplayOrder > row.DisplayOrder)
+                                .OrderBy(x => x.DisplayOrder).FirstOrDefaultAsync(ct);
+
+            if (neighbour == null)
+                return false;
+
+            (row.DisplayOrder, neighbour.DisplayOrder) = (neighbour.DisplayOrder, row.DisplayOrder);
+            _applicationDbContext.ScheduleIIISection.Update(row);
+            _applicationDbContext.ScheduleIIISection.Update(neighbour);
+            await _applicationDbContext.SaveChangesAsync(ct);
+            return true;
         }
 
         // ── LineItem (global catalog) ────────────────────────────────────────

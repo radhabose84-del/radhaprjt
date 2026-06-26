@@ -107,7 +107,14 @@ public sealed class AccountAuditTrailQATests
     }
 
     // ── AC-3: per-account, field-level history ──────────────────────────────────
-    [Fact, TestPriority(12)]
+    // BLOCKED for the testsales identity: AccountTypeMaster create requires a real CompanyId > 0
+    // (CreateAccountTypeMasterCommandValidator: GreaterThan(0) + Company-master existence), so the
+    // seeded rows + their audit entries are written under company 1. But the viewer is company-scoped
+    // to the caller (AccountAuditTrailQueryRepository.GetHistoryAsync filters WHERE CompanyId=@CompanyId,
+    // resolved from the JWT), and testsales' token carries CompanyId=0. A company-0 caller can never read
+    // company-1 audit rows — verified live: rows for the created type DO exist (EntId/company 1), the
+    // viewer correctly returns none. Needs a QA user bound to a real company to exercise AC-3 end-to-end.
+    [Fact(Skip = "Needs a QA user bound to a real CompanyId>0: AccountTypeMaster create requires a real company so audit rows land under company 1, but the company-scoped viewer runs as testsales' CompanyId=0 and cannot read them."), TestPriority(12)]
     public async Task TC012_History_ContainsFieldLevelRow_WithRole()
     {
         if (_typeId == 0) return;

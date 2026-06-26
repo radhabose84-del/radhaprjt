@@ -3,7 +3,9 @@ using FinanceManagement.Application.Common.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.ITaxCode;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurringJournalTemplate;
 using FinanceManagement.Application.Consumers;
+using FinanceManagement.Application.JournalMaster.Dto;
 using FinanceManagement.Domain.Common;
 using FinanceManagement.Domain.Entities;
 using MassTransit;
@@ -23,6 +25,9 @@ namespace FinanceManagement.UnitTests.Application.Consumers
         private readonly Mock<ITaxCodeQueryRepository> _taxQueryRepo = new(MockBehavior.Strict);
         private readonly Mock<IJournalCommandRepository> _journalCommandRepo = new(MockBehavior.Loose);
         private readonly Mock<IJournalQueryRepository> _journalQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IRecurringJournalTemplateCommandRepository> _rtCommandRepo = new(MockBehavior.Loose);
+        private readonly Mock<IRecurringJournalTemplateQueryRepository> _rtQueryRepo = new(MockBehavior.Loose);
+        private readonly Mock<IRecurringTemplateScheduler> _rtScheduler = new(MockBehavior.Loose);
         private readonly Mock<ITimeZoneService> _timeZone = new(MockBehavior.Loose);
         private readonly Mock<ILogger<ApprovedRejectedConsumer>> _logger = new();
 
@@ -32,10 +37,15 @@ namespace FinanceManagement.UnitTests.Application.Consumers
         private const int JournalId = 77;
         private const int JournalApprovedStatusId = 100;
         private const int JournalRejectedStatusId = 102;
+        private const int TemplateId = 88;
+        private const int TemplateApprovedStatusId = 200;
+        private const int TemplateRejectedStatusId = 201;
 
         private ApprovedRejectedConsumer CreateSut() =>
             new(_changeRepo.Object, _agCommandRepo.Object, _taxCommandRepo.Object, _taxQueryRepo.Object,
-                _journalCommandRepo.Object, _journalQueryRepo.Object, _timeZone.Object, _logger.Object);
+                _journalCommandRepo.Object, _journalQueryRepo.Object,
+                _rtCommandRepo.Object, _rtQueryRepo.Object, _rtScheduler.Object,
+                _timeZone.Object, _logger.Object);
 
         private static Mock<ConsumeContext<UpdateApprovedRejectedFinanceCommand>> BuildContext(UpdateApprovedRejectedFinanceCommand msg)
         {
@@ -163,15 +173,27 @@ namespace FinanceManagement.UnitTests.Application.Consumers
                 ModifiedByName = "Approver Bob"
             }).Object;
 
+        private const int PostedStatusId = 101;
+
         [Fact]
-        public async Task Consume_JournalApproved_SetsApprovedStatusWithApproverName()
+        public async Task Consume_JournalApproved_SetsApproved_AndPostsImmediately()
         {
             _journalQueryRepo.Setup(r => r.GetStatusIdAsync("APPROVED")).ReturnsAsync(JournalApprovedStatusId);
+            _journalQueryRepo.Setup(r => r.GetStatusIdAsync("POSTED")).ReturnsAsync(PostedStatusId);
+            _journalCommandRepo.Setup(r => r.SetApprovalResultAsync(JournalId, JournalApprovedStatusId, true, "Approver Bob", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+            _journalQueryRepo.Setup(r => r.GetByIdAsync(JournalId)).ReturnsAsync(new JournalHeaderDto { Id = JournalId });
+            _journalCommandRepo.Setup(r => r.PostAsync(JournalId, PostedStatusId, null, "Approver Bob", 0, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>(), It.IsAny<DateOnly?>()))
+                .ReturnsAsync(new PostJournalResultDto { JournalId = JournalId, VoucherNo = "JV/2026/0001" });
 
             await CreateSut().Consume(JournalCtx(MiscEnumEntity.Approved));
 
             _journalCommandRepo.Verify(r => r.SetApprovalResultAsync(
                 JournalId, JournalApprovedStatusId, true, "Approver Bob", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+            // Approved voucher → posted immediately (updates ledger via the posting core).
+            _journalCommandRepo.Verify(r => r.PostAsync(
+                JournalId, PostedStatusId, null, "Approver Bob", 0, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>(), It.IsAny<DateOnly?>()),
                 Times.Once);
         }
 
@@ -185,6 +207,42 @@ namespace FinanceManagement.UnitTests.Application.Consumers
             _journalCommandRepo.Verify(r => r.SetApprovalResultAsync(
                 JournalId, JournalRejectedStatusId, false, "Approver Bob", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        // ── Recurring Journal Template (US-GL01-11) ───────────────────────────────
+        private static ConsumeContext<UpdateApprovedRejectedFinanceCommand> TemplateCtx(string status) =>
+            BuildContext(new UpdateApprovedRejectedFinanceCommand
+            {
+                CorrelationId = Guid.NewGuid(),
+                ModuleTransactionId = TemplateId,
+                ModuleTypeName = MiscEnumEntity.RecurringJournalTemplate,
+                Status = status,
+                ModifiedByName = "Approver Bob"
+            }).Object;
+
+        [Fact]
+        public async Task Consume_TemplateApproved_SetsApproved_AndSchedules()
+        {
+            _rtQueryRepo.Setup(r => r.GetApprovalStatusIdAsync(MiscEnumEntity.Approved)).ReturnsAsync(TemplateApprovedStatusId);
+            _rtCommandRepo.Setup(r => r.SetApprovalResultAsync(TemplateId, TemplateApprovedStatusId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+            await CreateSut().Consume(TemplateCtx(MiscEnumEntity.Approved));
+
+            _rtCommandRepo.Verify(r => r.SetApprovalResultAsync(TemplateId, TemplateApprovedStatusId, It.IsAny<CancellationToken>()), Times.Once);
+            _rtScheduler.Verify(s => s.SyncAsync(TemplateId, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Consume_TemplateRejected_SetsRejected_AndRemovesSchedule()
+        {
+            _rtQueryRepo.Setup(r => r.GetApprovalStatusIdAsync(MiscEnumEntity.Rejected)).ReturnsAsync(TemplateRejectedStatusId);
+            _rtCommandRepo.Setup(r => r.SetApprovalResultAsync(TemplateId, TemplateRejectedStatusId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+            await CreateSut().Consume(TemplateCtx(MiscEnumEntity.Rejected));
+
+            _rtCommandRepo.Verify(r => r.SetApprovalResultAsync(TemplateId, TemplateRejectedStatusId, It.IsAny<CancellationToken>()), Times.Once);
+            _rtScheduler.Verify(s => s.Remove(TemplateId), Times.Once);
+            _rtScheduler.Verify(s => s.SyncAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

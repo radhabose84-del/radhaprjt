@@ -55,6 +55,8 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
             return new FinanceManagement.Domain.Entities.RecurringJournalTemplateHeader
             {
                 TemplateName = name,
+                CompanyId = 1,
+                UnitId = 1,
                 VoucherTypeId = ids.VoucherTypeId,
                 FrequencyId = ids.FrequencyId,
                 StartDate = new DateOnly(2026, 4, 1),
@@ -69,12 +71,14 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
                     new()
                     {
                         LineNo = 1, GlAccountId = ids.GlAccountDrId, DrAmount = 150000m, CrAmount = 0m,
+                        CurrencyId = ids.CurrencyId, ExchangeRate = 1m,
                         CostCentreId = ids.CostCentreId, ProfitCentreId = ids.ProfitCentreId, LineNarration = "Rent",
                         IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                     },
                     new()
                     {
                         LineNo = 2, GlAccountId = ids.GlAccountCrId, DrAmount = 0m, CrAmount = 150000m,
+                        CurrencyId = ids.CurrencyId, ExchangeRate = 1m,
                         CostCentreId = null, ProfitCentreId = ids.ProfitCentreId, LineNarration = "Rent payable",
                         IsActive = Status.Active, IsDeleted = IsDelete.NotDeleted
                     }

@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using FinanceManagement.Application.Common.Interfaces;
@@ -220,9 +221,18 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<FinanceManagement.Application.Common.Interfaces.JournalMaster.ILedgerBalance.ILedgerBalanceQueryRepository,
                 FinanceManagement.Infrastructure.Repositories.JournalMaster.LedgerBalances.LedgerBalanceQueryRepository>();
 
+            // Unified log analysis (SecurityViolation / SequenceGap / RecurringGeneration / JournalFlag)
+            services.AddScoped<FinanceManagement.Application.Common.Interfaces.JournalMaster.ILogAnalysis.ILogAnalysisQueryRepository,
+                FinanceManagement.Infrastructure.Repositories.JournalMaster.LogAnalysis.LogAnalysisQueryRepository>();
+
             // Recurring journal template authoring (Header + Detail) — US-GL01-11A
             services.AddScoped<IRecurringJournalTemplateCommandRepository, RecurringJournalTemplateCommandRepository>();
             services.AddScoped<IRecurringJournalTemplateQueryRepository, RecurringJournalTemplateQueryRepository>();
+
+            // Default no-op template scheduler — TryAdd so the real Hangfire impl (registered earlier by
+            // BackgroundService.Infrastructure in the API/Worker hosts) wins; the no-op only applies where Hangfire is absent.
+            services.TryAddScoped<FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurringJournalTemplate.IRecurringTemplateScheduler,
+                NoOpRecurringTemplateScheduler>();
 
             // Journal threshold rules (US-GL01-16A) + flag read (US-GL01-16B)
             services.AddScoped<IJournalThresholdRuleCommandRepository, JournalThresholdRuleCommandRepository>();
@@ -324,6 +334,11 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IAccountTypeMasterLookup, AccountTypeMasterLookupRepository>();
            services.AddScoped<IScheduleIIICommandRepository, ScheduleIIICommandRepository>();
             services.AddScoped<IScheduleIIIQueryRepository, ScheduleIIIQueryRepository>();
+
+            // Schedule III section/line-item bulk import (Excel/CSV)
+            services.AddScoped<IScheduleIIIImportQueryRepository, ScheduleIIIImportQueryRepository>();
+            services.AddScoped<IScheduleIIIImportCommandRepository, ScheduleIIIImportCommandRepository>();
+            services.AddScoped<IScheduleIIIImportFileService, FinanceManagement.Application.ScheduleIII.Services.ScheduleIIIImportFileService>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
             services.AddScoped<ITaxCodeLookup, TaxCodeLookupRepository>();
             // US-GL03-01..05 (refactor 2026-06-26) — period lookup against Finance.AccountingPeriod.

@@ -11,6 +11,18 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurri
         Task<bool> AlreadyExistsByNameAsync(string templateName, int? id = null);
         Task<bool> NotFoundAsync(int id);
 
+        // Resolve an ApprovalStatus MiscMaster id by code (Pending / Approved / Rejected).
+        Task<int> GetApprovalStatusIdAsync(string code);
+
+        // Templates awaiting approval (StatusId = ApprovalStatus 'Pending') — candidates for the approver inbox.
+        Task<(List<RecurringJournalTemplateHeaderDto>, int)> GetPendingApprovalAsync(int pageNumber, int pageSize);
+
+        // Scheduling inputs for one template (frequency code + validity + flags + status code).
+        Task<RecurringTemplateScheduleInfoDto?> GetScheduleInfoAsync(int templateId);
+
+        // "Generated Instances" grid — journals created from recurring templates (company-scoped via the token).
+        Task<(List<RecurringGeneratedInstanceDto>, int)> GetGeneratedInstancesAsync(int pageNumber, int pageSize);
+
         // FK validation helpers (same-module direct SQL).
         Task<bool> VoucherTypeExistsAsync(int voucherTypeId, int companyId);
         Task<bool> FrequencyExistsAsync(int miscId);
