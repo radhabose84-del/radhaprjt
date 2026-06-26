@@ -32,7 +32,7 @@ namespace FinanceManagement.UnitTests.Domain
             var entity = new PeriodStatusOverride
             {
                 Id = 1,
-                FinancialPeriodId = 5,
+                AccountingPeriodId = 5,
                 CompanyId = 1,
                 FromStatusId = 200,
                 ToStatusId = 100,
@@ -42,7 +42,7 @@ namespace FinanceManagement.UnitTests.Domain
                 OverrideStatusId = 300
             };
 
-            entity.FinancialPeriodId.Should().Be(5);
+            entity.AccountingPeriodId.Should().Be(5);
             entity.FromStatusId.Should().Be(200);
             entity.ToStatusId.Should().Be(100);
             entity.RequestedBy.Should().Be(42);

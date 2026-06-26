@@ -61,7 +61,7 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Commands.RequestPer
                 throw new ExceptionRules("Status master rows (FPS / PSO) are not seeded.");
 
             var entity = _mapper.Map<Domain.Entities.PeriodStatusOverride>(request);
-            entity.FinancialPeriodId  = request.PeriodId;
+            entity.AccountingPeriodId = request.PeriodId;
             entity.CompanyId          = companyId;
             entity.FromStatusId       = snap.StatusId;
             entity.ToStatusId         = toStatusId;

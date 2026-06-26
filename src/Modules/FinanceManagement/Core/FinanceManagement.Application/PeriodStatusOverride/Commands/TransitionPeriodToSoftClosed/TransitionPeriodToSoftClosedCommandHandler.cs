@@ -55,7 +55,7 @@ namespace FinanceManagement.Application.PeriodStatusOverride.Commands.Transition
                 throw new ExceptionRules("Failed to apply status change — period may have been modified concurrently.");
 
             await _mediator.Publish(new PeriodStatusChangedDomainEvent(
-                FinancialPeriodId: request.PeriodId,
+                AccountingPeriodId: request.PeriodId,
                 CompanyId:         companyId,
                 FinancialYearId:   snap.FinancialYearId,
                 FromStatusId:      snap.StatusId,

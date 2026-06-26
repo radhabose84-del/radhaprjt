@@ -15,7 +15,7 @@ namespace FinanceManagement.Domain.Entities
         public DateOnly? PostingDate { get; set; }
 
         public int FinancialYearId { get; set; }        // cross-module FK — no DB constraint
-        public int? AccountingPeriodId { get; set; }    // same-module FK -> AccountingPeriod
+        public int? AccountingPeriodId { get; set; }    // same-module FK -> AccountingPeriod (1..13 incl. adjustment period)
         public string? Narration { get; set; }          // full-text indexed (US-14)
 
         public int StatusId { get; set; }               // same-module FK -> MiscMaster (JOURNAL_STATUS)
