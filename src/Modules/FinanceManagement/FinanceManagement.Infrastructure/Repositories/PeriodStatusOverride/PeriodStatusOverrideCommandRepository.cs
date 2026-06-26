@@ -58,22 +58,14 @@ namespace FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride
             {
                 await using var tx = await _applicationDbContext.Database.BeginTransactionAsync(ct);
 
-            var period = await _applicationDbContext.AccountingPeriod
-                .FirstOrDefaultAsync(p => p.Id == accountingPeriodId && p.IsDeleted == IsDelete.NotDeleted, ct);
-            if (period == null) return false;
-
-            period.StatusId            = newStatusId;
-            period.LastStatusChangedBy = changedBy;
-            period.LastStatusChangedAt = changedAt;
-            _applicationDbContext.AccountingPeriod.Update(period);
-                var period = await _applicationDbContext.FinancialPeriodMaster
-                    .FirstOrDefaultAsync(p => p.Id == financialPeriodId && p.IsDeleted == IsDelete.NotDeleted, ct);
+                var period = await _applicationDbContext.AccountingPeriod
+                    .FirstOrDefaultAsync(p => p.Id == accountingPeriodId && p.IsDeleted == IsDelete.NotDeleted, ct);
                 if (period == null) return false;
 
                 period.StatusId            = newStatusId;
                 period.LastStatusChangedBy = changedBy;
                 period.LastStatusChangedAt = changedAt;
-                _applicationDbContext.FinancialPeriodMaster.Update(period);
+                _applicationDbContext.AccountingPeriod.Update(period);
 
                 if (overrideIdToMarkApplied.HasValue && appliedStatusIdForOverride.HasValue)
                 {
