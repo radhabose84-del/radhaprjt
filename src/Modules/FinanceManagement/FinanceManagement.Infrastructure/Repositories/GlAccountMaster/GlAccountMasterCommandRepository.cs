@@ -42,7 +42,13 @@ namespace FinanceManagement.Infrastructure.Repositories.GlAccountMaster
             existingEntity.IsTaxRelevant = entity.IsTaxRelevant;
             existingEntity.IsInterCompany = entity.IsInterCompany;
             existingEntity.IsReconciliationRequired = entity.IsReconciliationRequired;
+            existingEntity.IsCompanyRestricted = entity.IsCompanyRestricted;
             existingEntity.IsActive = entity.IsActive;
+
+            // US-GL02-10 (AC3) — editing an inherited copy locally marks it as an override so future
+            // global propagation skips it. Editing the template itself (GlobalAccountId == null) does not.
+            if (existingEntity.GlobalAccountId != null)
+                existingEntity.IsLocalOverride = true;
 
             _applicationDbContext.GlAccountMaster.Update(existingEntity);
             await _applicationDbContext.SaveChangesAsync();

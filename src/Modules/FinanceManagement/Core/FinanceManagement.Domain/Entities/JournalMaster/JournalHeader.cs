@@ -43,6 +43,15 @@ namespace FinanceManagement.Domain.Entities
         public string? PostedBy { get; set; }
         public DateTimeOffset? PostedAt { get; set; }
 
+        // US-GL03-04 — backdating audit metadata.
+        // IsBackdated is a PERSISTED COMPUTED column in SQL Server (set by the DB whenever
+        // VoucherDate < CAST(PostedAt AS DATE)); never assigned in C#.
+        public bool IsBackdated { get; private set; }
+        // Required when posting to a SoftClosed prior period (US-GL03-04 AC#2); null otherwise.
+        public string? BackdateReason { get; set; }
+        public int? BackdateAcknowledgedBy { get; set; }
+        public DateTimeOffset? BackdateAcknowledgedAt { get; set; }
+
         // Same-module FK navigation
         public VoucherTypeMaster? VoucherType { get; set; }
         public AccountingPeriod? AccountingPeriod { get; set; }

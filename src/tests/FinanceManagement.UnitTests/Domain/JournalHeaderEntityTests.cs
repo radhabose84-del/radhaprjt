@@ -60,5 +60,44 @@ namespace FinanceManagement.UnitTests.Domain
         {
             new JournalHeader().VoucherNo.Should().BeNull();
         }
+
+        // US-GL03-04 — backdating audit metadata.
+        [Fact]
+        public void JournalHeader_DefaultIsBackdated_ShouldBeFalse()
+        {
+            // IsBackdated is a DB persisted-computed column — C# never assigns it; default must be false.
+            new JournalHeader().IsBackdated.Should().BeFalse();
+        }
+
+        [Fact]
+        public void JournalHeader_IsBackdated_SetterIsPrivate()
+        {
+            // IsBackdated is owned by the DB; the public setter must not exist (private setter only).
+            var prop = typeof(JournalHeader).GetProperty(nameof(JournalHeader.IsBackdated));
+            prop.Should().NotBeNull();
+            prop!.GetSetMethod(nonPublic: false).Should().BeNull();
+        }
+
+        [Fact]
+        public void JournalHeader_DefaultBackdateReason_ShouldBeNull()
+        {
+            new JournalHeader().BackdateReason.Should().BeNull();
+        }
+
+        [Fact]
+        public void JournalHeader_BackdateAck_FieldsAssignable()
+        {
+            var ackAt = DateTimeOffset.UtcNow;
+            var entity = new JournalHeader
+            {
+                BackdateReason = "Bank charge accrual from prior month",
+                BackdateAcknowledgedBy = 42,
+                BackdateAcknowledgedAt = ackAt
+            };
+
+            entity.BackdateReason.Should().Be("Bank charge accrual from prior month");
+            entity.BackdateAcknowledgedBy.Should().Be(42);
+            entity.BackdateAcknowledgedAt.Should().Be(ackAt);
+        }
     }
 }

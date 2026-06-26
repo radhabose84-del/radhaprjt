@@ -1,4 +1,6 @@
 using System.Data;
+using Contracts;
+using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Finance;
 using Contracts.Interfaces.Lookups.Users;
 using Dapper;
@@ -13,15 +15,18 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderTypeMaster
         private readonly IDbConnection _dbConnection;
         private readonly ITransactionTypeLookup _transactionTypeLookup;
         private readonly ICurrencyLookup _currencyLookup;
+        private readonly IAccessPolicyService _accessPolicy;
 
         public SalesOrderTypeMasterQueryRepository(
             IDbConnection dbConnection,
             ITransactionTypeLookup transactionTypeLookup,
-            ICurrencyLookup currencyLookup)
+            ICurrencyLookup currencyLookup,
+            IAccessPolicyService accessPolicy)
         {
             _dbConnection = dbConnection;
             _transactionTypeLookup = transactionTypeLookup;
             _currencyLookup = currencyLookup;
+            _accessPolicy = accessPolicy;
         }
 
         // ============================================================
@@ -119,7 +124,19 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderTypeMaster
         public async Task<IReadOnlyList<SalesOrderTypeMasterLookupDto>> AutocompleteAsync(
             string term, CancellationToken cancellationToken)
         {
+            // Centralized access policy — restrict which SalesOrderType values the current
+            // user's roles may see. Three-state contract:
+            //   null  -> unrestricted (bypass/admin, or policy not configured)
+            //   empty -> deny all
+            //   [ids] -> restrict to these SalesOrderTypeMaster.Id values
+            var allowedIds = await _accessPolicy.GetAllowedValueIdsAsync(
+                AccessPolicyCodes.SalesOrderType, cancellationToken);
+
+            if (allowedIds is { Count: 0 })
+                return new List<SalesOrderTypeMasterLookupDto>();
+
             var hasTerm = !string.IsNullOrWhiteSpace(term);
+            var restrict = allowedIds is not null;
 
             var sql = $@"
                 SELECT s.Id, s.SoTypeId, s.TaxTypeId, s.TypeName,
@@ -130,10 +147,11 @@ namespace SalesManagement.Infrastructure.Repositories.SalesOrderTypeMaster
                     AND mm.IsDeleted = 0
                 WHERE  s.IsActive = 1 AND s.IsDeleted = 0
                 {(hasTerm ? "AND (s.TypeName LIKE @Term OR mm.Code LIKE @Term)" : string.Empty)}
+                {(restrict ? "AND s.Id IN @AllowedIds" : string.Empty)}
                 ORDER BY s.TypeName";
 
             var rows = (await _dbConnection.QueryAsync<SalesOrderTypeMasterLookupDto>(
-                sql, new { Term = $"%{term}%" })).ToList();
+                sql, new { Term = $"%{term}%", AllowedIds = allowedIds })).ToList();
 
             // Enrich TaxTypeShortName via Finance lookup
             var taxIds = rows.Select(r => r.TaxTypeId).Where(i => i > 0).Distinct().ToList();

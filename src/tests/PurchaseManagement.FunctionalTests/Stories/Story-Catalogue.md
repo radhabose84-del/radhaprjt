@@ -96,6 +96,21 @@ Key data facts (verified in source during QA authoring):
 
 ---
 
+## US-PUR-08 — Arrival inward (incl. GST %)  *(MOSTLY BLOCKED — read surface + GST contract)*
+
+> As a procurement user I record a cotton-bale Arrival (inward) against a Raw-Material PO,
+> capturing a header-level **GST (%)** alongside the quantity/weighbridge details, and read it
+> back on every Arrival GET.
+
+| # | Acceptance criterion | Status |
+|---|---|---|
+| 1 | An Arrival can be created with a header-level `gstPercentage`, and it is returned by GetById | 🚫 needs seeded data: RawMaterialPO + supplier/station/godown/transporter + doc-numbering "Arrival" |
+| 2 | The Arrival list + autocomplete reads are reachable | ⚠️ reachability (200/404 tolerant) |
+| 3 | `gstPercentage` is required and bounded 0–100 (missing / >100 → 400) | 🚫 same create-chain block (validated at unit layer) |
+| 4 | Each Arrival read rejects anonymous callers (401) | ✅ security |
+
+---
+
 ### Implementation status summary
 
 | Story | Implementable now | Blocked on seeded data |
@@ -104,6 +119,7 @@ Key data facts (verified in source during QA authoring):
 | US-PUR-02 Vendor terms & logistics masters | ✅ full (FK creates self-skip if clone lacks a MiscMaster/Country) | — |
 | US-PUR-03 Return policy chain | ✅ full | — |
 | US-PUR-04 Procure-to-receipt readiness | ✅ reachability + auth-protection | full PO document flow (vendor/item/paymentTerm + budget + doc-numbering) |
+| US-PUR-08 Arrival inward (incl. GST %) | ✅ read surface + auth-protection | full Arrival create + GST round-trip (RawMaterialPO + supplier/station/godown/transporter + doc-numbering) |
 
 US-PUR-01/02/03 implement as fully-active master chains with leaf-first teardown.
 US-PUR-04 implements as reachability + security active and the full PO document create

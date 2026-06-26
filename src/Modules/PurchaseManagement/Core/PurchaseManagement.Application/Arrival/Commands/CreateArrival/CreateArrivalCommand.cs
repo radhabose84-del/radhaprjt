@@ -33,6 +33,9 @@ namespace PurchaseManagement.Application.Arrival.Commands.CreateArrival
         public decimal WeightDifference { get; set; }
         public decimal? MoisturePercentage { get; set; }
 
+        // Header-level GST % applied to the arrival.
+        public decimal? GstPercentage { get; set; }
+
         // PR range (from–to) — optional
         public int? PRFrom { get; set; }
         public int? PRTo { get; set; }

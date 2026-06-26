@@ -18,5 +18,11 @@ namespace Contracts.Interfaces.Lookups.Party
         /// Used for mandatory-vendor FK validation and server-side VendorName resolution.
         /// </summary>
         Task<SupplierLookupDto?> GetActiveSupplierByIdAsync(int partyId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Returns the party if the given id is an active, non-deleted party typed Supplier <b>or</b> Ginner;
+        /// otherwise null. Used by OCR, whose "Supplier / Ginner" field sources cotton from either type.
+        /// </summary>
+        Task<SupplierLookupDto?> GetActiveSupplierOrGinnerByIdAsync(int partyId, CancellationToken ct = default);
     }
 }

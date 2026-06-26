@@ -18,6 +18,10 @@ namespace FinanceManagement.Application.GlAccountMaster.Commands.UpdateGlAccount
         public bool IsTaxRelevant { get; set; }
         public bool IsInterCompany { get; set; }
         public bool IsReconciliationRequired { get; set; }
+
+        // US-GL02-10 (AC2) — owning-entity-only flag is editable; IsGlobal is immutable after create.
+        public bool IsCompanyRestricted { get; set; }
+
         public int IsActive { get; set; }
 
         public PermissionType RequiredPermission => PermissionType.CanUpdate;

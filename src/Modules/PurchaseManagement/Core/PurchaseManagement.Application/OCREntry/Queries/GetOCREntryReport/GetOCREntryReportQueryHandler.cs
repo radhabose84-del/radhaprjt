@@ -68,6 +68,10 @@ namespace PurchaseManagement.Application.OCREntry.Queries.GetOCREntryReport
             // Freight (per bale / total) — via OCR → PO → Freight RFQ; null until approved.
             var (freightPerBale, freightTotal) = await _queryRepository.GetFreightForOcrAsync(ocr.Id);
 
+            // Logo as base64 so the FE can embed it in the PDF without a cross-origin fetch
+            // (mirrors the Company master). The 'logo' URL is still emitted for on-screen <img>.
+            var logoBase64 = ReadLogoBase64(company?.Logo);
+
             var report = new OcrReportDto
             {
                 Sections = new List<OcrReportSection>
@@ -83,6 +87,7 @@ namespace PurchaseManagement.Application.OCREntry.Queries.GetOCREntryReport
                             Field("cin", "CIN", unit?.CINNO),
                             Field("gstin", "GSTIN", company?.GstNumber),
                             Field("logo", "Logo", company?.LogoUrl),
+                            Field("logoBase64", "Logo (base64)", logoBase64),
                         }
                     },
                     new()
@@ -173,6 +178,23 @@ namespace PurchaseManagement.Application.OCREntry.Queries.GetOCREntryReport
 
         private static OcrReportField Field(string key, string label, string? value, object? raw = null) =>
             new() { Key = key, Label = label, Value = value ?? string.Empty, Raw = raw };
+
+        // Reads the stored logo file into base64 so the FE can embed it directly in the PDF
+        // (no cross-origin fetch). Returns empty when no readable file (mirrors the Company master).
+        private static string ReadLogoBase64(string? logoPath)
+        {
+            if (string.IsNullOrWhiteSpace(logoPath) || !File.Exists(logoPath))
+                return string.Empty;
+
+            try
+            {
+                return Convert.ToBase64String(File.ReadAllBytes(logoPath));
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
 
         private static string FmtDate(DateTimeOffset? d) =>
             d.HasValue ? d.Value.ToString("dd.MM.yy", CultureInfo.InvariantCulture) : string.Empty;

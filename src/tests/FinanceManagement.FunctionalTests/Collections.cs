@@ -32,4 +32,19 @@ namespace FinanceManagement.FunctionalTests
 
     [CollectionDefinition("US-GL02-09")]
     public sealed class AccountAuditTrailStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL03-01")]
+    public sealed class FiscalCalendarSetupStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL03-02")]
+    public sealed class PeriodStatusControlsStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL02-10")]
+    public sealed class MultiCompanyCoaStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL02-15")]
+    public sealed class CoaReportStoryCollection : ICollectionFixture<QAServerFixture> { }
+
+    [CollectionDefinition("US-GL03-04")]
+    public sealed class BackdatingLatePostingStoryCollection : ICollectionFixture<QAServerFixture> { }
 }

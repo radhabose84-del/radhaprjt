@@ -195,11 +195,38 @@ internal sealed class IPAddressService : IIPAddressService
     public string? GetUserRole()
     {
         // A user may hold several roles; the JWT carries one ClaimTypes.Role per role (added at login).
-        var roles = _httpContextAccessor.HttpContext?.User?
-            .FindAll(ClaimTypes.Role)
+        var roles = GetRoles();
+        return roles.Count > 0 ? string.Join(", ", roles) : null;
+    }
+
+    public IReadOnlyList<string> GetRoles()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        if (user == null) return Array.Empty<string>();
+
+        return user.FindAll(ClaimTypes.Role)
             .Select(c => c.Value)
             .Where(v => !string.IsNullOrWhiteSpace(v))
             .ToList();
-        return roles is { Count: > 0 } ? string.Join(", ", roles) : null;
+    }
+
+    public bool IsInRole(string roleName)
+    {
+        if (string.IsNullOrWhiteSpace(roleName)) return false;
+        var user = _httpContextAccessor.HttpContext?.User;
+        return user != null && user.IsInRole(roleName);
+    }
+
+    public bool IsInAnyRole(IEnumerable<string> roleNames)
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        if (user == null) return false;
+
+        foreach (var role in roleNames)
+        {
+            if (!string.IsNullOrWhiteSpace(role) && user.IsInRole(role))
+                return true;
+        }
+        return false;
     }
 }

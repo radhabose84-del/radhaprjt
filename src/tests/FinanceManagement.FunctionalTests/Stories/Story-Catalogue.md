@@ -330,3 +330,165 @@ Base route: `api/finance/account-audit` (read-only: `GET {entityName}/{entityId}
 > `DENY DELETE,UPDATE TO public` + `trg_AccountAuditTrail_Immutable` (in the migration). Scope = COA
 > structure + governance (GlAccountMaster, AccountGroup, AccountTypeMaster, CoaFreezeState,
 > CoaChangeRequest, CoaUnfreezeRequest). See `docs/AccountAuditTrail_Specification.md`.
+
+---
+
+## US-GL03-01 — Fiscal Year & Period Calendar Setup
+
+**User story:** As a System Administrator, I configure company-specific fiscal calendars that auto-generate
+12 monthly periods plus Period 13 (adjustment), so each entity can close on its own cycle and the posting
+engine has a calendar to validate every JE against.
+
+**Pre-condition (seed):** `Finance.MiscMaster` rows for `MiscTypeCode='FYS'` (`OPEN`, `CLOSED`) and
+`MiscTypeCode='FPS'` (`OPEN`, `SOFTCLOSED`, `HARDCLOSED`) must exist in the QA clone before the Create
+endpoint will succeed. The handler throws a clear error if they're missing.
+
+Base routes: `api/finance/FinancialYearMaster`, `api/finance/FinancialYearMaster/{companyId}/periods`,
+`api/finance/FinancialYearMaster/period-for-date`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — independent calendars per company | Given two companies onboard with different fiscal-year starts, When each creates their year, Then each has its own 13-period set scoped by `CompanyId`. | 🚫 needs a second QA user bound to a real CompanyId (cross-company assert blocked) |
+| AC2 — 13 periods auto-generated | Given a fiscal year `2100-01`, When POST `/api/finance/FinancialYearMaster` is OK, Then GET `/{id}` shows 12 monthly + Period 13 (`IsAdjustmentPeriod=true`) all `Status=OPEN`. | ✅ implementable |
+| AC3 — Period 13 same dates as Period 12 | Given Period 13 (Indian accounting convention), When examined, Then its StartDate/EndDate equal Period 12 (March) — adjustment posts to the close month. | ✅ implementable |
+| AC4 — duplicate `(CompanyId, FinancialYearCode)` rejected | Given a year already exists, When POSTed again with the same code, Then 400 "already exists". | ✅ implementable |
+| AC4b — date-range overlap rejected | Given a year covers Apr-Mar, When a new year overlaps any day in that range, Then 400 "overlaps an existing fiscal year". | ✅ implementable |
+| AC5 — auto-create next year before EndDate | Given a year ends within 3 months, When the Hangfire `AutoCreateNextFinancialYearMasterJob` runs, Then the next year + its 13 periods are created. | 🚫 background-job — cannot be triggered via the QA HTTP surface; verified by unit test |
+| Posting engine — read APIs | Given a calendar exists, When GET `/{companyId}/periods` and GET `/period-for-date?date=`, Then both return the calendar correctly (date-resolver skips `IsAdjustmentPeriod` so March dates resolve to Period 12, not Period 13). | ✅ implementable |
+| Update — date immutability | Given an existing year, When PUT updates `StartDate`/`EndDate`, Then those values are silently kept at create-time values (handler accepts only code + IsActive). | ⚠️ verify live |
+| Delete — soft-delete cascades to periods | Given a year, When DELETE, Then `IsDeleted=1` propagates to all 13 periods (period FK is `Cascade` so the rows are tombstoned via the year). | ✅ implementable |
+
+> Schema: `Finance.FinancialYearMaster` (header) + `Finance.FinancialPeriodMaster` (detail, `Cascade` on year delete).
+> Status FK → `Finance.MiscMaster` keyed by `(MiscTypeCode, Code)`. See unit tests in
+> `FinanceManagement.UnitTests/Application/FinancialYearMaster/Commands/CreateFinancialYearMasterCommandHandlerTests` for the
+> 13-period generation contract.
+
+---
+
+## US-GL03-02 — Period Status & Posting Controls
+
+**User story:** As a Finance Manager, I enforce three-state one-way period status (Open → SoftClosed → HardClosed)
+at both the API and DB layers, so postings are controlled as the close progresses; reversals are gated behind
+CFO + SysAdmin dual approval and an automatic second-approval auto-apply.
+
+**Pre-condition (seed):** `Finance.MiscMaster` rows for `MiscTypeCode='PSO'` (`PENDING`, `FULLYAPPROVED`,
+`APPLIED`, `REJECTED`) must exist (in addition to the FYS/FPS rows from US-GL03-01). The `testsales` QA user
+must hold the `CFO` and `SysAdmin` roles in the QA clone for the dual-approval flow to land green; absent that,
+approval steps Skip with a precise reason.
+
+Base routes: `api/finance/FinancialPeriodStatus`, `api/finance/PeriodStatusOverride`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — HARDCLOSED blocks everyone | Given a hard-closed period, When any source posts a JE, Then it's rejected by both the API gate (`IPeriodPostingGate`) and the DB trigger on `Finance.JournalLine`. | 🚫 needs `Finance.JournalLine` table (GL-01-FR-009) — DB trigger is a no-op until JournalLine exists |
+| AC2 — SOFTCLOSED restricts to Finance Manager+ | Given a soft-closed period, When a Finance Manager posts, Then 200; for any role below, Then 403/blocked. | 🚫 needs JournalLine + role-gated test users |
+| AC3 — reversal needs CFO + SysAdmin | Given a period reversal request (`SOFTCLOSED → OPEN` or `HARDCLOSED → SOFTCLOSED`), When both CFO **and** SysAdmin approve (any order), Then the period status auto-flips immediately on the 2nd approval; single approval keeps it PENDING. | ⚠️ verify live (needs the dual-role test user) |
+| AC4 — `PeriodStatusChangedDomainEvent` published on every flip | Given any successful status change, When committed, Then the event fires (`IsReversal=true` for the override path, `OverrideId` populated) and `GET /{periodId}/status` reflects the new status. | ✅ implementable |
+| State machine — forward-only | Given current status, When a forward transition is attempted, Then `OPEN→SOFTCLOSED` and `SOFTCLOSED→HARDCLOSED` are 200, every other forward direction is 400 "Illegal status transition". | ✅ implementable |
+| Override — single pending at a time | Given a PENDING override on a period, When a 2nd reversal is requested, Then 400 "already in progress". | ✅ implementable |
+| Override — segregation of duties | Given an override Requested by user X, When user X attempts `/approve` or `/reject`, Then 400 "self-approve" / "self-reject". | ⚠️ verify live (needs a separate test user for approvers) |
+
+> Schema: `Finance.PeriodStatusOverride` + `LastStatusChangedBy/At` columns on `Finance.FinancialPeriodMaster`.
+> `IPeriodPostingGate` is the single security service consumed by GL-01-FR-009 posting middleware.
+> Status / Override-status FKs → `Finance.MiscMaster` (`FPS`, `PSO`). State machine lives in
+> `FinanceManagement.Application.Common.PeriodStatus.PeriodStatusStateMachine`. The auto-apply path
+> (CFO + SysAdmin → period flip + override APPLIED) is atomic in one transaction
+> (`PeriodStatusOverrideCommandRepository.ApplyPeriodStatusChangeAsync`) — proven in the integration
+> tests under `FinanceManagement.IntegrationTests/Repositories/PeriodStatusOverride`.
+
+---
+
+## US-GL02-10 — Multi-Company COA (shared global template + entity-specific overrides)
+
+**User story:** As a Group Finance Controller, I want a global COA shared across entities with
+entity-specific overrides and company-restricted accounts, so group consistency is maintained while
+each entity keeps its specific accounts.
+
+**Pre-condition (seed):** `MultiCompanyCoa:TemplateCompanyId` configured to the group company, and
+≥2 companies sharing one `Company.EntityId` on the QA clone. Deep propagation (AC3) and restricted-
+posting (AC2) also need a coherent GL/journal seed, so they are exercised by the integration suite
+(`GlAccountMasterMultiCompanyTests`), not live. Model: per-company copies of `Finance.GlAccountMaster`
+linked by `GlobalAccountId`; `IsGlobal` / `IsCompanyRestricted` / `IsLocalOverride` flags.
+
+Base route: `api/finance/glaccountmaster`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — new subsidiary inherits template | Given a global COA, When POST `/inherit-global/{companyId}`, Then the subsidiary gains a linked copy of each non-restricted global account (idempotent; entity-specific accounts may also be added directly). | ⚠️ verify live (idempotent no-op without template config) |
+| AC2 — restricted account not postable cross-entity | Given a company-restricted account in entity A, When a user in entity B posts a journal line to it, Then 400 "restricted to another company". | 🚫 needs restricted account + cross-entity journal seed (integration-covered) |
+| AC3 — global change propagates except overrides | Given a global account with subsidiary copies, When the template is edited, Then non-overridden copies update and `IsLocalOverride` copies are skipped. | 🚫 needs template config + ≥2 companies (integration-covered) |
+| AC4 — consistency report flags single-entity accounts | Given the entity group, When GET `/consistency-report`, Then account codes present in only one company are returned, each with a flag (e.g. 'in Processing only'). | ✅ implementable (reachable; rows depend on data) |
+| AC5 — mandatory, profile-scoped company selector | Given the account screen, When GET `/selectable-companies`, Then only the user's assigned companies are returned; create blocks server-side when no active company is in session. | ✅ implementable |
+
+> **Implementation note:** Approach = global template + per-company copies (not shared rows), layered on
+> the existing per-company `GlAccountMaster`. Entity group = companies sharing `Company.EntityId`.
+> Propagation/inheritance via `IGlobalCoaPropagationService`. Config: `MultiCompanyCoa:TemplateCompanyId`
+> (0 = feature dormant). See memory `project_multicompany_coa_10`.
+
+---
+
+## US-GL02-15 — COA Listing & Structure Reports (read-only + PDF export)
+
+**User story:** As a Finance Controller / Auditor, I want a COA listing with hierarchy and attributes,
+an account-usage report, an FS-mapping validation report, and PDF export, so I can review structure
+and submit a clean COA to auditors.
+
+**Pre-condition (seed):** Read-only over existing COA / journal / Schedule III data; company from
+session. No configuration changes. PDF via QuestPDF (in-process). Posted = MiscMaster
+JOURNAL_STATUS/POSTED; balance-sheet = Schedule III Section.StatementType code 'BS'; balance from
+`Finance.LedgerBalance` (SUM(DrTotal-CrTotal)). AC3's BS-with-balance exclusion is data-specific and
+proven by the integration suite.
+
+Base route: `api/finance/coa-report`.
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — listing PDF with hierarchy + attributes | Given the COA, When GET `/listing/pdf`, Then a `%PDF` (application/pdf) renders (<10s target). | ✅ implementable (timing: ⚠️ verify live) |
+| AC2 — usage report performance | Given ~2,000 accounts, When GET `/account-usage`, Then it completes (<30s target). | ✅ implementable (timing: ⚠️ verify live) |
+| AC3 — exclude BS accounts with non-zero balance | Given a 'no posting in 12 months' run, When evaluated, Then balance-sheet accounts with a non-zero balance are NOT deactivation candidates. | 🚫 needs seeded stale BS+balance (integration-covered) |
+| AC4 — FS-mapping shows zero/lists remaining | Given the validator, When GET `/fs-mapping-validation`, Then `isClean` iff `unmappedCount = 0`, else the unmapped leaf groups are listed. | ✅ implementable |
+| AC5 — PDF suitable for auditor submission | Given the listing, When exported, Then the PDF carries company, generated-on, hierarchy indentation, attributes, posting counts and page numbers. | ✅ implementable |
+
+> **Implementation note:** Read-only Dapper aggregates (`CoaReportQueryRepository`) mirroring the
+> LedgerBalance read pattern; posting counts pre-aggregated on `JournalDetail.GlAccountId`. PDF =
+> `CoaListingPdfBuilder` (QuestPDF Community). Endpoints: `/listing`, `/listing/pdf`, `/account-usage`,
+> `/fs-mapping-validation`. No migration. See memory `project_coa_reports_15`.
+
+
+---
+
+## US-GL03-04 — Backdating Controls & Late-Posting Report
+
+**User story:** As a Finance Controller, I need to know — and gate — every backdated journal entry,
+so prior-month accruals can be booked when justified, the auditor can drill into who/when/why, and
+the CFO sees a weekly summary instead of a thousand journal lines. Backdating cannot be hidden from
+the report by a client-side flag flip because `IsBackdated` is computed by the DB.
+
+**Pre-condition (seed):** `Finance.JournalHeader` already exists. The migration adds 4 columns
+(`IsBackdated` persisted-computed bit, `BackdateReason` varchar(500), `BackdateAcknowledgedBy` int,
+`BackdateAcknowledgedAt` datetimeoffset) + the composite index `IX_JournalHeader_IsBackdated`
+on `(IsBackdated, IsDeleted, CompanyId)`. The weekly digest job needs `BackdateDigest:CfoRoleId`
++ `FcRoleId` configured in `appsettings.json` (binds via `BackdateDigestOptions`); if both are 0
+the job logs and skips, so no functional failure mode.
+
+Base routes:
+- Report: `GET /api/finance/Journal/late-posting-report`
+- Enforcement: invoked by the posting handler (GL-01 FR-009) via `IBackdateEnforcementService`
+- Weekly digest: Hangfire recurring job `finance-weekly-backdated-journal-digest`
+  (queue `finance-jobs`, cron `0 8 * * 1` = Mondays 08:00 UTC).
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — auto-detect backdating | Given any posted voucher, When `VoucherDate < CAST(PostedAt AS DATE)`, Then `IsBackdated = 1` regardless of API payload (DB-computed persisted column). | ✅ implementable (integration-covered) |
+| AC2 — mandatory reason for SoftClosed | Given a posting whose `VoucherDate` falls inside a SOFTCLOSED period, When `BackdateReason` is null/whitespace, Then `IBackdateEnforcementService` returns `ReasonRequired()` and the posting handler must reject 400. | 🚫 needs posting handler wiring (GL-01 FR-009) |
+| AC3 — late-posting report endpoint | Given backdated postings exist for the session company, When GET `/late-posting-report`, Then a paginated grid of every `IsBackdated = 1` voucher is returned (validator-enforced sort allow-list: PostedAt / VoucherDate / DaysBackdated). | ✅ implementable |
+| AC4 — weekly CFO digest | Given the recurring job fires Mondays 08:00 UTC, When backdated postings exist for the last 7 days, Then a per-company digest email is sent to each CFO + FC recipient (no email when no rows). | ⚠️ verify live (needs SMTP + role grants) |
+| Sort allow-list (SQLi defence) | Given an arbitrary string in `SortBy` / `SortDirection`, When the report is called, Then 400 — the Dapper repo only concatenates values that survive `GetLatePostingReportQueryValidator`. | ✅ implementable |
+| Filtered-index strategy | Given the report's `WHERE IsBackdated = 1 AND IsDeleted = 0` plus company narrowing, Then `IX_JournalHeader_IsBackdated` seeks (composite — SQL Server forbids filtered indexes on computed columns, even persisted ones). | ✅ implementable |
+
+> **Implementation note:** `IBackdateEnforcementService` is a pure read against the new
+> `FinancialPeriodMaster` (3-state OPEN/SOFTCLOSED/HARDCLOSED, US-GL03-01). HARDCLOSED is left to
+> `IPeriodPostingGate` (US-GL03-02) — we don't duplicate the rejection. The persisted computed column
+> means a client cannot ship `isBackdated=false` in the payload to dodge the report. The Hangfire job
+> lives in `BackgroundService.Infrastructure.Jobs.WeeklyBackdatedJournalDigestJob` and uses the
+> existing `IRoleUserLookup` (US-GL02-08B pattern) + `SendEmailCommand` channel.

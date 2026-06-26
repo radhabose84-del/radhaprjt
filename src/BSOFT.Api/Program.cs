@@ -183,6 +183,22 @@ RecurringJob.AddOrUpdate<JournalGapScanJob>(
     job => job.ProcessAsync(CancellationToken.None),
     Cron.Daily());
 
+// US-GL03-01 / AC#5 — auto-create the next Financial Year + 13 periods for each company
+// whose current latest year ends within 3 months. Daily at 02:00.
+RecurringJob.AddOrUpdate<BackgroundService.Infrastructure.Jobs.AutoCreateNextFinancialYearMasterJob>(
+    "finance-auto-create-next-financial-year",
+    "finance-jobs",
+    job => job.ProcessAsync(CancellationToken.None),
+    "0 2 * * *");
+
+// US-GL03-04 / AC#4 — weekly backdated journal digest email to CFO + FC.
+// Mondays at 08:00 UTC. Skip-safe when role recipients are not configured.
+RecurringJob.AddOrUpdate<BackgroundService.Infrastructure.Jobs.WeeklyBackdatedJournalDigestJob>(
+    "finance-weekly-backdated-journal-digest",
+    "finance-jobs",
+    job => job.ProcessAsync(CancellationToken.None),
+    "0 8 * * 1");
+
 app.UseMiddleware<TokenValidationMiddleware>();
 
 

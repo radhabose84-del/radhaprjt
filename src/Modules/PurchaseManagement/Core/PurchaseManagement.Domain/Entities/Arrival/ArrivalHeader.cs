@@ -47,6 +47,9 @@ namespace PurchaseManagement.Domain.Entities.Arrival
 
         public decimal? MoisturePercentage { get; set; }
 
+        // Header-level GST % applied to the arrival (mirrors OCREntry.GstPercentage).
+        public decimal? GstPercentage { get; set; }
+
         // ── PR range (from–to) — optional ──
         public int? PRFrom { get; set; }
         public int? PRTo { get; set; }

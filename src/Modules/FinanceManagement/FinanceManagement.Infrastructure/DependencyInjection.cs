@@ -35,11 +35,17 @@ using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalThresho
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.JournalImport;
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.SecurityViolationLog;
 using FinanceManagement.Application.Common.Interfaces.IGlAccountMaster;
+using FinanceManagement.Application.Common.Interfaces.ICoaReport;
+using FinanceManagement.Infrastructure.Repositories.CoaReport;
 using FinanceManagement.Application.Common.Interfaces.ICoaFreeze;
 using FinanceManagement.Infrastructure.Repositories.CoaFreeze;
 using FinanceManagement.Application.Common.Interfaces.ICoaChangeRequest;
 using FinanceManagement.Infrastructure.Repositories.CoaChangeRequest;
 using FinanceManagement.Application.Common.Interfaces.ICurrencyForexConfig;
+using FinanceManagement.Application.Common.Interfaces.IFinancialYearMaster;
+using FinanceManagement.Infrastructure.Repositories.FinancialYearMaster;
+using FinanceManagement.Application.Common.Interfaces.IPeriodStatusOverride;
+using FinanceManagement.Infrastructure.Repositories.PeriodStatusOverride;
 using FinanceManagement.Application.Common.Interfaces.ICostCentre;
 using FinanceManagement.Application.Common.Interfaces.IProfitCentre;
 using FinanceManagement.Application.Common.Interfaces.IOutbox;
@@ -99,6 +105,14 @@ namespace FinanceManagement.Infrastructure
             // US-GL02-08B — configurable CFO/SysAdmin/FC/Internal-Audit role mapping + unfreeze window.
             services.Configure<FinanceManagement.Application.Common.Options.CoaUnfreezeOptions>(
                 configuration.GetSection(FinanceManagement.Application.Common.Options.CoaUnfreezeOptions.SectionName));
+
+            // US-GL03-04 / AC#4 — weekly backdated journal CFO digest options.
+            services.Configure<FinanceManagement.Application.Common.Options.BackdateDigestOptions>(
+                configuration.GetSection(FinanceManagement.Application.Common.Options.BackdateDigestOptions.SectionName));
+
+            // US-GL02-10 — multi-company COA template company (binds "MultiCompanyCoa"; 0 if unset).
+            services.Configure<FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions>(
+                configuration.GetSection(FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions.SectionName));
 
             // Activity-log interceptor (writes Finance.ActivityLog for IActivityTracked entities)
             services.AddScoped<ActivityLogSaveChangesInterceptor>();
@@ -248,6 +262,30 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IGlAccountMasterCommandRepository, GlAccountMasterCommandRepository>();
             services.AddScoped<IGlAccountMasterQueryRepository, GlAccountMasterQueryRepository>();
 
+            // US-GL03-01 — Financial Year + auto-generated 13 periods
+            // (Hangfire job lives in BackgroundService.Infrastructure.Jobs — registered there.)
+            services.AddScoped<IFinancialYearMasterCommandRepository, FinancialYearMasterCommandRepository>();
+            services.AddScoped<IFinancialYearMasterQueryRepository, FinancialYearMasterQueryRepository>();
+
+            // US-GL02-10 — multi-company COA inheritance + propagation of the global template.
+            services.AddScoped<IGlobalCoaPropagationService, GlobalCoaPropagationService>();
+
+            // US-GL02-15 — COA listing & structure reports (read-only) + QuestPDF listing export.
+            // QuestPDF Community license is set once here (free under the Community terms).
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            services.AddScoped<ICoaReportQueryRepository, CoaReportQueryRepository>();
+            services.AddScoped<ICoaListingPdfBuilder, CoaListingPdfBuilder>();
+
+            // US-GL03-02 — Period status state machine + dual-approval reversal flow
+            services.AddScoped<IPeriodStatusOverrideCommandRepository, PeriodStatusOverrideCommandRepository>();
+            services.AddScoped<IPeriodStatusOverrideQueryRepository, PeriodStatusOverrideQueryRepository>();
+            services.AddScoped<IPeriodPostingGate, FinanceManagement.Infrastructure.Services.PeriodPostingGate>();
+
+            // US-GL03-04 — backdate enforcement service (pure decision; reads FinancialPeriodMaster).
+            services.AddScoped<
+                FinanceManagement.Application.Common.Interfaces.JournalMaster.IBackdateEnforcement.IBackdateEnforcementService,
+                FinanceManagement.Infrastructure.Services.BackdateEnforcementService>();
+
             // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
             // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.
             services.AddScoped<IGlAccountUserPrefStore, GlAccountUserPrefRepository>();
@@ -305,6 +343,7 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IScheduleIIIImportFileService, FinanceManagement.Application.ScheduleIII.Services.ScheduleIIIImportFileService>();
             services.AddScoped<IGlAccountMasterLookup, GlAccountMasterLookupRepository>();
             services.AddScoped<ITaxCodeLookup, TaxCodeLookupRepository>();
+            services.AddScoped<IFinancialPeriodMasterLookup, FinancialPeriodMasterLookupRepository>();
 
             // ── NIC E-Invoice service ─────────────────────────────────────────
             // Named HttpClient for NIC API calls; base address is set dynamically

@@ -429,6 +429,20 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             return await _dbConnection.ExecuteScalarAsync<bool>(sql, new { Id = glAccountId, CompanyId = companyId });
         }
 
+        // US-GL02-10 (AC2) — a company-restricted account may only be posted to from its owning entity.
+        public async Task<IReadOnlyCollection<int>> GetForeignRestrictedAccountIdsAsync(IEnumerable<int> glAccountIds, int companyId)
+        {
+            var ids = glAccountIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return Array.Empty<int>();
+
+            const string sql = @"
+                SELECT Id FROM Finance.GlAccountMaster
+                WHERE Id IN @Ids AND IsCompanyRestricted = 1 AND CompanyId <> @CompanyId AND IsDeleted = 0";
+            var result = await _dbConnection.QueryAsync<int>(sql, new { Ids = ids, CompanyId = companyId });
+            return result.ToList();
+        }
+
         public async Task<IReadOnlyCollection<int>> GetCostCentreMandatoryAccountIdsAsync(IEnumerable<int> glAccountIds)
         {
             var ids = glAccountIds.Distinct().ToList();
@@ -663,6 +677,166 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
         {
             public int PeriodId { get; set; }
             public int FinancialYearId { get; set; }
+        }
+
+        // US-GL03-04 / AC#3 — late-posting report. Driven by the persisted computed IsBackdated column
+        // (filtered index IX_JournalHeader_IsBackdated). DaysBackdated is computed on the fly to avoid
+        // another stored column. Sort allow-list is enforced upstream by the validator; we still
+        // re-check here as defence-in-depth before concatenating into the ORDER BY clause.
+        public async Task<(List<LatePostingReportDto>, int)> GetLatePostingReportAsync(
+            int pageNumber,
+            int pageSize,
+            int companyId,
+            int? accountingPeriodId,
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string? sortBy,
+            string? sortDirection)
+        {
+            var where = new List<string>
+            {
+                "h.IsDeleted = 0",
+                "h.IsBackdated = 1",
+                "h.CompanyId = @CompanyId"
+            };
+            var p = new DynamicParameters();
+            p.Add("CompanyId", companyId);
+
+            if (accountingPeriodId is > 0)
+            {
+                where.Add("h.AccountingPeriodId = @AccountingPeriodId");
+                p.Add("AccountingPeriodId", accountingPeriodId.Value);
+            }
+
+            if (fromDate.HasValue)
+            {
+                where.Add("h.PostedAt >= @FromDate");
+                p.Add("FromDate", fromDate.Value.ToDateTime(TimeOnly.MinValue));
+            }
+
+            if (toDate.HasValue)
+            {
+                // Inclusive end-of-day on the To date.
+                where.Add("h.PostedAt < @ToDateExclusive");
+                p.Add("ToDateExclusive", toDate.Value.AddDays(1).ToDateTime(TimeOnly.MinValue));
+            }
+
+            var orderColumn = (sortBy ?? "PostedAt") switch
+            {
+                var s when string.Equals(s, "VoucherDate",    StringComparison.OrdinalIgnoreCase) => "h.VoucherDate",
+                var s when string.Equals(s, "DaysBackdated",  StringComparison.OrdinalIgnoreCase) =>
+                    "DATEDIFF(DAY, h.VoucherDate, CAST(h.PostedAt AS DATE))",
+                _ => "h.PostedAt"
+            };
+            var orderDirection = string.Equals(sortDirection, "ASC", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
+
+            var whereClause = string.Join(" AND ", where);
+
+            var sql = $@"
+                DECLARE @TotalCount INT;
+                SELECT @TotalCount = COUNT(*)
+                FROM Finance.JournalHeader h
+                WHERE {whereClause};
+
+                SELECT
+                    h.Id, h.CompanyId,
+                    h.VoucherTypeId, vt.VoucherTypeName,
+                    h.VoucherNo, h.VoucherDate,
+                    h.AccountingPeriodId, ap.PeriodName AS AccountingPeriodName,
+                    apStatus.Code AS AccountingPeriodStatusCode,
+                    h.StatusId, ms.Code AS StatusCode, ms.Description AS StatusName,
+                    h.PostedAt, h.PostedBy,
+                    h.IsBackdated,
+                    CASE
+                        WHEN h.VoucherDate IS NULL OR h.PostedAt IS NULL THEN 0
+                        ELSE DATEDIFF(DAY, h.VoucherDate, CAST(h.PostedAt AS DATE))
+                    END AS DaysBackdated,
+                    h.BackdateReason, h.BackdateAcknowledgedBy, h.BackdateAcknowledgedAt,
+                    h.TotalDr, h.TotalCr, h.Narration,
+                    h.CreatedBy, h.CreatedByName, h.CreatedDate
+                FROM Finance.JournalHeader h
+                LEFT JOIN Finance.VoucherTypeMaster vt ON vt.Id = h.VoucherTypeId
+                LEFT JOIN Finance.AccountingPeriod ap   ON ap.Id = h.AccountingPeriodId
+                LEFT JOIN Finance.MiscMaster apStatus   ON apStatus.Id = ap.StatusId
+                LEFT JOIN Finance.MiscMaster ms         ON ms.Id = h.StatusId
+                WHERE {whereClause}
+                ORDER BY {orderColumn} {orderDirection}, h.Id DESC
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+
+                SELECT @TotalCount AS TotalCount;";
+
+            p.Add("Offset", (pageNumber - 1) * pageSize);
+            p.Add("PageSize", pageSize);
+
+            var multi = await _dbConnection.QueryMultipleAsync(sql, p);
+            var list = (await multi.ReadAsync<LatePostingReportDto>()).ToList();
+            var totalCount = await multi.ReadFirstAsync<int>();
+
+            if (list.Count > 0)
+                await PopulateLatePostingCompanyNamesAsync(list);
+
+            return (list, totalCount);
+        }
+
+        // US-GL03-04 — feeds the weekly CFO digest. Window is closed-open on PostedAt
+        // (windowStartUtc inclusive, windowEndUtc exclusive).
+        public async Task<List<LatePostingReportDto>> GetBackdatedJournalsForDigestAsync(
+            int companyId,
+            DateTimeOffset windowStartUtc,
+            DateTimeOffset windowEndUtc,
+            CancellationToken ct)
+        {
+            const string sql = @"
+                SELECT
+                    h.Id, h.CompanyId,
+                    h.VoucherTypeId, vt.VoucherTypeName,
+                    h.VoucherNo, h.VoucherDate,
+                    h.AccountingPeriodId, ap.PeriodName AS AccountingPeriodName,
+                    apStatus.Code AS AccountingPeriodStatusCode,
+                    h.StatusId, ms.Code AS StatusCode, ms.Description AS StatusName,
+                    h.PostedAt, h.PostedBy,
+                    h.IsBackdated,
+                    CASE
+                        WHEN h.VoucherDate IS NULL OR h.PostedAt IS NULL THEN 0
+                        ELSE DATEDIFF(DAY, h.VoucherDate, CAST(h.PostedAt AS DATE))
+                    END AS DaysBackdated,
+                    h.BackdateReason, h.BackdateAcknowledgedBy, h.BackdateAcknowledgedAt,
+                    h.TotalDr, h.TotalCr, h.Narration,
+                    h.CreatedBy, h.CreatedByName, h.CreatedDate
+                FROM Finance.JournalHeader h
+                LEFT JOIN Finance.VoucherTypeMaster vt ON vt.Id = h.VoucherTypeId
+                LEFT JOIN Finance.AccountingPeriod ap   ON ap.Id = h.AccountingPeriodId
+                LEFT JOIN Finance.MiscMaster apStatus   ON apStatus.Id = ap.StatusId
+                LEFT JOIN Finance.MiscMaster ms         ON ms.Id = h.StatusId
+                WHERE h.IsDeleted = 0
+                    AND h.IsBackdated = 1
+                    AND h.CompanyId = @CompanyId
+                    AND h.PostedAt >= @WindowStart
+                    AND h.PostedAt <  @WindowEnd
+                ORDER BY h.PostedAt DESC, h.Id DESC";
+
+            var rows = await _dbConnection.QueryAsync<LatePostingReportDto>(
+                new CommandDefinition(
+                    sql,
+                    new { CompanyId = companyId, WindowStart = windowStartUtc, WindowEnd = windowEndUtc },
+                    cancellationToken: ct));
+
+            var list = rows.ToList();
+            if (list.Count > 0)
+                await PopulateLatePostingCompanyNamesAsync(list);
+
+            return list;
+        }
+
+        private async Task PopulateLatePostingCompanyNamesAsync(List<LatePostingReportDto> list)
+        {
+            var companies = await _companyLookup.GetAllCompanyAsync();
+            var companyDict = companies.ToDictionary(c => c.CompanyId, c => c.CompanyName);
+
+            foreach (var row in list)
+            {
+                row.CompanyName = companyDict.TryGetValue(row.CompanyId, out var name) ? name : null;
+            }
         }
     }
 }
