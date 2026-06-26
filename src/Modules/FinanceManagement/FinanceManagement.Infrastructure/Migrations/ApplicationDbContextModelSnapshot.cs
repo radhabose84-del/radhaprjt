@@ -412,9 +412,23 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("IsActive");
 
+                    b.Property<bool>("IsAdjustmentPeriod")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsAdjustmentPeriod");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
+
+                    b.Property<DateTimeOffset?>("LastStatusChangedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("LastStatusChangedAt");
+
+                    b.Property<int?>("LastStatusChangedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("LastStatusChangedBy");
 
                     b.Property<int?>("ModifiedBy")
                         .HasColumnType("int")
@@ -454,6 +468,10 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("StatusId");
 
                     b.HasIndex("CompanyId", "FinancialYearId");
+
+                    b.HasIndex("FinancialYearId", "IsAdjustmentPeriod")
+                        .HasDatabaseName("IX_AccountingPeriod_AdjustmentPerFY")
+                        .HasFilter("[IsAdjustmentPeriod] = 1 AND [IsDeleted] = 0");
 
                     b.HasIndex("StartDate", "EndDate");
 
@@ -1602,208 +1620,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.ToTable("EWaybillHeader", "Finance");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialPeriodMaster", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int")
-                        .HasColumnName("CompanyId");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date")
-                        .HasColumnName("EndDate");
-
-                    b.Property<int>("FinancialYearId")
-                        .HasColumnType("int")
-                        .HasColumnName("FinancialYearId");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsAdjustmentPeriod")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IsAdjustmentPeriod");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<DateTimeOffset?>("LastStatusChangedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("LastStatusChangedAt");
-
-                    b.Property<int?>("LastStatusChangedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("LastStatusChangedBy");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<string>("PeriodName")
-                        .IsRequired()
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("PeriodName");
-
-                    b.Property<byte>("PeriodNumber")
-                        .HasColumnType("tinyint")
-                        .HasColumnName("PeriodNumber");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date")
-                        .HasColumnName("StartDate");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("StatusId");
-
-                    b.HasIndex("FinancialYearId", "PeriodNumber")
-                        .IsUnique();
-
-                    b.HasIndex("StartDate", "EndDate");
-
-                    b.HasIndex("CompanyId", "StartDate", "EndDate", "IsAdjustmentPeriod")
-                        .IsUnique();
-
-                    b.ToTable("FinancialPeriodMaster", "Finance");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialYearMaster", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int")
-                        .HasColumnName("CompanyId");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedBy");
-
-                    b.Property<string>("CreatedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("CreatedByName");
-
-                    b.Property<DateTimeOffset?>("CreatedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("CreatedDate");
-
-                    b.Property<string>("CreatedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("CreatedIP");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date")
-                        .HasColumnName("EndDate");
-
-                    b.Property<string>("FinancialYearCode")
-                        .IsRequired()
-                        .HasColumnType("varchar(9)")
-                        .HasColumnName("FinancialYearCode");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsActive");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<bool>("IsTransitionYear")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IsTransitionYear");
-
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int")
-                        .HasColumnName("ModifiedBy");
-
-                    b.Property<string>("ModifiedByName")
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("ModifiedByName");
-
-                    b.Property<DateTimeOffset?>("ModifiedDate")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ModifiedDate");
-
-                    b.Property<string>("ModifiedIP")
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("ModifiedIP");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date")
-                        .HasColumnName("StartDate");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("EndDate");
-
-                    b.HasIndex("StatusId");
-
-                    b.HasIndex("CompanyId", "FinancialYearCode")
-                        .IsUnique();
-
-                    b.HasIndex("CompanyId", "StartDate", "EndDate")
-                        .IsUnique();
-
-                    b.ToTable("FinancialYearMaster", "Finance");
-                });
-
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountFavourite", b =>
                 {
                     b.Property<int>("Id")
@@ -2690,12 +2506,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("ApprovedBy");
 
-                    b.Property<bool>("AutoApproved")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("AutoApproved");
-
                     b.Property<DateTimeOffset?>("BackdateAcknowledgedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("BackdateAcknowledgedAt");
@@ -3392,6 +3202,10 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AccountingPeriodId")
+                        .HasColumnType("int")
+                        .HasColumnName("AccountingPeriodId");
+
                     b.Property<DateTimeOffset?>("AppliedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("AppliedAt");
@@ -3423,10 +3237,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Property<string>("CreatedIP")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
-
-                    b.Property<int>("FinancialPeriodId")
-                        .HasColumnType("int")
-                        .HasColumnName("FinancialPeriodId");
 
                     b.Property<int>("FromStatusId")
                         .HasColumnType("int")
@@ -3491,9 +3301,9 @@ namespace FinanceManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
+                    b.HasIndex("AccountingPeriodId");
 
-                    b.HasIndex("FinancialPeriodId");
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("FromStatusId");
 
@@ -5221,36 +5031,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("EInvoiceHeader");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialPeriodMaster", b =>
-                {
-                    b.HasOne("FinanceManagement.Domain.Entities.FinancialYearMaster", "FinancialYear")
-                        .WithMany("Periods")
-                        .HasForeignKey("FinancialYearId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "StatusMaster")
-                        .WithMany("FinancialPeriodsAsStatus")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FinancialYear");
-
-                    b.Navigation("StatusMaster");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialYearMaster", b =>
-                {
-                    b.HasOne("FinanceManagement.Domain.Entities.MiscMaster", "StatusMaster")
-                        .WithMany("FinancialYearsAsStatus")
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("StatusMaster");
-                });
-
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountFavourite", b =>
                 {
                     b.HasOne("FinanceManagement.Domain.Entities.GlAccountMaster", "GlAccountMaster")
@@ -5544,9 +5324,9 @@ namespace FinanceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.PeriodStatusOverride", b =>
                 {
-                    b.HasOne("FinanceManagement.Domain.Entities.FinancialPeriodMaster", "FinancialPeriod")
-                        .WithMany("Overrides")
-                        .HasForeignKey("FinancialPeriodId")
+                    b.HasOne("FinanceManagement.Domain.Entities.AccountingPeriod", "AccountingPeriod")
+                        .WithMany()
+                        .HasForeignKey("AccountingPeriodId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -5568,7 +5348,7 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("FinancialPeriod");
+                    b.Navigation("AccountingPeriod");
 
                     b.Navigation("FromStatusMaster");
 
@@ -5940,16 +5720,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Navigation("EWaybillDetails");
                 });
 
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialPeriodMaster", b =>
-                {
-                    b.Navigation("Overrides");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.FinancialYearMaster", b =>
-                {
-                    b.Navigation("Periods");
-                });
-
             modelBuilder.Entity("FinanceManagement.Domain.Entities.GlAccountImportLog", b =>
                 {
                     b.Navigation("Errors");
@@ -5977,10 +5747,6 @@ namespace FinanceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.MiscMaster", b =>
                 {
-                    b.Navigation("FinancialPeriodsAsStatus");
-
-                    b.Navigation("FinancialYearsAsStatus");
-
                     b.Navigation("GlAccountsAsNormalBalance");
 
                     b.Navigation("GlAccountsAsSubLedgerType");
