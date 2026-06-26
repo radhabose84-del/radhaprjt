@@ -73,8 +73,25 @@ namespace FinanceManagement.Application.TaxCode.Queries.GetPendingTaxAccountLink
                         : (IReadOnlyList<UserLookupDto>)Array.Empty<UserLookupDto>();
                     var nameById = users.ToDictionary(u => u.UserId, u => u.UserName);
 
+                    // Pending workflow metadata per row → ApproverId / ApproverName / ApprovalRequestHeaderId / IsEdit.
+                    var wfByModuleId = wfApprovers
+                        .GroupBy(a => a.ModuleTransactionId)
+                        .ToDictionary(g => g.Key, g => g.First());
+
                     foreach (var row in data)
                     {
+                        if (wfByModuleId.TryGetValue(row.Id, out var wf))
+                        {
+                            row.ApprovalRequestHeaderId = wf.ApprovalRequestId;
+                            row.IsEdit = wf.IsEdit;
+                            if (int.TryParse(wf.ApproverValue, out var approverId))
+                            {
+                                row.ApproverId = approverId;
+                                if (nameById.TryGetValue(approverId, out var an))
+                                    row.ApproverName = an;
+                            }
+                        }
+
                         if (!approverIdsByModule.TryGetValue(row.Id, out var ids) || ids.Count == 0)
                             continue;
 

@@ -57,17 +57,19 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Queries.GetPending
                 data = data.Where(r => allowedIds.Contains(r.Id)).ToList();
                 totalCount = data.Count;
 
-                // Resolve the pending approver name(s) per row → ApproverName (who needs to approve).
+                // Enrich each row with the pending workflow metadata → ApproverId / ApproverName /
+                // ApprovalRequestHeaderId / IsEdit (mirrors GetPendingSalesOrderAmendmentQueryHandler).
                 if (data.Count > 0)
                 {
-                    var approverIdsByModule = wfApprovers
-                        .Where(a => int.TryParse(a.ApproverValue, out _))
+                    var wfByModuleId = wfApprovers
                         .GroupBy(a => a.ModuleTransactionId)
-                        .ToDictionary(
-                            g => g.Key,
-                            g => g.Select(a => int.Parse(a.ApproverValue)).Distinct().ToList());
+                        .ToDictionary(g => g.Key, g => g.First());
 
-                    var allApproverIds = approverIdsByModule.Values.SelectMany(x => x).Distinct().ToList();
+                    var allApproverIds = wfByModuleId.Values
+                        .Where(a => int.TryParse(a.ApproverValue, out _))
+                        .Select(a => int.Parse(a.ApproverValue))
+                        .Distinct()
+                        .ToList();
                     IReadOnlyList<UserLookupDto> users = allApproverIds.Count > 0
                         ? await _userLookup.GetByIdsAsync(allApproverIds, cancellationToken)
                         : (IReadOnlyList<UserLookupDto>)Array.Empty<UserLookupDto>();
@@ -75,10 +77,16 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Queries.GetPending
 
                     foreach (var row in data)
                     {
-                        if (approverIdsByModule.TryGetValue(row.Id, out var ids) && ids.Count > 0
-                            && nameById.TryGetValue(ids[0], out var name))
+                        if (!wfByModuleId.TryGetValue(row.Id, out var wf))
+                            continue;
+
+                        row.ApprovalRequestHeaderId = wf.ApprovalRequestId;
+                        row.IsEdit = wf.IsEdit;
+                        if (int.TryParse(wf.ApproverValue, out var approverId))
                         {
-                            row.ApproverName = name;
+                            row.ApproverId = approverId;
+                            if (nameById.TryGetValue(approverId, out var name))
+                                row.ApproverName = name;
                         }
                     }
                 }
