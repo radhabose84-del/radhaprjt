@@ -10,6 +10,7 @@ using FinanceManagement.Application.JournalMaster.Journal.Queries.GetAllJournal;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetJournalAutoComplete;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetJournalById;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetJournalPrint;
+using FinanceManagement.Application.JournalMaster.Journal.Queries.GetLatePostingReport;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetPendingApprovalJournals;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.GetPostableJournals;
 using FinanceManagement.Application.JournalMaster.Journal.Queries.SearchJournal;
@@ -255,6 +256,41 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
                 StatusCode = StatusCodes.Status200OK,
                 isSuccess = result,
                 message = result ? "Journal voucher deleted successfully." : "Failed to delete journal voucher."
+            });
+        }
+
+        // US-GL03-04 / AC#3 — paginated late-posting report. Lists every backdated journal voucher
+        // (IsBackdated = 1) for the session company, optionally narrowed by period and PostedAt range.
+        [HttpGet("late-posting-report")]
+        public async Task<IActionResult> GetLatePostingReportAsync(
+            [FromQuery] int PageNumber = 1,
+            [FromQuery] int PageSize = 50,
+            [FromQuery] int? AccountingPeriodId = null,
+            [FromQuery] DateOnly? FromDate = null,
+            [FromQuery] DateOnly? ToDate = null,
+            [FromQuery] string? SortBy = null,
+            [FromQuery] string? SortDirection = null)
+        {
+            var result = await Mediator.Send(new GetLatePostingReportQuery
+            {
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                AccountingPeriodId = AccountingPeriodId,
+                FromDate = FromDate,
+                ToDate = ToDate,
+                SortBy = SortBy,
+                SortDirection = SortDirection
+            });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                isSuccess = result.IsSuccess,
+                message = result.Message,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
             });
         }
     }

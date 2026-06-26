@@ -85,6 +85,10 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("PeriodStatusOverrideCollection")]
     public sealed class PeriodStatusOverrideCollection : ICollectionFixture<QAServerFixture> { }
 
+    // US-GL03-04 — Backdating controls + late-posting report.
+    [CollectionDefinition("LatePostingReportCollection")]
+    public sealed class LatePostingReportCollection : ICollectionFixture<QAServerFixture> { }
+
     // US-GL02-15 — COA Listing & Structure Reports (read-only + PDF export).
     [CollectionDefinition("CoaReportCollection")]
     public sealed class CoaReportCollection : ICollectionFixture<QAServerFixture> { }

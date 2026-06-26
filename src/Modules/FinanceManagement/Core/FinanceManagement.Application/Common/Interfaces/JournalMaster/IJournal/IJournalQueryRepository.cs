@@ -65,5 +65,26 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
         Task<bool> IsReversalAsync(int id);        // the voucher is itself a reversal (US-12 AC-4: cannot be reversed)
         Task<DateOnly?> GetPostingDateAsync(int id);                              // original's posting date (US-12 AC-3)
         Task<DateOnly?> GetNextOpenPeriodStartAsync(int companyId, DateOnly afterDate); // default reversal date (US-12 AC-3)
+
+        // US-GL03-04 / AC#3 — paginated late-posting report. Returns every IsBackdated voucher for the
+        // session company, optionally narrowed by period + posted-date range. Sort allow-list is enforced
+        // by the validator.
+        Task<(List<LatePostingReportDto>, int)> GetLatePostingReportAsync(
+            int pageNumber,
+            int pageSize,
+            int companyId,
+            int? accountingPeriodId,
+            DateOnly? fromDate,
+            DateOnly? toDate,
+            string? sortBy,
+            string? sortDirection);
+
+        // US-GL03-04 — drives the weekly CFO digest job: every backdated voucher posted in the given
+        // UTC window for the given company. No paging — caller renders directly.
+        Task<List<LatePostingReportDto>> GetBackdatedJournalsForDigestAsync(
+            int companyId,
+            DateTimeOffset windowStartUtc,
+            DateTimeOffset windowEndUtc,
+            CancellationToken ct);
     }
 }
