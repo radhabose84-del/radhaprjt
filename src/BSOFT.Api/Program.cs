@@ -191,6 +191,14 @@ RecurringJob.AddOrUpdate<BackgroundService.Infrastructure.Jobs.AutoCreateNextFin
     job => job.ProcessAsync(CancellationToken.None),
     "0 2 * * *");
 
+// US-GL03-04 / AC#4 — weekly backdated journal digest email to CFO + FC.
+// Mondays at 08:00 UTC. Skip-safe when role recipients are not configured.
+RecurringJob.AddOrUpdate<BackgroundService.Infrastructure.Jobs.WeeklyBackdatedJournalDigestJob>(
+    "finance-weekly-backdated-journal-digest",
+    "finance-jobs",
+    job => job.ProcessAsync(CancellationToken.None),
+    "0 8 * * 1");
+
 app.UseMiddleware<TokenValidationMiddleware>();
 
 

@@ -53,6 +53,31 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.Property(t => t.PostedBy).HasColumnName("PostedBy").HasColumnType("varchar(100)").IsRequired(false);
             builder.Property(t => t.PostedAt).HasColumnName("PostedAt").IsRequired(false);
 
+            // US-GL03-04 — backdating audit columns.
+            // IsBackdated is a PERSISTED computed column so the late-posting report and the weekly
+            // CFO digest can drive index seeks against a filtered nonclustered index.
+            builder.Property(t => t.IsBackdated)
+                .HasColumnName("IsBackdated")
+                .HasComputedColumnSql(
+                    "CASE WHEN VoucherDate IS NULL OR PostedAt IS NULL THEN CAST(0 AS BIT) " +
+                    "WHEN VoucherDate < CAST(PostedAt AS DATE) THEN CAST(1 AS BIT) " +
+                    "ELSE CAST(0 AS BIT) END",
+                    stored: true);
+
+            builder.Property(t => t.BackdateReason)
+                .HasColumnName("BackdateReason")
+                .HasColumnType("varchar(500)")
+                .IsRequired(false);
+
+            builder.Property(t => t.BackdateAcknowledgedBy)
+                .HasColumnName("BackdateAcknowledgedBy")
+                .HasColumnType("int")
+                .IsRequired(false);
+
+            builder.Property(t => t.BackdateAcknowledgedAt)
+                .HasColumnName("BackdateAcknowledgedAt")
+                .IsRequired(false);
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();
             builder.Property(b => b.IsDeleted)
@@ -74,6 +99,13 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
                 .HasDatabaseName("UX_JournalHeader_VoucherNo");
 
             builder.HasIndex(t => new { t.CompanyId, t.VoucherDate });
+
+            // US-GL03-04 — drives the late-posting report + weekly CFO digest scans. Filtered indexes
+            // cannot reference computed columns in SQL Server (even persisted ones), so we keep a
+            // composite (IsBackdated, IsDeleted, CompanyId) index instead — a WHERE IsBackdated = 1
+            // AND IsDeleted = 0 still seeks the leading key, then narrows by company.
+            builder.HasIndex(t => new { t.IsBackdated, t.IsDeleted, t.CompanyId })
+                .HasDatabaseName("IX_JournalHeader_IsBackdated");
             builder.HasIndex(t => t.StatusId);
             builder.HasIndex(t => t.SourceId);
             builder.HasIndex(t => t.AccountingPeriodId);

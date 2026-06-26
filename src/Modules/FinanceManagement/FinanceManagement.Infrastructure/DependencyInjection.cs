@@ -105,6 +105,10 @@ namespace FinanceManagement.Infrastructure
             services.Configure<FinanceManagement.Application.Common.Options.CoaUnfreezeOptions>(
                 configuration.GetSection(FinanceManagement.Application.Common.Options.CoaUnfreezeOptions.SectionName));
 
+            // US-GL03-04 / AC#4 — weekly backdated journal CFO digest options.
+            services.Configure<FinanceManagement.Application.Common.Options.BackdateDigestOptions>(
+                configuration.GetSection(FinanceManagement.Application.Common.Options.BackdateDigestOptions.SectionName));
+
             // US-GL02-10 — multi-company COA template company (binds "MultiCompanyCoa"; 0 if unset).
             services.Configure<FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions>(
                 configuration.GetSection(FinanceManagement.Application.Common.Options.MultiCompanyCoaOptions.SectionName));
@@ -266,6 +270,11 @@ namespace FinanceManagement.Infrastructure
             services.AddScoped<IPeriodStatusOverrideCommandRepository, PeriodStatusOverrideCommandRepository>();
             services.AddScoped<IPeriodStatusOverrideQueryRepository, PeriodStatusOverrideQueryRepository>();
             services.AddScoped<IPeriodPostingGate, FinanceManagement.Infrastructure.Services.PeriodPostingGate>();
+
+            // US-GL03-04 — backdate enforcement service (pure decision; reads FinancialPeriodMaster).
+            services.AddScoped<
+                FinanceManagement.Application.Common.Interfaces.JournalMaster.IBackdateEnforcement.IBackdateEnforcementService,
+                FinanceManagement.Infrastructure.Services.BackdateEnforcementService>();
 
             // Account type-ahead per-user favourites + recently-used (US-GL02-07) — SQL tables
             // (Finance.GlAccountFavourite / GlAccountRecentUse), FK to GlAccountMaster.

@@ -453,3 +453,42 @@ Base route: `api/finance/coa-report`.
 > LedgerBalance read pattern; posting counts pre-aggregated on `JournalDetail.GlAccountId`. PDF =
 > `CoaListingPdfBuilder` (QuestPDF Community). Endpoints: `/listing`, `/listing/pdf`, `/account-usage`,
 > `/fs-mapping-validation`. No migration. See memory `project_coa_reports_15`.
+
+
+---
+
+## US-GL03-04 — Backdating Controls & Late-Posting Report
+
+**User story:** As a Finance Controller, I need to know — and gate — every backdated journal entry,
+so prior-month accruals can be booked when justified, the auditor can drill into who/when/why, and
+the CFO sees a weekly summary instead of a thousand journal lines. Backdating cannot be hidden from
+the report by a client-side flag flip because `IsBackdated` is computed by the DB.
+
+**Pre-condition (seed):** `Finance.JournalHeader` already exists. The migration adds 4 columns
+(`IsBackdated` persisted-computed bit, `BackdateReason` varchar(500), `BackdateAcknowledgedBy` int,
+`BackdateAcknowledgedAt` datetimeoffset) + the composite index `IX_JournalHeader_IsBackdated`
+on `(IsBackdated, IsDeleted, CompanyId)`. The weekly digest job needs `BackdateDigest:CfoRoleId`
++ `FcRoleId` configured in `appsettings.json` (binds via `BackdateDigestOptions`); if both are 0
+the job logs and skips, so no functional failure mode.
+
+Base routes:
+- Report: `GET /api/finance/Journal/late-posting-report`
+- Enforcement: invoked by the posting handler (GL-01 FR-009) via `IBackdateEnforcementService`
+- Weekly digest: Hangfire recurring job `finance-weekly-backdated-journal-digest`
+  (queue `finance-jobs`, cron `0 8 * * 1` = Mondays 08:00 UTC).
+
+| # | Acceptance Criterion (Given / When / Then) | Tag |
+|---|---|---|
+| AC1 — auto-detect backdating | Given any posted voucher, When `VoucherDate < CAST(PostedAt AS DATE)`, Then `IsBackdated = 1` regardless of API payload (DB-computed persisted column). | ✅ implementable (integration-covered) |
+| AC2 — mandatory reason for SoftClosed | Given a posting whose `VoucherDate` falls inside a SOFTCLOSED period, When `BackdateReason` is null/whitespace, Then `IBackdateEnforcementService` returns `ReasonRequired()` and the posting handler must reject 400. | 🚫 needs posting handler wiring (GL-01 FR-009) |
+| AC3 — late-posting report endpoint | Given backdated postings exist for the session company, When GET `/late-posting-report`, Then a paginated grid of every `IsBackdated = 1` voucher is returned (validator-enforced sort allow-list: PostedAt / VoucherDate / DaysBackdated). | ✅ implementable |
+| AC4 — weekly CFO digest | Given the recurring job fires Mondays 08:00 UTC, When backdated postings exist for the last 7 days, Then a per-company digest email is sent to each CFO + FC recipient (no email when no rows). | ⚠️ verify live (needs SMTP + role grants) |
+| Sort allow-list (SQLi defence) | Given an arbitrary string in `SortBy` / `SortDirection`, When the report is called, Then 400 — the Dapper repo only concatenates values that survive `GetLatePostingReportQueryValidator`. | ✅ implementable |
+| Filtered-index strategy | Given the report's `WHERE IsBackdated = 1 AND IsDeleted = 0` plus company narrowing, Then `IX_JournalHeader_IsBackdated` seeks (composite — SQL Server forbids filtered indexes on computed columns, even persisted ones). | ✅ implementable |
+
+> **Implementation note:** `IBackdateEnforcementService` is a pure read against the new
+> `FinancialPeriodMaster` (3-state OPEN/SOFTCLOSED/HARDCLOSED, US-GL03-01). HARDCLOSED is left to
+> `IPeriodPostingGate` (US-GL03-02) — we don't duplicate the rejection. The persisted computed column
+> means a client cannot ship `isBackdated=false` in the payload to dodge the report. The Hangfire job
+> lives in `BackgroundService.Infrastructure.Jobs.WeeklyBackdatedJournalDigestJob` and uses the
+> existing `IRoleUserLookup` (US-GL02-08B pattern) + `SendEmailCommand` channel.
