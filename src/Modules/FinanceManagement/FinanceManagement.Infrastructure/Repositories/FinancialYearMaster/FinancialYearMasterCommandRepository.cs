@@ -19,20 +19,26 @@ namespace FinanceManagement.Infrastructure.Repositories.FinancialYearMaster
             IReadOnlyList<Domain.Entities.FinancialPeriodMaster> periods,
             CancellationToken ct)
         {
-            await using var tx = await _applicationDbContext.Database.BeginTransactionAsync(ct);
+            // DbContext uses EnableRetryOnFailure, so a user-initiated transaction must run inside the
+            // execution strategy (which retries the whole unit on a transient fault).
+            var strategy = _applicationDbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var tx = await _applicationDbContext.Database.BeginTransactionAsync(ct);
 
-            await _applicationDbContext.FinancialYearMaster.AddAsync(year, ct);
-            await _applicationDbContext.SaveChangesAsync(ct);
+                await _applicationDbContext.FinancialYearMaster.AddAsync(year, ct);
+                await _applicationDbContext.SaveChangesAsync(ct);
 
-            // Wire each period to the freshly-generated header id, then bulk-insert
-            foreach (var p in periods)
-                p.FinancialYearId = year.Id;
+                // Wire each period to the freshly-generated header id, then bulk-insert
+                foreach (var p in periods)
+                    p.FinancialYearId = year.Id;
 
-            await _applicationDbContext.FinancialPeriodMaster.AddRangeAsync(periods, ct);
-            await _applicationDbContext.SaveChangesAsync(ct);
+                await _applicationDbContext.FinancialPeriodMaster.AddRangeAsync(periods, ct);
+                await _applicationDbContext.SaveChangesAsync(ct);
 
-            await tx.CommitAsync(ct);
-            return year.Id;
+                await tx.CommitAsync(ct);
+                return year.Id;
+            });
         }
 
         public async Task<int> UpdateAsync(Domain.Entities.FinancialYearMaster entity)
