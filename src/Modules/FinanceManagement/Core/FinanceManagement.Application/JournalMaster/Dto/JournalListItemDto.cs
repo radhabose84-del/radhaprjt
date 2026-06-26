@@ -27,9 +27,14 @@ namespace FinanceManagement.Application.JournalMaster.Dto
 
         public int CreatedBy { get; set; }
         public string? CreatorName { get; set; }       // Creator (audit CreatedByName)
-        public string? ApproverName { get; set; }      // Approver name (JournalHeader.ApprovedBy)
+        public string? ApproverName { get; set; }      // Approver name (pending workflow approver)
         public DateTimeOffset? ApprovedAt { get; set; } // Approver date
 
         public string? Reference { get; set; }    // primary line ReferenceDocNo, else header TriggerDocRef
+
+        // Pending-approval workflow metadata (populated only by the pending-approval query).
+        public int ApproverId { get; set; }
+        public int ApprovalRequestHeaderId { get; set; }
+        public byte IsEdit { get; set; }
     }
 }
