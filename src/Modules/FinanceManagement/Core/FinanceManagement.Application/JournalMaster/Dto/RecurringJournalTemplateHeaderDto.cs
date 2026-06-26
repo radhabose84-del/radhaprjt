@@ -21,6 +21,12 @@ namespace FinanceManagement.Application.JournalMaster.Dto
         public int StatusId { get; set; }
         public string? StatusName { get; set; }                 // MiscMaster (ApprovalStatus): Pending/Approved/Rejected
 
+        // Pending-approval workflow metadata (populated only by the pending-approval query).
+        public int ApproverId { get; set; }
+        public string? ApproverName { get; set; }
+        public int ApprovalRequestHeaderId { get; set; }
+        public byte IsEdit { get; set; }
+
         public List<RecurringJournalTemplateDetailDto> Lines { get; set; } = new();
 
         public bool IsActive { get; set; }
