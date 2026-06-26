@@ -47,7 +47,9 @@ namespace PurchaseManagement.Presentation.Validation.Arrival
                 .When(x => x.MoisturePercentage.HasValue);
 
             RuleFor(x => x.GstPercentage)
-                .NotNull().WithMessage("GST % is required.")
+                .NotNull().WithMessage("GST % is required.");
+
+            RuleFor(x => x.GstPercentage)
                 .InclusiveBetween(0m, 100m).WithMessage("GST % must be between 0 and 100.")
                 .When(x => x.GstPercentage.HasValue);
 
