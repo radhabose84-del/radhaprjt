@@ -8,6 +8,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         Task<int> EnsureHeaderAsync(int companyId, int divisionId);
         Task<int> UpdateHeaderAsync(int companyId, int divisionId, int statusId, bool textileSplitEnabled);
         Task<bool> LockStructureAsync(int scheduleIIIHeaderId);
+        Task<bool> UnlockStructureAsync(int scheduleIIIHeaderId);
 
         // Detail = the included lines of a header.
         Task<int> CreateDetailAsync(ScheduleIIIDetail entity);
@@ -22,6 +23,7 @@ namespace FinanceManagement.Application.Common.Interfaces.IScheduleIII
         // Section (global catalog)
         Task<int> CreateSectionAsync(ScheduleIIISection entity);
         Task<int> UpdateSectionAsync(ScheduleIIISection entity);
+        Task<bool> ReorderSectionAsync(int sectionId, int direction, CancellationToken ct);
 
         // Line items (global catalog)
         Task<int> CreateLineItemAsync(ScheduleIIISectionItem entity);

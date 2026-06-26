@@ -1,8 +1,10 @@
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.CreateRecurringJournalTemplate;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.DeleteRecurringJournalTemplate;
-using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.GenerateRecurringJournals;
+using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.GenerateRecurringTemplateNow;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Commands.UpdateRecurringJournalTemplate;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Queries.GetAllRecurringJournalTemplate;
+using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Queries.GetPendingRecurringTemplates;
+using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Queries.GetRecurringGeneratedInstances;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Queries.GetRecurringJournalTemplateAutoComplete;
 using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Queries.GetRecurringJournalTemplateById;
 using MediatR;
@@ -47,6 +49,42 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
             return Ok(new { StatusCode = StatusCodes.Status200OK, data = result });
         }
 
+        // Templates awaiting the current user's approval (approver inbox).
+        [HttpGet("pending-approval")]
+        public async Task<IActionResult> GetPendingApprovalAsync(
+            [FromQuery] int PageNumber = 1,
+            [FromQuery] int PageSize = 50)
+        {
+            var result = await Mediator.Send(new GetPendingRecurringTemplatesQuery { PageNumber = PageNumber, PageSize = PageSize });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
+        // "Generated Instances" grid — journals created from recurring templates (company-scoped).
+        [HttpGet("generated-instances")]
+        public async Task<IActionResult> GetGeneratedInstancesAsync(
+            [FromQuery] int PageNumber = 1,
+            [FromQuery] int PageSize = 50)
+        {
+            var result = await Mediator.Send(new GetRecurringGeneratedInstancesQuery { PageNumber = PageNumber, PageSize = PageSize });
+
+            return Ok(new
+            {
+                StatusCode = StatusCodes.Status200OK,
+                data = result.Data,
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
@@ -83,8 +121,9 @@ namespace FinanceManagement.Presentation.Controllers.JournalMaster
             });
         }
 
-        [HttpPost("generate")]
-        public async Task<IActionResult> Generate([FromBody] GenerateRecurringJournalsCommand command)
+        // "Generate" button — force-generate ONE template's JV now for the scheduled period.
+        [HttpPost("generate-now")]
+        public async Task<IActionResult> GenerateNow([FromBody] GenerateRecurringTemplateNowCommand command)
         {
             var result = await Mediator.Send(command);
 

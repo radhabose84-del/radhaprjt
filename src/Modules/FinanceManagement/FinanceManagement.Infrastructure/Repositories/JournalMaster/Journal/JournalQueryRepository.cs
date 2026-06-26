@@ -1,3 +1,4 @@
+
 using System.Data;
 using System.Globalization;
 using Contracts.Interfaces.Lookups.Users;
@@ -43,7 +44,7 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
                     h.VoucherNo, h.VoucherDate, h.PostingDate, h.FinancialYearId, h.AccountingPeriodId, ap.PeriodName,
                     h.Narration, pl.AccountCode, pl.AccountName,
                     h.StatusId, ms.Description AS StatusName, h.SourceId, msrc.Description AS SourceName,
-                    h.TriggerDocType, h.TriggerDocRef, h.AutoApproved, h.TotalDr, h.TotalCr,
+                    h.TriggerDocType, h.TriggerDocRef, h.TotalDr, h.TotalCr,
                     h.ReversalOfId, h.IsReversal, h.CopiedFromRef, h.ImportBatchId,
                     h.IsActive, h.IsDeleted,
                     h.CreatedBy, h.CreatedDate, h.CreatedByName, h.CreatedIP,
@@ -170,15 +171,13 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             var companyFilter = string.Empty;
             if (companyId is > 0) { companyFilter = " AND h.CompanyId = @CompanyId"; p.Add("CompanyId", companyId); }
 
+            // Postable = APPROVED only.
             var eligibility = @"
                 EXISTS (
                     SELECT 1
                     FROM Finance.MiscMaster ms2
                     INNER JOIN Finance.MiscTypeMaster mts2 ON mts2.Id = ms2.MiscTypeId AND mts2.MiscTypeCode = 'JOURNAL_STATUS'
-                    INNER JOIN Finance.MiscMaster src2 ON src2.Id = h.SourceId
-                    INNER JOIN Finance.MiscTypeMaster mtsrc2 ON mtsrc2.Id = src2.MiscTypeId AND mtsrc2.MiscTypeCode = 'JOURNAL_SOURCE'
-                    WHERE ms2.Id = h.StatusId
-                        AND (ms2.Code = 'APPROVED' OR (ms2.Code = 'DRAFT' AND src2.Code <> 'MANUAL'))
+                    WHERE ms2.Id = h.StatusId AND ms2.Code = 'APPROVED'
                 )";
 
             var whereClause = $"h.IsDeleted = 0{companyFilter} AND {eligibility}";
@@ -304,7 +303,7 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
                 SELECT h.Id, h.CompanyId, h.UnitId, h.VoucherTypeId, vt.VoucherTypeCode, vt.VoucherTypeName,
                     h.VoucherNo, h.VoucherDate, h.PostingDate, h.FinancialYearId, h.AccountingPeriodId, ap.PeriodName,
                     h.Narration, h.StatusId, ms.Description AS StatusName, h.SourceId, msrc.Description AS SourceName,
-                    h.TriggerDocType, h.TriggerDocRef, h.AutoApproved, h.TotalDr, h.TotalCr,
+                    h.TriggerDocType, h.TriggerDocRef, h.TotalDr, h.TotalCr,
                     h.ReversalOfId, rev.VoucherNo AS ReversalOfVoucherNo, h.IsReversal, h.CopiedFromRef, h.ImportBatchId,
                     h.ApprovedBy, h.ApprovedAt, h.RejectedBy, h.RejectedAt, h.RejectReason,
                     h.PostedBy, h.PostedAt,

@@ -1,5 +1,6 @@
 using Contracts.Interfaces;
 using Contracts.Interfaces.Lookups.Workflow;
+using FinanceManagement.Application.Common.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
 using FinanceManagement.Application.JournalMaster.Journal.Commands.PostJournal;
 using FinanceManagement.Presentation.Validation.JournalMaster.Journal;
@@ -12,9 +13,10 @@ namespace FinanceManagement.UnitTests.Validators.Journal
         private readonly Mock<IJournalQueryRepository> _mockQueryRepo = new(MockBehavior.Loose);
         private readonly Mock<IWorkflowLookup> _mockWorkflow = new(MockBehavior.Loose);
         private readonly Mock<IIPAddressService> _mockIp = new(MockBehavior.Loose);
+        private readonly Mock<ITimeZoneService> _mockTz = new(MockBehavior.Loose);
 
         private PostJournalCommandValidator CreateValidator() =>
-            new(_mockQueryRepo.Object, _mockWorkflow.Object, _mockIp.Object);
+            new(_mockQueryRepo.Object, _mockWorkflow.Object, _mockIp.Object, _mockTz.Object);
 
         private void SetupHappyPath()
         {
@@ -24,6 +26,7 @@ namespace FinanceManagement.UnitTests.Validators.Journal
             _mockQueryRepo.Setup(r => r.IsPeriodOpenAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockQueryRepo.Setup(r => r.IsPostingEligibleAsync(It.IsAny<int>())).ReturnsAsync(true);
             _mockIp.Setup(s => s.GetUnitId()).Returns(1);
+            _mockTz.Setup(s => s.GetCurrentTime(It.IsAny<string?>())).Returns(DateTimeOffset.UtcNow);
         }
 
         [Fact]

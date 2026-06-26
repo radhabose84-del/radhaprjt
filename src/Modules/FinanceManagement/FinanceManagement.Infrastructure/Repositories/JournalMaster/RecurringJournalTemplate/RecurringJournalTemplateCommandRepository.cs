@@ -68,5 +68,18 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.RecurringJ
             await _dbContext.SaveChangesAsync(ct);
             return true;
         }
+
+        public async Task<bool> SetApprovalResultAsync(int id, int statusId, CancellationToken ct)
+        {
+            var existing = await _dbContext.RecurringJournalTemplateHeader
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsDeleted == IsDelete.NotDeleted, ct);
+            if (existing == null)
+                return false;
+
+            existing.StatusId = statusId;
+            _dbContext.RecurringJournalTemplateHeader.Update(existing);
+            await _dbContext.SaveChangesAsync(ct);
+            return true;
+        }
     }
 }

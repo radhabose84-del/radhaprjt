@@ -17,6 +17,9 @@ namespace FinanceManagement.Domain.Common
         // MUST equal the configured Menu / WorkflowType name so the workflow resolves it.
         public const string JournalVoucher = "Journal Voucher";
 
+        // Approval workflow ModuleTypeName / Menu name for recurring journal template approval (US-GL01-11).
+        public const string RecurringJournalTemplate = "Recurring Journal";
+
         // ApprovalStatus misc-type code + lifecycle status values.
         public const string ApprovalStatus = "ApprovalStatus";
         public const string Pending = "Pending";

@@ -15,8 +15,9 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
 
         // US-GL01-09 — atomic post: assign voucher number, update LedgerBalance, set status = Posted,
         // all in one DB transaction with rollback. Returns null if the journal is missing/already posted.
+        // postingDate sets the accounting PostingDate (defaults to the postedAt date when null).
         Task<PostJournalResultDto?> PostAsync(
-            int journalId, int postedStatusId, string? financialYearName, string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct);
+            int journalId, int postedStatusId, string? financialYearName, string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct, DateOnly? postingDate = null);
 
         // US-GL01-06B — apply an approval-workflow result to a DRAFT journal: Approved → status APPROVED
         // (stamps ApprovedBy/At); Rejected → status DRAFT (stamps RejectedBy/At). Returns false if missing.

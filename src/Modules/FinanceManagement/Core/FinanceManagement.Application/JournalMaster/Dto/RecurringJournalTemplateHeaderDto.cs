@@ -4,6 +4,8 @@ namespace FinanceManagement.Application.JournalMaster.Dto
     {
         public int Id { get; set; }
         public string? TemplateName { get; set; }
+        public int CompanyId { get; set; }
+        public int UnitId { get; set; }
         public int VoucherTypeId { get; set; }
         public string? VoucherTypeCode { get; set; }
         public string? VoucherTypeName { get; set; }
@@ -15,6 +17,9 @@ namespace FinanceManagement.Application.JournalMaster.Dto
         public int AmountAdjustmentRuleId { get; set; }
         public string? AmountAdjustmentRuleName { get; set; }   // MiscMaster (AMOUNT_ADJ_RULE)
         public bool LowRisk { get; set; }
+
+        public int StatusId { get; set; }
+        public string? StatusName { get; set; }                 // MiscMaster (ApprovalStatus): Pending/Approved/Rejected
 
         public List<RecurringJournalTemplateDetailDto> Lines { get; set; } = new();
 

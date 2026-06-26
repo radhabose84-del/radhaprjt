@@ -28,6 +28,8 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.Property(t => t.DrAmount).HasColumnName("DrAmount").HasColumnType("decimal(18,2)").IsRequired(false);
             builder.Property(t => t.CrAmount).HasColumnName("CrAmount").HasColumnType("decimal(18,2)").IsRequired(false);
             builder.Property(t => t.AmountFormula).HasColumnName("AmountFormula").HasColumnType("varchar(300)").IsRequired(false);
+            builder.Property(t => t.CurrencyId).HasColumnName("CurrencyId").HasColumnType("int").HasDefaultValue(0).IsRequired();
+            builder.Property(t => t.ExchangeRate).HasColumnName("ExchangeRate").HasColumnType("decimal(18,6)").IsRequired(false);
             builder.Property(t => t.CostCentreId).HasColumnName("CostCentreId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.ProfitCentreId).HasColumnName("ProfitCentreId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.LineNarration).HasColumnName("LineNarration").HasColumnType("varchar(500)").IsRequired(false);

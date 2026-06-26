@@ -400,6 +400,11 @@ namespace BackgroundService.Infrastructure
             services.AddScoped<ISmsService, RealSmsService>();
             services.AddScoped<IUserUnlockService, UserUnlockService>();
             services.AddScoped<IUserUnlockBackgroundJob, UserUnlockBackgroundJob>();
+
+            // US-GL01-11 — per-template auto-post scheduler (real Hangfire impl, overrides the FinanceManagement no-op).
+            services.AddScoped<FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurringJournalTemplate.IRecurringTemplateScheduler,
+                BackgroundService.Infrastructure.Jobs.RecurringTemplateScheduler>();
+            services.AddScoped<BackgroundService.Infrastructure.Jobs.RecurringTemplateAutoPostJob>();
             services.AddScoped<INotificationConfigCommandRepository, NotificationConfigCommandRepository>();  
             services.AddScoped<INotificationConfigQueryRepository, NotificationConfigQueryRepository>();  
             services.AddScoped<INotificationGroupCommand, NotificationGroupCommandRepository >();

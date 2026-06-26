@@ -76,7 +76,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
         }
 
         [Fact]
-        public async Task GetPostableAsync_Returns_Only_Approved_And_System_Drafts()
+        public async Task GetPostableAsync_Returns_Only_Approved()
         {
             await ClearTableAsync();
             var ids = await JournalTestSeed.SeedGraphAsync(_fixture);
@@ -85,7 +85,7 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
             await using (var ctx = _fixture.CreateFreshDbContext())
                 await new JournalCommandRepository(ctx).CreateAsync(JournalTestSeed.BuildDraftJournal(ids));
 
-            // Manual APPROVED → included.
+            // APPROVED → included.
             int approvedId;
             await using (var ctx = _fixture.CreateFreshDbContext())
             {
@@ -95,19 +95,18 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
                 await ctx.SaveChangesAsync();
             }
 
-            // System (RECURRING) DRAFT → included (bypasses approval).
-            int systemDraftId;
+            // System (RECURRING) DRAFT → now EXCLUDED (postable is APPROVED only).
             await using (var ctx = _fixture.CreateFreshDbContext())
             {
                 var j = JournalTestSeed.BuildDraftJournal(ids);
                 j.SourceId = ids.SourceRecurringId;
-                systemDraftId = await new JournalCommandRepository(ctx).CreateAsync(j);
+                await new JournalCommandRepository(ctx).CreateAsync(j);
             }
 
             var (items, total) = await CreateQueryRepo().GetPostableAsync(1, 50, ids.CompanyId);
 
-            total.Should().Be(2);
-            items.Select(i => i.Id).Should().BeEquivalentTo(new[] { approvedId, systemDraftId });
+            total.Should().Be(1);
+            items.Select(i => i.Id).Should().BeEquivalentTo(new[] { approvedId });
         }
 
         [Fact]
