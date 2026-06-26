@@ -94,7 +94,6 @@ namespace FinanceManagement.Infrastructure.Data
         public DbSet<RecurringGenerationLog> RecurringGenerationLog => Set<RecurringGenerationLog>();
         public DbSet<SecurityViolationLog> SecurityViolationLog => Set<SecurityViolationLog>();
         public DbSet<JournalFlag> JournalFlag => Set<JournalFlag>();
-        public DbSet<JournalSavedFilter> JournalSavedFilter => Set<JournalSavedFilter>();
         public DbSet<JournalImportBatch> JournalImportBatch => Set<JournalImportBatch>();
         public DbSet<JournalImportError> JournalImportError => Set<JournalImportError>();
 

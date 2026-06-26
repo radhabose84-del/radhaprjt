@@ -14,6 +14,9 @@ namespace FinanceManagement.Domain.Entities
         public decimal? CrAmount { get; set; }          // when rule = Fixed
         public string? AmountFormula { get; set; }      // when rule = Indexed/computed
 
+        public int CurrencyId { get; set; }             // same-module FK -> CurrencyForexConfig
+        public decimal? ExchangeRate { get; set; }      // null = 1 (base currency)
+
         public int? CostCentreId { get; set; }          // same-module FK -> CostCentre
         public int? ProfitCentreId { get; set; }        // same-module FK -> ProfitCentre
         public string? LineNarration { get; set; }

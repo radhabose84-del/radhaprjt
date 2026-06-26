@@ -109,7 +109,7 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
         }
 
         public async Task<PostJournalResultDto?> PostAsync(
-            int journalId, int postedStatusId, string? financialYearName, string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct)
+            int journalId, int postedStatusId, string? financialYearName, string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct, DateOnly? postingDate = null)
         {
             // DbContext uses EnableRetryOnFailure, so a user-initiated transaction must run inside the
             // execution strategy (which retries the whole unit on a transient fault).
@@ -127,7 +127,7 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
             if (header == null || header.PostingDate != null || header.AccountingPeriodId == null)
                 return null;
 
-            var result = await ApplyPostingAsync(header, postedStatusId, financialYearName, postedByName, postedById, postedAt, ct);
+            var result = await ApplyPostingAsync(header, postedStatusId, financialYearName, postedByName, postedById, postedAt, ct, postingDate);
             if (result == null)
                 return null;
 
@@ -203,7 +203,7 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
         // and commits. Returns null only if the voucher type is missing.
         private async Task<PostJournalResultDto?> ApplyPostingAsync(
             FinanceManagement.Domain.Entities.JournalHeader header, int postedStatusId, string? financialYearName,
-            string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct)
+            string? postedByName, int postedById, DateTimeOffset postedAt, CancellationToken ct, DateOnly? postingDate = null)
         {
             if (header.AccountingPeriodId == null)
                 return null;
@@ -220,7 +220,8 @@ namespace FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal
 
             var voucherNo = header.VoucherNo;
             header.StatusId = postedStatusId;
-            header.PostingDate = DateOnly.FromDateTime(postedAt.DateTime);
+            header.IsPosted = true;
+            header.PostingDate = postingDate ?? DateOnly.FromDateTime(postedAt.DateTime);
             header.PostedBy = postedByName;
             header.PostedAt = postedAt;
             _dbContext.JournalHeader.Update(header);

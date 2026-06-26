@@ -8,5 +8,6 @@ namespace FinanceManagement.Application.ScheduleIII.Commands.CreateSection
         public string? SectionName { get; set; }
         public int StatementTypeId { get; set; }   // MiscMaster (S3_STMT_TYPE)
         public int NatureId { get; set; }           // MiscMaster (S3_NATURE)
+        public int DisplayOrder { get; set; }       // statutory Schedule III sequence
     }
 }

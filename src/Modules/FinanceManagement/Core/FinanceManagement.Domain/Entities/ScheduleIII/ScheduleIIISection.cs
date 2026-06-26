@@ -8,6 +8,7 @@ namespace FinanceManagement.Domain.Entities
         public string? SectionName { get; set; }
         public int StatementTypeId { get; set; }        // same-module FK -> Finance.MiscMaster (S3_STMT_TYPE)
         public int NatureId { get; set; }               // same-module FK -> Finance.MiscMaster (S3_NATURE)
+        public int DisplayOrder { get; set; }           // statutory Schedule III sequence (drives section order in /structure)
 
         // Same-module FK navigations
         public MiscMaster? StatementType { get; set; }

@@ -82,12 +82,12 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
                 const string sectionSql = @"
                     SELECT sec.Id, sec.SectionName,
                            sec.StatementTypeId, stt.Description AS StatementTypeName,
-                           sec.NatureId, nat.Description AS NatureName
+                           sec.NatureId, nat.Description AS NatureName, sec.DisplayOrder
                     FROM [Finance].[ScheduleIIISection] sec
                     LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
                     LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
                     WHERE sec.Id IN @SectionIds AND sec.IsDeleted = 0
-                    ORDER BY sec.StatementTypeId, sec.SectionName;";
+                    ORDER BY sec.StatementTypeId, sec.DisplayOrder, sec.SectionName;";
 
                 sections = (await _dbConnection.QueryAsync<ScheduleIIISectionDto>(
                     sectionSql, new { SectionIds = sectionIds })).ToList();
@@ -113,12 +113,12 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             const string sectionSql = @"
                 SELECT sec.Id, sec.SectionName,
                        sec.StatementTypeId, stt.Description AS StatementTypeName,
-                       sec.NatureId, nat.Description AS NatureName
+                       sec.NatureId, nat.Description AS NatureName, sec.DisplayOrder
                 FROM [Finance].[ScheduleIIISection] sec
                 LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
                 LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
                 WHERE sec.IsDeleted = 0
-                ORDER BY sec.StatementTypeId, sec.SectionName;";
+                ORDER BY sec.StatementTypeId, sec.DisplayOrder, sec.SectionName;";
 
             var sections = (await _dbConnection.QueryAsync<ScheduleIIISectionDto>(sectionSql)).ToList();
             if (sections.Count == 0)
@@ -424,12 +424,12 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
 
                 SELECT sec.Id, sec.SectionName,
                        sec.StatementTypeId, stt.Description AS StatementTypeName,
-                       sec.NatureId, nat.Description AS NatureName
+                       sec.NatureId, nat.Description AS NatureName, sec.DisplayOrder
                 FROM [Finance].[ScheduleIIISection] sec
                 LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
                 LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0
                 WHERE sec.IsDeleted = 0 {{searchClause}}
-                ORDER BY sec.SectionName
+                ORDER BY sec.StatementTypeId, sec.DisplayOrder, sec.SectionName
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
                 SELECT @TotalCount AS TotalCount;
@@ -453,7 +453,7 @@ namespace FinanceManagement.Infrastructure.Repositories.ScheduleIII
             const string sql = @"
                 SELECT sec.Id, sec.SectionName,
                        sec.StatementTypeId, stt.Description AS StatementTypeName,
-                       sec.NatureId, nat.Description AS NatureName
+                       sec.NatureId, nat.Description AS NatureName, sec.DisplayOrder
                 FROM [Finance].[ScheduleIIISection] sec
                 LEFT JOIN [Finance].[MiscMaster] stt ON sec.StatementTypeId = stt.Id AND stt.IsDeleted = 0
                 LEFT JOIN [Finance].[MiscMaster] nat ON sec.NatureId       = nat.Id AND nat.IsDeleted = 0

@@ -3,6 +3,7 @@ using FinanceManagement.Application.Common.Interfaces;
 using FinanceManagement.Application.Common.Interfaces.IAccountGroup;
 using FinanceManagement.Application.Common.Interfaces.ITaxCode;
 using FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal;
+using FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurringJournalTemplate;
 using FinanceManagement.Domain.Common;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,8 @@ namespace FinanceManagement.Application.Consumers
     //   • Account Group Move  → on Approved re-parent the group; on Rejected drop the request.
     //   • Tax Account Linkage → on Approved activate the PENDING row (Approved + IsActive=1) and
     //                           close the prior active row's EffectiveTo; on Rejected mark it Rejected.
-    //   • Journal Voucher     → on Approved set status APPROVED (postable); on Rejected set status DRAFT.
+    //   • Journal Voucher     → on Approved set status APPROVED; a MANUAL voucher is then posted immediately
+    //                           (updates ledger balances). On Rejected set status REJECTED.
     public class ApprovedRejectedConsumer : IConsumer<UpdateApprovedRejectedFinanceCommand>
     {
         private readonly IAccountGroupChangeRequestRepository _changeRequestRepository;
@@ -22,6 +24,9 @@ namespace FinanceManagement.Application.Consumers
         private readonly ITaxCodeQueryRepository _taxCodeQueryRepository;
         private readonly IJournalCommandRepository _journalCommandRepository;
         private readonly IJournalQueryRepository _journalQueryRepository;
+        private readonly IRecurringJournalTemplateCommandRepository _recurringTemplateCommandRepository;
+        private readonly IRecurringJournalTemplateQueryRepository _recurringTemplateQueryRepository;
+        private readonly IRecurringTemplateScheduler _recurringTemplateScheduler;
         private readonly ITimeZoneService _timeZoneService;
         private readonly ILogger<ApprovedRejectedConsumer> _logger;
 
@@ -32,6 +37,9 @@ namespace FinanceManagement.Application.Consumers
             ITaxCodeQueryRepository taxCodeQueryRepository,
             IJournalCommandRepository journalCommandRepository,
             IJournalQueryRepository journalQueryRepository,
+            IRecurringJournalTemplateCommandRepository recurringTemplateCommandRepository,
+            IRecurringJournalTemplateQueryRepository recurringTemplateQueryRepository,
+            IRecurringTemplateScheduler recurringTemplateScheduler,
             ITimeZoneService timeZoneService,
             ILogger<ApprovedRejectedConsumer> logger)
         {
@@ -41,6 +49,9 @@ namespace FinanceManagement.Application.Consumers
             _taxCodeQueryRepository = taxCodeQueryRepository;
             _journalCommandRepository = journalCommandRepository;
             _journalQueryRepository = journalQueryRepository;
+            _recurringTemplateCommandRepository = recurringTemplateCommandRepository;
+            _recurringTemplateQueryRepository = recurringTemplateQueryRepository;
+            _recurringTemplateScheduler = recurringTemplateScheduler;
             _timeZoneService = timeZoneService;
             _logger = logger;
         }
@@ -69,6 +80,10 @@ namespace FinanceManagement.Application.Consumers
 
                 case MiscEnumEntity.JournalVoucher:
                     await HandleJournalAsync(msg, isApproved, ct);
+                    break;
+
+                case MiscEnumEntity.RecurringJournalTemplate:
+                    await HandleRecurringTemplateAsync(msg, isApproved, ct);
                     break;
 
                 default:
@@ -151,8 +166,48 @@ namespace FinanceManagement.Application.Consumers
                 return;
             }
 
+            // A MANUAL voucher is posted immediately on approval (updates ledger balances). System-sourced
+            // vouchers (RECURRING / IMPORT) stay APPROVED and are posted by their own flow / the postable list.
+            if (isApproved)
+            {
+                var journal = await _journalQueryRepository.GetByIdAsync(msg.ModuleTransactionId);
+                //var manualSourceId = await _journalQueryRepository.GetSourceIdAsync("MANUAL");
+                if (journal != null )
+                {
+                    var postedStatusId = await _journalQueryRepository.GetStatusIdAsync("POSTED");
+                    // fyName = null: a manual voucher already carries its number from create time.
+                    await _journalCommandRepository.PostAsync(
+                        msg.ModuleTransactionId, postedStatusId, null, msg.ModifiedByName, 0, now, ct);
+                    _logger.LogInformation("Journal {Id} approved → posted (manual).", msg.ModuleTransactionId);
+                    return;
+                }
+            }
+
             _logger.LogInformation("Journal {Id} {Result}.",
                 msg.ModuleTransactionId, isApproved ? "approved" : "rejected → returned to draft");
+        }
+
+        private async Task HandleRecurringTemplateAsync(UpdateApprovedRejectedFinanceCommand msg, bool isApproved, CancellationToken ct)
+        {
+            // ModuleTransactionId carries the RecurringJournalTemplateHeader.Id. Approved → status Approved +
+            // (re)schedule the auto-post Hangfire job; Rejected → status Rejected + remove any job.
+            var statusId = await _recurringTemplateQueryRepository.GetApprovalStatusIdAsync(
+                isApproved ? MiscEnumEntity.Approved : MiscEnumEntity.Rejected);
+
+            var ok = await _recurringTemplateCommandRepository.SetApprovalResultAsync(msg.ModuleTransactionId, statusId, ct);
+            if (!ok)
+            {
+                _logger.LogWarning("Recurring template {Id} not found for approval result.", msg.ModuleTransactionId);
+                return;
+            }
+
+            if (isApproved)
+                await _recurringTemplateScheduler.SyncAsync(msg.ModuleTransactionId, ct);   // schedules only if AutoPost
+            else
+                _recurringTemplateScheduler.Remove(msg.ModuleTransactionId);
+
+            _logger.LogInformation("Recurring template {Id} {Result}.",
+                msg.ModuleTransactionId, isApproved ? "approved → scheduled" : "rejected");
         }
     }
 }

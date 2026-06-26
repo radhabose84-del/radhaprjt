@@ -4,6 +4,7 @@ using FinanceManagement.Application.ScheduleIII.Commands.CreateMaster;
 using FinanceManagement.Application.ScheduleIII.Commands.DeleteMaster;
 using FinanceManagement.Application.ScheduleIII.Commands.LockStructure;
 using FinanceManagement.Application.ScheduleIII.Commands.ReorderDetail;
+using FinanceManagement.Application.ScheduleIII.Commands.UnlockStructure;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateHeader;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateMaster;
 using FinanceManagement.Application.ScheduleIII.Queries.GetActivityLog;
@@ -124,6 +125,14 @@ namespace FinanceManagement.Presentation.Controllers
 
         [HttpPost("lock")]
         public async Task<IActionResult> Lock([FromBody] LockStructureCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        // Revert a locked structure back to DRAFT so it can be edited again.
+        [HttpPost("unlock")]
+        public async Task<IActionResult> Unlock([FromBody] UnlockStructureCommand command)
         {
             var result = await Mediator.Send(command);
             return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });

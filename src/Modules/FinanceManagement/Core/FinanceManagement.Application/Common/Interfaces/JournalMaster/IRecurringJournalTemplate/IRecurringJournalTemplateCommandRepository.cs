@@ -9,5 +9,8 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IRecurri
         Task<int> UpdateAsync(FinanceManagement.Domain.Entities.RecurringJournalTemplateHeader entity);
 
         Task<bool> SoftDeleteAsync(int id, CancellationToken ct);
+
+        // US-GL01-11 approval — set the template's ApprovalStatus (Approved on approve, Rejected on reject).
+        Task<bool> SetApprovalResultAsync(int id, int statusId, CancellationToken ct);
     }
 }

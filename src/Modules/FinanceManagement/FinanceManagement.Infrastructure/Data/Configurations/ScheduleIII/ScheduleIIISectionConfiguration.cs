@@ -36,6 +36,10 @@ namespace FinanceManagement.Infrastructure.Data.Configurations
             builder.Property(t => t.NatureId)
                 .HasColumnName("NatureId").HasColumnType("int").IsRequired();
 
+            builder.Property(t => t.DisplayOrder)
+                .HasColumnName("DisplayOrder").HasColumnType("int")
+                .HasDefaultValue(0).IsRequired();
+
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive").HasColumnType("bit")
                 .HasConversion(statusConverter).IsRequired();

@@ -2464,12 +2464,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("ApprovedBy");
 
-                    b.Property<bool>("AutoApproved")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("AutoApproved");
-
                     b.Property<DateTimeOffset?>("CleanupAlertedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("CleanupAlertedAt");
@@ -2513,6 +2507,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("IsDeleted");
+
+                    b.Property<bool>("IsPosted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsPosted");
 
                     b.Property<bool>("IsReversal")
                         .ValueGeneratedOnAdd()
@@ -2769,40 +2769,6 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.HasIndex("ImportBatchId");
 
                     b.ToTable("JournalImportError", "Finance");
-                });
-
-            modelBuilder.Entity("FinanceManagement.Domain.Entities.JournalSavedFilter", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CriteriaJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("CriteriaJson");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("Name");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId", "Name")
-                        .IsUnique()
-                        .HasDatabaseName("UX_JournalSavedFilter_UserName");
-
-                    b.ToTable("JournalSavedFilter", "Finance");
                 });
 
             modelBuilder.Entity("FinanceManagement.Domain.Entities.JournalThresholdRule", b =>
@@ -3349,9 +3315,19 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
 
+                    b.Property<int>("CurrencyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("CurrencyId");
+
                     b.Property<decimal?>("DrAmount")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("DrAmount");
+
+                    b.Property<decimal?>("ExchangeRate")
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("ExchangeRate");
 
                     b.Property<int>("GlAccountId")
                         .HasColumnType("int")
@@ -3429,6 +3405,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("AutoPost");
 
+                    b.Property<int>("CompanyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("CompanyId");
+
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int")
                         .HasColumnName("CreatedBy");
@@ -3487,10 +3469,22 @@ namespace FinanceManagement.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("StartDate");
 
+                    b.Property<int>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("StatusId");
+
                     b.Property<string>("TemplateName")
                         .IsRequired()
                         .HasColumnType("varchar(150)")
                         .HasColumnName("TemplateName");
+
+                    b.Property<int>("UnitId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("UnitId");
 
                     b.Property<int>("VoucherTypeId")
                         .HasColumnType("int")
@@ -3695,6 +3689,12 @@ namespace FinanceManagement.Infrastructure.Migrations
                     b.Property<string>("CreatedIP")
                         .HasColumnType("varchar(50)")
                         .HasColumnName("CreatedIP");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("DisplayOrder");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")

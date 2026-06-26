@@ -19,10 +19,10 @@ namespace FinanceManagement.Domain.Entities
         public string? Narration { get; set; }          // full-text indexed (US-14)
 
         public int StatusId { get; set; }               // same-module FK -> MiscMaster (JOURNAL_STATUS)
+        public bool IsPosted { get; set; }              // false on create; set true when the voucher is posted (single/batch)
         public int SourceId { get; set; }               // same-module FK -> MiscMaster (JOURNAL_SOURCE)
         public string? TriggerDocType { get; set; }     // US-07: originating doc type (auto JV)
         public string? TriggerDocRef { get; set; }      // US-07: originating doc ref (auto JV)
-        public bool AutoApproved { get; set; }
 
         public decimal TotalDr { get; set; }
         public decimal TotalCr { get; set; }
