@@ -29,6 +29,12 @@ namespace FinanceManagement.Application.TaxCode.Dto
         public string? Approver1Name { get; set; }           // Approver 1 (FC)  — populated by the Workflow module on approval; null while pending
         public string? Approver2Name { get; set; }           // Approver 2 (Tax) — populated by the Workflow module on approval; null while pending
 
+        // Pending-approval workflow metadata (the current pending approver / request).
+        public int ApproverId { get; set; }
+        public string? ApproverName { get; set; }
+        public int ApprovalRequestHeaderId { get; set; }
+        public byte IsEdit { get; set; }
+
         public DateOnly EffectiveFrom { get; set; }          // Effective From
         public int StatusId { get; set; }
         public string? Status { get; set; }                  // Status (Pending/Approved/Rejected)
