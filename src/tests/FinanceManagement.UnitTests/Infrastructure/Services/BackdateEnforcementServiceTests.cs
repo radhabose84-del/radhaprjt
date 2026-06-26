@@ -16,7 +16,7 @@ namespace FinanceManagement.UnitTests.Infrastructure.Services
     /// </summary>
     public sealed class BackdateEnforcementServiceTests
     {
-        private readonly Mock<IFinancialPeriodMasterLookup> _mockPeriodLookup = new(MockBehavior.Strict);
+        private readonly Mock<IAccountingPeriodLookup> _mockPeriodLookup = new(MockBehavior.Strict);
 
         private BackdateEnforcementService CreateSut() => new(_mockPeriodLookup.Object);
 
@@ -26,7 +26,7 @@ namespace FinanceManagement.UnitTests.Infrastructure.Services
                 .Setup(r => r.GetPeriodForDateAsync(It.IsAny<int>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(statusCode == null
                     ? null
-                    : new FinancialPeriodMasterLookupDto { StatusCode = statusCode });
+                    : new AccountingPeriodLookupDto { StatusCode = statusCode });
         }
 
         // ─── Branch 1: forward or same-day ──────────────────────────────────

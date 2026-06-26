@@ -8,10 +8,12 @@ namespace FinanceManagement.Application.Common.Interfaces.JournalMaster.IJournal
             IEnumerable<FinanceManagement.Domain.Entities.JournalImportError> errors,
             CancellationToken ct);
 
-        // One transaction: save the batch then the draft journals (with ImportBatchId set). Returns batch id + journal ids.
+        // One transaction: save the batch then the draft journals (with ImportBatchId + an allocated VoucherNo).
+        // financialYearNames maps FinancialYearId → name, used to format the voucher number. Returns batch + journal ids.
         Task<(int BatchId, List<int> JournalIds)> CommitAsync(
             FinanceManagement.Domain.Entities.JournalImportBatch batch,
             List<FinanceManagement.Domain.Entities.JournalHeader> drafts,
+            IReadOnlyDictionary<int, string> financialYearNames,
             CancellationToken ct);
     }
 }

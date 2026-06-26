@@ -7,7 +7,7 @@ namespace FinanceManagement.Domain.Events
     /// Consumers: close checklist (US-GL03-03), audit log, posting-engine cache invalidation.
     /// </summary>
     public sealed record PeriodStatusChangedDomainEvent(
-        int FinancialPeriodId,
+        int AccountingPeriodId,
         int CompanyId,
         int FinancialYearId,
         int FromStatusId,

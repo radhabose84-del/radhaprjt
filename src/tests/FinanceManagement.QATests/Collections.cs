@@ -74,14 +74,8 @@ namespace FinanceManagement.QATests
     [CollectionDefinition("AccountAuditTrailCollection")]
     public sealed class AccountAuditTrailCollection : ICollectionFixture<QAServerFixture> { }
 
-    // US-GL03-01 — Financial Year & Period Calendar Setup.
-    [CollectionDefinition("FinancialYearMasterCollection")]
-    public sealed class FinancialYearMasterCollection : ICollectionFixture<QAServerFixture> { }
-
     // US-GL03-02 — Period status transitions (soft/hard close) + reversal override flow.
-    [CollectionDefinition("FinancialPeriodStatusCollection")]
-    public sealed class FinancialPeriodStatusCollection : ICollectionFixture<QAServerFixture> { }
-
+    // Runs against Finance.AccountingPeriod after the 2026-06-26 refactor.
     [CollectionDefinition("PeriodStatusOverrideCollection")]
     public sealed class PeriodStatusOverrideCollection : ICollectionFixture<QAServerFixture> { }
 

@@ -2,7 +2,11 @@
 -- US-GL03-02 / AC#1 — Hard-Closed Period Posting Block
 -- =============================================================================
 -- Defence-in-depth trigger that hard-blocks INSERT/UPDATE on Finance.JournalLine
--- when the parent FinancialPeriodMaster status is HARDCLOSED.
+-- when the parent AccountingPeriod status is HARDCLOSED.
+--
+-- Post-refactor (2026-06-26): repointed from Finance.FinancialPeriodMaster (dropped) to
+-- Finance.AccountingPeriod. The 3-state period status now lives on AccountingPeriod.StatusId
+-- via MiscMaster rows under MiscType = 'FPS' (codes: OPEN / SOFTCLOSED / HARDCLOSED).
 --
 -- Conditional install:
 --   * Finance.JournalLine ships in GL-01 FR-009 — until it exists this is a NoOp.
@@ -25,12 +29,12 @@ BEGIN
             IF EXISTS (
                 SELECT 1
                 FROM   inserted i
-                JOIN   [Finance].[FinancialPeriodMaster] fp ON fp.Id = i.FinancialPeriodId
-                JOIN   [Finance].[MiscMaster] mm           ON mm.Id = fp.StatusId AND mm.IsDeleted = 0
-                JOIN   [Finance].[MiscTypeMaster] mtm       ON mtm.Id = mm.MiscTypeId AND mtm.IsDeleted = 0
+                JOIN   [Finance].[AccountingPeriod] ap ON ap.Id = i.AccountingPeriodId
+                JOIN   [Finance].[MiscMaster] mm        ON mm.Id = ap.StatusId AND mm.IsDeleted = 0
+                JOIN   [Finance].[MiscTypeMaster] mtm   ON mtm.Id = mm.MiscTypeId AND mtm.IsDeleted = 0
                 WHERE  mtm.MiscTypeCode = ''FPS''
                    AND mm.Code          = ''HARDCLOSED''
-                   AND fp.IsDeleted     = 0
+                   AND ap.IsDeleted     = 0
             )
             BEGIN
                 ROLLBACK TRANSACTION;
