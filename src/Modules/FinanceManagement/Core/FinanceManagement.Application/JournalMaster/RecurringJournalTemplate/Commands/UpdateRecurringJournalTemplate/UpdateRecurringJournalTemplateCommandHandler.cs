@@ -9,15 +9,18 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.C
     public class UpdateRecurringJournalTemplateCommandHandler : IRequestHandler<UpdateRecurringJournalTemplateCommand, ApiResponseDTO<int>>
     {
         private readonly IRecurringJournalTemplateCommandRepository _commandRepository;
+        private readonly IRecurringTemplateScheduler _scheduler;
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
 
         public UpdateRecurringJournalTemplateCommandHandler(
             IRecurringJournalTemplateCommandRepository commandRepository,
+            IRecurringTemplateScheduler scheduler,
             IMediator mediator,
             IMapper mapper)
         {
             _commandRepository = commandRepository;
+            _scheduler = scheduler;
             _mediator = mediator;
             _mapper = mapper;
         }
@@ -28,6 +31,11 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.C
             entity.Lines = BuildLines(request);
 
             var updatedId = await _commandRepository.UpdateAsync(entity);
+
+            // No approval flow on edit — the template's existing approval status is preserved (UpdateAsync does not
+            // touch StatusId). Re-sync the Hangfire auto-post job: edits to frequency / start date / AutoPost
+            // re-schedule it (only for an Approved + AutoPost template), and turning AutoPost off removes it.
+            await _scheduler.SyncAsync(request.Id, cancellationToken);
 
             var auditEvent = new AuditLogsDomainEvent(
                 actionDetail: "Update",
@@ -56,6 +64,8 @@ namespace FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.C
                 DrAmount = l.DrAmount,
                 CrAmount = l.CrAmount,
                 AmountFormula = l.AmountFormula,
+                CurrencyId = l.CurrencyId,
+                ExchangeRate = l.ExchangeRate,
                 CostCentreId = l.CostCentreId,
                 ProfitCentreId = l.ProfitCentreId,
                 LineNarration = l.LineNarration

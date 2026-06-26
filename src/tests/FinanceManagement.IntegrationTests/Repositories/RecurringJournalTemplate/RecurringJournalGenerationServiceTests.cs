@@ -4,6 +4,7 @@ using Contracts.Interfaces.Lookups.Users;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using FinanceManagement.Application.Common.Interfaces;
+using FinanceManagement.Application.Common.Interfaces.IOutbox;
 using FinanceManagement.IntegrationTests.Common;
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.Journal;
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.RecurringJournalTemplate;
@@ -11,8 +12,8 @@ using FinanceManagement.Application.JournalMaster.RecurringJournalTemplate.Servi
 
 namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTemplate
 {
-    // US-GL01-11B — end-to-end generation against the real DB: due template -> generated + auto-posted journal,
-    // generation logged, idempotent on re-run.
+    // US-GL01-11B — end-to-end generation against the real DB: template -> generated APPROVED (never auto-posted)
+    // journal, generation logged, idempotent on re-run.
     [Collection("DatabaseCollection")]
     public sealed class RecurringJournalGenerationServiceTests
     {
@@ -37,16 +38,20 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
 
             var journalQuery = new JournalQueryRepository(new SqlConnection(_fixture.ConnectionString), company.Object, fy.Object);
 
+            var outbox = new Mock<IOutboxEventPublisher>(MockBehavior.Loose);
+            var workflow = new Mock<Contracts.Interfaces.Lookups.Workflow.IWorkflowLookup>(MockBehavior.Loose);
+
             return new RecurringJournalGenerationService(
                 new RecurringGenerationRepository(ctx),
-                new JournalCommandRepository(ctx),
                 journalQuery,
                 fy.Object,
-                tz.Object);
+                tz.Object,
+                outbox.Object,
+                workflow.Object);
         }
 
         [Fact]
-        public async Task GenerateForPeriod_AutoPosts_DueTemplate_AndIsIdempotent()
+        public async Task GenerateForTemplate_LowRisk_CreatesApproved_NotPosted_AndIsIdempotent()
         {
             await _fixture.ClearAllTablesAsync();
             var ids = await RecurringTemplateSeed.SeedAsync(_fixture);
@@ -57,33 +62,35 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
 
             var voucherDate = new DateOnly(2026, 6, 15);
 
-            int generated;
+            int journalId;
             await using (var ctx = _fixture.CreateFreshDbContext())
-                generated = await CreateService(ctx).GenerateForPeriodAsync(1, ids.CurrencyId, "2026-06", voucherDate, CancellationToken.None);
+                journalId = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, CancellationToken.None);
 
-            generated.Should().Be(1);
+            journalId.Should().BeGreaterThan(0);
 
             await using (var verify = _fixture.CreateFreshDbContext())
             {
-                var log = await verify.RecurringGenerationLog.FirstAsync(g => g.TemplateId == templateId && g.Period == "2026-06");
+                var log = await verify.RecurringGenerationLog.FirstAsync(g => g.TemplateId == templateId);
                 log.GeneratedVoucherId.Should().NotBeNull();
-                log.AutoPosted.Should().BeTrue();   // template is AutoPost + LowRisk
+                log.AutoPosted.Should().BeFalse();   // recurring vouchers are NEVER auto-posted
 
                 var journal = await verify.JournalHeader.FirstAsync(h => h.Id == log.GeneratedVoucherId);
-                journal.VoucherNo.Should().NotBeNull();          // auto-posted → number assigned
+                journal.VoucherNo.Should().NotBeNull();          // number allocated at create time
+                journal.IsPosted.Should().BeFalse();             // low-risk → APPROVED, not posted
+                journal.PostingDate.Should().BeNull();
                 journal.TotalDr.Should().Be(journal.TotalCr);
                 (await verify.JournalDetail.CountAsync(d => d.JournalHeaderId == journal.Id)).Should().Be(2);
-                (await verify.LedgerBalance.CountAsync()).Should().BeGreaterThan(0);   // posting updated balances
+                (await verify.LedgerBalance.CountAsync()).Should().Be(0);   // not posted → no ledger impact
             }
 
             // Re-run for the same period → idempotent (nothing new).
             int second;
             await using (var ctx = _fixture.CreateFreshDbContext())
-                second = await CreateService(ctx).GenerateForPeriodAsync(1, ids.CurrencyId, "2026-06", voucherDate, CancellationToken.None);
+                second = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, CancellationToken.None);
 
             second.Should().Be(0);
             await using (var verify = _fixture.CreateFreshDbContext())
-                (await verify.RecurringGenerationLog.CountAsync(g => g.TemplateId == templateId && g.Period == "2026-06")).Should().Be(1);
+                (await verify.RecurringGenerationLog.CountAsync(g => g.TemplateId == templateId)).Should().Be(1);
         }
 
         [Fact]
@@ -116,6 +123,43 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
                 (await repo.GenerationExistsAsync(1, templateId, "2026-06", CancellationToken.None)).Should().BeTrue();
                 (await repo.GenerationExistsAsync(2, templateId, "2026-06", CancellationToken.None)).Should().BeFalse();
             }
+        }
+
+        [Fact]
+        public async Task GenerationExists_False_When_GeneratedJournal_SoftDeleted()
+        {
+            await _fixture.ClearAllTablesAsync();
+            var ids = await RecurringTemplateSeed.SeedAsync(_fixture);
+
+            int templateId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                templateId = await new RecurringJournalTemplateCommandRepository(ctx).CreateAsync(RecurringTemplateSeed.BuildTemplate(ids));
+
+            var voucherDate = new DateOnly(2026, 6, 15);
+
+            int journalId;
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                journalId = await CreateService(ctx).GenerateForTemplateAsync(1, templateId, voucherDate, CancellationToken.None);
+
+            journalId.Should().BeGreaterThan(0);
+
+            // The log stores the accounting period id — read it back to drive the existence checks.
+            string periodKey;
+            await using (var verify = _fixture.CreateFreshDbContext())
+                periodKey = (await verify.RecurringGenerationLog.FirstAsync(g => g.TemplateId == templateId)).Period!;
+
+            // Before deletion → the period counts as generated.
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                (await new RecurringGenerationRepository(ctx).GenerationExistsAsync(1, templateId, periodKey, CancellationToken.None))
+                    .Should().BeTrue();
+
+            // Soft-delete the generated journal → the period is regeneratable again.
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                await new JournalCommandRepository(ctx).SoftDeleteAsync(journalId, CancellationToken.None);
+
+            await using (var ctx = _fixture.CreateFreshDbContext())
+                (await new RecurringGenerationRepository(ctx).GenerationExistsAsync(1, templateId, periodKey, CancellationToken.None))
+                    .Should().BeFalse();
         }
     }
 }

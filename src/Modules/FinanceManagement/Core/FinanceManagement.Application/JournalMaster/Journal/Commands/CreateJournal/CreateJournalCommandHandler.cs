@@ -64,7 +64,6 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CreateJou
             entity.StatusId = statusId;
             entity.SourceId = sourceId;
             entity.IsReversal = false;
-            entity.AutoApproved = false;
 
             entity.Details = BuildLines(request);
             entity.TotalDr = entity.Details.Sum(l => l.DrAmount);

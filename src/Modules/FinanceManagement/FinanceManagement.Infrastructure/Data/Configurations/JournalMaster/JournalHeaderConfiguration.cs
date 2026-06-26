@@ -34,10 +34,10 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.Property(t => t.AccountingPeriodId).HasColumnName("AccountingPeriodId").HasColumnType("int").IsRequired(false);
             builder.Property(t => t.Narration).HasColumnName("Narration").HasColumnType("varchar(500)").IsRequired(false);
             builder.Property(t => t.StatusId).HasColumnName("StatusId").HasColumnType("int").IsRequired();
+            builder.Property(t => t.IsPosted).HasColumnName("IsPosted").HasColumnType("bit").HasDefaultValue(false).IsRequired();
             builder.Property(t => t.SourceId).HasColumnName("SourceId").HasColumnType("int").IsRequired();
             builder.Property(t => t.TriggerDocType).HasColumnName("TriggerDocType").HasColumnType("varchar(30)").IsRequired(false);
             builder.Property(t => t.TriggerDocRef).HasColumnName("TriggerDocRef").HasColumnType("varchar(50)").IsRequired(false);
-            builder.Property(t => t.AutoApproved).HasColumnName("AutoApproved").HasColumnType("bit").HasDefaultValue(false).IsRequired();
             builder.Property(t => t.TotalDr).HasColumnName("TotalDr").HasColumnType("decimal(18,2)").HasDefaultValue(0m).IsRequired();
             builder.Property(t => t.TotalCr).HasColumnName("TotalCr").HasColumnType("decimal(18,2)").HasDefaultValue(0m).IsRequired();
             builder.Property(t => t.ReversalOfId).HasColumnName("ReversalOfId").HasColumnType("int").IsRequired(false);

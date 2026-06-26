@@ -23,6 +23,8 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
 
             builder.Property(t => t.Id).HasColumnName("Id").HasColumnType("int").IsRequired();
             builder.Property(t => t.TemplateName).HasColumnName("TemplateName").HasColumnType("varchar(150)").IsRequired();
+            builder.Property(t => t.CompanyId).HasColumnName("CompanyId").HasColumnType("int").HasDefaultValue(0).IsRequired();
+            builder.Property(t => t.UnitId).HasColumnName("UnitId").HasColumnType("int").HasDefaultValue(0).IsRequired();
             builder.Property(t => t.VoucherTypeId).HasColumnName("VoucherTypeId").HasColumnType("int").IsRequired();
             builder.Property(t => t.FrequencyId).HasColumnName("FrequencyId").HasColumnType("int").IsRequired();
             builder.Property(t => t.StartDate).HasColumnName("StartDate").HasColumnType("date").IsRequired();
@@ -30,6 +32,8 @@ namespace FinanceManagement.Infrastructure.Data.Configurations.JournalMaster
             builder.Property(t => t.AutoPost).HasColumnName("AutoPost").HasColumnType("bit").HasDefaultValue(false).IsRequired();
             builder.Property(t => t.AmountAdjustmentRuleId).HasColumnName("AmountAdjustmentRuleId").HasColumnType("int").IsRequired();
             builder.Property(t => t.LowRisk).HasColumnName("LowRisk").HasColumnType("bit").HasDefaultValue(false).IsRequired();
+
+            builder.Property(t => t.StatusId).HasColumnName("StatusId").HasColumnType("int").HasDefaultValue(0).IsRequired();
 
             builder.Property(b => b.IsActive)
                 .HasColumnName("IsActive").HasColumnType("bit").HasConversion(statusConverter).IsRequired();

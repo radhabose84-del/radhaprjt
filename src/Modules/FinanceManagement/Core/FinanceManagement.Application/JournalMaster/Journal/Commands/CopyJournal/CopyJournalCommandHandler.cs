@@ -76,7 +76,6 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.CopyJourn
                 StatusId = draftStatusId,
                 SourceId = sourceId,
                 IsReversal = false,
-                AutoApproved = false,
                 CopiedFromRef = source.VoucherNo,   // informational only — no posting/FK link
                 TotalDr = source.TotalDr,
                 TotalCr = source.TotalCr,

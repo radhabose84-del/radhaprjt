@@ -143,7 +143,6 @@ namespace FinanceManagement.IntegrationTests.Repositories.Journal
                 StatusId = ids.StatusDraftId,
                 SourceId = ids.SourceManualId,
                 IsReversal = false,
-                AutoApproved = false,
                 TotalDr = amount,
                 TotalCr = amount,
                 IsActive = Status.Active,

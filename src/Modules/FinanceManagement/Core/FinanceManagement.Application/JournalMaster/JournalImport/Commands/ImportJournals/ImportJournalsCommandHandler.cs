@@ -161,7 +161,6 @@ namespace FinanceManagement.Application.JournalMaster.JournalImport.Commands.Imp
                 StatusId = draftStatusId,
                 SourceId = importSourceId,
                 IsReversal = false,
-                AutoApproved = false,
                 TotalDr = group.Sum(x => x.DrAmount),
                 TotalCr = group.Sum(x => x.CrAmount),
                 IsActive = Status.Active,

@@ -7,6 +7,8 @@ namespace FinanceManagement.Application.JournalMaster.Dto
         public decimal? DrAmount { get; set; }
         public decimal? CrAmount { get; set; }
         public string? AmountFormula { get; set; }
+        public int CurrencyId { get; set; }
+        public decimal? ExchangeRate { get; set; }
         public int? CostCentreId { get; set; }
         public int? ProfitCentreId { get; set; }
         public string? LineNarration { get; set; }

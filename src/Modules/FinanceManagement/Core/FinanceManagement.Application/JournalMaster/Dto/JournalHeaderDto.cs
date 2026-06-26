@@ -29,7 +29,6 @@ namespace FinanceManagement.Application.JournalMaster.Dto
         public string? SourceName { get; set; }             // MiscMaster (JOURNAL_SOURCE)
         public string? TriggerDocType { get; set; }
         public string? TriggerDocRef { get; set; }
-        public bool AutoApproved { get; set; }
         public decimal TotalDr { get; set; }
         public decimal TotalCr { get; set; }
         public int? ReversalOfId { get; set; }

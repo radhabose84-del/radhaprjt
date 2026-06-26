@@ -74,9 +74,9 @@ public class ApprovalResultDispatcherConsumer : IConsumer<ApprovedRejectedEvent>
 
     private static readonly HashSet<string> FinanceTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Account Group Hierarchy","Tax Linkage","Journal Voucher"
+        "Account Group Hierarchy","Tax Linkage","Journal Voucher","Recurring Journal"
     };
-
+ 
     private readonly IInboxRepository _inbox;
     private readonly ILogger<ApprovalResultDispatcherConsumer> _logger;
 

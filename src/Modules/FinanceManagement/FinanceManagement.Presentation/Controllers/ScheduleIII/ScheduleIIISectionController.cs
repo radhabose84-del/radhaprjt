@@ -1,4 +1,5 @@
 using FinanceManagement.Application.ScheduleIII.Commands.CreateSection;
+using FinanceManagement.Application.ScheduleIII.Commands.ReorderSection;
 using FinanceManagement.Application.ScheduleIII.Commands.UpdateSection;
 using FinanceManagement.Application.ScheduleIII.Queries.GetAllSection;
 using FinanceManagement.Application.ScheduleIII.Queries.GetSectionById;
@@ -55,6 +56,14 @@ namespace FinanceManagement.Presentation.Controllers
 
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] UpdateSectionCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });
+        }
+
+        // Move a section up (Direction = 1) or down (Direction = -1) within its statement type.
+        [HttpPost("reorder")]
+        public async Task<IActionResult> Reorder([FromBody] ReorderSectionCommand command)
         {
             var result = await Mediator.Send(command);
             return Ok(new { StatusCode = StatusCodes.Status200OK, isSuccess = result.IsSuccess, message = result.Message, data = result.Data });

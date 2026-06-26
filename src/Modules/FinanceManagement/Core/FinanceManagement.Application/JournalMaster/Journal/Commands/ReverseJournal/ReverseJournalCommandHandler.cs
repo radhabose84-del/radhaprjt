@@ -77,7 +77,6 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.ReverseJo
                 SourceId = sourceId,
                 IsReversal = true,
                 ReversalOfId = original.Id,
-                AutoApproved = false,
                 TotalDr = original.TotalCr,
                 TotalCr = original.TotalDr,
                 IsActive = Status.Active,

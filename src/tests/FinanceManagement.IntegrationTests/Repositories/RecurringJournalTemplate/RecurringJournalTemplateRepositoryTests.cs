@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
+using Contracts.Interfaces;
+using Moq;
 using FinanceManagement.IntegrationTests.Common;
 using FinanceManagement.Infrastructure.Repositories.JournalMaster.RecurringJournalTemplate;
 using static FinanceManagement.Domain.Common.BaseEntity;
@@ -17,7 +19,12 @@ namespace FinanceManagement.IntegrationTests.Repositories.RecurringJournalTempla
         }
 
         private RecurringJournalTemplateCommandRepository CreateCommandRepo(FinanceManagement.Infrastructure.Data.ApplicationDbContext ctx) => new(ctx);
-        private RecurringJournalTemplateQueryRepository CreateQueryRepo() => new(new SqlConnection(_fixture.ConnectionString));
+        private RecurringJournalTemplateQueryRepository CreateQueryRepo(int companyId = 1)
+        {
+            var ip = new Mock<IIPAddressService>(MockBehavior.Loose);
+            ip.Setup(s => s.GetCompanyId()).Returns(companyId);
+            return new RecurringJournalTemplateQueryRepository(new SqlConnection(_fixture.ConnectionString), ip.Object);
+        }
 
         private async Task ClearTableAsync() => await _fixture.ClearAllTablesAsync();
 

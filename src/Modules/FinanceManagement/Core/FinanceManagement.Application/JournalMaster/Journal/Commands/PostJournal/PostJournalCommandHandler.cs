@@ -40,8 +40,11 @@ namespace FinanceManagement.Application.JournalMaster.Journal.Commands.PostJourn
             var postedByName = _ipAddressService.GetUserName();
             var now = _timeZoneService.GetCurrentTime();
 
+            // PostingDate = the supplied PostedDate, or the current date when omitted.
+            var postingDate = request.PostedDate ?? DateOnly.FromDateTime(now.DateTime);
+
             var result = await _commandRepository.PostAsync(
-                request.Id, postedStatusId, journal.FinancialYearName, postedByName, postedById, now, cancellationToken)
+                request.Id, postedStatusId, journal.FinancialYearName, postedByName, postedById, now, cancellationToken, postingDate)
                 ?? throw new ExceptionRules("Journal voucher could not be posted (missing or already posted).");
 
             var auditEvent = new AuditLogsDomainEvent(
