@@ -24,7 +24,10 @@ public sealed class FinancialPeriodStatusQATests
     private static int _openPeriodId;
     private static int _softClosedPeriodId;
 
-    private int StartYear => 2100 + (RunUniqueInt(_f.EntityCode) % 100);
+    // Run-unique year in band 5100-8099 (3000 slots) — disjoint from FinancialYearMasterQATests
+    // (2100-5099) so the two year-creating suites never collide on a shared clone, and wide enough
+    // to stay re-runnable without a DB reset (a % 100 left only 100 years that fill up and collide).
+    private int StartYear => 5100 + (RunUniqueInt(_f.EntityCode) % 3000);
     private string Code         => $"{StartYear}-{(StartYear + 1) % 100:D2}";
     private string StartDateStr => $"{StartYear}-04-01";
     private string EndDateStr   => $"{StartYear + 1}-03-31";
@@ -38,6 +41,16 @@ public sealed class FinancialPeriodStatusQATests
     [Fact, TestPriority(1)]
     public async Task TC001_Setup_CreateYear_CapturesYearAndFirstPeriodIds()
     {
+        await EnsureYearWithPeriodsAsync();
+    }
+
+    // Creates the run-unique year and captures the first two period ids (open + to-soft-close).
+    // Idempotent within a run via the static guard, so the Smoke slice (which runs TC010 WITHOUT the
+    // ordered TC001 setup) can call it directly and still be self-contained.
+    private async Task EnsureYearWithPeriodsAsync()
+    {
+        if (_openPeriodId > 0) return;
+
         var resp = await _f.Client.PostAsJsonAsync(YearRoute, new
         {
             financialYearCode = Code,
@@ -67,6 +80,9 @@ public sealed class FinancialPeriodStatusQATests
     [Trait("Layer", "Smoke")]
     public async Task TC010_GetStatus_HappyPath_Returns200_WithOpen()
     {
+        // Self-contained for the Smoke slice: when run via --filter "Layer=Smoke" the ordered
+        // TC001 setup does not execute, so ensure the year + open period exist here.
+        await EnsureYearWithPeriodsAsync();
         _openPeriodId.Should().BeGreaterThan(0);
 
         var resp = await _f.Client.GetAsync($"{StatusRoute}/{_openPeriodId}");
