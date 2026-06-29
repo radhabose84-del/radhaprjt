@@ -59,12 +59,52 @@ namespace UserManagement.IntegrationTests.Repositories.Lookups.Users
                 StartDate = start ?? new DateTime(2024, 4, 1),
                 EndDate = end ?? new DateTime(2025, 3, 31),
                 FinYearName = name,
+                StatusId = await EnsureFysStatusAsync(ctx),
                 IsActive = Enums.Status.Active,
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
             await ctx.FinancialYear.AddAsync(entity);
             await ctx.SaveChangesAsync();
             return entity.Id;
+        }
+
+        // Seeds the 'FYS' MiscType + an 'OPEN' MiscMaster status so FinancialYear's required
+        // StatusId FK is satisfied, returning the status id.
+        private static async Task<int> EnsureFysStatusAsync(ApplicationDbContext ctx)
+        {
+            var type = await ctx.MiscTypeMaster.FirstOrDefaultAsync(m => m.MiscTypeCode == "FYS");
+            if (type == null)
+            {
+                type = new UserManagement.Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "FYS",
+                    Description = "Financial Year Status",
+                    IsActive = Enums.Status.Active,
+                    IsDeleted = Enums.IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(type);
+                await ctx.SaveChangesAsync();
+                ctx.ChangeTracker.Clear();
+            }
+
+            var status = await ctx.MiscMaster.FirstOrDefaultAsync(m => m.Code == "OPEN" && m.MiscTypeId == type.Id);
+            if (status == null)
+            {
+                status = new UserManagement.Domain.Entities.MiscMaster
+                {
+                    Code = "OPEN",
+                    Description = "Open",
+                    MiscTypeId = type.Id,
+                    SortOrder = 1,
+                    IsActive = Enums.Status.Active,
+                    IsDeleted = Enums.IsDelete.NotDeleted
+                };
+                await ctx.MiscMaster.AddAsync(status);
+                await ctx.SaveChangesAsync();
+                ctx.ChangeTracker.Clear();
+            }
+
+            return status.Id;
         }
 
         private async Task ClearAsync() =>

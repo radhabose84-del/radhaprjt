@@ -47,7 +47,11 @@ namespace UserManagement.IntegrationTests.Repositories.FinancialYear
         private FinancialYearCommandRepository CreateRepository(ApplicationDbContext ctx)
             => new FinancialYearCommandRepository(ctx);
 
-        private static Domain.Entities.FinancialYear BuildEntity(
+        // FinancialYear.StatusId is a required FK to AppData.MiscMaster (US-GL03-01 FYS lifecycle).
+        // Seeded per-test (ClearAllTablesAsync wipes AppData) and captured here for BuildEntity.
+        private int _statusId;
+
+        private Domain.Entities.FinancialYear BuildEntity(
             string startYear = "2024",
             string finYearName = "FY-CMD-TEST") =>
             new Domain.Entities.FinancialYear
@@ -56,12 +60,55 @@ namespace UserManagement.IntegrationTests.Repositories.FinancialYear
                 StartDate = new DateTime(2024, 4, 1),
                 EndDate = new DateTime(2025, 3, 31),
                 FinYearName = finYearName,
+                StatusId = _statusId,
                 IsActive = Enums.Status.Active,
                 IsDeleted = Enums.IsDelete.NotDeleted
             };
 
-        private async Task ClearTestDataAsync(ApplicationDbContext ctx) =>
+        // Seeds the 'FYS' MiscType + an 'OPEN' MiscMaster status so FinancialYear's required
+        // StatusId FK is satisfied, returning the status id.
+        private static async Task<int> EnsureFysStatusAsync(ApplicationDbContext ctx)
+        {
+            var type = await ctx.MiscTypeMaster.FirstOrDefaultAsync(m => m.MiscTypeCode == "FYS");
+            if (type == null)
+            {
+                type = new Domain.Entities.MiscTypeMaster
+                {
+                    MiscTypeCode = "FYS",
+                    Description = "Financial Year Status",
+                    IsActive = Enums.Status.Active,
+                    IsDeleted = Enums.IsDelete.NotDeleted
+                };
+                await ctx.MiscTypeMaster.AddAsync(type);
+                await ctx.SaveChangesAsync();
+                ctx.ChangeTracker.Clear();
+            }
+
+            var status = await ctx.MiscMaster.FirstOrDefaultAsync(m => m.Code == "OPEN" && m.MiscTypeId == type.Id);
+            if (status == null)
+            {
+                status = new Domain.Entities.MiscMaster
+                {
+                    Code = "OPEN",
+                    Description = "Open",
+                    MiscTypeId = type.Id,
+                    SortOrder = 1,
+                    IsActive = Enums.Status.Active,
+                    IsDeleted = Enums.IsDelete.NotDeleted
+                };
+                await ctx.MiscMaster.AddAsync(status);
+                await ctx.SaveChangesAsync();
+                ctx.ChangeTracker.Clear();
+            }
+
+            return status.Id;
+        }
+
+        private async Task ClearTestDataAsync(ApplicationDbContext ctx)
+        {
             await _fixture.ClearAllTablesAsync();
+            _statusId = await EnsureFysStatusAsync(ctx);
+        }
 
         // --- CREATE ---
 
