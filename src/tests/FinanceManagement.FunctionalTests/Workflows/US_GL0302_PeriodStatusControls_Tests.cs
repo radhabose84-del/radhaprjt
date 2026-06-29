@@ -34,6 +34,17 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     private const string StatusRoute   = "/api/finance/FinancialPeriodStatus";
     private const string OverrideRoute = "/api/finance/PeriodStatusOverride";
 
+    // BLOCKED by the US-GL03-01 refactor (2026-06-26): /api/finance/FinancialYearMaster (create year +
+    // auto-generate 13 periods) was removed. FinancialYear moved to UserManagement (/api/FinancialYear)
+    // as a plain master with no period generation, and period status moved to Finance.AccountingPeriod.
+    // The whole soft/hard-close + reversal workflow below depends on the old year→periods setup, so it
+    // can't seed a transitionable period anymore. Un-skip and rework once the new AccountingPeriod
+    // provisioning contract (how periods are created + the routes that expose them) is settled.
+    private const string BlockedReason =
+        "US-GL03-01 refactor: /api/finance/FinancialYearMaster (year + 13-period auto-generation) removed; " +
+        "FinancialYear moved to UserManagement (/api/FinancialYear) as a plain master and periods moved to " +
+        "Finance.AccountingPeriod. Needs rework against the new period-provisioning contract.";
+
     // Cross-step state — collection runs serially so `static` survives across [TestPriority] steps.
     private static int _yearId;
     private static int _periodForSoftClose;    // we soft-close this one mid-flow
@@ -55,7 +66,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 1 — Seed: create a year so we have periods to transition.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(1)]
+    [Fact(Skip = BlockedReason), TestPriority(1)]
     public async Task Step1_SeedYear_CapturesTwoPeriodIds()
     {
         var resp = await _f.Client.PostAsJsonAsync(YearRoute, new
@@ -81,7 +92,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // STEP 2 (State machine — illegal forward) — OPEN → HARDCLOSED is rejected;
     // must go through SOFTCLOSED first.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(2)]
+    [Fact(Skip = BlockedReason), TestPriority(2)]
     public async Task Step2_StateMachine_OpenToHardClosed_Skip_Returns400()
     {
         var resp = await _f.Client.PostAsync($"{StatusRoute}/{_periodForHardClose}/hard-close", null);
@@ -92,7 +103,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 3 (Forward transition — Open → SoftClosed) — happy path.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(3)]
+    [Fact(Skip = BlockedReason), TestPriority(3)]
     public async Task Step3_SoftClose_FromOpen_Returns200()
     {
         var resp = await _f.Client.PostAsync($"{StatusRoute}/{_periodForSoftClose}/soft-close", null);
@@ -108,7 +119,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // STEP 4 (Forward transition — SoftClosed → HardClosed) — full chain on the
     // second period so we have something to reverse later.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(4)]
+    [Fact(Skip = BlockedReason), TestPriority(4)]
     public async Task Step4_FullForwardChain_SoftCloseThenHardClose_OnSecondPeriod()
     {
         var soft = await _f.Client.PostAsync($"{StatusRoute}/{_periodForHardClose}/soft-close", null);
@@ -126,7 +137,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // STEP 5 (State machine — illegal reverse via direct API) — HARDCLOSED cannot
     // be directly soft-closed without going through the override flow.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(5)]
+    [Fact(Skip = BlockedReason), TestPriority(5)]
     public async Task Step5_StateMachine_HardClosed_DirectSoftClose_Returns400()
     {
         var resp = await _f.Client.PostAsync($"{StatusRoute}/{_periodForHardClose}/soft-close", null);
@@ -137,7 +148,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 6 (Reversal request) — Override workflow starts: PENDING row created.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(6)]
+    [Fact(Skip = BlockedReason), TestPriority(6)]
     public async Task Step6_RequestReversal_HardClosedToSoftClosed_Returns200()
     {
         var resp = await _f.Client.PostAsJsonAsync($"{OverrideRoute}/request", new
@@ -155,7 +166,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 7 (Only-one-pending invariant) — second request blocked.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(7)]
+    [Fact(Skip = BlockedReason), TestPriority(7)]
     public async Task Step7_DuplicatePendingOverride_Returns400()
     {
         var resp = await _f.Client.PostAsJsonAsync($"{OverrideRoute}/request", new
@@ -172,7 +183,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 8 — Invalid role gracefully rejected (gate-keeper before auto-apply).
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(8)]
+    [Fact(Skip = BlockedReason), TestPriority(8)]
     public async Task Step8_Approve_InvalidRole_Returns400()
     {
         var resp = await _f.Client.PostAsJsonAsync($"{OverrideRoute}/{_overrideId}/approve", new
@@ -231,7 +242,7 @@ public sealed class US_GL0302_PeriodStatusControls_Tests
     // chain. Implementable even without role grants — the PENDING override
     // from Step 6 is in the history.
     // ─────────────────────────────────────────────────────────────────────────
-    [Fact, TestPriority(12)]
+    [Fact(Skip = BlockedReason), TestPriority(12)]
     public async Task Step12_StatusHistory_ContainsThePendingOverride()
     {
         var resp = await _f.Client.GetAsync($"{StatusRoute}/{_periodForHardClose}/history");
