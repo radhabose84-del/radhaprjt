@@ -42,6 +42,9 @@ namespace FinanceManagement.FunctionalTests
     [CollectionDefinition("US-GL02-15")]
     public sealed class CoaReportStoryCollection : ICollectionFixture<QAServerFixture> { }
 
+    [CollectionDefinition("US-GL02-16")]
+    public sealed class CoaReadApiStoryCollection : ICollectionFixture<QAServerFixture> { }
+
     [CollectionDefinition("US-GL03-04")]
     public sealed class BackdatingLatePostingStoryCollection : ICollectionFixture<QAServerFixture> { }
 }

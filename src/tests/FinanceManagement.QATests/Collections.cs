@@ -86,4 +86,8 @@ namespace FinanceManagement.QATests
     // US-GL02-15 — COA Listing & Structure Reports (read-only + PDF export).
     [CollectionDefinition("CoaReportCollection")]
     public sealed class CoaReportCollection : ICollectionFixture<QAServerFixture> { }
+
+    // US-GL02-16 — COA Read API for downstream modules (get-by-code / search / validate-for-posting).
+    [CollectionDefinition("CoaReadCollection")]
+    public sealed class CoaReadCollection : ICollectionFixture<QAServerFixture> { }
 }
