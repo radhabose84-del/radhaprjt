@@ -1,0 +1,18 @@
+ALL-MODULE INTEGRATION RUN - started
+OK    BackgroundService.IntegrationTests  Passed! - Failed: 0, Passed: 233, Skipped: 0, Total: 233, Duration: 58 s - BackgroundService.IntegrationTests.dll (net8.0)
+OK    BudgetManagement.IntegrationTests  Passed! - Failed: 0, Passed: 130, Skipped: 0, Total: 130, Duration: 19 s - BudgetManagement.IntegrationTests.dll (net8.0)
+FAIL  FinanceManagement.IntegrationTests  Failed! - Failed: 1, Passed: 308, Skipped: 0, Total: 309, Duration: 1 m 59 s - FinanceManagement.IntegrationTests.dll (net8.0)
+OK    FixedAssetManagement.IntegrationTests  Passed! - Failed: 0, Passed: 462, Skipped: 7, Total: 469, Duration: 3 m 14 s - FixedAssetManagement.IntegrationTests.dll (net8.0)
+OK    GateEntryManagement.IntegrationTests  Passed! - Failed: 0, Passed: 118, Skipped: 0, Total: 118, Duration: 19 s - GateEntryManagement.IntegrationTests.dll (net8.0)
+OK    InventoryManagement.IntegrationTests  Passed! - Failed: 0, Passed: 509, Skipped: 0, Total: 509, Duration: 3 m 59 s - InventoryManagement.IntegrationTests.dll (net8.0)
+OK    LogisticsManagement.IntegrationTests  Passed! - Failed: 0, Passed: 121, Skipped: 0, Total: 121, Duration: 13 s - LogisticsManagement.IntegrationTests.dll (net8.0)
+OK    MaintenanceManagement.IntegrationTests  Passed! - Failed: 0, Passed: 480, Skipped: 1, Total: 481, Duration: 2 m 39 s - MaintenanceManagement.IntegrationTests.dll (net8.0)
+OK    PartyManagement.IntegrationTests  Passed! - Failed: 0, Passed: 201, Skipped: 3, Total: 204, Duration: 54 s - PartyManagement.IntegrationTests.dll (net8.0)
+OK    ProductionManagement.IntegrationTests  Passed! - Failed: 0, Passed: 386, Skipped: 0, Total: 386, Duration: 1 m 17 s - ProductionManagement.IntegrationTests.dll (net8.0)
+OK    ProjectManagement.IntegrationTests  Passed! - Failed: 0, Passed: 166, Skipped: 0, Total: 166, Duration: 15 s - ProjectManagement.IntegrationTests.dll (net8.0)
+OK    PurchaseManagement.IntegrationTests  Passed! - Failed: 0, Passed: 632, Skipped: 3, Total: 635, Duration: 8 m 53 s - PurchaseManagement.IntegrationTests.dll (net8.0)
+OK    QCManagement.IntegrationTests  Passed! - Failed: 0, Passed: 162, Skipped: 0, Total: 162, Duration: 12 s - QCManagement.IntegrationTests.dll (net8.0)
+OK    SalesManagement.IntegrationTests  Passed! - Failed: 0, Passed: 1292, Skipped: 0, Total: 1292, Duration: 10 m 19 s - SalesManagement.IntegrationTests.dll (net8.0)
+OK    UserManagement.IntegrationTests  Passed! - Failed: 0, Passed: 769, Skipped: 0, Total: 769, Duration: 4 m 45 s - UserManagement.IntegrationTests.dll (net8.0)
+OK    WarehouseManagement.IntegrationTests  Passed! - Failed: 0, Passed: 115, Skipped: 0, Total: 115, Duration: 10 s - WarehouseManagement.IntegrationTests.dll (net8.0)
+ALL-MODULE INTEGRATION RUN - finished
