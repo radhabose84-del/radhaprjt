@@ -1,8 +1,0 @@
-namespace UserManagement.Application.Departments.Queries.GetDepartmentAutoCompleteSearch
-{
-    public class DepartmentAutocompleteDto
-    {
-         public int Id { get; set; }
-         public string? DeptName { get; set; }
-    }
-}

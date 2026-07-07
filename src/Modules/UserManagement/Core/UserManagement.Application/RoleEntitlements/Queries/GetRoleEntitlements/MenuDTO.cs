@@ -1,9 +1,0 @@
-namespace UserManagement.Application.RoleEntitlements.Queries.GetRoleEntitlements
-{
-    public class MenuDTO
-    {
-        public int Id { get; set; }
-        public int ParentId { get; set; }
-        public IList<MenuDTO>? ChildMenu { get; set; }
-    }
-}
